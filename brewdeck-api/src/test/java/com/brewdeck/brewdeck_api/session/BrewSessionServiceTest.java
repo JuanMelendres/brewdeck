@@ -167,6 +167,7 @@ class BrewSessionServiceTest {
         .createdAt(LocalDateTime.now())
         .build();
   }
+<<<<<<< HEAD
 
   @Test
   void update_shouldUpdateBrewSession_whenSessionAndRecipeExist() {
@@ -294,4 +295,6 @@ class BrewSessionServiceTest {
     verify(brewSessionRepository).existsById(99L);
     verify(brewSessionRepository, never()).deleteById(anyLong());
   }
+=======
+>>>>>>> 4bdaaf9 (test(api): add service unit tests for domain packages)
 }

@@ -184,6 +184,7 @@ class RecipeServiceTest {
 
     verify(recipeRepository).findByFavoriteTrue();
   }
+<<<<<<< HEAD
 
   @Test
   void findByCoffeeId_shouldReturnRecipesForCoffee() {
@@ -389,4 +390,6 @@ class RecipeServiceTest {
     verify(recipeRepository).existsById(99L);
     verify(recipeRepository, never()).deleteById(anyLong());
   }
+=======
+>>>>>>> 4bdaaf9 (test(api): add service unit tests for domain packages)
 }
