@@ -132,12 +132,38 @@ PUT    /api/coffees/{id}
 DELETE /api/coffees/{id}
 ```
 
-### (Upcoming)
-```text
-Recipes
-Brew Sessions
-Methods
+### Methods
+```html
+GET    /api/brew-methods
+GET    /api/brew-methods/{id}
+POST   /api/brew-methods
+PUT    /api/brew-methods/{id}
+DELETE /api/brew-methods/{id}
 ```
+
+### Recipes
+```html
+GET    /api/recipes
+GET    /api/recipes/{id}
+GET    /api/recipes/favorites
+GET    /api/recipes/coffee/{coffeeId}
+GET    /api/recipes/method/{methodId}
+POST   /api/recipes
+PUT    /api/recipes/{id}
+DELETE /api/recipes/{id}
+```
+
+### Brew Sessions
+```html
+GET    /api/brew-sessions
+GET    /api/brew-sessions/{id}
+GET    /api/brew-sessions/recipe/{recipeId}
+POST   /api/brew-sessions
+PUT    /api/brew-sessions/{id}
+DELETE /api/brew-sessions/{id}
+```
+
+---
 
 ## 🧪 Quality Gates
 
@@ -169,32 +195,32 @@ Pre-push → full validation + security scan
 ---
 
 ## 🗺 Roadmap
-### Phase 1 (Current)
-- Coffee CRUD
-- PostgreSQL + Flyway
-- Code quality setup
-- Git hooks
+### Phase 1
+- [x] Coffee CRUD
+- [x] PostgreSQL + Flyway
+- [x] Code quality setup
+- [x] Git hooks
 
-### Phase 2
-- Brew Methods
-- Recipes
-- Brew Sessions
-- Favorites
+### Phase 2 (Current)
+- [x] Brew Methods
+- [x] Recipes
+- [x] Brew Sessions
+-  [ ] Favorites
 
 ### Phase 3
-- Next.js frontend
-- Mobile-first UI
-- API integration
+-  [ ] Next.js frontend
+-  [ ] Mobile-first UI
+-  [ ] API integration
 
 ### Phase 4
-- Authentication
-- User profiles
-- Cloud deployment
+-  [ ] Authentication
+-  [ ] User profiles
+-  [ ] Cloud deployment
 
 ### Phase 5 (Vision 🚀)
-- Hardware integration (e-paper device)
-- Offline sync
-- Advanced analytics
+-  [ ] Hardware integration (e-paper device)
+-  [ ] Offline sync
+-  [ ] Advanced analytics
 
 ---
 
