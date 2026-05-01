@@ -2,15 +2,13 @@ spring:
   application:
     name: brewdeck-api
 
-  datasource:
-    url: jdbc:postgresql://localhost:5432/brewdeck
-    username: brewdeck
-    password: brewdeck
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
 
   jpa:
     hibernate:
       ddl-auto: validate
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
@@ -19,10 +17,4 @@ spring:
     enabled: true
 
 server:
-  port: 8080
-
-logging:
-  level:
-    org.springframework.jdbc.datasource: DEBUG
-    org.flywaydb: DEBUG
-    org.hibernate.SQL: DEBUG
+  port: ${SERVER_PORT:8080}
