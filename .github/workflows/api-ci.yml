@@ -54,6 +54,15 @@ jobs:
       - name: Run Spotless check
         run: ./mvnw spotless:check
 
+      - name: Wait for PostgreSQL
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+          until pg_isready -h localhost -p 5432 -U brewdeck -d brewdeck; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+
       - name: Run tests
         run: ./mvnw test
 
