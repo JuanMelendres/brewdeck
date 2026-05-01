@@ -1,6 +1,10 @@
 package com.brewdeck.brewdeck_api;
 
+import static org.mockito.Mockito.mockStatic;
+
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.test.context.ActiveProfiles;
@@ -18,4 +22,14 @@ class BrewdeckApiApplicationTests {
 
   @Test
   void contextLoads() {}
+
+  @Test
+  void main_shouldStartApplication() {
+    try (MockedStatic<SpringApplication> springApplication = mockStatic(SpringApplication.class)) {
+      String[] args = {};
+      BrewdeckApiApplication.main(args);
+
+      springApplication.verify(() -> SpringApplication.run(BrewdeckApiApplication.class, args));
+    }
+  }
 }
