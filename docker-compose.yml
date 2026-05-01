@@ -3,9 +3,9 @@ services:
     image: postgres:16
     container_name: brewdeck-postgres
     environment:
-      POSTGRES_DB: brewdeck
-      POSTGRES_USER: brewdeck
-      POSTGRES_PASSWORD: brewdeck
+      POSTGRES_DB: ${POSTGRES_DB:-brewdeck}
+      POSTGRES_USER: ${POSTGRES_USER:-brewdeck}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-brewdeck}
     ports:
       - "5432:5432"
     volumes:
