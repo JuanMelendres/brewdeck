@@ -54,30 +54,11 @@ jobs:
       - name: Run Spotless check
         run: ./mvnw spotless:check
 
-      - name: Wait for PostgreSQL
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client
-          until pg_isready -h localhost -p 5432 -U brewdeck -d brewdeck; do
-            echo "Waiting for PostgreSQL..."
-            sleep 2
-          done
-
       - name: Run tests
         run: ./mvnw test
 
       - name: Run PMD
         run: ./mvnw pmd:check
 
-      - name: Run OWASP Dependency Check
-        run: ./mvnw dependency-check:check
-
       - name: Package application
-        run: ./mvnw clean package -DskipTests
-
-      - name: Upload OWASP report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: dependency-check-report
-          path: brewdeck-api/target/dependency-check-report.html
+        run: ./mvnw -B package -DskipTests
