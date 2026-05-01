@@ -32,7 +32,7 @@ jobs:
         working-directory: brewdeck-api
 
     env:
-      SPRING_PROFILES_ACTIVE: local
+      SPRING_PROFILES_ACTIVE: test
       DB_URL: jdbc:postgresql://localhost:5432/brewdeck
       DB_USER: brewdeck
       DB_PASSWORD: brewdeck
