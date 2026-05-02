@@ -211,6 +211,14 @@
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>0.8.12</version>
+				<configuration>
+					<excludes>
+						<exclude>**/*Application.class</exclude>
+						<exclude>**/*Request.class</exclude>
+						<exclude>**/*Response.class</exclude>
+						<exclude>**/config/**</exclude>
+					</excludes>
+				</configuration>
 				<executions>
 					<!-- Prepares the JaCoCo agent -->
 					<execution>
@@ -241,7 +249,7 @@
 									<limit>
 										<counter>LINE</counter>
 										<value>COVEREDRATIO</value>
-										<minimum>0.00</minimum> <!-- 80% -->
+										<minimum>0.80</minimum> <!-- 80% -->
 									</limit>
 								</limits>
 							</rule>
