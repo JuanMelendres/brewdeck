@@ -167,4 +167,131 @@ class BrewSessionServiceTest {
         .createdAt(LocalDateTime.now())
         .build();
   }
+
+  @Test
+  void update_shouldUpdateBrewSession_whenSessionAndRecipeExist() {
+    Recipe oldRecipe = buildRecipe();
+    Recipe newRecipe = buildRecipe();
+
+    BrewSession existingSession =
+        BrewSession.builder()
+            .id(1L)
+            .recipe(oldRecipe)
+            .brewedAt(LocalDateTime.now())
+            .actualGrind("Old grind")
+            .actualTemp(88)
+            .actualTime("2:00")
+            .tasteResult("Old result")
+            .rating(7)
+            .adjustmentNotes("Old notes")
+            .build();
+
+    BrewSessionRequest request =
+        new BrewSessionRequest(
+            1L,
+            "Timemore S3 - 5.8",
+            91,
+            "2:40",
+            "More aromatic and balanced.",
+            10,
+            "Repeat this version.");
+
+    when(brewSessionRepository.findById(1L)).thenReturn(Optional.of(existingSession));
+    when(recipeRepository.findById(1L)).thenReturn(Optional.of(newRecipe));
+    when(brewSessionRepository.save(existingSession)).thenReturn(existingSession);
+
+    BrewSessionResponse result = brewSessionService.update(1L, request);
+
+    assertThat(result.id()).isEqualTo(1L);
+    assertThat(result.recipeId()).isEqualTo(1L);
+    assertThat(result.actualGrind()).isEqualTo("Timemore S3 - 5.8");
+    assertThat(result.actualTemp()).isEqualTo(91);
+    assertThat(result.actualTime()).isEqualTo("2:40");
+    assertThat(result.tasteResult()).isEqualTo("More aromatic and balanced.");
+    assertThat(result.rating()).isEqualTo(10);
+    assertThat(result.adjustmentNotes()).isEqualTo("Repeat this version.");
+
+    verify(brewSessionRepository).findById(1L);
+    verify(recipeRepository).findById(1L);
+    verify(brewSessionRepository).save(existingSession);
+  }
+
+  @Test
+  void update_shouldThrowException_whenBrewSessionDoesNotExist() {
+    BrewSessionRequest request =
+        new BrewSessionRequest(
+            1L,
+            "Timemore S3 - 5.8",
+            91,
+            "2:40",
+            "More aromatic and balanced.",
+            10,
+            "Repeat this version.");
+
+    when(brewSessionRepository.findById(99L)).thenReturn(Optional.empty());
+
+    assertThatThrownBy(() -> brewSessionService.update(99L, request))
+        .isInstanceOf(EntityNotFoundException.class)
+        .hasMessage("Brew session not found");
+
+    verify(brewSessionRepository).findById(99L);
+    verify(recipeRepository, never()).findById(anyLong());
+    verify(brewSessionRepository, never()).save(any());
+  }
+
+  @Test
+  void update_shouldThrowException_whenRecipeDoesNotExist() {
+    Recipe oldRecipe = buildRecipe();
+
+    BrewSession existingSession =
+        BrewSession.builder()
+            .id(1L)
+            .recipe(oldRecipe)
+            .brewedAt(LocalDateTime.now())
+            .rating(8)
+            .build();
+
+    BrewSessionRequest request =
+        new BrewSessionRequest(
+            99L,
+            "Timemore S3 - 5.8",
+            91,
+            "2:40",
+            "More aromatic and balanced.",
+            10,
+            "Repeat this version.");
+
+    when(brewSessionRepository.findById(1L)).thenReturn(Optional.of(existingSession));
+    when(recipeRepository.findById(99L)).thenReturn(Optional.empty());
+
+    assertThatThrownBy(() -> brewSessionService.update(1L, request))
+        .isInstanceOf(EntityNotFoundException.class)
+        .hasMessage("Recipe not found");
+
+    verify(brewSessionRepository).findById(1L);
+    verify(recipeRepository).findById(99L);
+    verify(brewSessionRepository, never()).save(any());
+  }
+
+  @Test
+  void delete_shouldDeleteBrewSession_whenSessionExists() {
+    when(brewSessionRepository.existsById(1L)).thenReturn(true);
+
+    brewSessionService.delete(1L);
+
+    verify(brewSessionRepository).existsById(1L);
+    verify(brewSessionRepository).deleteById(1L);
+  }
+
+  @Test
+  void delete_shouldThrowException_whenBrewSessionDoesNotExist() {
+    when(brewSessionRepository.existsById(99L)).thenReturn(false);
+
+    assertThatThrownBy(() -> brewSessionService.delete(99L))
+        .isInstanceOf(EntityNotFoundException.class)
+        .hasMessage("Brew session not found");
+
+    verify(brewSessionRepository).existsById(99L);
+    verify(brewSessionRepository, never()).deleteById(anyLong());
+  }
 }
