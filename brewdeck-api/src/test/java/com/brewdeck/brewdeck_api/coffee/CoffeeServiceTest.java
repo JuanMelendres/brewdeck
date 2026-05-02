@@ -145,4 +145,92 @@ class CoffeeServiceTest {
     verify(coffeeRepository).existsById(99L);
     verify(coffeeRepository, never()).deleteById(anyLong());
   }
+
+  @Test
+  void update_shouldUpdateCoffee_whenCoffeeExists() {
+    Coffee existingCoffee =
+        Coffee.builder()
+            .id(1L)
+            .name("Old Coffee")
+            .brand("Old Brand")
+            .origin("Old Origin")
+            .createdAt(LocalDateTime.now())
+            .build();
+
+    CoffeeRequest request =
+        new CoffeeRequest(
+            "Mezcla Veracruz Updated",
+            "Café local",
+            "Veracruz",
+            "Coatepec",
+            "Test Farm",
+            "Test Producer",
+            "Blend",
+            "Lavado",
+            "Medio",
+            "Cardamomo",
+            "Canela, clavo",
+            "Media",
+            "Medio",
+            "Media",
+            "Baja",
+            "Updated description");
+
+    when(coffeeRepository.findById(1L)).thenReturn(Optional.of(existingCoffee));
+    when(coffeeRepository.save(existingCoffee)).thenReturn(existingCoffee);
+
+    CoffeeResponse result = coffeeService.update(1L, request);
+
+    assertThat(result.id()).isEqualTo(1L);
+    assertThat(result.name()).isEqualTo("Mezcla Veracruz Updated");
+    assertThat(result.brand()).isEqualTo("Café local");
+    assertThat(result.origin()).isEqualTo("Veracruz");
+    assertThat(result.region()).isEqualTo("Coatepec");
+    assertThat(result.farm()).isEqualTo("Test Farm");
+    assertThat(result.producer()).isEqualTo("Test Producer");
+    assertThat(result.variety()).isEqualTo("Blend");
+    assertThat(result.process()).isEqualTo("Lavado");
+    assertThat(result.roastLevel()).isEqualTo("Medio");
+    assertThat(result.notesPrimary()).isEqualTo("Cardamomo");
+    assertThat(result.notesSecondary()).isEqualTo("Canela, clavo");
+    assertThat(result.acidity()).isEqualTo("Media");
+    assertThat(result.body()).isEqualTo("Medio");
+    assertThat(result.sweetness()).isEqualTo("Media");
+    assertThat(result.bitterness()).isEqualTo("Baja");
+    assertThat(result.description()).isEqualTo("Updated description");
+
+    verify(coffeeRepository).findById(1L);
+    verify(coffeeRepository).save(existingCoffee);
+  }
+
+  @Test
+  void update_shouldThrowException_whenCoffeeDoesNotExist() {
+    CoffeeRequest request =
+        new CoffeeRequest(
+            "Mezcla Veracruz Updated",
+            "Café local",
+            "Veracruz",
+            "Coatepec",
+            null,
+            null,
+            "Blend",
+            "Lavado",
+            "Medio",
+            "Cardamomo",
+            "Canela, clavo",
+            "Media",
+            "Medio",
+            "Media",
+            "Baja",
+            "Updated description");
+
+    when(coffeeRepository.findById(99L)).thenReturn(Optional.empty());
+
+    assertThatThrownBy(() -> coffeeService.update(99L, request))
+        .isInstanceOf(EntityNotFoundException.class)
+        .hasMessage("Coffee not found");
+
+    verify(coffeeRepository).findById(99L);
+    verify(coffeeRepository, never()).save(any());
+  }
 }
