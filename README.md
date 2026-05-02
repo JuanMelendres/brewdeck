@@ -169,6 +169,20 @@ DELETE /api/brew-sessions/{id}
 
 The project enforces professional-grade quality standards:
 
+### SonarQube
+#### Quality Gate
+[![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=JuanMelendres_brewdeck)](https://sonarcloud.io/summary/new_code?id=JuanMelendres_brewdeck)
+
+#### Bugs
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=JuanMelendres_brewdeck&metric=bugs)](https://sonarcloud.io/summary/new_code?id=JuanMelendres_brewdeck)
+
+#### Coverage
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=JuanMelendres_brewdeck&metric=coverage)](https://sonarcloud.io/summary/new_code?id=JuanMelendres_brewdeck)
+
+#### Reliability Rating
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=JuanMelendres_brewdeck&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=JuanMelendres_brewdeck)
+
+
 ### Code Formatting
 ```bash
 ./mvnw spotless:apply
