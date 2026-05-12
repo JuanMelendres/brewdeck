@@ -2,7 +2,9 @@ package com.brewdeck.brewdeck_api.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.brewdeck.brewdeck_api.common.PostgresIntegrationTest;
@@ -184,6 +186,18 @@ class BrewingWorkflowIntegrationTest extends PostgresIntegrationTest {
             .getContentAsString();
 
     JsonNode json = objectMapper.readTree(response);
+
+    Long recipeId = json.get("id").asLong();
+
+    mockMvc
+        .perform(patch("/api/recipes/{id}/favorite", recipeId))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.favorite").value(true));
+
+    mockMvc
+        .perform(patch("/api/recipes/{id}/unfavorite", recipeId))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.favorite").value(false));
 
     assertThat(json.get("id").asLong()).isPositive();
     assertThat(json.get("coffeeId").asLong()).isEqualTo(coffeeId);

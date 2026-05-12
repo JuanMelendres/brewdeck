@@ -13,6 +13,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class RecipeService {
 
+  private static final String RECIPE_NOT_FOUND = "Recipe not found";
+  private static final String COFFEE_NOT_FOUND = "Coffee not found";
+  private static final String BREW_METHOD_NOT_FOUND = "Brew method not found";
+
   private final RecipeRepository recipeRepository;
   private final CoffeeRepository coffeeRepository;
   private final BrewMethodRepository brewMethodRepository;
@@ -22,12 +26,7 @@ public class RecipeService {
   }
 
   public RecipeResponse findById(Long id) {
-    Recipe recipe =
-        recipeRepository
-            .findById(id)
-            .orElseThrow(() -> new EntityNotFoundException("Recipe not found"));
-
-    return RecipeResponse.fromEntity(recipe);
+    return RecipeResponse.fromEntity(findRecipeById(id));
   }
 
   public List<RecipeResponse> findFavorites() {
@@ -47,15 +46,8 @@ public class RecipeService {
   }
 
   public RecipeResponse create(RecipeRequest request) {
-    Coffee coffee =
-        coffeeRepository
-            .findById(request.coffeeId())
-            .orElseThrow(() -> new EntityNotFoundException("Coffee not found"));
-
-    BrewMethod method =
-        brewMethodRepository
-            .findById(request.methodId())
-            .orElseThrow(() -> new EntityNotFoundException("Brew method not found"));
+    Coffee coffee = findCoffeeById(request.coffeeId());
+    BrewMethod method = findBrewMethodById(request.methodId());
 
     Recipe recipe =
         Recipe.builder()
@@ -77,21 +69,59 @@ public class RecipeService {
   }
 
   public RecipeResponse update(Long id, RecipeRequest request) {
-    Recipe recipe =
-        recipeRepository
-            .findById(id)
-            .orElseThrow(() -> new EntityNotFoundException("Recipe not found"));
+    Recipe recipe = findRecipeById(id);
+    Coffee coffee = findCoffeeById(request.coffeeId());
+    BrewMethod method = findBrewMethodById(request.methodId());
 
-    Coffee coffee =
-        coffeeRepository
-            .findById(request.coffeeId())
-            .orElseThrow(() -> new EntityNotFoundException("Coffee not found"));
+    updateRecipeFields(recipe, request, coffee, method);
 
-    BrewMethod method =
-        brewMethodRepository
-            .findById(request.methodId())
-            .orElseThrow(() -> new EntityNotFoundException("Brew method not found"));
+    return RecipeResponse.fromEntity(recipeRepository.save(recipe));
+  }
 
+  public void delete(Long id) {
+    if (!recipeRepository.existsById(id)) {
+      throw new EntityNotFoundException(RECIPE_NOT_FOUND);
+    }
+
+    recipeRepository.deleteById(id);
+  }
+
+  public RecipeResponse markAsFavorite(Long id) {
+    Recipe recipe = findRecipeById(id);
+
+    recipe.setFavorite(true);
+
+    return RecipeResponse.fromEntity(recipeRepository.save(recipe));
+  }
+
+  public RecipeResponse removeFromFavorites(Long id) {
+    Recipe recipe = findRecipeById(id);
+
+    recipe.setFavorite(false);
+
+    return RecipeResponse.fromEntity(recipeRepository.save(recipe));
+  }
+
+  private Recipe findRecipeById(Long id) {
+    return recipeRepository
+        .findById(id)
+        .orElseThrow(() -> new EntityNotFoundException(RECIPE_NOT_FOUND));
+  }
+
+  private Coffee findCoffeeById(Long id) {
+    return coffeeRepository
+        .findById(id)
+        .orElseThrow(() -> new EntityNotFoundException(COFFEE_NOT_FOUND));
+  }
+
+  private BrewMethod findBrewMethodById(Long id) {
+    return brewMethodRepository
+        .findById(id)
+        .orElseThrow(() -> new EntityNotFoundException(BREW_METHOD_NOT_FOUND));
+  }
+
+  private void updateRecipeFields(
+      Recipe recipe, RecipeRequest request, Coffee coffee, BrewMethod method) {
     recipe.setCoffee(coffee);
     recipe.setMethod(method);
     recipe.setName(request.name());
@@ -104,15 +134,5 @@ public class RecipeService {
     recipe.setSteps(request.steps());
     recipe.setExpectedTaste(request.expectedTaste());
     recipe.setFavorite(Boolean.TRUE.equals(request.favorite()));
-
-    return RecipeResponse.fromEntity(recipeRepository.save(recipe));
-  }
-
-  public void delete(Long id) {
-    if (!recipeRepository.existsById(id)) {
-      throw new EntityNotFoundException("Recipe not found");
-    }
-
-    recipeRepository.deleteById(id);
   }
 }

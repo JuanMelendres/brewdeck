@@ -60,4 +60,14 @@ public class RecipeController {
 
     return ResponseEntity.noContent().build();
   }
+
+  @PatchMapping("/{id}/favorite")
+  public ResponseEntity<RecipeResponse> markAsFavorite(@PathVariable Long id) {
+    return ResponseEntity.ok(recipeService.markAsFavorite(id));
+  }
+
+  @PatchMapping("/{id}/unfavorite")
+  public ResponseEntity<RecipeResponse> removeFromFavorites(@PathVariable Long id) {
+    return ResponseEntity.ok(recipeService.removeFromFavorites(id));
+  }
 }

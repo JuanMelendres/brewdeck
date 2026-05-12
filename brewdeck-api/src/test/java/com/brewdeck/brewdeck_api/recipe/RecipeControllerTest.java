@@ -6,10 +6,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -167,6 +164,72 @@ class RecipeControllerTest {
     mockMvc.perform(delete("/api/recipes/{id}", 1L)).andExpect(status().isNoContent());
 
     verify(recipeService).delete(1L);
+  }
+
+  @Test
+  void markAsFavorite_shouldReturnRecipeAsFavorite() throws Exception {
+    RecipeResponse response =
+        new RecipeResponse(
+            1L,
+            1L,
+            "Mezcla Veracruz",
+            1L,
+            "AeroPress",
+            "Mezcla Veracruz AeroPress",
+            BigDecimal.valueOf(15),
+            BigDecimal.valueOf(230),
+            "1:15",
+            "Timemore S3 - 5.5",
+            90,
+            "2:30",
+            "Bloom 30s, stir gently, press slowly.",
+            "Clean, aromatic, spicy, balanced.",
+            true,
+            LocalDateTime.now(),
+            null);
+
+    when(recipeService.markAsFavorite(1L)).thenReturn(response);
+
+    mockMvc
+        .perform(patch("/api/recipes/{id}/favorite", 1L))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(1L))
+        .andExpect(jsonPath("$.favorite").value(true));
+
+    verify(recipeService).markAsFavorite(1L);
+  }
+
+  @Test
+  void removeFromFavorites_shouldReturnRecipeAsNotFavorite() throws Exception {
+    RecipeResponse response =
+        new RecipeResponse(
+            1L,
+            1L,
+            "Mezcla Veracruz",
+            1L,
+            "AeroPress",
+            "Mezcla Veracruz AeroPress",
+            BigDecimal.valueOf(15),
+            BigDecimal.valueOf(230),
+            "1:15",
+            "Timemore S3 - 5.5",
+            90,
+            "2:30",
+            "Bloom 30s, stir gently, press slowly.",
+            "Clean, aromatic, spicy, balanced.",
+            false,
+            LocalDateTime.now(),
+            null);
+
+    when(recipeService.removeFromFavorites(1L)).thenReturn(response);
+
+    mockMvc
+        .perform(patch("/api/recipes/{id}/unfavorite", 1L))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(1L))
+        .andExpect(jsonPath("$.favorite").value(false));
+
+    verify(recipeService).removeFromFavorites(1L);
   }
 
   private RecipeRequest buildRecipeRequest() {
