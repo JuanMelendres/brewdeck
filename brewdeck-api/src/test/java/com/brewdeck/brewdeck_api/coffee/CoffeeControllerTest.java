@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -105,6 +106,21 @@ class CoffeeControllerTest {
   }
 
   @Test
+  void findById_shouldReturnNotFound_whenCoffeeDoesNotExist() throws Exception {
+    when(coffeeService.findById(99L)).thenThrow(new EntityNotFoundException("Coffee not found"));
+
+    mockMvc
+        .perform(get("/api/coffees/{id}", 99L))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.status").value(404))
+        .andExpect(jsonPath("$.error").value("Not Found"))
+        .andExpect(jsonPath("$.message").value("Coffee not found"))
+        .andExpect(jsonPath("$.path").value("/api/coffees/99"));
+
+    verify(coffeeService).findById(99L);
+  }
+
+  @Test
   void create_shouldReturnCreatedCoffee() throws Exception {
     CoffeeRequest request =
         new CoffeeRequest(
@@ -159,6 +175,39 @@ class CoffeeControllerTest {
         .andExpect(jsonPath("$.name").value("Mezcla Veracruz"));
 
     verify(coffeeService).create(any(CoffeeRequest.class));
+  }
+
+  @Test
+  void create_shouldReturnValidationErrors_whenNameIsBlank() throws Exception {
+    CoffeeRequest request =
+        new CoffeeRequest(
+            "",
+            "Café local",
+            "Veracruz",
+            null,
+            null,
+            null,
+            "Blend",
+            "Lavado",
+            "Medio",
+            "Cardamomo",
+            "Canela, clavo",
+            "Media",
+            "Medio",
+            "Media",
+            "Baja",
+            "Café limpio y aromático");
+
+    mockMvc
+        .perform(
+            post("/api/coffees")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.error").value("Bad Request"))
+        .andExpect(jsonPath("$.message").value("Validation failed"))
+        .andExpect(jsonPath("$.validationErrors.name").value("Coffee name is required"));
   }
 
   @Test
