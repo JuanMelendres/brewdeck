@@ -389,4 +389,80 @@ class RecipeServiceTest {
     verify(recipeRepository).existsById(99L);
     verify(recipeRepository, never()).deleteById(anyLong());
   }
+
+  @Test
+  void markAsFavorite_shouldSetFavoriteTrue_whenRecipeExists() {
+    Coffee coffee = Coffee.builder().id(1L).name("Mezcla Veracruz").build();
+    BrewMethod method = BrewMethod.builder().id(1L).name("AeroPress").build();
+
+    Recipe recipe =
+        Recipe.builder()
+            .id(1L)
+            .coffee(coffee)
+            .method(method)
+            .name("Veracruz AeroPress")
+            .favorite(false)
+            .createdAt(LocalDateTime.now())
+            .build();
+
+    when(recipeRepository.findById(1L)).thenReturn(Optional.of(recipe));
+    when(recipeRepository.save(recipe)).thenReturn(recipe);
+
+    RecipeResponse result = recipeService.markAsFavorite(1L);
+
+    assertThat(result.favorite()).isTrue();
+
+    verify(recipeRepository).findById(1L);
+    verify(recipeRepository).save(recipe);
+  }
+
+  @Test
+  void markAsFavorite_shouldThrowException_whenRecipeDoesNotExist() {
+    when(recipeRepository.findById(99L)).thenReturn(Optional.empty());
+
+    assertThatThrownBy(() -> recipeService.markAsFavorite(99L))
+        .isInstanceOf(EntityNotFoundException.class)
+        .hasMessage("Recipe not found");
+
+    verify(recipeRepository).findById(99L);
+    verify(recipeRepository, never()).save(any());
+  }
+
+  @Test
+  void removeFromFavorites_shouldSetFavoriteFalse_whenRecipeExists() {
+    Coffee coffee = Coffee.builder().id(1L).name("Mezcla Veracruz").build();
+    BrewMethod method = BrewMethod.builder().id(1L).name("AeroPress").build();
+
+    Recipe recipe =
+        Recipe.builder()
+            .id(1L)
+            .coffee(coffee)
+            .method(method)
+            .name("Veracruz AeroPress")
+            .favorite(true)
+            .createdAt(LocalDateTime.now())
+            .build();
+
+    when(recipeRepository.findById(1L)).thenReturn(Optional.of(recipe));
+    when(recipeRepository.save(recipe)).thenReturn(recipe);
+
+    RecipeResponse result = recipeService.removeFromFavorites(1L);
+
+    assertThat(result.favorite()).isFalse();
+
+    verify(recipeRepository).findById(1L);
+    verify(recipeRepository).save(recipe);
+  }
+
+  @Test
+  void removeFromFavorites_shouldThrowException_whenRecipeDoesNotExist() {
+    when(recipeRepository.findById(99L)).thenReturn(Optional.empty());
+
+    assertThatThrownBy(() -> recipeService.removeFromFavorites(99L))
+        .isInstanceOf(EntityNotFoundException.class)
+        .hasMessage("Recipe not found");
+
+    verify(recipeRepository).findById(99L);
+    verify(recipeRepository, never()).save(any());
+  }
 }
