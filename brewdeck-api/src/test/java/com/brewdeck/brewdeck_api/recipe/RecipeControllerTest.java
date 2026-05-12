@@ -122,7 +122,7 @@ class RecipeControllerTest {
             post("/api/recipes")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-        .andExpect(status().isOk())
+        .andExpect(status().isCreated())
         .andExpect(jsonPath("$.id").value(1L))
         .andExpect(jsonPath("$.name").value("Mezcla Veracruz AeroPress"));
 
@@ -164,7 +164,7 @@ class RecipeControllerTest {
   void delete_shouldDeleteRecipe() throws Exception {
     doNothing().when(recipeService).delete(1L);
 
-    mockMvc.perform(delete("/api/recipes/{id}", 1L)).andExpect(status().isOk());
+    mockMvc.perform(delete("/api/recipes/{id}", 1L)).andExpect(status().isNoContent());
 
     verify(recipeService).delete(1L);
   }
