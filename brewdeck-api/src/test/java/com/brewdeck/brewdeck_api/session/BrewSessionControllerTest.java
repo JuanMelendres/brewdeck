@@ -92,7 +92,7 @@ class BrewSessionControllerTest {
             post("/api/brew-sessions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-        .andExpect(status().isOk())
+        .andExpect(status().isCreated())
         .andExpect(jsonPath("$.id").value(1L))
         .andExpect(jsonPath("$.rating").value(9));
 
@@ -155,7 +155,7 @@ class BrewSessionControllerTest {
   void delete_shouldDeleteBrewSession() throws Exception {
     doNothing().when(brewSessionService).delete(1L);
 
-    mockMvc.perform(delete("/api/brew-sessions/{id}", 1L)).andExpect(status().isOk());
+    mockMvc.perform(delete("/api/brew-sessions/{id}", 1L)).andExpect(status().isNoContent());
 
     verify(brewSessionService).delete(1L);
   }

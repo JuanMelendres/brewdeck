@@ -19,6 +19,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -82,7 +83,7 @@ class BrewMethodControllerTest {
             post("/api/brew-methods")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-        .andExpect(status().isOk())
+        .andExpect(status().isCreated())
         .andExpect(jsonPath("$.id").value(1L))
         .andExpect(jsonPath("$.name").value("AeroPress"));
 
@@ -100,6 +101,26 @@ class BrewMethodControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void create_shouldReturnConflict_whenBrewMethodNameIsDuplicated() throws Exception {
+    BrewMethodRequest request = new BrewMethodRequest("AeroPress", "Duplicated method.");
+
+    when(brewMethodService.create(any(BrewMethodRequest.class)))
+        .thenThrow(new DataIntegrityViolationException("Duplicate key"));
+
+    mockMvc
+        .perform(
+            post("/api/brew-methods")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.status").value(409))
+        .andExpect(jsonPath("$.error").value("Conflict"))
+        .andExpect(jsonPath("$.message").value("Data integrity violation"));
+
+    verify(brewMethodService).create(any(BrewMethodRequest.class));
   }
 
   @Test
@@ -127,7 +148,7 @@ class BrewMethodControllerTest {
   void delete_shouldDeleteBrewMethod() throws Exception {
     doNothing().when(brewMethodService).delete(1L);
 
-    mockMvc.perform(delete("/api/brew-methods/{id}", 1L)).andExpect(status().isOk());
+    mockMvc.perform(delete("/api/brew-methods/{id}", 1L)).andExpect(status().isNoContent());
 
     verify(brewMethodService).delete(1L);
   }

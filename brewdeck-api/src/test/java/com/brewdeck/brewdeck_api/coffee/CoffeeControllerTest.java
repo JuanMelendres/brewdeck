@@ -71,6 +71,20 @@ class CoffeeControllerTest {
   }
 
   @Test
+  void findAll_shouldReturnInternalServerError_whenUnexpectedExceptionOccurs() throws Exception {
+    when(coffeeService.findAll()).thenThrow(new RuntimeException("Unexpected"));
+
+    mockMvc
+        .perform(get("/api/coffees"))
+        .andExpect(status().isInternalServerError())
+        .andExpect(jsonPath("$.status").value(500))
+        .andExpect(jsonPath("$.error").value("Internal Server Error"))
+        .andExpect(jsonPath("$.message").value("Unexpected error occurred"));
+
+    verify(coffeeService).findAll();
+  }
+
+  @Test
   void findById_shouldReturnCoffee() throws Exception {
     CoffeeResponse response =
         new CoffeeResponse(
@@ -170,7 +184,7 @@ class CoffeeControllerTest {
             post("/api/coffees")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-        .andExpect(status().isOk())
+        .andExpect(status().isCreated())
         .andExpect(jsonPath("$.id").value(1L))
         .andExpect(jsonPath("$.name").value("Mezcla Veracruz"));
 
@@ -178,7 +192,7 @@ class CoffeeControllerTest {
   }
 
   @Test
-  void create_shouldReturnValidationErrors_whenNameIsBlank() throws Exception {
+  void create_shouldReturnValidationErrorBody_whenNameIsBlank() throws Exception {
     CoffeeRequest request =
         new CoffeeRequest(
             "",
@@ -300,7 +314,7 @@ class CoffeeControllerTest {
   void delete_shouldDeleteCoffee() throws Exception {
     doNothing().when(coffeeService).delete(1L);
 
-    mockMvc.perform(delete("/api/coffees/{id}", 1L)).andExpect(status().isOk());
+    mockMvc.perform(delete("/api/coffees/{id}", 1L)).andExpect(status().isNoContent());
 
     verify(coffeeService).delete(1L);
   }
