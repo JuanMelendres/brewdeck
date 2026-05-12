@@ -113,7 +113,7 @@ class BrewingWorkflowIntegrationTest extends PostgresIntegrationTest {
         mockMvc
             .perform(
                 post("/api/coffees").contentType(MediaType.APPLICATION_JSON).content(requestBody))
-            .andExpect(status().isOk())
+            .andExpect(status().isCreated())
             .andReturn()
             .getResponse()
             .getContentAsString();
@@ -141,7 +141,7 @@ class BrewingWorkflowIntegrationTest extends PostgresIntegrationTest {
                 post("/api/brew-methods")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody))
-            .andExpect(status().isOk())
+            .andExpect(status().isCreated())
             .andReturn()
             .getResponse()
             .getContentAsString();
@@ -178,7 +178,7 @@ class BrewingWorkflowIntegrationTest extends PostgresIntegrationTest {
         mockMvc
             .perform(
                 post("/api/recipes").contentType(MediaType.APPLICATION_JSON).content(requestBody))
-            .andExpect(status().isOk())
+            .andExpect(status().isCreated())
             .andReturn()
             .getResponse()
             .getContentAsString();
@@ -214,7 +214,7 @@ class BrewingWorkflowIntegrationTest extends PostgresIntegrationTest {
                 post("/api/brew-sessions")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody))
-            .andExpect(status().isOk())
+            .andExpect(status().isCreated())
             .andReturn()
             .getResponse()
             .getContentAsString();
