@@ -19,42 +19,52 @@ class BrewMethodRepositoryTest extends PostgresRepositoryTest {
 
   @Test
   void save_shouldPersistBrewMethod() {
+    String methodName = "Test Method " + System.nanoTime();
+
     BrewMethod method =
         BrewMethod.builder()
-            .name("AeroPress")
-            .description("Immersion and pressure-based brewing method.")
+            .name(methodName)
+            .description("Brew method created for repository tests.")
             .build();
 
     BrewMethod savedMethod = brewMethodRepository.save(method);
 
     assertThat(savedMethod.getId()).isNotNull();
-    assertThat(savedMethod.getName()).isEqualTo("AeroPress");
+    assertThat(savedMethod.getName()).isEqualTo(methodName);
     assertThat(savedMethod.getCreatedAt()).isNotNull();
   }
 
   @Test
   void findById_shouldReturnBrewMethod_whenMethodExists() {
+    String methodName = "Test Method " + System.nanoTime();
+
     BrewMethod method =
-        BrewMethod.builder().name("V60").description("Pour-over brewing method.").build();
+        BrewMethod.builder()
+            .name(methodName)
+            .description("Brew method created for repository tests.")
+            .build();
 
     BrewMethod savedMethod = brewMethodRepository.save(method);
 
     Optional<BrewMethod> result = brewMethodRepository.findById(savedMethod.getId());
 
     assertThat(result).isPresent();
-    assertThat(result.get().getName()).isEqualTo("V60");
+    assertThat(result.get().getName()).isEqualTo(methodName);
   }
 
   @Test
   void findAll_shouldReturnAllBrewMethods() {
     BrewMethod methodOne =
         BrewMethod.builder()
-            .name("Espresso")
-            .description("Pressure-based extraction method.")
+            .name("Test Method " + System.nanoTime())
+            .description("Brew method created for repository tests.")
             .build();
 
     BrewMethod methodTwo =
-        BrewMethod.builder().name("French Press").description("Immersion brewing method.").build();
+        BrewMethod.builder()
+            .name("Test Method " + System.nanoTime())
+            .description("Brew method created for repository tests.")
+            .build();
 
     brewMethodRepository.save(methodOne);
     brewMethodRepository.save(methodTwo);
@@ -64,13 +74,9 @@ class BrewMethodRepositoryTest extends PostgresRepositoryTest {
 
   @Test
   void save_shouldThrowException_whenNameIsDuplicated() {
-    BrewMethod methodOne =
-        BrewMethod.builder().name("Chemex").description("First Chemex method.").build();
 
     BrewMethod methodTwo =
         BrewMethod.builder().name("Chemex").description("Duplicated Chemex method.").build();
-
-    brewMethodRepository.saveAndFlush(methodOne);
 
     assertThatThrownBy(() -> brewMethodRepository.saveAndFlush(methodTwo))
         .isInstanceOf(DataIntegrityViolationException.class);
@@ -79,7 +85,10 @@ class BrewMethodRepositoryTest extends PostgresRepositoryTest {
   @Test
   void delete_shouldRemoveBrewMethod() {
     BrewMethod method =
-        BrewMethod.builder().name("Method to Delete").description("Temporary method.").build();
+        BrewMethod.builder()
+            .name("Test Method " + System.nanoTime())
+            .description("Brew method created for repository tests.")
+            .build();
 
     BrewMethod savedMethod = brewMethodRepository.save(method);
 
