@@ -129,13 +129,16 @@ class BrewingWorkflowIntegrationTest extends PostgresIntegrationTest {
   }
 
   private Long createBrewMethod() throws Exception {
+    String methodName = "AeroPress " + System.nanoTime();
+
     String requestBody =
         """
-        {
-          "name": "AeroPress",
-          "description": "Immersion and pressure-based brewing method."
-        }
-        """;
+            {
+              "name": "%s",
+              "description": "Immersion and pressure-based brewing method."
+            }
+            """
+            .formatted(methodName);
 
     String response =
         mockMvc
@@ -151,7 +154,7 @@ class BrewingWorkflowIntegrationTest extends PostgresIntegrationTest {
     JsonNode json = objectMapper.readTree(response);
 
     assertThat(json.get("id").asLong()).isPositive();
-    assertThat(json.get("name").asText()).isEqualTo("AeroPress");
+    assertThat(json.get("name").asText()).startsWith("AeroPress");
 
     return json.get("id").asLong();
   }
@@ -240,5 +243,37 @@ class BrewingWorkflowIntegrationTest extends PostgresIntegrationTest {
     assertThat(json.get("rating").asInt()).isEqualTo(9);
 
     return json.get("id").asLong();
+  }
+
+  @Test
+  void favoriteWorkflow_shouldMarkAndUnmarkRecipeAsFavorite() throws Exception {
+    Long coffeeId = createCoffee();
+    Long methodId = createBrewMethod();
+    Long recipeId = createRecipe(coffeeId, methodId);
+
+    mockMvc
+        .perform(patch("/api/recipes/{id}/favorite", recipeId))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(recipeId))
+        .andExpect(jsonPath("$.favorite").value(true));
+
+    String favoritesResponse =
+        mockMvc
+            .perform(get("/api/recipes/favorites"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    JsonNode favorites = objectMapper.readTree(favoritesResponse);
+
+    assertThat(favorites).hasSizeGreaterThanOrEqualTo(1);
+    assertThat(favorites.toString()).contains("Mezcla Veracruz AeroPress");
+
+    mockMvc
+        .perform(patch("/api/recipes/{id}/unfavorite", recipeId))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(recipeId))
+        .andExpect(jsonPath("$.favorite").value(false));
   }
 }
