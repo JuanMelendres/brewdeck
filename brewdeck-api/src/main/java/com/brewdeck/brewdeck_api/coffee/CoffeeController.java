@@ -15,8 +15,8 @@ public class CoffeeController {
   private final CoffeeService coffeeService;
 
   @GetMapping
-  public ResponseEntity<List<CoffeeResponse>> findAll() {
-    return ResponseEntity.ok(coffeeService.findAll());
+  public ResponseEntity<List<CoffeeResponse>> findAll(@ModelAttribute CoffeeFilter filter) {
+    return ResponseEntity.ok(coffeeService.search(filter));
   }
 
   @GetMapping("/{id}")
