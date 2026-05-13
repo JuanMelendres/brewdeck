@@ -13,6 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.jpa.domain.Specification;
 
 @ExtendWith(MockitoExtension.class)
 class CoffeeServiceTest {
@@ -22,7 +23,7 @@ class CoffeeServiceTest {
   @InjectMocks private CoffeeService coffeeService;
 
   @Test
-  void findAll_shouldReturnAllCoffees() {
+  void search_shouldReturnAllCoffees_whenFilterIsEmpty() {
     Coffee coffee =
         Coffee.builder()
             .id(1L)
@@ -33,15 +34,50 @@ class CoffeeServiceTest {
             .createdAt(LocalDateTime.now())
             .build();
 
-    when(coffeeRepository.findAll()).thenReturn(List.of(coffee));
+    when(coffeeRepository.findAll(anyCoffeeSpecification())).thenReturn(List.of(coffee));
 
-    List<CoffeeResponse> result = coffeeService.findAll();
+    List<CoffeeResponse> result = coffeeService.search(new CoffeeFilter(null, null, null, null));
 
     assertThat(result).hasSize(1);
     assertThat(result.getFirst().id()).isEqualTo(1L);
     assertThat(result.getFirst().name()).isEqualTo("Mezcla Veracruz");
 
-    verify(coffeeRepository).findAll();
+    verify(coffeeRepository).findAll(anyCoffeeSpecification());
+  }
+
+  @SuppressWarnings("unchecked")
+  private Specification<Coffee> anyCoffeeSpecification() {
+    return any(Specification.class);
+  }
+
+  @Test
+  void search_shouldReturnFilteredCoffees() {
+    Coffee coffee =
+        Coffee.builder()
+            .id(1L)
+            .name("Mezcla Veracruz")
+            .brand("Café local")
+            .origin("Veracruz")
+            .process("Lavado")
+            .roastLevel("Medio")
+            .notesPrimary("Cardamomo")
+            .createdAt(LocalDateTime.now())
+            .build();
+
+    CoffeeFilter filter = new CoffeeFilter("Veracruz", "Veracruz", "Medio", "Lavado");
+
+    when(coffeeRepository.findAll(anyCoffeeSpecification())).thenReturn(List.of(coffee));
+
+    List<CoffeeResponse> result = coffeeService.search(filter);
+
+    assertThat(result).hasSize(1);
+    assertThat(result.getFirst().id()).isEqualTo(1L);
+    assertThat(result.getFirst().name()).isEqualTo("Mezcla Veracruz");
+    assertThat(result.getFirst().origin()).isEqualTo("Veracruz");
+    assertThat(result.getFirst().process()).isEqualTo("Lavado");
+    assertThat(result.getFirst().roastLevel()).isEqualTo("Medio");
+
+    verify(coffeeRepository).findAll(anyCoffeeSpecification());
   }
 
   @Test
