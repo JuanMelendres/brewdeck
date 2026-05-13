@@ -110,7 +110,7 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
   private Recipe persistRecipe(String recipeName) {
     Coffee coffee =
         Coffee.builder()
-            .name("Mezcla Veracruz")
+            .name("Mezcla Veracruz " + System.nanoTime())
             .brand("Café local")
             .origin("Veracruz")
             .variety("Blend")
@@ -127,7 +127,7 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
 
     BrewMethod method =
         BrewMethod.builder()
-            .name(recipeName.contains("Espresso") ? "Espresso" : "AeroPress")
+            .name("Test Method " + recipeName + " " + System.nanoTime())
             .description("Brew method created for repository tests.")
             .build();
 

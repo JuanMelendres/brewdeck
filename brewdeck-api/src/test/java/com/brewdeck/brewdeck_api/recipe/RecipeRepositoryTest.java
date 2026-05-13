@@ -159,7 +159,7 @@ class RecipeRepositoryTest extends PostgresRepositoryTest {
   private BrewMethod persistBrewMethod(String name) {
     BrewMethod method =
         BrewMethod.builder()
-            .name(name)
+            .name("Test Method " + name + " " + System.nanoTime())
             .description("Brew method created for repository tests.")
             .build();
 
