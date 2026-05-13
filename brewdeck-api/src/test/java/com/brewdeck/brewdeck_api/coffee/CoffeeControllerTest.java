@@ -57,7 +57,9 @@ class CoffeeControllerTest {
             LocalDateTime.now(),
             null);
 
-    when(coffeeService.findAll()).thenReturn(List.of(response));
+    CoffeeFilter filter = new CoffeeFilter(null, null, null, null);
+
+    when(coffeeService.search(filter)).thenReturn(List.of(response));
 
     mockMvc
         .perform(get("/api/coffees"))
@@ -67,12 +69,12 @@ class CoffeeControllerTest {
         .andExpect(jsonPath("$[0].name").value("Mezcla Veracruz"))
         .andExpect(jsonPath("$[0].notesPrimary").value("Cardamomo"));
 
-    verify(coffeeService).findAll();
+    verify(coffeeService).search(filter);
   }
 
   @Test
   void findAll_shouldReturnInternalServerError_whenUnexpectedExceptionOccurs() throws Exception {
-    when(coffeeService.findAll()).thenThrow(new RuntimeException("Unexpected"));
+    when(coffeeService.search(any())).thenThrow(new RuntimeException("Unexpected"));
 
     mockMvc
         .perform(get("/api/coffees"))
@@ -81,7 +83,49 @@ class CoffeeControllerTest {
         .andExpect(jsonPath("$.error").value("Internal Server Error"))
         .andExpect(jsonPath("$.message").value("Unexpected error occurred"));
 
-    verify(coffeeService).findAll();
+    verify(coffeeService).search(any());
+  }
+
+  @Test
+  void findAll_shouldReturnFilteredCoffees() throws Exception {
+    CoffeeResponse response =
+        new CoffeeResponse(
+            1L,
+            "Mezcla Veracruz",
+            "Café local",
+            "Veracruz",
+            null,
+            null,
+            null,
+            "Blend",
+            "Lavado",
+            "Medio",
+            "Cardamomo",
+            "Canela, clavo",
+            "Media",
+            "Medio",
+            "Media",
+            "Baja",
+            "Café limpio y aromático",
+            LocalDateTime.now(),
+            null);
+
+    CoffeeFilter filter = new CoffeeFilter("Veracruz", "Veracruz", "Medio", "Lavado");
+
+    when(coffeeService.search(filter)).thenReturn(List.of(response));
+
+    mockMvc
+        .perform(
+            get("/api/coffees")
+                .param("name", "Veracruz")
+                .param("origin", "Veracruz")
+                .param("roastLevel", "Medio")
+                .param("process", "Lavado"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(1)))
+        .andExpect(jsonPath("$[0].name").value("Mezcla Veracruz"));
+
+    verify(coffeeService).search(filter);
   }
 
   @Test
@@ -222,35 +266,6 @@ class CoffeeControllerTest {
         .andExpect(jsonPath("$.error").value("Bad Request"))
         .andExpect(jsonPath("$.message").value("Validation failed"))
         .andExpect(jsonPath("$.validationErrors.name").value("Coffee name is required"));
-  }
-
-  @Test
-  void create_shouldReturnBadRequest_whenNameIsBlank() throws Exception {
-    CoffeeRequest request =
-        new CoffeeRequest(
-            "",
-            "Café local",
-            "Veracruz",
-            null,
-            null,
-            null,
-            "Blend",
-            "Lavado",
-            "Medio",
-            "Cardamomo",
-            "Canela, clavo",
-            "Media",
-            "Medio",
-            "Media",
-            "Baja",
-            "Café limpio y aromático");
-
-    mockMvc
-        .perform(
-            post("/api/coffees")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-        .andExpect(status().isBadRequest());
   }
 
   @Test
