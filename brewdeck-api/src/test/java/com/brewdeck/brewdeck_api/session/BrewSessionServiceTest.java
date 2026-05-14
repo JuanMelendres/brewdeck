@@ -17,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.jpa.domain.Specification;
 
 @ExtendWith(MockitoExtension.class)
 class BrewSessionServiceTest {
@@ -27,7 +28,7 @@ class BrewSessionServiceTest {
   @InjectMocks private BrewSessionService brewSessionService;
 
   @Test
-  void findAll_shouldReturnAllBrewSessions() {
+  void search_shouldReturnAllBrewSessions_whenFilterIsEmpty() {
     Recipe recipe = buildRecipe();
 
     BrewSession session =
@@ -43,16 +44,47 @@ class BrewSessionServiceTest {
             .adjustmentNotes("Repeat same recipe")
             .build();
 
-    when(brewSessionRepository.findAll()).thenReturn(List.of(session));
+    when(brewSessionRepository.findAll(anyBrewSessionSpecification())).thenReturn(List.of(session));
 
-    List<BrewSessionResponse> result = brewSessionService.findAll();
+    List<BrewSessionResponse> result = brewSessionService.search(new BrewSessionFilter(null, null));
 
     assertThat(result).hasSize(1);
     assertThat(result.getFirst().id()).isEqualTo(1L);
     assertThat(result.getFirst().recipeName()).isEqualTo("Veracruz AeroPress");
     assertThat(result.getFirst().rating()).isEqualTo(9);
 
-    verify(brewSessionRepository).findAll();
+    verify(brewSessionRepository).findAll(anyBrewSessionSpecification());
+  }
+
+  @Test
+  void search_shouldReturnFilteredBrewSessions() {
+    Recipe recipe = buildRecipe();
+
+    BrewSession session =
+        BrewSession.builder()
+            .id(1L)
+            .recipe(recipe)
+            .brewedAt(LocalDateTime.now())
+            .actualGrind("Timemore S3 - 5.5")
+            .actualTemp(90)
+            .actualTime("2:30")
+            .tasteResult("Balanced")
+            .rating(9)
+            .adjustmentNotes("Repeat same recipe")
+            .build();
+
+    BrewSessionFilter filter = new BrewSessionFilter(1L, 9);
+
+    when(brewSessionRepository.findAll(anyBrewSessionSpecification())).thenReturn(List.of(session));
+
+    List<BrewSessionResponse> result = brewSessionService.search(filter);
+
+    assertThat(result).hasSize(1);
+    assertThat(result.getFirst().recipeId()).isEqualTo(1L);
+    assertThat(result.getFirst().rating()).isEqualTo(9);
+    assertThat(result.getFirst().tasteResult()).isEqualTo("Balanced");
+
+    verify(brewSessionRepository).findAll(anyBrewSessionSpecification());
   }
 
   @Test
@@ -293,5 +325,10 @@ class BrewSessionServiceTest {
 
     verify(brewSessionRepository).existsById(99L);
     verify(brewSessionRepository, never()).deleteById(anyLong());
+  }
+
+  @SuppressWarnings("unchecked")
+  private Specification<BrewSession> anyBrewSessionSpecification() {
+    return any(Specification.class);
   }
 }
