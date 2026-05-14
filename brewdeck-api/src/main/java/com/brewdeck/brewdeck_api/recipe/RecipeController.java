@@ -15,8 +15,8 @@ public class RecipeController {
   private final RecipeService recipeService;
 
   @GetMapping
-  public ResponseEntity<List<RecipeResponse>> findAll() {
-    return ResponseEntity.ok(recipeService.findAll());
+  public ResponseEntity<List<RecipeResponse>> findAll(@ModelAttribute RecipeFilter filter) {
+    return ResponseEntity.ok(recipeService.search(filter));
   }
 
   @GetMapping("/{id}")
