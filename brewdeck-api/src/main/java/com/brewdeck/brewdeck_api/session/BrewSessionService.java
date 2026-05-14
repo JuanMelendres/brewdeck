@@ -14,8 +14,14 @@ public class BrewSessionService {
   private final BrewSessionRepository brewSessionRepository;
   private final RecipeRepository recipeRepository;
 
-  public List<BrewSessionResponse> findAll() {
-    return brewSessionRepository.findAll().stream().map(BrewSessionResponse::fromEntity).toList();
+  public List<BrewSessionResponse> search(BrewSessionFilter filter) {
+    return brewSessionRepository
+        .findAll(
+            BrewSessionSpecification.hasRecipeId(filter.recipeId())
+                .and(BrewSessionSpecification.hasRating(filter.rating())))
+        .stream()
+        .map(BrewSessionResponse::fromEntity)
+        .toList();
   }
 
   public BrewSessionResponse findById(Long id) {

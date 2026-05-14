@@ -35,8 +35,9 @@ class BrewSessionControllerTest {
   @Test
   void findAll_shouldReturnBrewSessions() throws Exception {
     BrewSessionResponse response = buildBrewSessionResponse();
+    BrewSessionFilter filter = new BrewSessionFilter(null, null);
 
-    when(brewSessionService.findAll()).thenReturn(List.of(response));
+    when(brewSessionService.search(filter)).thenReturn(List.of(response));
 
     mockMvc
         .perform(get("/api/brew-sessions"))
@@ -46,7 +47,24 @@ class BrewSessionControllerTest {
         .andExpect(jsonPath("$[0].recipeName").value("Mezcla Veracruz AeroPress"))
         .andExpect(jsonPath("$[0].rating").value(9));
 
-    verify(brewSessionService).findAll();
+    verify(brewSessionService).search(filter);
+  }
+
+  @Test
+  void findAll_shouldReturnFilteredBrewSessions() throws Exception {
+    BrewSessionResponse response = buildBrewSessionResponse();
+    BrewSessionFilter filter = new BrewSessionFilter(1L, 9);
+
+    when(brewSessionService.search(filter)).thenReturn(List.of(response));
+
+    mockMvc
+        .perform(get("/api/brew-sessions").param("recipeId", "1").param("rating", "9"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(1)))
+        .andExpect(jsonPath("$[0].recipeId").value(1L))
+        .andExpect(jsonPath("$[0].rating").value(9));
+
+    verify(brewSessionService).search(filter);
   }
 
   @Test

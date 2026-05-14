@@ -15,8 +15,9 @@ public class BrewSessionController {
   private final BrewSessionService brewSessionService;
 
   @GetMapping
-  public ResponseEntity<List<BrewSessionResponse>> findAll() {
-    return ResponseEntity.ok(brewSessionService.findAll());
+  public ResponseEntity<List<BrewSessionResponse>> findAll(
+      @ModelAttribute BrewSessionFilter filter) {
+    return ResponseEntity.ok(brewSessionService.search(filter));
   }
 
   @GetMapping("/{id}")

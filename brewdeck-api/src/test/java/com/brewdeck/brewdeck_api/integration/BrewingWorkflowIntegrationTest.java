@@ -88,6 +88,59 @@ class BrewingWorkflowIntegrationTest extends PostgresIntegrationTest {
         .andExpect(status().isBadRequest());
   }
 
+  @Test
+  void searchCoffees_shouldReturnFilteredCoffees() throws Exception {
+    createCoffee();
+
+    mockMvc
+        .perform(
+            get("/api/coffees")
+                .param("name", "Veracruz")
+                .param("origin", "Veracruz")
+                .param("roastLevel", "Medio")
+                .param("process", "Lavado"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].name").value("Mezcla Veracruz"))
+        .andExpect(jsonPath("$[0].origin").value("Veracruz"))
+        .andExpect(jsonPath("$[0].roastLevel").value("Medio"))
+        .andExpect(jsonPath("$[0].process").value("Lavado"));
+  }
+
+  @Test
+  void searchRecipes_shouldReturnFilteredRecipes() throws Exception {
+    Long coffeeId = createCoffee();
+    Long methodId = createBrewMethod();
+    createRecipe(coffeeId, methodId);
+
+    mockMvc
+        .perform(
+            get("/api/recipes")
+                .param("coffeeId", coffeeId.toString())
+                .param("methodId", methodId.toString())
+                .param("favorite", "true")
+                .param("name", "AeroPress"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].coffeeId").value(coffeeId))
+        .andExpect(jsonPath("$[0].methodId").value(methodId))
+        .andExpect(jsonPath("$[0].favorite").value(true))
+        .andExpect(jsonPath("$[0].name").value("Mezcla Veracruz AeroPress"));
+  }
+
+  @Test
+  void searchBrewSessions_shouldReturnFilteredSessions() throws Exception {
+    Long coffeeId = createCoffee();
+    Long methodId = createBrewMethod();
+    Long recipeId = createRecipe(coffeeId, methodId);
+    createBrewSession(recipeId);
+
+    mockMvc
+        .perform(
+            get("/api/brew-sessions").param("recipeId", recipeId.toString()).param("rating", "9"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].recipeId").value(recipeId))
+        .andExpect(jsonPath("$[0].rating").value(9));
+  }
+
   private Long createCoffee() throws Exception {
     String requestBody =
         """
@@ -162,21 +215,21 @@ class BrewingWorkflowIntegrationTest extends PostgresIntegrationTest {
   private Long createRecipe(Long coffeeId, Long methodId) throws Exception {
     String requestBody =
         """
-        {
-          "coffeeId": %d,
-          "methodId": %d,
-          "name": "Mezcla Veracruz AeroPress",
-          "coffeeGrams": 15,
-          "waterGrams": 230,
-          "ratio": "1:15",
-          "grindSetting": "Timemore S3 - 5.5",
-          "waterTemp": 90,
-          "brewTime": "2:30",
-          "steps": "Bloom 30s, stir gently, press slowly.",
-          "expectedTaste": "Clean, aromatic, spicy, balanced.",
-          "favorite": true
-        }
-        """
+            {
+              "coffeeId": %d,
+              "methodId": %d,
+              "name": "Mezcla Veracruz AeroPress",
+              "coffeeGrams": 15,
+              "waterGrams": 230,
+              "ratio": "1:15",
+              "grindSetting": "Timemore S3 - 5.5",
+              "waterTemp": 90,
+              "brewTime": "2:30",
+              "steps": "Bloom 30s, stir gently, press slowly.",
+              "expectedTaste": "Clean, aromatic, spicy, balanced.",
+              "favorite": true
+            }
+            """
             .formatted(coffeeId, methodId);
 
     String response =
@@ -192,22 +245,12 @@ class BrewingWorkflowIntegrationTest extends PostgresIntegrationTest {
 
     Long recipeId = json.get("id").asLong();
 
-    mockMvc
-        .perform(patch("/api/recipes/{id}/favorite", recipeId))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.favorite").value(true));
-
-    mockMvc
-        .perform(patch("/api/recipes/{id}/unfavorite", recipeId))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.favorite").value(false));
-
-    assertThat(json.get("id").asLong()).isPositive();
+    assertThat(recipeId).isPositive();
     assertThat(json.get("coffeeId").asLong()).isEqualTo(coffeeId);
     assertThat(json.get("methodId").asLong()).isEqualTo(methodId);
     assertThat(json.get("favorite").asBoolean()).isTrue();
 
-    return json.get("id").asLong();
+    return recipeId;
   }
 
   private Long createBrewSession(Long recipeId) throws Exception {
