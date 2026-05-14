@@ -2,11 +2,12 @@ package com.brewdeck.brewdeck_api.recipe;
 
 import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.coffee.CoffeeRepository;
+import com.brewdeck.brewdeck_api.common.PageResponse;
 import com.brewdeck.brewdeck_api.method.BrewMethod;
 import com.brewdeck.brewdeck_api.method.BrewMethodRepository;
 import jakarta.persistence.EntityNotFoundException;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -21,36 +22,35 @@ public class RecipeService {
   private final CoffeeRepository coffeeRepository;
   private final BrewMethodRepository brewMethodRepository;
 
-  public List<RecipeResponse> search(RecipeFilter filter) {
-    return recipeRepository
-        .findAll(
-            RecipeSpecification.hasCoffeeId(filter.coffeeId())
-                .and(RecipeSpecification.hasMethodId(filter.methodId()))
-                .and(RecipeSpecification.isFavorite(filter.favorite()))
-                .and(RecipeSpecification.nameContains(filter.name())))
-        .stream()
-        .map(RecipeResponse::fromEntity)
-        .toList();
+  public PageResponse<RecipeResponse> search(RecipeFilter filter, Pageable pageable) {
+    return PageResponse.fromPage(
+        recipeRepository
+            .findAll(
+                RecipeSpecification.hasCoffeeId(filter.coffeeId())
+                    .and(RecipeSpecification.hasMethodId(filter.methodId()))
+                    .and(RecipeSpecification.isFavorite(filter.favorite()))
+                    .and(RecipeSpecification.nameContains(filter.name())),
+                pageable)
+            .map(RecipeResponse::fromEntity));
   }
 
   public RecipeResponse findById(Long id) {
     return RecipeResponse.fromEntity(findRecipeById(id));
   }
 
-  public List<RecipeResponse> findFavorites() {
-    return recipeRepository.findByFavoriteTrue().stream().map(RecipeResponse::fromEntity).toList();
+  public PageResponse<RecipeResponse> findFavorites(Pageable pageable) {
+    return PageResponse.fromPage(
+        recipeRepository.findByFavoriteTrue(pageable).map(RecipeResponse::fromEntity));
   }
 
-  public List<RecipeResponse> findByCoffeeId(Long coffeeId) {
-    return recipeRepository.findByCoffeeId(coffeeId).stream()
-        .map(RecipeResponse::fromEntity)
-        .toList();
+  public PageResponse<RecipeResponse> findByCoffeeId(Long coffeeId, Pageable pageable) {
+    return PageResponse.fromPage(
+        recipeRepository.findByCoffeeId(coffeeId, pageable).map(RecipeResponse::fromEntity));
   }
 
-  public List<RecipeResponse> findByMethodId(Long methodId) {
-    return recipeRepository.findByMethodId(methodId).stream()
-        .map(RecipeResponse::fromEntity)
-        .toList();
+  public PageResponse<RecipeResponse> findByMethodId(Long methodId, Pageable pageable) {
+    return PageResponse.fromPage(
+        recipeRepository.findByMethodId(methodId, pageable).map(RecipeResponse::fromEntity));
   }
 
   public RecipeResponse create(RecipeRequest request) {
