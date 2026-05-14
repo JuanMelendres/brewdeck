@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.brewdeck.brewdeck_api.common.PageResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
@@ -20,6 +21,9 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -59,22 +63,32 @@ class CoffeeControllerTest {
 
     CoffeeFilter filter = new CoffeeFilter(null, null, null, null);
 
-    when(coffeeService.search(filter)).thenReturn(List.of(response));
+    PageResponse<CoffeeResponse> pageResponse =
+        PageResponse.fromPage(new PageImpl<>(List.of(response), PageRequest.of(0, 10), 1));
+
+    when(coffeeService.search(eq(filter), any(Pageable.class))).thenReturn(pageResponse);
 
     mockMvc
         .perform(get("/api/coffees"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].id").value(1L))
-        .andExpect(jsonPath("$[0].name").value("Mezcla Veracruz"))
-        .andExpect(jsonPath("$[0].notesPrimary").value("Cardamomo"));
+        .andExpect(jsonPath("$.content", hasSize(1)))
+        .andExpect(jsonPath("$.content[0].id").value(1L))
+        .andExpect(jsonPath("$.content[0].name").value("Mezcla Veracruz"))
+        .andExpect(jsonPath("$.content[0].notesPrimary").value("Cardamomo"))
+        .andExpect(jsonPath("$.page").value(0))
+        .andExpect(jsonPath("$.size").value(10))
+        .andExpect(jsonPath("$.totalElements").value(1))
+        .andExpect(jsonPath("$.totalPages").value(1))
+        .andExpect(jsonPath("$.first").value(true))
+        .andExpect(jsonPath("$.last").value(true));
 
-    verify(coffeeService).search(filter);
+    verify(coffeeService).search(eq(filter), any(Pageable.class));
   }
 
   @Test
   void findAll_shouldReturnInternalServerError_whenUnexpectedExceptionOccurs() throws Exception {
-    when(coffeeService.search(any())).thenThrow(new RuntimeException("Unexpected"));
+    when(coffeeService.search(any(CoffeeFilter.class), any(Pageable.class)))
+        .thenThrow(new RuntimeException("Unexpected"));
 
     mockMvc
         .perform(get("/api/coffees"))
@@ -83,7 +97,7 @@ class CoffeeControllerTest {
         .andExpect(jsonPath("$.error").value("Internal Server Error"))
         .andExpect(jsonPath("$.message").value("Unexpected error occurred"));
 
-    verify(coffeeService).search(any());
+    verify(coffeeService).search(any(CoffeeFilter.class), any(Pageable.class));
   }
 
   @Test
@@ -112,7 +126,10 @@ class CoffeeControllerTest {
 
     CoffeeFilter filter = new CoffeeFilter("Veracruz", "Veracruz", "Medio", "Lavado");
 
-    when(coffeeService.search(filter)).thenReturn(List.of(response));
+    PageResponse<CoffeeResponse> pageResponse =
+        PageResponse.fromPage(new PageImpl<>(List.of(response), PageRequest.of(0, 5), 1));
+
+    when(coffeeService.search(eq(filter), any(Pageable.class))).thenReturn(pageResponse);
 
     mockMvc
         .perform(
@@ -120,12 +137,21 @@ class CoffeeControllerTest {
                 .param("name", "Veracruz")
                 .param("origin", "Veracruz")
                 .param("roastLevel", "Medio")
-                .param("process", "Lavado"))
+                .param("process", "Lavado")
+                .param("page", "0")
+                .param("size", "10")
+                .param("sort", "id,asc"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].name").value("Mezcla Veracruz"));
+        .andExpect(jsonPath("$.content", hasSize(1)))
+        .andExpect(jsonPath("$.content[0].name").value("Mezcla Veracruz"))
+        .andExpect(jsonPath("$.content[0].origin").value("Veracruz"))
+        .andExpect(jsonPath("$.content[0].roastLevel").value("Medio"))
+        .andExpect(jsonPath("$.content[0].process").value("Lavado"))
+        .andExpect(jsonPath("$.page").value(0))
+        .andExpect(jsonPath("$.size").value(5))
+        .andExpect(jsonPath("$.totalElements").value(1));
 
-    verify(coffeeService).search(filter);
+    verify(coffeeService).search(eq(filter), any(Pageable.class));
   }
 
   @Test
