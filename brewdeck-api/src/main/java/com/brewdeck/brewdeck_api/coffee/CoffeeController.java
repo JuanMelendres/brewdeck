@@ -1,9 +1,12 @@
 package com.brewdeck.brewdeck_api.coffee;
 
+import com.brewdeck.brewdeck_api.common.PageResponse;
 import jakarta.validation.Valid;
 import java.net.URI;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,8 +18,10 @@ public class CoffeeController {
   private final CoffeeService coffeeService;
 
   @GetMapping
-  public ResponseEntity<List<CoffeeResponse>> findAll(@ModelAttribute CoffeeFilter filter) {
-    return ResponseEntity.ok(coffeeService.search(filter));
+  public ResponseEntity<PageResponse<CoffeeResponse>> findAll(
+      @ModelAttribute CoffeeFilter filter,
+      @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
+    return ResponseEntity.ok(coffeeService.search(filter, pageable));
   }
 
   @GetMapping("/{id}")
