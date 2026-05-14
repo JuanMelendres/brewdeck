@@ -6,10 +6,12 @@ import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.common.PostgresRepositoryTest;
 import com.brewdeck.brewdeck_api.method.BrewMethod;
 import java.math.BigDecimal;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 
 @DataJpaTest
@@ -63,11 +65,16 @@ class RecipeRepositoryTest extends PostgresRepositoryTest {
     entityManager.flush();
     entityManager.clear();
 
-    List<Recipe> result = recipeRepository.findByFavoriteTrue();
+    Pageable pageable = PageRequest.of(0, 10);
 
-    assertThat(result).hasSize(1);
-    assertThat(result.getFirst().getName()).isEqualTo("Favorite AeroPress Recipe");
-    assertThat(result.getFirst().getFavorite()).isTrue();
+    Page<Recipe> result = recipeRepository.findByFavoriteTrue(pageable);
+
+    assertThat(result.getContent()).hasSize(1);
+    assertThat(result.getContent().getFirst().getName()).isEqualTo("Favorite AeroPress Recipe");
+    assertThat(result.getContent().getFirst().getFavorite()).isTrue();
+    assertThat(result.getNumber()).isZero();
+    assertThat(result.getSize()).isEqualTo(10);
+    assertThat(result.getTotalElements()).isEqualTo(1);
   }
 
   @Test
@@ -93,11 +100,16 @@ class RecipeRepositoryTest extends PostgresRepositoryTest {
     entityManager.flush();
     entityManager.clear();
 
-    List<Recipe> result = recipeRepository.findByCoffeeId(veracruz.getId());
+    Pageable pageable = PageRequest.of(0, 10);
 
-    assertThat(result).hasSize(1);
-    assertThat(result.getFirst().getName()).isEqualTo("Veracruz V60");
-    assertThat(result.getFirst().getCoffee().getId()).isEqualTo(veracruz.getId());
+    Page<Recipe> result = recipeRepository.findByCoffeeId(veracruz.getId(), pageable);
+
+    assertThat(result.getContent()).hasSize(1);
+    assertThat(result.getContent().getFirst().getName()).isEqualTo("Veracruz V60");
+    assertThat(result.getContent().getFirst().getCoffee().getId()).isEqualTo(veracruz.getId());
+    assertThat(result.getNumber()).isZero();
+    assertThat(result.getSize()).isEqualTo(10);
+    assertThat(result.getTotalElements()).isEqualTo(1);
   }
 
   @Test
@@ -128,11 +140,42 @@ class RecipeRepositoryTest extends PostgresRepositoryTest {
     entityManager.flush();
     entityManager.clear();
 
-    List<Recipe> result = recipeRepository.findByMethodId(aeroPress.getId());
+    Pageable pageable = PageRequest.of(0, 10);
 
-    assertThat(result).hasSize(1);
-    assertThat(result.getFirst().getName()).isEqualTo("Veracruz AeroPress");
-    assertThat(result.getFirst().getMethod().getId()).isEqualTo(aeroPress.getId());
+    Page<Recipe> result = recipeRepository.findByMethodId(aeroPress.getId(), pageable);
+
+    assertThat(result.getContent()).hasSize(1);
+    assertThat(result.getContent().getFirst().getName()).isEqualTo("Veracruz AeroPress");
+    assertThat(result.getContent().getFirst().getMethod().getId()).isEqualTo(aeroPress.getId());
+    assertThat(result.getNumber()).isZero();
+    assertThat(result.getSize()).isEqualTo(10);
+    assertThat(result.getTotalElements()).isEqualTo(1);
+  }
+
+  @Test
+  void findByCoffeeId_shouldRespectPaginationSize() {
+    Coffee coffee = persistCoffee("Mezcla Veracruz");
+    BrewMethod method = persistBrewMethod("AeroPress");
+
+    Recipe recipeOne =
+        Recipe.builder().coffee(coffee).method(method).name("Recipe One").favorite(false).build();
+
+    Recipe recipeTwo =
+        Recipe.builder().coffee(coffee).method(method).name("Recipe Two").favorite(false).build();
+
+    entityManager.persist(recipeOne);
+    entityManager.persist(recipeTwo);
+    entityManager.flush();
+    entityManager.clear();
+
+    Pageable pageable = PageRequest.of(0, 1);
+
+    Page<Recipe> result = recipeRepository.findByCoffeeId(coffee.getId(), pageable);
+
+    assertThat(result.getContent()).hasSize(1);
+    assertThat(result.getTotalElements()).isEqualTo(2);
+    assertThat(result.getTotalPages()).isEqualTo(2);
+    assertThat(result.getSize()).isEqualTo(1);
   }
 
   private Coffee persistCoffee(String name) {
