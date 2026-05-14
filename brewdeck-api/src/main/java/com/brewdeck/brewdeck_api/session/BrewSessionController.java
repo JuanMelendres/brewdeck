@@ -1,9 +1,12 @@
 package com.brewdeck.brewdeck_api.session;
 
+import com.brewdeck.brewdeck_api.common.PageResponse;
 import jakarta.validation.Valid;
 import java.net.URI;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,9 +18,10 @@ public class BrewSessionController {
   private final BrewSessionService brewSessionService;
 
   @GetMapping
-  public ResponseEntity<List<BrewSessionResponse>> findAll(
-      @ModelAttribute BrewSessionFilter filter) {
-    return ResponseEntity.ok(brewSessionService.search(filter));
+  public ResponseEntity<PageResponse<BrewSessionResponse>> findAll(
+      @ModelAttribute BrewSessionFilter filter,
+      @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
+    return ResponseEntity.ok(brewSessionService.search(filter, pageable));
   }
 
   @GetMapping("/{id}")
@@ -26,8 +30,10 @@ public class BrewSessionController {
   }
 
   @GetMapping("/recipe/{recipeId}")
-  public ResponseEntity<List<BrewSessionResponse>> findByRecipeId(@PathVariable Long recipeId) {
-    return ResponseEntity.ok(brewSessionService.findByRecipeId(recipeId));
+  public ResponseEntity<PageResponse<BrewSessionResponse>> findByRecipeId(
+      @PathVariable Long recipeId,
+      @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
+    return ResponseEntity.ok(brewSessionService.findByRecipeId(recipeId, pageable));
   }
 
   @PostMapping

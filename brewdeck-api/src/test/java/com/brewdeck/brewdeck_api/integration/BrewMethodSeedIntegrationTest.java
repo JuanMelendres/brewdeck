@@ -27,17 +27,20 @@ class BrewMethodSeedIntegrationTest extends PostgresIntegrationTest {
   void findAll_shouldReturnSeededBrewMethods() throws Exception {
     String response =
         mockMvc
-            .perform(get("/api/brew-methods"))
+            .perform(get("/api/brew-methods").param("page", "0").param("size", "50"))
             .andExpect(status().isOk())
             .andReturn()
             .getResponse()
             .getContentAsString();
 
-    JsonNode methods = objectMapper.readTree(response);
+    JsonNode page = objectMapper.readTree(response);
+    JsonNode methods = page.get("content");
 
     assertThat(methods).isNotEmpty();
     assertThat(methods.toString()).contains("AeroPress");
     assertThat(methods.toString()).contains("V60");
     assertThat(methods.toString()).contains("Espresso");
+    assertThat(page.get("page").asInt()).isZero();
+    assertThat(page.get("size").asInt()).isEqualTo(50);
   }
 }

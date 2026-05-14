@@ -13,12 +13,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.brewdeck.brewdeck_api.common.PageResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -37,17 +41,23 @@ class BrewSessionControllerTest {
     BrewSessionResponse response = buildBrewSessionResponse();
     BrewSessionFilter filter = new BrewSessionFilter(null, null);
 
-    when(brewSessionService.search(filter)).thenReturn(List.of(response));
+    PageResponse<BrewSessionResponse> pageResponse =
+        PageResponse.fromPage(new PageImpl<>(List.of(response), PageRequest.of(0, 10), 1));
+
+    when(brewSessionService.search(eq(filter), any(Pageable.class))).thenReturn(pageResponse);
 
     mockMvc
         .perform(get("/api/brew-sessions"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].id").value(1L))
-        .andExpect(jsonPath("$[0].recipeName").value("Mezcla Veracruz AeroPress"))
-        .andExpect(jsonPath("$[0].rating").value(9));
+        .andExpect(jsonPath("$.content", hasSize(1)))
+        .andExpect(jsonPath("$.content[0].id").value(1L))
+        .andExpect(jsonPath("$.content[0].recipeName").value("Mezcla Veracruz AeroPress"))
+        .andExpect(jsonPath("$.content[0].rating").value(9))
+        .andExpect(jsonPath("$.page").value(0))
+        .andExpect(jsonPath("$.size").value(10))
+        .andExpect(jsonPath("$.totalElements").value(1));
 
-    verify(brewSessionService).search(filter);
+    verify(brewSessionService).search(eq(filter), any(Pageable.class));
   }
 
   @Test
@@ -55,16 +65,28 @@ class BrewSessionControllerTest {
     BrewSessionResponse response = buildBrewSessionResponse();
     BrewSessionFilter filter = new BrewSessionFilter(1L, 9);
 
-    when(brewSessionService.search(filter)).thenReturn(List.of(response));
+    PageResponse<BrewSessionResponse> pageResponse =
+        PageResponse.fromPage(new PageImpl<>(List.of(response), PageRequest.of(0, 5), 1));
+
+    when(brewSessionService.search(eq(filter), any(Pageable.class))).thenReturn(pageResponse);
 
     mockMvc
-        .perform(get("/api/brew-sessions").param("recipeId", "1").param("rating", "9"))
+        .perform(
+            get("/api/brew-sessions")
+                .param("recipeId", "1")
+                .param("rating", "9")
+                .param("page", "0")
+                .param("size", "5")
+                .param("sort", "id,asc"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].recipeId").value(1L))
-        .andExpect(jsonPath("$[0].rating").value(9));
+        .andExpect(jsonPath("$.content", hasSize(1)))
+        .andExpect(jsonPath("$.content[0].recipeId").value(1L))
+        .andExpect(jsonPath("$.content[0].rating").value(9))
+        .andExpect(jsonPath("$.page").value(0))
+        .andExpect(jsonPath("$.size").value(5))
+        .andExpect(jsonPath("$.totalElements").value(1));
 
-    verify(brewSessionService).search(filter);
+    verify(brewSessionService).search(eq(filter), any(Pageable.class));
   }
 
   @Test
@@ -87,15 +109,19 @@ class BrewSessionControllerTest {
   void findByRecipeId_shouldReturnBrewSessions() throws Exception {
     BrewSessionResponse response = buildBrewSessionResponse();
 
-    when(brewSessionService.findByRecipeId(1L)).thenReturn(List.of(response));
+    PageResponse<BrewSessionResponse> pageResponse =
+        PageResponse.fromPage(new PageImpl<>(List.of(response), PageRequest.of(0, 10), 1));
+
+    when(brewSessionService.findByRecipeId(eq(1L), any(Pageable.class))).thenReturn(pageResponse);
 
     mockMvc
         .perform(get("/api/brew-sessions/recipe/{recipeId}", 1L))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].recipeId").value(1L));
+        .andExpect(jsonPath("$.content", hasSize(1)))
+        .andExpect(jsonPath("$.content[0].recipeId").value(1L))
+        .andExpect(jsonPath("$.totalElements").value(1));
 
-    verify(brewSessionService).findByRecipeId(1L);
+    verify(brewSessionService).findByRecipeId(eq(1L), any(Pageable.class));
   }
 
   @Test

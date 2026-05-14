@@ -1,8 +1,9 @@
 package com.brewdeck.brewdeck_api.method;
 
+import com.brewdeck.brewdeck_api.common.PageResponse;
 import jakarta.persistence.EntityNotFoundException;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -11,8 +12,9 @@ public class BrewMethodService {
 
   private final BrewMethodRepository brewMethodRepository;
 
-  public List<BrewMethodResponse> findAll() {
-    return brewMethodRepository.findAll().stream().map(BrewMethodResponse::fromEntity).toList();
+  public PageResponse<BrewMethodResponse> findAll(Pageable pageable) {
+    return PageResponse.fromPage(
+        brewMethodRepository.findAll(pageable).map(BrewMethodResponse::fromEntity));
   }
 
   public BrewMethodResponse findById(Long id) {

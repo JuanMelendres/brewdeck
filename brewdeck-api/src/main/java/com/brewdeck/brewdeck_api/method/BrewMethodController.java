@@ -1,9 +1,12 @@
 package com.brewdeck.brewdeck_api.method;
 
+import com.brewdeck.brewdeck_api.common.PageResponse;
 import jakarta.validation.Valid;
 import java.net.URI;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,8 +18,9 @@ public class BrewMethodController {
   private final BrewMethodService brewMethodService;
 
   @GetMapping
-  public ResponseEntity<List<BrewMethodResponse>> findAll() {
-    return ResponseEntity.ok(brewMethodService.findAll());
+  public ResponseEntity<PageResponse<BrewMethodResponse>> findAll(
+      @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
+    return ResponseEntity.ok(brewMethodService.findAll(pageable));
   }
 
   @GetMapping("/{id}")
