@@ -7,10 +7,12 @@ import com.brewdeck.brewdeck_api.common.PostgresRepositoryTest;
 import com.brewdeck.brewdeck_api.method.BrewMethod;
 import com.brewdeck.brewdeck_api.recipe.Recipe;
 import java.time.LocalDateTime;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 
 @DataJpaTest
@@ -23,7 +25,7 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
   private org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager entityManager;
 
   @Test
-  void findByRecipeIdOrderByBrewedAtDesc_shouldReturnSessionsOrderedByNewestFirst() {
+  void findByRecipeIdOrderByBrewedAtDesc_shouldReturnPagedSessionsOrderedByNewestFirst() {
     Recipe recipe = persistRecipe("Mezcla Veracruz AeroPress");
 
     BrewSession olderSession =
@@ -55,18 +57,21 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
     entityManager.flush();
     entityManager.clear();
 
-    List<BrewSession> result =
-        brewSessionRepository.findByRecipeIdOrderByBrewedAtDesc(recipe.getId());
+    Pageable pageable = PageRequest.of(0, 10);
 
-    assertThat(result).hasSize(2);
-    assertThat(result.get(0).getRating()).isEqualTo(9);
-    assertThat(result.get(0).getTasteResult()).isEqualTo("More aromatic");
-    assertThat(result.get(1).getRating()).isEqualTo(8);
-    assertThat(result.get(1).getTasteResult()).isEqualTo("Balanced");
+    Page<BrewSession> result =
+        brewSessionRepository.findByRecipeIdOrderByBrewedAtDesc(recipe.getId(), pageable);
+
+    assertThat(result.getContent()).hasSize(2);
+    assertThat(result.getContent().get(0).getRating()).isEqualTo(9);
+    assertThat(result.getContent().get(0).getTasteResult()).isEqualTo("More aromatic");
+    assertThat(result.getContent().get(1).getRating()).isEqualTo(8);
+    assertThat(result.getContent().get(1).getTasteResult()).isEqualTo("Balanced");
+    assertThat(result.getTotalElements()).isEqualTo(2);
   }
 
   @Test
-  void findByRecipeIdOrderByBrewedAtDesc_shouldReturnOnlySessionsForSpecificRecipe() {
+  void findByRecipeIdOrderByBrewedAtDesc_shouldReturnPagedSessionsForSpecificRecipe() {
     Recipe aeroPressRecipe = persistRecipe("Mezcla Veracruz AeroPress");
     Recipe espressoRecipe = persistRecipe("Mezcla Veracruz Espresso");
 
@@ -99,12 +104,51 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
     entityManager.flush();
     entityManager.clear();
 
-    List<BrewSession> result =
-        brewSessionRepository.findByRecipeIdOrderByBrewedAtDesc(aeroPressRecipe.getId());
+    Pageable pageable = PageRequest.of(0, 10);
 
-    assertThat(result).hasSize(1);
-    assertThat(result.getFirst().getRecipe().getId()).isEqualTo(aeroPressRecipe.getId());
-    assertThat(result.getFirst().getTasteResult()).isEqualTo("Balanced");
+    Page<BrewSession> result =
+        brewSessionRepository.findByRecipeIdOrderByBrewedAtDesc(aeroPressRecipe.getId(), pageable);
+
+    assertThat(result.getContent()).hasSize(1);
+    assertThat(result.getContent().getFirst().getRecipe().getId())
+        .isEqualTo(aeroPressRecipe.getId());
+    assertThat(result.getContent().getFirst().getTasteResult()).isEqualTo("Balanced");
+    assertThat(result.getTotalElements()).isEqualTo(1);
+  }
+
+  @Test
+  void findByRecipeIdOrderByBrewedAtDesc_shouldRespectPaginationSize() {
+    Recipe recipe = persistRecipe("Mezcla Veracruz AeroPress");
+
+    BrewSession sessionOne =
+        BrewSession.builder()
+            .recipe(recipe)
+            .brewedAt(LocalDateTime.of(2026, 4, 21, 10, 0))
+            .rating(9)
+            .build();
+
+    BrewSession sessionTwo =
+        BrewSession.builder()
+            .recipe(recipe)
+            .brewedAt(LocalDateTime.of(2026, 4, 22, 10, 0))
+            .rating(10)
+            .build();
+
+    entityManager.persist(sessionOne);
+    entityManager.persist(sessionTwo);
+    entityManager.flush();
+    entityManager.clear();
+
+    Pageable pageable = PageRequest.of(0, 1);
+
+    Page<BrewSession> result =
+        brewSessionRepository.findByRecipeIdOrderByBrewedAtDesc(recipe.getId(), pageable);
+
+    assertThat(result.getContent()).hasSize(1);
+    assertThat(result.getTotalElements()).isEqualTo(2);
+    assertThat(result.getTotalPages()).isEqualTo(2);
+    assertThat(result.getSize()).isEqualTo(1);
+    assertThat(result.getContent().getFirst().getRating()).isEqualTo(10);
   }
 
   private Recipe persistRecipe(String recipeName) {

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
+import com.brewdeck.brewdeck_api.common.PageResponse;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,6 +14,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class BrewMethodServiceTest {
@@ -22,7 +26,7 @@ class BrewMethodServiceTest {
   @InjectMocks private BrewMethodService brewMethodService;
 
   @Test
-  void findAll_shouldReturnAllBrewMethods() {
+  void findAll_shouldReturnPagedBrewMethods() {
     BrewMethod method =
         BrewMethod.builder()
             .id(1L)
@@ -31,15 +35,24 @@ class BrewMethodServiceTest {
             .createdAt(LocalDateTime.now())
             .build();
 
-    when(brewMethodRepository.findAll()).thenReturn(List.of(method));
+    Pageable pageable = PageRequest.of(0, 10);
 
-    List<BrewMethodResponse> result = brewMethodService.findAll();
+    when(brewMethodRepository.findAll(pageable))
+        .thenReturn(new PageImpl<>(List.of(method), pageable, 1));
 
-    assertThat(result).hasSize(1);
-    assertThat(result.getFirst().id()).isEqualTo(1L);
-    assertThat(result.getFirst().name()).isEqualTo("AeroPress");
+    PageResponse<BrewMethodResponse> result = brewMethodService.findAll(pageable);
 
-    verify(brewMethodRepository).findAll();
+    assertThat(result.content()).hasSize(1);
+    assertThat(result.content().getFirst().id()).isEqualTo(1L);
+    assertThat(result.content().getFirst().name()).isEqualTo("AeroPress");
+    assertThat(result.page()).isZero();
+    assertThat(result.size()).isEqualTo(10);
+    assertThat(result.totalElements()).isEqualTo(1);
+    assertThat(result.totalPages()).isEqualTo(1);
+    assertThat(result.first()).isTrue();
+    assertThat(result.last()).isTrue();
+
+    verify(brewMethodRepository).findAll(pageable);
   }
 
   @Test

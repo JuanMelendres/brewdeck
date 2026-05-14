@@ -1,10 +1,11 @@
 package com.brewdeck.brewdeck_api.session;
 
+import com.brewdeck.brewdeck_api.common.PageResponse;
 import com.brewdeck.brewdeck_api.recipe.Recipe;
 import com.brewdeck.brewdeck_api.recipe.RecipeRepository;
 import jakarta.persistence.EntityNotFoundException;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,14 +15,14 @@ public class BrewSessionService {
   private final BrewSessionRepository brewSessionRepository;
   private final RecipeRepository recipeRepository;
 
-  public List<BrewSessionResponse> search(BrewSessionFilter filter) {
-    return brewSessionRepository
-        .findAll(
-            BrewSessionSpecification.hasRecipeId(filter.recipeId())
-                .and(BrewSessionSpecification.hasRating(filter.rating())))
-        .stream()
-        .map(BrewSessionResponse::fromEntity)
-        .toList();
+  public PageResponse<BrewSessionResponse> search(BrewSessionFilter filter, Pageable pageable) {
+    return PageResponse.fromPage(
+        brewSessionRepository
+            .findAll(
+                BrewSessionSpecification.hasRecipeId(filter.recipeId())
+                    .and(BrewSessionSpecification.hasRating(filter.rating())),
+                pageable)
+            .map(BrewSessionResponse::fromEntity));
   }
 
   public BrewSessionResponse findById(Long id) {
@@ -33,10 +34,11 @@ public class BrewSessionService {
     return BrewSessionResponse.fromEntity(session);
   }
 
-  public List<BrewSessionResponse> findByRecipeId(Long recipeId) {
-    return brewSessionRepository.findByRecipeIdOrderByBrewedAtDesc(recipeId).stream()
-        .map(BrewSessionResponse::fromEntity)
-        .toList();
+  public PageResponse<BrewSessionResponse> findByRecipeId(Long recipeId, Pageable pageable) {
+    return PageResponse.fromPage(
+        brewSessionRepository
+            .findByRecipeIdOrderByBrewedAtDesc(recipeId, pageable)
+            .map(BrewSessionResponse::fromEntity));
   }
 
   public BrewSessionResponse create(BrewSessionRequest request) {
