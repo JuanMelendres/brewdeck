@@ -18,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.jpa.domain.Specification;
 
 @ExtendWith(MockitoExtension.class)
 class RecipeServiceTest {
@@ -29,7 +30,7 @@ class RecipeServiceTest {
   @InjectMocks private RecipeService recipeService;
 
   @Test
-  void findAll_shouldReturnAllRecipes() {
+  void search_shouldReturnAllRecipes_whenFilterIsEmpty() {
     Coffee coffee = Coffee.builder().id(1L).name("Mezcla Veracruz").build();
     BrewMethod method = BrewMethod.builder().id(1L).name("AeroPress").build();
 
@@ -43,16 +44,46 @@ class RecipeServiceTest {
             .createdAt(LocalDateTime.now())
             .build();
 
-    when(recipeRepository.findAll()).thenReturn(List.of(recipe));
+    when(recipeRepository.findAll(anyRecipeSpecification())).thenReturn(List.of(recipe));
 
-    List<RecipeResponse> result = recipeService.findAll();
+    List<RecipeResponse> result = recipeService.search(new RecipeFilter(null, null, null, null));
 
     assertThat(result).hasSize(1);
     assertThat(result.getFirst().id()).isEqualTo(1L);
     assertThat(result.getFirst().coffeeName()).isEqualTo("Mezcla Veracruz");
     assertThat(result.getFirst().methodName()).isEqualTo("AeroPress");
 
-    verify(recipeRepository).findAll();
+    verify(recipeRepository).findAll(anyRecipeSpecification());
+  }
+
+  @Test
+  void search_shouldReturnFilteredRecipes() {
+    Coffee coffee = Coffee.builder().id(1L).name("Mezcla Veracruz").build();
+    BrewMethod method = BrewMethod.builder().id(1L).name("AeroPress").build();
+
+    Recipe recipe =
+        Recipe.builder()
+            .id(1L)
+            .coffee(coffee)
+            .method(method)
+            .name("Mezcla Veracruz AeroPress")
+            .favorite(true)
+            .createdAt(LocalDateTime.now())
+            .build();
+
+    RecipeFilter filter = new RecipeFilter(1L, 1L, true, "AeroPress");
+
+    when(recipeRepository.findAll(anyRecipeSpecification())).thenReturn(List.of(recipe));
+
+    List<RecipeResponse> result = recipeService.search(filter);
+
+    assertThat(result).hasSize(1);
+    assertThat(result.getFirst().coffeeId()).isEqualTo(1L);
+    assertThat(result.getFirst().methodId()).isEqualTo(1L);
+    assertThat(result.getFirst().favorite()).isTrue();
+    assertThat(result.getFirst().name()).isEqualTo("Mezcla Veracruz AeroPress");
+
+    verify(recipeRepository).findAll(anyRecipeSpecification());
   }
 
   @Test
@@ -464,5 +495,10 @@ class RecipeServiceTest {
 
     verify(recipeRepository).findById(99L);
     verify(recipeRepository, never()).save(any());
+  }
+
+  @SuppressWarnings("unchecked")
+  private Specification<Recipe> anyRecipeSpecification() {
+    return any(Specification.class);
   }
 }

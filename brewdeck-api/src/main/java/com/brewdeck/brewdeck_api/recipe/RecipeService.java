@@ -21,8 +21,16 @@ public class RecipeService {
   private final CoffeeRepository coffeeRepository;
   private final BrewMethodRepository brewMethodRepository;
 
-  public List<RecipeResponse> findAll() {
-    return recipeRepository.findAll().stream().map(RecipeResponse::fromEntity).toList();
+  public List<RecipeResponse> search(RecipeFilter filter) {
+    return recipeRepository
+        .findAll(
+            RecipeSpecification.hasCoffeeId(filter.coffeeId())
+                .and(RecipeSpecification.hasMethodId(filter.methodId()))
+                .and(RecipeSpecification.isFavorite(filter.favorite()))
+                .and(RecipeSpecification.nameContains(filter.name())))
+        .stream()
+        .map(RecipeResponse::fromEntity)
+        .toList();
   }
 
   public RecipeResponse findById(Long id) {

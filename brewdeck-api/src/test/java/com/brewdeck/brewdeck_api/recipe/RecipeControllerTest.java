@@ -33,8 +33,9 @@ class RecipeControllerTest {
   @Test
   void findAll_shouldReturnRecipes() throws Exception {
     RecipeResponse response = buildRecipeResponse();
+    RecipeFilter filter = new RecipeFilter(null, null, null, null);
 
-    when(recipeService.findAll()).thenReturn(List.of(response));
+    when(recipeService.search(filter)).thenReturn(List.of(response));
 
     mockMvc
         .perform(get("/api/recipes"))
@@ -44,7 +45,31 @@ class RecipeControllerTest {
         .andExpect(jsonPath("$[0].coffeeName").value("Mezcla Veracruz"))
         .andExpect(jsonPath("$[0].methodName").value("AeroPress"));
 
-    verify(recipeService).findAll();
+    verify(recipeService).search(filter);
+  }
+
+  @Test
+  void findAll_shouldReturnFilteredRecipes() throws Exception {
+    RecipeResponse response = buildRecipeResponse();
+    RecipeFilter filter = new RecipeFilter(1L, 1L, true, "AeroPress");
+
+    when(recipeService.search(filter)).thenReturn(List.of(response));
+
+    mockMvc
+        .perform(
+            get("/api/recipes")
+                .param("coffeeId", "1")
+                .param("methodId", "1")
+                .param("favorite", "true")
+                .param("name", "AeroPress"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(1)))
+        .andExpect(jsonPath("$[0].id").value(1L))
+        .andExpect(jsonPath("$[0].coffeeId").value(1L))
+        .andExpect(jsonPath("$[0].methodId").value(1L))
+        .andExpect(jsonPath("$[0].favorite").value(true));
+
+    verify(recipeService).search(filter);
   }
 
   @Test
