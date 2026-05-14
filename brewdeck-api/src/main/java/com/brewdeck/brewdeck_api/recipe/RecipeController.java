@@ -1,9 +1,12 @@
 package com.brewdeck.brewdeck_api.recipe;
 
+import com.brewdeck.brewdeck_api.common.PageResponse;
 import jakarta.validation.Valid;
 import java.net.URI;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,8 +18,11 @@ public class RecipeController {
   private final RecipeService recipeService;
 
   @GetMapping
-  public ResponseEntity<List<RecipeResponse>> findAll(@ModelAttribute RecipeFilter filter) {
-    return ResponseEntity.ok(recipeService.search(filter));
+  public ResponseEntity<PageResponse<RecipeResponse>> findAll(
+      @ModelAttribute RecipeFilter filter,
+      @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.ASC)
+          Pageable pageable) {
+    return ResponseEntity.ok(recipeService.search(filter, pageable));
   }
 
   @GetMapping("/{id}")
@@ -25,18 +31,23 @@ public class RecipeController {
   }
 
   @GetMapping("/favorites")
-  public ResponseEntity<List<RecipeResponse>> findFavorites() {
-    return ResponseEntity.ok(recipeService.findFavorites());
+  public ResponseEntity<PageResponse<RecipeResponse>> findFavorites(
+      @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
+    return ResponseEntity.ok(recipeService.findFavorites(pageable));
   }
 
   @GetMapping("/coffee/{coffeeId}")
-  public ResponseEntity<List<RecipeResponse>> findByCoffeeId(@PathVariable Long coffeeId) {
-    return ResponseEntity.ok(recipeService.findByCoffeeId(coffeeId));
+  public ResponseEntity<PageResponse<RecipeResponse>> findByCoffeeId(
+      @PathVariable Long coffeeId,
+      @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
+    return ResponseEntity.ok(recipeService.findByCoffeeId(coffeeId, pageable));
   }
 
   @GetMapping("/method/{methodId}")
-  public ResponseEntity<List<RecipeResponse>> findByMethodId(@PathVariable Long methodId) {
-    return ResponseEntity.ok(recipeService.findByMethodId(methodId));
+  public ResponseEntity<PageResponse<RecipeResponse>> findByMethodId(
+      @PathVariable Long methodId,
+      @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
+    return ResponseEntity.ok(recipeService.findByMethodId(methodId, pageable));
   }
 
   @PostMapping

@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.brewdeck.brewdeck_api.common.PageResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -17,6 +18,9 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -35,17 +39,23 @@ class RecipeControllerTest {
     RecipeResponse response = buildRecipeResponse();
     RecipeFilter filter = new RecipeFilter(null, null, null, null);
 
-    when(recipeService.search(filter)).thenReturn(List.of(response));
+    PageResponse<RecipeResponse> pageResponse =
+        PageResponse.fromPage(new PageImpl<>(List.of(response), PageRequest.of(0, 10), 1));
+
+    when(recipeService.search(eq(filter), any(Pageable.class))).thenReturn(pageResponse);
 
     mockMvc
         .perform(get("/api/recipes"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].id").value(1L))
-        .andExpect(jsonPath("$[0].coffeeName").value("Mezcla Veracruz"))
-        .andExpect(jsonPath("$[0].methodName").value("AeroPress"));
+        .andExpect(jsonPath("$.content", hasSize(1)))
+        .andExpect(jsonPath("$.content[0].id").value(1L))
+        .andExpect(jsonPath("$.content[0].coffeeName").value("Mezcla Veracruz"))
+        .andExpect(jsonPath("$.content[0].methodName").value("AeroPress"))
+        .andExpect(jsonPath("$.page").value(0))
+        .andExpect(jsonPath("$.size").value(10))
+        .andExpect(jsonPath("$.totalElements").value(1));
 
-    verify(recipeService).search(filter);
+    verify(recipeService).search(eq(filter), any(Pageable.class));
   }
 
   @Test
@@ -53,7 +63,10 @@ class RecipeControllerTest {
     RecipeResponse response = buildRecipeResponse();
     RecipeFilter filter = new RecipeFilter(1L, 1L, true, "AeroPress");
 
-    when(recipeService.search(filter)).thenReturn(List.of(response));
+    PageResponse<RecipeResponse> pageResponse =
+        PageResponse.fromPage(new PageImpl<>(List.of(response), PageRequest.of(0, 5), 1));
+
+    when(recipeService.search(eq(filter), any(Pageable.class))).thenReturn(pageResponse);
 
     mockMvc
         .perform(
@@ -61,15 +74,20 @@ class RecipeControllerTest {
                 .param("coffeeId", "1")
                 .param("methodId", "1")
                 .param("favorite", "true")
-                .param("name", "AeroPress"))
+                .param("name", "AeroPress")
+                .param("page", "0")
+                .param("size", "5")
+                .param("sort", "id,asc"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].id").value(1L))
-        .andExpect(jsonPath("$[0].coffeeId").value(1L))
-        .andExpect(jsonPath("$[0].methodId").value(1L))
-        .andExpect(jsonPath("$[0].favorite").value(true));
+        .andExpect(jsonPath("$.content", hasSize(1)))
+        .andExpect(jsonPath("$.content[0].id").value(1L))
+        .andExpect(jsonPath("$.content[0].coffeeId").value(1L))
+        .andExpect(jsonPath("$.content[0].methodId").value(1L))
+        .andExpect(jsonPath("$.content[0].favorite").value(true))
+        .andExpect(jsonPath("$.page").value(0))
+        .andExpect(jsonPath("$.size").value(5));
 
-    verify(recipeService).search(filter);
+    verify(recipeService).search(eq(filter), any(Pageable.class));
   }
 
   @Test
@@ -91,45 +109,57 @@ class RecipeControllerTest {
   void findFavorites_shouldReturnFavoriteRecipes() throws Exception {
     RecipeResponse response = buildRecipeResponse();
 
-    when(recipeService.findFavorites()).thenReturn(List.of(response));
+    PageResponse<RecipeResponse> pageResponse =
+        PageResponse.fromPage(new PageImpl<>(List.of(response), PageRequest.of(0, 10), 1));
+
+    when(recipeService.findFavorites(any(Pageable.class))).thenReturn(pageResponse);
 
     mockMvc
         .perform(get("/api/recipes/favorites"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].favorite").value(true));
+        .andExpect(jsonPath("$.content", hasSize(1)))
+        .andExpect(jsonPath("$.content[0].favorite").value(true))
+        .andExpect(jsonPath("$.totalElements").value(1));
 
-    verify(recipeService).findFavorites();
+    verify(recipeService).findFavorites(any(Pageable.class));
   }
 
   @Test
   void findByCoffeeId_shouldReturnRecipes() throws Exception {
     RecipeResponse response = buildRecipeResponse();
 
-    when(recipeService.findByCoffeeId(1L)).thenReturn(List.of(response));
+    PageResponse<RecipeResponse> pageResponse =
+        PageResponse.fromPage(new PageImpl<>(List.of(response), PageRequest.of(0, 10), 1));
+
+    when(recipeService.findByCoffeeId(eq(1L), any(Pageable.class))).thenReturn(pageResponse);
 
     mockMvc
         .perform(get("/api/recipes/coffee/{coffeeId}", 1L))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].coffeeId").value(1L));
+        .andExpect(jsonPath("$.content", hasSize(1)))
+        .andExpect(jsonPath("$.content[0].coffeeId").value(1L))
+        .andExpect(jsonPath("$.totalElements").value(1));
 
-    verify(recipeService).findByCoffeeId(1L);
+    verify(recipeService).findByCoffeeId(eq(1L), any(Pageable.class));
   }
 
   @Test
   void findByMethodId_shouldReturnRecipes() throws Exception {
     RecipeResponse response = buildRecipeResponse();
 
-    when(recipeService.findByMethodId(1L)).thenReturn(List.of(response));
+    PageResponse<RecipeResponse> pageResponse =
+        PageResponse.fromPage(new PageImpl<>(List.of(response), PageRequest.of(0, 10), 1));
+
+    when(recipeService.findByMethodId(eq(1L), any(Pageable.class))).thenReturn(pageResponse);
 
     mockMvc
         .perform(get("/api/recipes/method/{methodId}", 1L))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].methodId").value(1L));
+        .andExpect(jsonPath("$.content", hasSize(1)))
+        .andExpect(jsonPath("$.content[0].methodId").value(1L))
+        .andExpect(jsonPath("$.totalElements").value(1));
 
-    verify(recipeService).findByMethodId(1L);
+    verify(recipeService).findByMethodId(eq(1L), any(Pageable.class));
   }
 
   @Test
