@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.brewdeck.brewdeck_api.common.PageResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,6 +21,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -39,16 +43,48 @@ class BrewMethodControllerTest {
         new BrewMethodResponse(
             1L, "AeroPress", "Immersion and pressure-based brewing method.", LocalDateTime.now());
 
-    when(brewMethodService.findAll()).thenReturn(List.of(response));
+    PageResponse<BrewMethodResponse> pageResponse =
+        PageResponse.fromPage(new PageImpl<>(List.of(response), PageRequest.of(0, 10), 1));
+
+    when(brewMethodService.findAll(any(Pageable.class))).thenReturn(pageResponse);
 
     mockMvc
         .perform(get("/api/brew-methods"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].id").value(1L))
-        .andExpect(jsonPath("$[0].name").value("AeroPress"));
+        .andExpect(jsonPath("$.content", hasSize(1)))
+        .andExpect(jsonPath("$.content[0].id").value(1L))
+        .andExpect(jsonPath("$.content[0].name").value("AeroPress"))
+        .andExpect(jsonPath("$.page").value(0))
+        .andExpect(jsonPath("$.size").value(10))
+        .andExpect(jsonPath("$.totalElements").value(1))
+        .andExpect(jsonPath("$.totalPages").value(1))
+        .andExpect(jsonPath("$.first").value(true))
+        .andExpect(jsonPath("$.last").value(true));
 
-    verify(brewMethodService).findAll();
+    verify(brewMethodService).findAll(any(Pageable.class));
+  }
+
+  @Test
+  void findAll_shouldReturnPagedBrewMethods() throws Exception {
+    BrewMethodResponse response =
+        new BrewMethodResponse(1L, "V60", "Pour-over brewing method.", LocalDateTime.now());
+
+    PageResponse<BrewMethodResponse> pageResponse =
+        PageResponse.fromPage(new PageImpl<>(List.of(response), PageRequest.of(0, 5), 1));
+
+    when(brewMethodService.findAll(any(Pageable.class))).thenReturn(pageResponse);
+
+    mockMvc
+        .perform(
+            get("/api/brew-methods").param("page", "0").param("size", "5").param("sort", "id,asc"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content", hasSize(1)))
+        .andExpect(jsonPath("$.content[0].name").value("V60"))
+        .andExpect(jsonPath("$.page").value(0))
+        .andExpect(jsonPath("$.size").value(5))
+        .andExpect(jsonPath("$.totalElements").value(1));
+
+    verify(brewMethodService).findAll(any(Pageable.class));
   }
 
   @Test

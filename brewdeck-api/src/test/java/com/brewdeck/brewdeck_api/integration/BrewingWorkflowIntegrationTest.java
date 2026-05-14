@@ -1,6 +1,7 @@
 package com.brewdeck.brewdeck_api.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -42,13 +43,17 @@ class BrewingWorkflowIntegrationTest extends PostgresIntegrationTest {
             .getResponse()
             .getContentAsString();
 
-    JsonNode sessions = objectMapper.readTree(response);
+    JsonNode page = objectMapper.readTree(response);
+    JsonNode sessions = page.get("content");
 
     assertThat(sessions).hasSize(1);
     assertThat(sessions.get(0).get("id").asLong()).isEqualTo(sessionId);
     assertThat(sessions.get(0).get("recipeId").asLong()).isEqualTo(recipeId);
     assertThat(sessions.get(0).get("recipeName").asText()).isEqualTo("Mezcla Veracruz AeroPress");
     assertThat(sessions.get(0).get("rating").asInt()).isEqualTo(9);
+    assertThat(page.get("page").asInt()).isZero();
+    assertThat(page.get("size").asInt()).isEqualTo(10);
+    assertThat(page.get("totalElements").asLong()).isEqualTo(1);
   }
 
   @Test
@@ -98,12 +103,19 @@ class BrewingWorkflowIntegrationTest extends PostgresIntegrationTest {
                 .param("name", "Veracruz")
                 .param("origin", "Veracruz")
                 .param("roastLevel", "Medio")
-                .param("process", "Lavado"))
+                .param("process", "Lavado")
+                .param("page", "0")
+                .param("size", "10")
+                .param("sort", "id,asc"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0].name").value("Mezcla Veracruz"))
-        .andExpect(jsonPath("$[0].origin").value("Veracruz"))
-        .andExpect(jsonPath("$[0].roastLevel").value("Medio"))
-        .andExpect(jsonPath("$[0].process").value("Lavado"));
+        .andExpect(jsonPath("$.content", hasSize(1)))
+        .andExpect(jsonPath("$.content[0].name").value("Mezcla Veracruz"))
+        .andExpect(jsonPath("$.content[0].origin").value("Veracruz"))
+        .andExpect(jsonPath("$.content[0].roastLevel").value("Medio"))
+        .andExpect(jsonPath("$.content[0].process").value("Lavado"))
+        .andExpect(jsonPath("$.page").value(0))
+        .andExpect(jsonPath("$.size").value(10))
+        .andExpect(jsonPath("$.totalElements").value(1));
   }
 
   @Test
@@ -120,10 +132,14 @@ class BrewingWorkflowIntegrationTest extends PostgresIntegrationTest {
                 .param("favorite", "true")
                 .param("name", "AeroPress"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0].coffeeId").value(coffeeId))
-        .andExpect(jsonPath("$[0].methodId").value(methodId))
-        .andExpect(jsonPath("$[0].favorite").value(true))
-        .andExpect(jsonPath("$[0].name").value("Mezcla Veracruz AeroPress"));
+        .andExpect(jsonPath("$.content", hasSize(1)))
+        .andExpect(jsonPath("$.content[0].coffeeId").value(coffeeId))
+        .andExpect(jsonPath("$.content[0].methodId").value(methodId))
+        .andExpect(jsonPath("$.content[0].favorite").value(true))
+        .andExpect(jsonPath("$.content[0].name").value("Mezcla Veracruz AeroPress"))
+        .andExpect(jsonPath("$.page").value(0))
+        .andExpect(jsonPath("$.size").value(10))
+        .andExpect(jsonPath("$.totalElements").value(1));
   }
 
   @Test
@@ -137,8 +153,70 @@ class BrewingWorkflowIntegrationTest extends PostgresIntegrationTest {
         .perform(
             get("/api/brew-sessions").param("recipeId", recipeId.toString()).param("rating", "9"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0].recipeId").value(recipeId))
-        .andExpect(jsonPath("$[0].rating").value(9));
+        .andExpect(jsonPath("$.content", hasSize(1)))
+        .andExpect(jsonPath("$.content[0].recipeId").value(recipeId))
+        .andExpect(jsonPath("$.content[0].rating").value(9))
+        .andExpect(jsonPath("$.page").value(0))
+        .andExpect(jsonPath("$.size").value(10))
+        .andExpect(jsonPath("$.totalElements").value(1));
+  }
+
+  @Test
+  void favoriteWorkflow_shouldMarkAndUnmarkRecipeAsFavorite() throws Exception {
+    Long coffeeId = createCoffee();
+    Long methodId = createBrewMethod();
+    Long recipeId = createRecipe(coffeeId, methodId);
+
+    mockMvc
+        .perform(patch("/api/recipes/{id}/favorite", recipeId))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(recipeId))
+        .andExpect(jsonPath("$.favorite").value(true));
+
+    String favoritesResponse =
+        mockMvc
+            .perform(get("/api/recipes/favorites"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    JsonNode favoritesPage = objectMapper.readTree(favoritesResponse);
+    JsonNode favorites = favoritesPage.get("content");
+
+    assertThat(favorites).isNotEmpty();
+    assertThat(favorites.toString()).contains("Mezcla Veracruz AeroPress");
+    assertThat(favoritesPage.get("page").asInt()).isZero();
+    assertThat(favoritesPage.get("size").asInt()).isEqualTo(10);
+
+    mockMvc
+        .perform(patch("/api/recipes/{id}/unfavorite", recipeId))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(recipeId))
+        .andExpect(jsonPath("$.favorite").value(false));
+  }
+
+  @Test
+  void searchBrewSessions_shouldRespectPaginationSize() throws Exception {
+    Long coffeeId = createCoffee();
+    Long methodId = createBrewMethod();
+    Long recipeId = createRecipe(coffeeId, methodId);
+
+    createBrewSession(recipeId);
+    createBrewSession(recipeId);
+
+    mockMvc
+        .perform(
+            get("/api/brew-sessions")
+                .param("recipeId", recipeId.toString())
+                .param("page", "0")
+                .param("size", "1"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content", hasSize(1)))
+        .andExpect(jsonPath("$.page").value(0))
+        .andExpect(jsonPath("$.size").value(1))
+        .andExpect(jsonPath("$.totalElements").value(2))
+        .andExpect(jsonPath("$.totalPages").value(2));
   }
 
   private Long createCoffee() throws Exception {
@@ -286,37 +364,5 @@ class BrewingWorkflowIntegrationTest extends PostgresIntegrationTest {
     assertThat(json.get("rating").asInt()).isEqualTo(9);
 
     return json.get("id").asLong();
-  }
-
-  @Test
-  void favoriteWorkflow_shouldMarkAndUnmarkRecipeAsFavorite() throws Exception {
-    Long coffeeId = createCoffee();
-    Long methodId = createBrewMethod();
-    Long recipeId = createRecipe(coffeeId, methodId);
-
-    mockMvc
-        .perform(patch("/api/recipes/{id}/favorite", recipeId))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(recipeId))
-        .andExpect(jsonPath("$.favorite").value(true));
-
-    String favoritesResponse =
-        mockMvc
-            .perform(get("/api/recipes/favorites"))
-            .andExpect(status().isOk())
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
-
-    JsonNode favorites = objectMapper.readTree(favoritesResponse);
-
-    assertThat(favorites).hasSizeGreaterThanOrEqualTo(1);
-    assertThat(favorites.toString()).contains("Mezcla Veracruz AeroPress");
-
-    mockMvc
-        .perform(patch("/api/recipes/{id}/unfavorite", recipeId))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(recipeId))
-        .andExpect(jsonPath("$.favorite").value(false));
   }
 }
