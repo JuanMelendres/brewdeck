@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
+import com.brewdeck.brewdeck_api.common.PageResponse;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,6 +14,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 @ExtendWith(MockitoExtension.class)
@@ -23,7 +27,7 @@ class CoffeeServiceTest {
   @InjectMocks private CoffeeService coffeeService;
 
   @Test
-  void search_shouldReturnAllCoffees_whenFilterIsEmpty() {
+  void search_shouldReturnPagedCoffees_whenFilterIsEmpty() {
     Coffee coffee =
         Coffee.builder()
             .id(1L)
@@ -34,15 +38,25 @@ class CoffeeServiceTest {
             .createdAt(LocalDateTime.now())
             .build();
 
-    when(coffeeRepository.findAll(anyCoffeeSpecification())).thenReturn(List.of(coffee));
+    Pageable pageable = PageRequest.of(0, 10);
 
-    List<CoffeeResponse> result = coffeeService.search(new CoffeeFilter(null, null, null, null));
+    when(coffeeRepository.findAll(anyCoffeeSpecification(), eq(pageable)))
+        .thenReturn(new PageImpl<>(List.of(coffee), pageable, 1));
 
-    assertThat(result).hasSize(1);
-    assertThat(result.getFirst().id()).isEqualTo(1L);
-    assertThat(result.getFirst().name()).isEqualTo("Mezcla Veracruz");
+    PageResponse<CoffeeResponse> result =
+        coffeeService.search(new CoffeeFilter(null, null, null, null), pageable);
 
-    verify(coffeeRepository).findAll(anyCoffeeSpecification());
+    assertThat(result.content()).hasSize(1);
+    assertThat(result.content().getFirst().id()).isEqualTo(1L);
+    assertThat(result.content().getFirst().name()).isEqualTo("Mezcla Veracruz");
+    assertThat(result.page()).isZero();
+    assertThat(result.size()).isEqualTo(10);
+    assertThat(result.totalElements()).isEqualTo(1);
+    assertThat(result.totalPages()).isEqualTo(1);
+    assertThat(result.first()).isTrue();
+    assertThat(result.last()).isTrue();
+
+    verify(coffeeRepository).findAll(anyCoffeeSpecification(), eq(pageable));
   }
 
   @SuppressWarnings("unchecked")
@@ -51,7 +65,7 @@ class CoffeeServiceTest {
   }
 
   @Test
-  void search_shouldReturnFilteredCoffees() {
+  void search_shouldReturnPagedFilteredCoffees() {
     Coffee coffee =
         Coffee.builder()
             .id(1L)
@@ -65,19 +79,24 @@ class CoffeeServiceTest {
             .build();
 
     CoffeeFilter filter = new CoffeeFilter("Veracruz", "Veracruz", "Medio", "Lavado");
+    Pageable pageable = PageRequest.of(0, 5);
 
-    when(coffeeRepository.findAll(anyCoffeeSpecification())).thenReturn(List.of(coffee));
+    when(coffeeRepository.findAll(anyCoffeeSpecification(), eq(pageable)))
+        .thenReturn(new PageImpl<>(List.of(coffee), pageable, 1));
 
-    List<CoffeeResponse> result = coffeeService.search(filter);
+    PageResponse<CoffeeResponse> result = coffeeService.search(filter, pageable);
 
-    assertThat(result).hasSize(1);
-    assertThat(result.getFirst().id()).isEqualTo(1L);
-    assertThat(result.getFirst().name()).isEqualTo("Mezcla Veracruz");
-    assertThat(result.getFirst().origin()).isEqualTo("Veracruz");
-    assertThat(result.getFirst().process()).isEqualTo("Lavado");
-    assertThat(result.getFirst().roastLevel()).isEqualTo("Medio");
+    assertThat(result.content()).hasSize(1);
+    assertThat(result.content().getFirst().id()).isEqualTo(1L);
+    assertThat(result.content().getFirst().name()).isEqualTo("Mezcla Veracruz");
+    assertThat(result.content().getFirst().origin()).isEqualTo("Veracruz");
+    assertThat(result.content().getFirst().process()).isEqualTo("Lavado");
+    assertThat(result.content().getFirst().roastLevel()).isEqualTo("Medio");
+    assertThat(result.page()).isZero();
+    assertThat(result.size()).isEqualTo(5);
+    assertThat(result.totalElements()).isEqualTo(1);
 
-    verify(coffeeRepository).findAll(anyCoffeeSpecification());
+    verify(coffeeRepository).findAll(anyCoffeeSpecification(), eq(pageable));
   }
 
   @Test

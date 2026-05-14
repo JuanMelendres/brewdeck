@@ -1,8 +1,9 @@
 package com.brewdeck.brewdeck_api.coffee;
 
+import com.brewdeck.brewdeck_api.common.PageResponse;
 import jakarta.persistence.EntityNotFoundException;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -11,16 +12,16 @@ public class CoffeeService {
 
   private final CoffeeRepository coffeeRepository;
 
-  public List<CoffeeResponse> search(CoffeeFilter filter) {
-    return coffeeRepository
-        .findAll(
-            CoffeeSpecification.nameContains(filter.name())
-                .and(CoffeeSpecification.hasOrigin(filter.origin()))
-                .and(CoffeeSpecification.hasRoastLevel(filter.roastLevel()))
-                .and(CoffeeSpecification.hasProcess(filter.process())))
-        .stream()
-        .map(CoffeeResponse::fromEntity)
-        .toList();
+  public PageResponse<CoffeeResponse> search(CoffeeFilter filter, Pageable pageable) {
+    return PageResponse.fromPage(
+        coffeeRepository
+            .findAll(
+                CoffeeSpecification.nameContains(filter.name())
+                    .and(CoffeeSpecification.hasOrigin(filter.origin()))
+                    .and(CoffeeSpecification.hasRoastLevel(filter.roastLevel()))
+                    .and(CoffeeSpecification.hasProcess(filter.process())),
+                pageable)
+            .map(CoffeeResponse::fromEntity));
   }
 
   public CoffeeResponse findById(Long id) {
