@@ -12,10 +12,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.brewdeck.brewdeck_api.common.PageResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
@@ -53,7 +56,10 @@ class RecipeControllerTest {
         .andExpect(jsonPath("$.content[0].methodName").value("AeroPress"))
         .andExpect(jsonPath("$.page").value(0))
         .andExpect(jsonPath("$.size").value(10))
-        .andExpect(jsonPath("$.totalElements").value(1));
+        .andExpect(jsonPath("$.totalElements").value(1))
+        .andExpect(jsonPath("$.totalPages").value(1))
+        .andExpect(jsonPath("$.first").value(true))
+        .andExpect(jsonPath("$.last").value(true));
 
     verify(recipeService).search(eq(filter), any(Pageable.class));
   }
@@ -501,6 +507,33 @@ class RecipeControllerTest {
         .andExpect(status().isBadRequest())
         .andExpect(
             jsonPath("$.validationErrors.steps").value("Steps must not exceed 1000 characters"));
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+    "ratio,21,Ratio must not exceed 20 characters",
+    "grindSetting,121,Grind setting must not exceed 120 characters",
+    "brewTime,21,Brew time must not exceed 20 characters",
+    "expectedTaste,501,Expected taste must not exceed 500 characters"
+  })
+  void create_shouldReturnBadRequest_whenOptionalTextFieldExceedsMaxLength(
+      String fieldName, int length, String message) throws Exception {
+    ObjectNode request = objectMapper.createObjectNode();
+    request.put("coffeeId", 1L);
+    request.put("methodId", 1L);
+    request.put("name", "Mezcla Veracruz AeroPress");
+    request.put(fieldName, "A".repeat(length));
+
+    mockMvc
+        .perform(
+            post("/api/recipes")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.error").value("Bad Request"))
+        .andExpect(jsonPath("$.message").value("Validation failed"))
+        .andExpect(jsonPath("$.validationErrors." + fieldName).value(message));
   }
 
   @Test

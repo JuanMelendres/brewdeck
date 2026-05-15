@@ -15,10 +15,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.brewdeck.brewdeck_api.common.PageResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
@@ -428,6 +431,41 @@ class CoffeeControllerTest {
         .andExpect(
             jsonPath("$.validationErrors.description")
                 .value("Description must not exceed 1000 characters"));
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+    "brand,121,Brand must not exceed 120 characters",
+    "origin,121,Origin must not exceed 120 characters",
+    "region,121,Region must not exceed 120 characters",
+    "farm,121,Farm must not exceed 120 characters",
+    "producer,121,Producer must not exceed 120 characters",
+    "variety,121,Variety must not exceed 120 characters",
+    "process,81,Process must not exceed 80 characters",
+    "roastLevel,81,Roast level must not exceed 80 characters",
+    "notesPrimary,256,Primary notes must not exceed 255 characters",
+    "notesSecondary,501,Secondary notes must not exceed 500 characters",
+    "acidity,81,Acidity must not exceed 80 characters",
+    "body,81,Body must not exceed 80 characters",
+    "sweetness,81,Sweetness must not exceed 80 characters",
+    "bitterness,81,Bitterness must not exceed 80 characters"
+  })
+  void create_shouldReturnBadRequest_whenOptionalTextFieldExceedsMaxLength(
+      String fieldName, int length, String message) throws Exception {
+    ObjectNode request = objectMapper.createObjectNode();
+    request.put("name", "Mezcla Veracruz");
+    request.put(fieldName, "A".repeat(length));
+
+    mockMvc
+        .perform(
+            post("/api/coffees")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.error").value("Bad Request"))
+        .andExpect(jsonPath("$.message").value("Validation failed"))
+        .andExpect(jsonPath("$.validationErrors." + fieldName).value(message));
   }
 
   @Test
