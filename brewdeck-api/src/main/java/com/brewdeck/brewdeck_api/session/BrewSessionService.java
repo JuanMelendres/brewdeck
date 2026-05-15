@@ -1,6 +1,6 @@
 package com.brewdeck.brewdeck_api.session;
 
-import com.brewdeck.brewdeck_api.common.PageResponse;
+import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
 import com.brewdeck.brewdeck_api.recipe.Recipe;
 import com.brewdeck.brewdeck_api.recipe.RecipeRepository;
 import jakarta.persistence.EntityNotFoundException;
