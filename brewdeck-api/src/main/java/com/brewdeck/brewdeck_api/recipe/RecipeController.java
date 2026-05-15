@@ -20,8 +20,7 @@ public class RecipeController {
   @GetMapping
   public ResponseEntity<PageResponse<RecipeResponse>> findAll(
       @ModelAttribute RecipeFilter filter,
-      @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.ASC)
-          Pageable pageable) {
+      @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
     return ResponseEntity.ok(recipeService.search(filter, pageable));
   }
 

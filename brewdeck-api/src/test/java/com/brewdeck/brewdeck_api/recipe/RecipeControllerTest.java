@@ -182,7 +182,7 @@ class RecipeControllerTest {
   }
 
   @Test
-  void create_shouldReturnBadRequest_whenRequiredFieldsAreMissing() throws Exception {
+  void create_shouldReturnValidationErrors_whenRequiredFieldsAreMissing() throws Exception {
     RecipeRequest request =
         new RecipeRequest(null, null, "", null, null, null, null, null, null, null, null, false);
 
@@ -191,7 +191,13 @@ class RecipeControllerTest {
             post("/api/recipes")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.error").value("Bad Request"))
+        .andExpect(jsonPath("$.message").value("Validation failed"))
+        .andExpect(jsonPath("$.validationErrors.coffeeId").value("Coffee id is required"))
+        .andExpect(jsonPath("$.validationErrors.methodId").value("Brew method id is required"))
+        .andExpect(jsonPath("$.validationErrors.name").value("Recipe name is required"));
   }
 
   @Test
@@ -322,5 +328,207 @@ class RecipeControllerTest {
         true,
         LocalDateTime.now(),
         null);
+  }
+
+  @Test
+  void create_shouldReturnBadRequest_whenCoffeeGramsIsInvalid() throws Exception {
+    RecipeRequest request =
+        new RecipeRequest(
+            1L,
+            1L,
+            "Mezcla Veracruz AeroPress",
+            BigDecimal.valueOf(-15),
+            BigDecimal.valueOf(230),
+            "1:15",
+            "Timemore S3 - 5.5",
+            90,
+            "2:30",
+            "Bloom 30s, stir gently, press slowly.",
+            "Clean, aromatic, spicy, balanced.",
+            true);
+
+    mockMvc
+        .perform(
+            post("/api/recipes")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.error").value("Bad Request"))
+        .andExpect(jsonPath("$.message").value("Validation failed"))
+        .andExpect(
+            jsonPath("$.validationErrors.coffeeGrams")
+                .value("Coffee grams must be greater than zero"));
+  }
+
+  @Test
+  void create_shouldReturnBadRequest_whenWaterGramsIsInvalid() throws Exception {
+    RecipeRequest request =
+        new RecipeRequest(
+            1L,
+            1L,
+            "Mezcla Veracruz AeroPress",
+            BigDecimal.valueOf(15),
+            BigDecimal.valueOf(-230),
+            "1:15",
+            "Timemore S3 - 5.5",
+            90,
+            "2:30",
+            "Bloom 30s, stir gently, press slowly.",
+            "Clean, aromatic, spicy, balanced.",
+            true);
+
+    mockMvc
+        .perform(
+            post("/api/recipes")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.error").value("Bad Request"))
+        .andExpect(jsonPath("$.message").value("Validation failed"))
+        .andExpect(
+            jsonPath("$.validationErrors.waterGrams")
+                .value("Water grams must be greater than zero"));
+  }
+
+  @Test
+  void create_shouldReturnBadRequest_whenWaterTempIsTooLow() throws Exception {
+    RecipeRequest request =
+        new RecipeRequest(
+            1L,
+            1L,
+            "Mezcla Veracruz AeroPress",
+            BigDecimal.valueOf(15),
+            BigDecimal.valueOf(230),
+            "1:15",
+            "Timemore S3 - 5.5",
+            69,
+            "2:30",
+            "Bloom 30s, stir gently, press slowly.",
+            "Clean, aromatic, spicy, balanced.",
+            true);
+
+    mockMvc
+        .perform(
+            post("/api/recipes")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.validationErrors.waterTemp")
+                .value("Water temperature must be at least 70 degrees Celsius"));
+  }
+
+  @Test
+  void create_shouldReturnBadRequest_whenWaterTempIsTooHigh() throws Exception {
+    RecipeRequest request =
+        new RecipeRequest(
+            1L,
+            1L,
+            "Mezcla Veracruz AeroPress",
+            BigDecimal.valueOf(15),
+            BigDecimal.valueOf(230),
+            "1:15",
+            "Timemore S3 - 5.5",
+            101,
+            "2:30",
+            "Bloom 30s, stir gently, press slowly.",
+            "Clean, aromatic, spicy, balanced.",
+            true);
+
+    mockMvc
+        .perform(
+            post("/api/recipes")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.validationErrors.waterTemp")
+                .value("Water temperature must not exceed 100 degrees Celsius"));
+  }
+
+  @Test
+  void create_shouldReturnBadRequest_whenNameExceedsMaxLength() throws Exception {
+    RecipeRequest request =
+        new RecipeRequest(
+            1L,
+            1L,
+            "A".repeat(121),
+            BigDecimal.valueOf(15),
+            BigDecimal.valueOf(230),
+            "1:15",
+            "Timemore S3 - 5.5",
+            90,
+            "2:30",
+            "Bloom 30s, stir gently, press slowly.",
+            "Clean, aromatic, spicy, balanced.",
+            true);
+
+    mockMvc
+        .perform(
+            post("/api/recipes")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.validationErrors.name")
+                .value("Recipe name must not exceed 120 characters"));
+  }
+
+  @Test
+  void create_shouldReturnBadRequest_whenStepsExceedsMaxLength() throws Exception {
+    RecipeRequest request =
+        new RecipeRequest(
+            1L,
+            1L,
+            "Mezcla Veracruz AeroPress",
+            BigDecimal.valueOf(15),
+            BigDecimal.valueOf(230),
+            "1:15",
+            "Timemore S3 - 5.5",
+            90,
+            "2:30",
+            "A".repeat(1001),
+            "Clean, aromatic, spicy, balanced.",
+            true);
+
+    mockMvc
+        .perform(
+            post("/api/recipes")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.validationErrors.steps").value("Steps must not exceed 1000 characters"));
+  }
+
+  @Test
+  void update_shouldReturnBadRequest_whenRecipeNameIsBlank() throws Exception {
+    RecipeRequest request =
+        new RecipeRequest(
+            1L,
+            1L,
+            "",
+            BigDecimal.valueOf(15),
+            BigDecimal.valueOf(230),
+            "1:15",
+            "Timemore S3 - 5.5",
+            90,
+            "2:30",
+            "Bloom 30s, stir gently, press slowly.",
+            "Clean, aromatic, spicy, balanced.",
+            true);
+
+    mockMvc
+        .perform(
+            put("/api/recipes/{id}", 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.error").value("Bad Request"))
+        .andExpect(jsonPath("$.message").value("Validation failed"))
+        .andExpect(jsonPath("$.validationErrors.name").value("Recipe name is required"));
   }
 }
