@@ -144,7 +144,7 @@ class BrewSessionControllerTest {
   }
 
   @Test
-  void create_shouldReturnBadRequest_whenRecipeIdIsMissing() throws Exception {
+  void create_shouldReturnValidationErrorBody_whenRecipeIdIsMissing() throws Exception {
     BrewSessionRequest request =
         new BrewSessionRequest(null, "Timemore S3 - 5.5", 90, "2:30", "Balanced", 9, "Repeat.");
 
@@ -153,28 +153,28 @@ class BrewSessionControllerTest {
             post("/api/brew-sessions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.error").value("Bad Request"))
+        .andExpect(jsonPath("$.message").value("Validation failed"))
+        .andExpect(jsonPath("$.validationErrors.recipeId").value("Recipe id is required"));
   }
 
   @Test
-  void create_shouldReturnBadRequest_whenRatingIsInvalid() throws Exception {
-    String requestBody =
-        """
-            {
-              "recipeId": 1,
-              "actualGrind": "Timemore S3 - 5.5",
-              "actualTemp": 90,
-              "actualTime": "2:30",
-              "tasteResult": "Balanced",
-              "rating": 11,
-              "adjustmentNotes": "Repeat."
-            }
-            """;
+  void create_shouldReturnBadRequest_whenRatingIsTooHigh() throws Exception {
+    BrewSessionRequest request =
+        new BrewSessionRequest(1L, "Timemore S3 - 5.5", 90, "2:30", "Balanced", 11, "Repeat.");
 
     mockMvc
         .perform(
-            post("/api/brew-sessions").contentType(MediaType.APPLICATION_JSON).content(requestBody))
-        .andExpect(status().isBadRequest());
+            post("/api/brew-sessions")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.error").value("Bad Request"))
+        .andExpect(jsonPath("$.message").value("Validation failed"))
+        .andExpect(jsonPath("$.validationErrors.rating").value("Rating must not exceed 10"));
   }
 
   @Test
@@ -202,6 +202,121 @@ class BrewSessionControllerTest {
     mockMvc.perform(delete("/api/brew-sessions/{id}", 1L)).andExpect(status().isNoContent());
 
     verify(brewSessionService).delete(1L);
+  }
+
+  @Test
+  void create_shouldReturnBadRequest_whenRatingIsTooLow() throws Exception {
+    BrewSessionRequest request =
+        new BrewSessionRequest(1L, "Timemore S3 - 5.5", 90, "2:30", "Balanced", 0, "Repeat.");
+
+    mockMvc
+        .perform(
+            post("/api/brew-sessions")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.error").value("Bad Request"))
+        .andExpect(jsonPath("$.message").value("Validation failed"))
+        .andExpect(jsonPath("$.validationErrors.rating").value("Rating must be at least 1"));
+  }
+
+  @Test
+  void create_shouldReturnBadRequest_whenActualTempIsTooLow() throws Exception {
+    BrewSessionRequest request =
+        new BrewSessionRequest(1L, "Timemore S3 - 5.5", 69, "2:30", "Balanced", 9, "Repeat.");
+
+    mockMvc
+        .perform(
+            post("/api/brew-sessions")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.validationErrors.actualTemp")
+                .value("Actual temperature must be at least 70 degrees Celsius"));
+  }
+
+  @Test
+  void create_shouldReturnBadRequest_whenActualTempIsTooHigh() throws Exception {
+    BrewSessionRequest request =
+        new BrewSessionRequest(1L, "Timemore S3 - 5.5", 101, "2:30", "Balanced", 9, "Repeat.");
+
+    mockMvc
+        .perform(
+            post("/api/brew-sessions")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.validationErrors.actualTemp")
+                .value("Actual temperature must not exceed 100 degrees Celsius"));
+  }
+
+  @Test
+  void create_shouldReturnBadRequest_whenActualGrindExceedsMaxLength() throws Exception {
+    BrewSessionRequest request =
+        new BrewSessionRequest(1L, "A".repeat(121), 90, "2:30", "Balanced", 9, "Repeat.");
+
+    mockMvc
+        .perform(
+            post("/api/brew-sessions")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.validationErrors.actualGrind")
+                .value("Actual grind must not exceed 120 characters"));
+  }
+
+  @Test
+  void create_shouldReturnBadRequest_whenTasteResultExceedsMaxLength() throws Exception {
+    BrewSessionRequest request =
+        new BrewSessionRequest(1L, "Timemore S3 - 5.5", 90, "2:30", "A".repeat(1001), 9, "Repeat.");
+
+    mockMvc
+        .perform(
+            post("/api/brew-sessions")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.validationErrors.tasteResult")
+                .value("Taste result must not exceed 1000 characters"));
+  }
+
+  @Test
+  void create_shouldReturnBadRequest_whenAdjustmentNotesExceedsMaxLength() throws Exception {
+    BrewSessionRequest request =
+        new BrewSessionRequest(
+            1L, "Timemore S3 - 5.5", 90, "2:30", "Balanced", 9, "A".repeat(1001));
+
+    mockMvc
+        .perform(
+            post("/api/brew-sessions")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.validationErrors.adjustmentNotes")
+                .value("Adjustment notes must not exceed 1000 characters"));
+  }
+
+  @Test
+  void update_shouldReturnBadRequest_whenRatingIsTooHigh() throws Exception {
+    BrewSessionRequest request =
+        new BrewSessionRequest(1L, "Timemore S3 - 5.5", 90, "2:30", "Balanced", 11, "Repeat.");
+
+    mockMvc
+        .perform(
+            put("/api/brew-sessions/{id}", 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.error").value("Bad Request"))
+        .andExpect(jsonPath("$.message").value("Validation failed"))
+        .andExpect(jsonPath("$.validationErrors.rating").value("Rating must not exceed 10"));
   }
 
   private BrewSessionRequest buildBrewSessionRequest() {
