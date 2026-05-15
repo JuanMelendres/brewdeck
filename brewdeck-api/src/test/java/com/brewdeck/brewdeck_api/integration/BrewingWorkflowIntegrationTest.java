@@ -83,6 +83,43 @@ class BrewingWorkflowIntegrationTest extends PostgresIntegrationTest {
   }
 
   @Test
+  void createCoffee_shouldReturnBadRequest_whenNameIsBlank() throws Exception {
+    String requestBody =
+        """
+        {
+          "name": ""
+        }
+        """;
+
+    mockMvc
+        .perform(post("/api/coffees").contentType(MediaType.APPLICATION_JSON).content(requestBody))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.error").value("Bad Request"))
+        .andExpect(jsonPath("$.message").value("Validation failed"))
+        .andExpect(jsonPath("$.validationErrors.name").value("Coffee name is required"));
+  }
+
+  @Test
+  void createBrewMethod_shouldReturnBadRequest_whenNameIsBlank() throws Exception {
+    String requestBody =
+        """
+        {
+          "name": ""
+        }
+        """;
+
+    mockMvc
+        .perform(
+            post("/api/brew-methods").contentType(MediaType.APPLICATION_JSON).content(requestBody))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.error").value("Bad Request"))
+        .andExpect(jsonPath("$.message").value("Validation failed"))
+        .andExpect(jsonPath("$.validationErrors.name").value("Method name is required"));
+  }
+
+  @Test
   void createBrewSession_shouldReturnBadRequest_whenRatingIsOutOfRange() throws Exception {
     String requestBody =
         """
