@@ -127,7 +127,7 @@ class BrewMethodControllerTest {
   }
 
   @Test
-  void create_shouldReturnBadRequest_whenNameIsBlank() throws Exception {
+  void create_shouldReturnValidationErrorBody_whenNameIsBlank() throws Exception {
     BrewMethodRequest request =
         new BrewMethodRequest("", "Immersion and pressure-based brewing method.");
 
@@ -136,7 +136,11 @@ class BrewMethodControllerTest {
             post("/api/brew-methods")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.error").value("Bad Request"))
+        .andExpect(jsonPath("$.message").value("Validation failed"))
+        .andExpect(jsonPath("$.validationErrors.name").value("Method name is required"));
   }
 
   @Test
@@ -187,5 +191,57 @@ class BrewMethodControllerTest {
     mockMvc.perform(delete("/api/brew-methods/{id}", 1L)).andExpect(status().isNoContent());
 
     verify(brewMethodService).delete(1L);
+  }
+
+  @Test
+  void create_shouldReturnBadRequest_whenNameExceedsMaxLength() throws Exception {
+    BrewMethodRequest request =
+        new BrewMethodRequest("A".repeat(81), "Immersion and pressure-based brewing method.");
+
+    mockMvc
+        .perform(
+            post("/api/brew-methods")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.error").value("Bad Request"))
+        .andExpect(jsonPath("$.message").value("Validation failed"))
+        .andExpect(
+            jsonPath("$.validationErrors.name").value("Method name must not exceed 80 characters"));
+  }
+
+  @Test
+  void create_shouldReturnBadRequest_whenDescriptionExceedsMaxLength() throws Exception {
+    BrewMethodRequest request = new BrewMethodRequest("AeroPress", "A".repeat(501));
+
+    mockMvc
+        .perform(
+            post("/api/brew-methods")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.error").value("Bad Request"))
+        .andExpect(jsonPath("$.message").value("Validation failed"))
+        .andExpect(
+            jsonPath("$.validationErrors.description")
+                .value("Method description must not exceed 500 characters"));
+  }
+
+  @Test
+  void update_shouldReturnBadRequest_whenNameIsBlank() throws Exception {
+    BrewMethodRequest request = new BrewMethodRequest("", "Pour-over brewing method.");
+
+    mockMvc
+        .perform(
+            put("/api/brew-methods/{id}", 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.error").value("Bad Request"))
+        .andExpect(jsonPath("$.message").value("Validation failed"))
+        .andExpect(jsonPath("$.validationErrors.name").value("Method name is required"));
   }
 }
