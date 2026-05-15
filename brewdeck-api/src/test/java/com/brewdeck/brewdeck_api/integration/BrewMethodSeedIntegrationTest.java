@@ -27,7 +27,11 @@ class BrewMethodSeedIntegrationTest extends PostgresIntegrationTest {
   void findAll_shouldReturnSeededBrewMethods() throws Exception {
     String response =
         mockMvc
-            .perform(get("/api/brew-methods").param("page", "0").param("size", "50"))
+            .perform(
+                get("/api/brew-methods")
+                    .param("page", "0")
+                    .param("size", "50")
+                    .param("sort", "id,asc"))
             .andExpect(status().isOk())
             .andReturn()
             .getResponse()
