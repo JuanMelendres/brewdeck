@@ -1,6 +1,6 @@
 package com.brewdeck.brewdeck_api.coffee;
 
-import com.brewdeck.brewdeck_api.common.PageResponse;
+import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
