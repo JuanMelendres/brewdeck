@@ -127,7 +127,7 @@ class CoffeeControllerTest {
     CoffeeFilter filter = new CoffeeFilter("Veracruz", "Veracruz", "Medio", "Lavado");
 
     PageResponse<CoffeeResponse> pageResponse =
-        PageResponse.fromPage(new PageImpl<>(List.of(response), PageRequest.of(0, 5), 1));
+        PageResponse.fromPage(new PageImpl<>(List.of(response), PageRequest.of(0, 10), 1));
 
     when(coffeeService.search(eq(filter), any(Pageable.class))).thenReturn(pageResponse);
 
@@ -148,7 +148,7 @@ class CoffeeControllerTest {
         .andExpect(jsonPath("$.content[0].roastLevel").value("Medio"))
         .andExpect(jsonPath("$.content[0].process").value("Lavado"))
         .andExpect(jsonPath("$.page").value(0))
-        .andExpect(jsonPath("$.size").value(5))
+        .andExpect(jsonPath("$.size").value(10))
         .andExpect(jsonPath("$.totalElements").value(1));
 
     verify(coffeeService).search(eq(filter), any(Pageable.class));
@@ -358,5 +358,108 @@ class CoffeeControllerTest {
     mockMvc.perform(delete("/api/coffees/{id}", 1L)).andExpect(status().isNoContent());
 
     verify(coffeeService).delete(1L);
+  }
+
+  @Test
+  void create_shouldReturnBadRequest_whenNameExceedsMaxLength() throws Exception {
+    CoffeeRequest request =
+        new CoffeeRequest(
+            "A".repeat(121),
+            "Café local",
+            "Veracruz",
+            null,
+            null,
+            null,
+            "Blend",
+            "Lavado",
+            "Medio",
+            "Cardamomo",
+            "Canela, clavo",
+            "Media",
+            "Medio",
+            "Media",
+            "Baja",
+            "Café limpio y aromático");
+
+    mockMvc
+        .perform(
+            post("/api/coffees")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.error").value("Bad Request"))
+        .andExpect(jsonPath("$.message").value("Validation failed"))
+        .andExpect(
+            jsonPath("$.validationErrors.name")
+                .value("Coffee name must not exceed 120 characters"));
+  }
+
+  @Test
+  void create_shouldReturnBadRequest_whenDescriptionExceedsMaxLength() throws Exception {
+    CoffeeRequest request =
+        new CoffeeRequest(
+            "Mezcla Veracruz",
+            "Café local",
+            "Veracruz",
+            null,
+            null,
+            null,
+            "Blend",
+            "Lavado",
+            "Medio",
+            "Cardamomo",
+            "Canela, clavo",
+            "Media",
+            "Medio",
+            "Media",
+            "Baja",
+            "A".repeat(1001));
+
+    mockMvc
+        .perform(
+            post("/api/coffees")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.error").value("Bad Request"))
+        .andExpect(jsonPath("$.message").value("Validation failed"))
+        .andExpect(
+            jsonPath("$.validationErrors.description")
+                .value("Description must not exceed 1000 characters"));
+  }
+
+  @Test
+  void update_shouldReturnBadRequest_whenNameIsBlank() throws Exception {
+    CoffeeRequest request =
+        new CoffeeRequest(
+            "",
+            "Café local",
+            "Veracruz",
+            null,
+            null,
+            null,
+            "Blend",
+            "Lavado",
+            "Medio",
+            "Cardamomo",
+            "Canela, clavo",
+            "Media",
+            "Medio",
+            "Media",
+            "Baja",
+            "Updated description");
+
+    mockMvc
+        .perform(
+            put("/api/coffees/{id}", 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.error").value("Bad Request"))
+        .andExpect(jsonPath("$.message").value("Validation failed"))
+        .andExpect(jsonPath("$.validationErrors.name").value("Coffee name is required"));
   }
 }
