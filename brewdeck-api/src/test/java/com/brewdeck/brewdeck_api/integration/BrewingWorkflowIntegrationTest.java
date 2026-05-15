@@ -37,7 +37,11 @@ class BrewingWorkflowIntegrationTest extends PostgresIntegrationTest {
 
     String response =
         mockMvc
-            .perform(get("/api/brew-sessions/recipe/{recipeId}", recipeId))
+            .perform(
+                get("/api/brew-sessions/recipe/{recipeId}", recipeId)
+                    .param("page", "0")
+                    .param("size", "10")
+                    .param("sort", "id,asc"))
             .andExpect(status().isOk())
             .andReturn()
             .getResponse()
@@ -69,7 +73,13 @@ class BrewingWorkflowIntegrationTest extends PostgresIntegrationTest {
 
     mockMvc
         .perform(post("/api/recipes").contentType(MediaType.APPLICATION_JSON).content(requestBody))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.error").value("Bad Request"))
+        .andExpect(jsonPath("$.message").value("Validation failed"))
+        .andExpect(jsonPath("$.validationErrors.coffeeId").value("Coffee id is required"))
+        .andExpect(jsonPath("$.validationErrors.methodId").value("Brew method id is required"))
+        .andExpect(jsonPath("$.validationErrors.name").value("Recipe name is required"));
   }
 
   @Test
@@ -90,7 +100,11 @@ class BrewingWorkflowIntegrationTest extends PostgresIntegrationTest {
     mockMvc
         .perform(
             post("/api/brew-sessions").contentType(MediaType.APPLICATION_JSON).content(requestBody))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.error").value("Bad Request"))
+        .andExpect(jsonPath("$.message").value("Validation failed"))
+        .andExpect(jsonPath("$.validationErrors.rating").value("Rating must not exceed 10"));
   }
 
   @Test
@@ -130,7 +144,10 @@ class BrewingWorkflowIntegrationTest extends PostgresIntegrationTest {
                 .param("coffeeId", coffeeId.toString())
                 .param("methodId", methodId.toString())
                 .param("favorite", "true")
-                .param("name", "AeroPress"))
+                .param("name", "AeroPress")
+                .param("page", "0")
+                .param("size", "10")
+                .param("sort", "id,asc"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content", hasSize(1)))
         .andExpect(jsonPath("$.content[0].coffeeId").value(coffeeId))
@@ -151,7 +168,12 @@ class BrewingWorkflowIntegrationTest extends PostgresIntegrationTest {
 
     mockMvc
         .perform(
-            get("/api/brew-sessions").param("recipeId", recipeId.toString()).param("rating", "9"))
+            get("/api/brew-sessions")
+                .param("recipeId", recipeId.toString())
+                .param("rating", "9")
+                .param("page", "0")
+                .param("size", "10")
+                .param("sort", "id,asc"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content", hasSize(1)))
         .andExpect(jsonPath("$.content[0].recipeId").value(recipeId))
@@ -175,8 +197,15 @@ class BrewingWorkflowIntegrationTest extends PostgresIntegrationTest {
 
     String favoritesResponse =
         mockMvc
-            .perform(get("/api/recipes/favorites"))
+            .perform(
+                get("/api/recipes/favorites")
+                    .param("page", "0")
+                    .param("size", "10")
+                    .param("sort", "id,asc"))
             .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content").isArray())
+            .andExpect(jsonPath("$.page").value(0))
+            .andExpect(jsonPath("$.size").value(10))
             .andReturn()
             .getResponse()
             .getContentAsString();
@@ -185,9 +214,8 @@ class BrewingWorkflowIntegrationTest extends PostgresIntegrationTest {
     JsonNode favorites = favoritesPage.get("content");
 
     assertThat(favorites).isNotEmpty();
+    assertThat(favorites.toString()).contains("\"id\":" + recipeId);
     assertThat(favorites.toString()).contains("Mezcla Veracruz AeroPress");
-    assertThat(favoritesPage.get("page").asInt()).isZero();
-    assertThat(favoritesPage.get("size").asInt()).isEqualTo(10);
 
     mockMvc
         .perform(patch("/api/recipes/{id}/unfavorite", recipeId))
@@ -210,7 +238,8 @@ class BrewingWorkflowIntegrationTest extends PostgresIntegrationTest {
             get("/api/brew-sessions")
                 .param("recipeId", recipeId.toString())
                 .param("page", "0")
-                .param("size", "1"))
+                .param("size", "1")
+                .param("sort", "id,asc"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content", hasSize(1)))
         .andExpect(jsonPath("$.page").value(0))
