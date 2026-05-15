@@ -55,7 +55,10 @@ class BrewSessionControllerTest {
         .andExpect(jsonPath("$.content[0].rating").value(9))
         .andExpect(jsonPath("$.page").value(0))
         .andExpect(jsonPath("$.size").value(10))
-        .andExpect(jsonPath("$.totalElements").value(1));
+        .andExpect(jsonPath("$.totalElements").value(1))
+        .andExpect(jsonPath("$.totalPages").value(1))
+        .andExpect(jsonPath("$.first").value(true))
+        .andExpect(jsonPath("$.last").value(true));
 
     verify(brewSessionService).search(eq(filter), any(Pageable.class));
   }
@@ -267,6 +270,26 @@ class BrewSessionControllerTest {
         .andExpect(
             jsonPath("$.validationErrors.actualGrind")
                 .value("Actual grind must not exceed 120 characters"));
+  }
+
+  @Test
+  void create_shouldReturnBadRequest_whenActualTimeExceedsMaxLength() throws Exception {
+    BrewSessionRequest request =
+        new BrewSessionRequest(
+            1L, "Timemore S3 - 5.5", 90, "A".repeat(21), "Balanced", 9, "Repeat.");
+
+    mockMvc
+        .perform(
+            post("/api/brew-sessions")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.error").value("Bad Request"))
+        .andExpect(jsonPath("$.message").value("Validation failed"))
+        .andExpect(
+            jsonPath("$.validationErrors.actualTime")
+                .value("Actual time must not exceed 20 characters"));
   }
 
   @Test
