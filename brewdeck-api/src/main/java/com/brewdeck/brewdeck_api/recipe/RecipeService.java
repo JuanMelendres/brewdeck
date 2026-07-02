@@ -7,11 +7,13 @@ import com.brewdeck.brewdeck_api.method.BrewMethod;
 import com.brewdeck.brewdeck_api.method.BrewMethodRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RecipeService {
 
   private static final String RECIPE_NOT_FOUND = "Recipe not found";
@@ -73,7 +75,10 @@ public class RecipeService {
             .favorite(Boolean.TRUE.equals(request.favorite()))
             .build();
 
-    return RecipeResponse.fromEntity(recipeRepository.save(recipe));
+    Recipe saved = recipeRepository.save(recipe);
+    log.info("Created recipe id={}", saved.getId());
+
+    return RecipeResponse.fromEntity(saved);
   }
 
   public RecipeResponse update(Long id, RecipeRequest request) {
@@ -83,7 +88,10 @@ public class RecipeService {
 
     updateRecipeFields(recipe, request, coffee, method);
 
-    return RecipeResponse.fromEntity(recipeRepository.save(recipe));
+    Recipe saved = recipeRepository.save(recipe);
+    log.info("Updated recipe id={}", saved.getId());
+
+    return RecipeResponse.fromEntity(saved);
   }
 
   public void delete(Long id) {
@@ -92,6 +100,7 @@ public class RecipeService {
     }
 
     recipeRepository.deleteById(id);
+    log.info("Deleted recipe id={}", id);
   }
 
   public RecipeResponse markAsFavorite(Long id) {
@@ -99,7 +108,10 @@ public class RecipeService {
 
     recipe.setFavorite(true);
 
-    return RecipeResponse.fromEntity(recipeRepository.save(recipe));
+    Recipe saved = recipeRepository.save(recipe);
+    log.info("Marked recipe id={} as favorite", saved.getId());
+
+    return RecipeResponse.fromEntity(saved);
   }
 
   public RecipeResponse removeFromFavorites(Long id) {
@@ -107,7 +119,10 @@ public class RecipeService {
 
     recipe.setFavorite(false);
 
-    return RecipeResponse.fromEntity(recipeRepository.save(recipe));
+    Recipe saved = recipeRepository.save(recipe);
+    log.info("Removed recipe id={} from favorites", saved.getId());
+
+    return RecipeResponse.fromEntity(saved);
   }
 
   private Recipe findRecipeById(Long id) {

@@ -3,11 +3,13 @@ package com.brewdeck.brewdeck_api.coffee;
 import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CoffeeService {
 
   private final CoffeeRepository coffeeRepository;
@@ -54,7 +56,10 @@ public class CoffeeService {
             .description(request.description())
             .build();
 
-    return CoffeeResponse.fromEntity(coffeeRepository.save(coffee));
+    Coffee saved = coffeeRepository.save(coffee);
+    log.info("Created coffee id={}", saved.getId());
+
+    return CoffeeResponse.fromEntity(saved);
   }
 
   public CoffeeResponse update(Long id, CoffeeRequest request) {
@@ -80,7 +85,10 @@ public class CoffeeService {
     coffee.setBitterness(request.bitterness());
     coffee.setDescription(request.description());
 
-    return CoffeeResponse.fromEntity(coffeeRepository.save(coffee));
+    Coffee saved = coffeeRepository.save(coffee);
+    log.info("Updated coffee id={}", saved.getId());
+
+    return CoffeeResponse.fromEntity(saved);
   }
 
   public void delete(Long id) {
@@ -89,5 +97,6 @@ public class CoffeeService {
     }
 
     coffeeRepository.deleteById(id);
+    log.info("Deleted coffee id={}", id);
   }
 }

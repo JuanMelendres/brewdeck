@@ -5,11 +5,13 @@ import com.brewdeck.brewdeck_api.recipe.Recipe;
 import com.brewdeck.brewdeck_api.recipe.RecipeRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BrewSessionService {
 
   private final BrewSessionRepository brewSessionRepository;
@@ -58,7 +60,10 @@ public class BrewSessionService {
             .adjustmentNotes(request.adjustmentNotes())
             .build();
 
-    return BrewSessionResponse.fromEntity(brewSessionRepository.save(session));
+    BrewSession saved = brewSessionRepository.save(session);
+    log.info("Created brew session id={} recipeId={}", saved.getId(), recipe.getId());
+
+    return BrewSessionResponse.fromEntity(saved);
   }
 
   public BrewSessionResponse update(Long id, BrewSessionRequest request) {
@@ -80,7 +85,10 @@ public class BrewSessionService {
     session.setRating(request.rating());
     session.setAdjustmentNotes(request.adjustmentNotes());
 
-    return BrewSessionResponse.fromEntity(brewSessionRepository.save(session));
+    BrewSession saved = brewSessionRepository.save(session);
+    log.info("Updated brew session id={}", saved.getId());
+
+    return BrewSessionResponse.fromEntity(saved);
   }
 
   public void delete(Long id) {
@@ -89,5 +97,6 @@ public class BrewSessionService {
     }
 
     brewSessionRepository.deleteById(id);
+    log.info("Deleted brew session id={}", id);
   }
 }

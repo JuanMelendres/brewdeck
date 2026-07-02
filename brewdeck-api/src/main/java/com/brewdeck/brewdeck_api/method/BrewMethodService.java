@@ -3,11 +3,13 @@ package com.brewdeck.brewdeck_api.method;
 import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BrewMethodService {
 
   private final BrewMethodRepository brewMethodRepository;
@@ -30,7 +32,10 @@ public class BrewMethodService {
     BrewMethod method =
         BrewMethod.builder().name(request.name()).description(request.description()).build();
 
-    return BrewMethodResponse.fromEntity(brewMethodRepository.save(method));
+    BrewMethod saved = brewMethodRepository.save(method);
+    log.info("Created brew method id={}", saved.getId());
+
+    return BrewMethodResponse.fromEntity(saved);
   }
 
   public BrewMethodResponse update(Long id, BrewMethodRequest request) {
@@ -42,7 +47,10 @@ public class BrewMethodService {
     method.setName(request.name());
     method.setDescription(request.description());
 
-    return BrewMethodResponse.fromEntity(brewMethodRepository.save(method));
+    BrewMethod saved = brewMethodRepository.save(method);
+    log.info("Updated brew method id={}", saved.getId());
+
+    return BrewMethodResponse.fromEntity(saved);
   }
 
   public void delete(Long id) {
@@ -51,5 +59,6 @@ public class BrewMethodService {
     }
 
     brewMethodRepository.deleteById(id);
+    log.info("Deleted brew method id={}", id);
   }
 }
