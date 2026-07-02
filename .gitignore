@@ -9,6 +9,9 @@ target/
 .idea/
 *.iml
 
+# VS Code
+.vscode/
+
 # Node / Next
 node_modules/
 .next/

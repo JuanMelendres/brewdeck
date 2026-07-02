@@ -102,7 +102,7 @@ brewdeck/
 
 ### 1. Clone repository
 ```bash
-   git clone https://github.com/YOUR_USERNAME/brewdeck.git
+   git clone https://github.com/JuanMelendres/brewdeck.git
    cd brewdeck
  ```
 ### 2. Start PostgreSQL
@@ -119,6 +119,17 @@ http://localhost:8080
 
 ### 5. Swagger UI:
 http://localhost:8080/swagger-ui/index.html
+
+### 6. Postman Collection
+
+A Postman collection is available for manual API testing.
+
+Files:
+
+```text
+docs/postman/brewdeck.postman_collection.json
+docs/postman/brewdeck.local.postman_environment.json
+```
 
 ---
 
