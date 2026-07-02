@@ -1,0 +1,1768 @@
+{
+  "info": {
+    "_postman_id": "0ffd1187-7622-418a-b0fa-b62f56060983",
+    "name": "BrewDeck API",
+    "description": "Postman collection for the BrewDeck Spring Boot REST API. Uses Long ID variables and paginated endpoints aligned with the current backend.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseURL",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "coffeeId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "methodId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "recipeId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "sessionId",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Coffee",
+      "description": "Coffee CRUD and search endpoints.",
+      "item": [
+        {
+          "name": "GET - List coffees",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/coffees?page=0&size=10&sort=id,asc",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "coffees"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Page number"
+                },
+                {
+                  "key": "size",
+                  "value": "10",
+                  "description": "Page size"
+                },
+                {
+                  "key": "sort",
+                  "value": "id,asc",
+                  "description": "Sort field and direction"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Response is paginated', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('content');",
+                  "  pm.expect(json.content).to.be.an('array');",
+                  "  pm.expect(json).to.have.property('page');",
+                  "  pm.expect(json).to.have.property('size');",
+                  "  pm.expect(json).to.have.property('totalElements');",
+                  "  pm.expect(json).to.have.property('totalPages');",
+                  "  pm.expect(json).to.have.property('first');",
+                  "  pm.expect(json).to.have.property('last');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET - Search coffees",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/coffees?name=Veracruz&origin=Veracruz&roastLevel=Medio&process=Lavado&page=0&size=10&sort=id,asc",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "coffees"
+              ],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "Veracruz",
+                  "description": "Filter by coffee name"
+                },
+                {
+                  "key": "origin",
+                  "value": "Veracruz",
+                  "description": "Filter by origin"
+                },
+                {
+                  "key": "roastLevel",
+                  "value": "Medio",
+                  "description": "Filter by roast level"
+                },
+                {
+                  "key": "process",
+                  "value": "Lavado",
+                  "description": "Filter by process"
+                },
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Page number"
+                },
+                {
+                  "key": "size",
+                  "value": "10",
+                  "description": "Page size"
+                },
+                {
+                  "key": "sort",
+                  "value": "id,asc",
+                  "description": "Sort field and direction"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Response is paginated', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('content');",
+                  "  pm.expect(json.content).to.be.an('array');",
+                  "  pm.expect(json).to.have.property('page');",
+                  "  pm.expect(json).to.have.property('size');",
+                  "  pm.expect(json).to.have.property('totalElements');",
+                  "  pm.expect(json).to.have.property('totalPages');",
+                  "  pm.expect(json).to.have.property('first');",
+                  "  pm.expect(json).to.have.property('last');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET - Coffee by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/coffees/{{coffeeId}}",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "coffees",
+                "{{coffeeId}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200, 404', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST - Create coffee",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseURL}}/api/coffees",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "coffees"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mezcla Veracruz\",\n  \"brand\": \"Café local\",\n  \"origin\": \"Veracruz\",\n  \"region\": \"Coatepec\",\n  \"farm\": null,\n  \"producer\": null,\n  \"variety\": \"Blend\",\n  \"process\": \"Lavado\",\n  \"roastLevel\": \"Medio\",\n  \"notesPrimary\": \"Cardamomo\",\n  \"notesSecondary\": \"Canela, clavo, limpio, aromático\",\n  \"acidity\": \"Media\",\n  \"body\": \"Medio\",\n  \"sweetness\": \"Media\",\n  \"bitterness\": \"Baja\",\n  \"description\": \"Café especiado, limpio y aromático, ideal para AeroPress.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is successful', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "if (json.id) {",
+                  "  pm.environment.set('coffeeId', json.id);",
+                  "  pm.collectionVariables.set('coffeeId', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT - Update coffee",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseURL}}/api/coffees/{{coffeeId}}",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "coffees",
+                "{{coffeeId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mezcla Veracruz\",\n  \"brand\": \"Café local\",\n  \"origin\": \"Veracruz\",\n  \"region\": \"Coatepec\",\n  \"farm\": null,\n  \"producer\": null,\n  \"variety\": \"Blend\",\n  \"process\": \"Lavado\",\n  \"roastLevel\": \"Medio\",\n  \"notesPrimary\": \"Cardamomo\",\n  \"notesSecondary\": \"Canela, clavo, limpio, aromático\",\n  \"acidity\": \"Media\",\n  \"body\": \"Medio\",\n  \"sweetness\": \"Media\",\n  \"bitterness\": \"Baja\",\n  \"description\": \"Updated coffee description.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE - Delete coffee",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/coffees/{{coffeeId}}",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "coffees",
+                "{{coffeeId}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 204, 404', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([204, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Brew Method",
+      "description": "Brew method CRUD endpoints. The database is also seeded with common methods through Flyway.",
+      "item": [
+        {
+          "name": "GET - List brew methods",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/brew-methods?page=0&size=10&sort=id,asc",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "brew-methods"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Page number"
+                },
+                {
+                  "key": "size",
+                  "value": "10",
+                  "description": "Page size"
+                },
+                {
+                  "key": "sort",
+                  "value": "id,asc",
+                  "description": "Sort field and direction"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Response is paginated', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('content');",
+                  "  pm.expect(json.content).to.be.an('array');",
+                  "  pm.expect(json).to.have.property('page');",
+                  "  pm.expect(json).to.have.property('size');",
+                  "  pm.expect(json).to.have.property('totalElements');",
+                  "  pm.expect(json).to.have.property('totalPages');",
+                  "  pm.expect(json).to.have.property('first');",
+                  "  pm.expect(json).to.have.property('last');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET - Brew method by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/brew-methods/{{methodId}}",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "brew-methods",
+                "{{methodId}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200, 404', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST - Create brew method",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseURL}}/api/brew-methods",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "brew-methods"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"AeroPress {{$timestamp}}\",\n  \"description\": \"Immersion and pressure-based brewing method.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is successful', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "if (json.id) {",
+                  "  pm.environment.set('methodId', json.id);",
+                  "  pm.collectionVariables.set('methodId', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT - Update brew method",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseURL}}/api/brew-methods/{{methodId}}",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "brew-methods",
+                "{{methodId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"AeroPress Updated {{$timestamp}}\",\n  \"description\": \"Updated brew method description.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE - Delete brew method",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/brew-methods/{{methodId}}",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "brew-methods",
+                "{{methodId}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 204, 404', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([204, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Recipe",
+      "description": "Recipe CRUD, filters, favorites, and lookup endpoints.",
+      "item": [
+        {
+          "name": "GET - List recipes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/recipes?page=0&size=10&sort=id,asc",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "recipes"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Page number"
+                },
+                {
+                  "key": "size",
+                  "value": "10",
+                  "description": "Page size"
+                },
+                {
+                  "key": "sort",
+                  "value": "id,asc",
+                  "description": "Sort field and direction"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Response is paginated', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('content');",
+                  "  pm.expect(json.content).to.be.an('array');",
+                  "  pm.expect(json).to.have.property('page');",
+                  "  pm.expect(json).to.have.property('size');",
+                  "  pm.expect(json).to.have.property('totalElements');",
+                  "  pm.expect(json).to.have.property('totalPages');",
+                  "  pm.expect(json).to.have.property('first');",
+                  "  pm.expect(json).to.have.property('last');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET - Search recipes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/recipes?coffeeId={{coffeeId}}&methodId={{methodId}}&favorite=true&name=AeroPress&page=0&size=10&sort=id,asc",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "recipes"
+              ],
+              "query": [
+                {
+                  "key": "coffeeId",
+                  "value": "{{coffeeId}}",
+                  "description": "Filter by coffee ID"
+                },
+                {
+                  "key": "methodId",
+                  "value": "{{methodId}}",
+                  "description": "Filter by brew method ID"
+                },
+                {
+                  "key": "favorite",
+                  "value": "true",
+                  "description": "Filter by favorite flag"
+                },
+                {
+                  "key": "name",
+                  "value": "AeroPress",
+                  "description": "Filter by recipe name"
+                },
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Page number"
+                },
+                {
+                  "key": "size",
+                  "value": "10",
+                  "description": "Page size"
+                },
+                {
+                  "key": "sort",
+                  "value": "id,asc",
+                  "description": "Sort field and direction"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Response is paginated', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('content');",
+                  "  pm.expect(json.content).to.be.an('array');",
+                  "  pm.expect(json).to.have.property('page');",
+                  "  pm.expect(json).to.have.property('size');",
+                  "  pm.expect(json).to.have.property('totalElements');",
+                  "  pm.expect(json).to.have.property('totalPages');",
+                  "  pm.expect(json).to.have.property('first');",
+                  "  pm.expect(json).to.have.property('last');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET - Recipe by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/recipes/{{recipeId}}",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "recipes",
+                "{{recipeId}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200, 404', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET - Favorite recipes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/recipes/favorites?page=0&size=10&sort=id,asc",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "recipes",
+                "favorites"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Page number"
+                },
+                {
+                  "key": "size",
+                  "value": "10",
+                  "description": "Page size"
+                },
+                {
+                  "key": "sort",
+                  "value": "id,asc",
+                  "description": "Sort field and direction"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Response is paginated', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('content');",
+                  "  pm.expect(json.content).to.be.an('array');",
+                  "  pm.expect(json).to.have.property('page');",
+                  "  pm.expect(json).to.have.property('size');",
+                  "  pm.expect(json).to.have.property('totalElements');",
+                  "  pm.expect(json).to.have.property('totalPages');",
+                  "  pm.expect(json).to.have.property('first');",
+                  "  pm.expect(json).to.have.property('last');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET - Recipes by coffee ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/recipes/coffee/{{coffeeId}}?page=0&size=10&sort=id,asc",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "recipes",
+                "coffee",
+                "{{coffeeId}}"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Page number"
+                },
+                {
+                  "key": "size",
+                  "value": "10",
+                  "description": "Page size"
+                },
+                {
+                  "key": "sort",
+                  "value": "id,asc",
+                  "description": "Sort field and direction"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Response is paginated', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('content');",
+                  "  pm.expect(json.content).to.be.an('array');",
+                  "  pm.expect(json).to.have.property('page');",
+                  "  pm.expect(json).to.have.property('size');",
+                  "  pm.expect(json).to.have.property('totalElements');",
+                  "  pm.expect(json).to.have.property('totalPages');",
+                  "  pm.expect(json).to.have.property('first');",
+                  "  pm.expect(json).to.have.property('last');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET - Recipes by method ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/recipes/method/{{methodId}}?page=0&size=10&sort=id,asc",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "recipes",
+                "method",
+                "{{methodId}}"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Page number"
+                },
+                {
+                  "key": "size",
+                  "value": "10",
+                  "description": "Page size"
+                },
+                {
+                  "key": "sort",
+                  "value": "id,asc",
+                  "description": "Sort field and direction"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Response is paginated', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('content');",
+                  "  pm.expect(json.content).to.be.an('array');",
+                  "  pm.expect(json).to.have.property('page');",
+                  "  pm.expect(json).to.have.property('size');",
+                  "  pm.expect(json).to.have.property('totalElements');",
+                  "  pm.expect(json).to.have.property('totalPages');",
+                  "  pm.expect(json).to.have.property('first');",
+                  "  pm.expect(json).to.have.property('last');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST - Create recipe",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseURL}}/api/recipes",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "recipes"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"coffeeId\": \"{{coffeeId}}\",\n  \"methodId\": \"{{methodId}}\",\n  \"name\": \"Mezcla Veracruz AeroPress\",\n  \"coffeeGrams\": 15,\n  \"waterGrams\": 230,\n  \"ratio\": \"1:15\",\n  \"grindSetting\": \"Timemore S3 - 5.5\",\n  \"waterTemp\": 90,\n  \"brewTime\": \"2:30\",\n  \"steps\": \"Bloom 30s, stir gently, press slowly.\",\n  \"expectedTaste\": \"Clean, aromatic, spicy, balanced.\",\n  \"favorite\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is successful', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "if (json.id) {",
+                  "  pm.environment.set('recipeId', json.id);",
+                  "  pm.collectionVariables.set('recipeId', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT - Update recipe",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseURL}}/api/recipes/{{recipeId}}",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "recipes",
+                "{{recipeId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"coffeeId\": \"{{coffeeId}}\",\n  \"methodId\": \"{{methodId}}\",\n  \"name\": \"Mezcla Veracruz AeroPress Updated\",\n  \"coffeeGrams\": 15,\n  \"waterGrams\": 230,\n  \"ratio\": \"1:15\",\n  \"grindSetting\": \"Timemore S3 - 5.5\",\n  \"waterTemp\": 90,\n  \"brewTime\": \"2:30\",\n  \"steps\": \"Bloom 30s, stir gently, press slowly.\",\n  \"expectedTaste\": \"Clean, aromatic, spicy, balanced.\",\n  \"favorite\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH - Mark recipe as favorite",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/recipes/{{recipeId}}/favorite",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "recipes",
+                "{{recipeId}}",
+                "favorite"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH - Remove recipe from favorites",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/recipes/{{recipeId}}/unfavorite",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "recipes",
+                "{{recipeId}}",
+                "unfavorite"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE - Delete recipe",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/recipes/{{recipeId}}",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "recipes",
+                "{{recipeId}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 204, 404', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([204, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Brew Session",
+      "description": "Brew session CRUD, filters, and recipe history endpoints.",
+      "item": [
+        {
+          "name": "GET - List brew sessions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/brew-sessions?page=0&size=10&sort=id,asc",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "brew-sessions"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Page number"
+                },
+                {
+                  "key": "size",
+                  "value": "10",
+                  "description": "Page size"
+                },
+                {
+                  "key": "sort",
+                  "value": "id,asc",
+                  "description": "Sort field and direction"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Response is paginated', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('content');",
+                  "  pm.expect(json.content).to.be.an('array');",
+                  "  pm.expect(json).to.have.property('page');",
+                  "  pm.expect(json).to.have.property('size');",
+                  "  pm.expect(json).to.have.property('totalElements');",
+                  "  pm.expect(json).to.have.property('totalPages');",
+                  "  pm.expect(json).to.have.property('first');",
+                  "  pm.expect(json).to.have.property('last');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET - Search brew sessions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/brew-sessions?recipeId={{recipeId}}&rating=9&page=0&size=10&sort=id,asc",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "brew-sessions"
+              ],
+              "query": [
+                {
+                  "key": "recipeId",
+                  "value": "{{recipeId}}",
+                  "description": "Filter by recipe ID"
+                },
+                {
+                  "key": "rating",
+                  "value": "9",
+                  "description": "Filter by rating"
+                },
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Page number"
+                },
+                {
+                  "key": "size",
+                  "value": "10",
+                  "description": "Page size"
+                },
+                {
+                  "key": "sort",
+                  "value": "id,asc",
+                  "description": "Sort field and direction"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Response is paginated', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('content');",
+                  "  pm.expect(json.content).to.be.an('array');",
+                  "  pm.expect(json).to.have.property('page');",
+                  "  pm.expect(json).to.have.property('size');",
+                  "  pm.expect(json).to.have.property('totalElements');",
+                  "  pm.expect(json).to.have.property('totalPages');",
+                  "  pm.expect(json).to.have.property('first');",
+                  "  pm.expect(json).to.have.property('last');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET - Brew session by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/brew-sessions/{{sessionId}}",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "brew-sessions",
+                "{{sessionId}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200, 404', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET - Brew sessions by recipe ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/brew-sessions/recipe/{{recipeId}}?page=0&size=10&sort=id,asc",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "brew-sessions",
+                "recipe",
+                "{{recipeId}}"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Page number"
+                },
+                {
+                  "key": "size",
+                  "value": "10",
+                  "description": "Page size"
+                },
+                {
+                  "key": "sort",
+                  "value": "id,asc",
+                  "description": "Sort field and direction"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Response is paginated', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('content');",
+                  "  pm.expect(json.content).to.be.an('array');",
+                  "  pm.expect(json).to.have.property('page');",
+                  "  pm.expect(json).to.have.property('size');",
+                  "  pm.expect(json).to.have.property('totalElements');",
+                  "  pm.expect(json).to.have.property('totalPages');",
+                  "  pm.expect(json).to.have.property('first');",
+                  "  pm.expect(json).to.have.property('last');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST - Create brew session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseURL}}/api/brew-sessions",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "brew-sessions"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipeId\": \"{{recipeId}}\",\n  \"actualGrind\": \"Timemore S3 - 5.5\",\n  \"actualTemp\": 90,\n  \"actualTime\": \"2:30\",\n  \"tasteResult\": \"Balanced, clean and aromatic. Cardamom and cinnamon notes were noticeable.\",\n  \"rating\": 9,\n  \"adjustmentNotes\": \"Repeat same recipe next time.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is successful', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "if (json.id) {",
+                  "  pm.environment.set('sessionId', json.id);",
+                  "  pm.collectionVariables.set('sessionId', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT - Update brew session",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseURL}}/api/brew-sessions/{{sessionId}}",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "brew-sessions",
+                "{{sessionId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipeId\": \"{{recipeId}}\",\n  \"actualGrind\": \"Timemore S3 - 5.5\",\n  \"actualTemp\": 90,\n  \"actualTime\": \"2:30\",\n  \"tasteResult\": \"Balanced, clean and aromatic. Cardamom and cinnamon notes were noticeable.\",\n  \"rating\": 10,\n  \"adjustmentNotes\": \"Updated notes.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE - Delete brew session",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/brew-sessions/{{sessionId}}",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "brew-sessions",
+                "{{sessionId}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 204, 404', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([204, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Validation Examples",
+      "description": "Invalid request examples for checking GlobalExceptionHandler validation responses.",
+      "item": [
+        {
+          "name": "POST - Coffee invalid blank name",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseURL}}/api/coffees",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "coffees"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"brand\": \"Café local\",\n  \"origin\": \"Veracruz\",\n  \"region\": \"Coatepec\",\n  \"farm\": null,\n  \"producer\": null,\n  \"variety\": \"Blend\",\n  \"process\": \"Lavado\",\n  \"roastLevel\": \"Medio\",\n  \"notesPrimary\": \"Cardamomo\",\n  \"notesSecondary\": \"Canela, clavo, limpio, aromático\",\n  \"acidity\": \"Media\",\n  \"body\": \"Medio\",\n  \"sweetness\": \"Media\",\n  \"bitterness\": \"Baja\",\n  \"description\": \"Café especiado, limpio y aromático, ideal para AeroPress.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "  pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Validation error body is returned', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.status).to.equal(400);",
+                  "  pm.expect(json.error).to.equal('Bad Request');",
+                  "  pm.expect(json.message).to.equal('Validation failed');",
+                  "  pm.expect(json).to.have.property('validationErrors');",
+                  "  pm.expect(json.validationErrors).to.have.property('name');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST - Brew method invalid blank name",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseURL}}/api/brew-methods",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "brew-methods"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"description\": \"Invalid method.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "  pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Validation error body is returned', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.status).to.equal(400);",
+                  "  pm.expect(json.error).to.equal('Bad Request');",
+                  "  pm.expect(json.message).to.equal('Validation failed');",
+                  "  pm.expect(json).to.have.property('validationErrors');",
+                  "  pm.expect(json.validationErrors).to.have.property('name');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST - Recipe invalid required fields",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseURL}}/api/recipes",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "recipes"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"coffeeId\": null,\n  \"methodId\": null,\n  \"name\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "  pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Validation error body is returned', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.status).to.equal(400);",
+                  "  pm.expect(json.error).to.equal('Bad Request');",
+                  "  pm.expect(json.message).to.equal('Validation failed');",
+                  "  pm.expect(json).to.have.property('validationErrors');",
+                  "  pm.expect(json.validationErrors).to.have.property('coffeeId');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST - Recipe invalid water temperature",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseURL}}/api/recipes",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "recipes"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"coffeeId\": \"{{coffeeId}}\",\n  \"methodId\": \"{{methodId}}\",\n  \"name\": \"Mezcla Veracruz AeroPress\",\n  \"coffeeGrams\": 15,\n  \"waterGrams\": 230,\n  \"ratio\": \"1:15\",\n  \"grindSetting\": \"Timemore S3 - 5.5\",\n  \"waterTemp\": 101,\n  \"brewTime\": \"2:30\",\n  \"steps\": \"Bloom 30s, stir gently, press slowly.\",\n  \"expectedTaste\": \"Clean, aromatic, spicy, balanced.\",\n  \"favorite\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "  pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Validation error body is returned', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.status).to.equal(400);",
+                  "  pm.expect(json.error).to.equal('Bad Request');",
+                  "  pm.expect(json.message).to.equal('Validation failed');",
+                  "  pm.expect(json).to.have.property('validationErrors');",
+                  "  pm.expect(json.validationErrors).to.have.property('waterTemp');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST - Brew session invalid rating",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseURL}}/api/brew-sessions",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "brew-sessions"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipeId\": \"{{recipeId}}\",\n  \"actualGrind\": \"Timemore S3 - 5.5\",\n  \"actualTemp\": 90,\n  \"actualTime\": \"2:30\",\n  \"tasteResult\": \"Balanced, clean and aromatic. Cardamom and cinnamon notes were noticeable.\",\n  \"rating\": 11,\n  \"adjustmentNotes\": \"Repeat same recipe next time.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "  pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Validation error body is returned', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.status).to.equal(400);",
+                  "  pm.expect(json.error).to.equal('Bad Request');",
+                  "  pm.expect(json.message).to.equal('Validation failed');",
+                  "  pm.expect(json).to.have.property('validationErrors');",
+                  "  pm.expect(json.validationErrors).to.have.property('rating');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST - Brew session invalid temperature",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseURL}}/api/brew-sessions",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "brew-sessions"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipeId\": \"{{recipeId}}\",\n  \"actualGrind\": \"Timemore S3 - 5.5\",\n  \"actualTemp\": 101,\n  \"actualTime\": \"2:30\",\n  \"tasteResult\": \"Balanced, clean and aromatic. Cardamom and cinnamon notes were noticeable.\",\n  \"rating\": 9,\n  \"adjustmentNotes\": \"Repeat same recipe next time.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "  pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Validation error body is returned', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.status).to.equal(400);",
+                  "  pm.expect(json.error).to.equal('Bad Request');",
+                  "  pm.expect(json.message).to.equal('Validation failed');",
+                  "  pm.expect(json).to.have.property('validationErrors');",
+                  "  pm.expect(json.validationErrors).to.have.property('actualTemp');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
