@@ -13,6 +13,8 @@ public interface RecipeRepository
 
   Page<Recipe> findByFavoriteTrue(Pageable pageable);
 
+  long countByFavoriteTrue();
+
   List<Recipe> findByCoffeeId(Long coffeeId);
 
   Page<Recipe> findByCoffeeId(Long coffeeId, Pageable pageable);

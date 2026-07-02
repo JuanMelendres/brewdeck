@@ -200,7 +200,6 @@ class CoffeeServiceTest {
     verify(coffeeRepository).existsById(99L);
     verify(coffeeRepository, never()).deleteById(anyLong());
   }
-<<<<<<< HEAD
 
   @Test
   void update_shouldUpdateCoffee_whenCoffeeExists() {
@@ -289,6 +288,4 @@ class CoffeeServiceTest {
     verify(coffeeRepository).findById(99L);
     verify(coffeeRepository, never()).save(any());
   }
-=======
->>>>>>> 4bdaaf9 (test(api): add service unit tests for domain packages)
 }
