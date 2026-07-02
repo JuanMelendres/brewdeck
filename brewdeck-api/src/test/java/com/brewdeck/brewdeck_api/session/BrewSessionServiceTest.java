@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 import com.brewdeck.brewdeck_api.coffee.Coffee;
+import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
 import com.brewdeck.brewdeck_api.method.BrewMethod;
 import com.brewdeck.brewdeck_api.recipe.Recipe;
 import com.brewdeck.brewdeck_api.recipe.RecipeRepository;
@@ -17,6 +18,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 @ExtendWith(MockitoExtension.class)
 class BrewSessionServiceTest {
@@ -27,7 +32,7 @@ class BrewSessionServiceTest {
   @InjectMocks private BrewSessionService brewSessionService;
 
   @Test
-  void findAll_shouldReturnAllBrewSessions() {
+  void search_shouldReturnPagedBrewSessions_whenFilterIsEmpty() {
     Recipe recipe = buildRecipe();
 
     BrewSession session =
@@ -43,16 +48,59 @@ class BrewSessionServiceTest {
             .adjustmentNotes("Repeat same recipe")
             .build();
 
-    when(brewSessionRepository.findAll()).thenReturn(List.of(session));
+    Pageable pageable = PageRequest.of(0, 10);
 
-    List<BrewSessionResponse> result = brewSessionService.findAll();
+    when(brewSessionRepository.findAll(anyBrewSessionSpecification(), eq(pageable)))
+        .thenReturn(new PageImpl<>(List.of(session), pageable, 1));
 
-    assertThat(result).hasSize(1);
-    assertThat(result.getFirst().id()).isEqualTo(1L);
-    assertThat(result.getFirst().recipeName()).isEqualTo("Veracruz AeroPress");
-    assertThat(result.getFirst().rating()).isEqualTo(9);
+    PageResponse<BrewSessionResponse> result =
+        brewSessionService.search(new BrewSessionFilter(null, null), pageable);
 
-    verify(brewSessionRepository).findAll();
+    assertThat(result.content()).hasSize(1);
+    assertThat(result.content().getFirst().id()).isEqualTo(1L);
+    assertThat(result.content().getFirst().recipeName()).isEqualTo("Veracruz AeroPress");
+    assertThat(result.content().getFirst().rating()).isEqualTo(9);
+    assertThat(result.page()).isZero();
+    assertThat(result.size()).isEqualTo(10);
+    assertThat(result.totalElements()).isEqualTo(1);
+
+    verify(brewSessionRepository).findAll(anyBrewSessionSpecification(), eq(pageable));
+  }
+
+  @Test
+  void search_shouldReturnPagedFilteredBrewSessions() {
+    Recipe recipe = buildRecipe();
+
+    BrewSession session =
+        BrewSession.builder()
+            .id(1L)
+            .recipe(recipe)
+            .brewedAt(LocalDateTime.now())
+            .actualGrind("Timemore S3 - 5.5")
+            .actualTemp(90)
+            .actualTime("2:30")
+            .tasteResult("Balanced")
+            .rating(9)
+            .adjustmentNotes("Repeat same recipe")
+            .build();
+
+    BrewSessionFilter filter = new BrewSessionFilter(1L, 9);
+    Pageable pageable = PageRequest.of(0, 5);
+
+    when(brewSessionRepository.findAll(anyBrewSessionSpecification(), eq(pageable)))
+        .thenReturn(new PageImpl<>(List.of(session), pageable, 1));
+
+    PageResponse<BrewSessionResponse> result = brewSessionService.search(filter, pageable);
+
+    assertThat(result.content()).hasSize(1);
+    assertThat(result.content().getFirst().recipeId()).isEqualTo(1L);
+    assertThat(result.content().getFirst().rating()).isEqualTo(9);
+    assertThat(result.content().getFirst().tasteResult()).isEqualTo("Balanced");
+    assertThat(result.page()).isZero();
+    assertThat(result.size()).isEqualTo(5);
+    assertThat(result.totalElements()).isEqualTo(1);
+
+    verify(brewSessionRepository).findAll(anyBrewSessionSpecification(), eq(pageable));
   }
 
   @Test
@@ -138,20 +186,24 @@ class BrewSessionServiceTest {
   }
 
   @Test
-  void findByRecipeId_shouldReturnSessionsOrderedByBrewedAtDesc() {
+  void findByRecipeId_shouldReturnPagedSessionsOrderedByBrewedAtDesc() {
     Recipe recipe = buildRecipe();
 
     BrewSession session =
         BrewSession.builder().id(1L).recipe(recipe).brewedAt(LocalDateTime.now()).rating(9).build();
 
-    when(brewSessionRepository.findByRecipeIdOrderByBrewedAtDesc(1L)).thenReturn(List.of(session));
+    Pageable pageable = PageRequest.of(0, 10);
 
-    List<BrewSessionResponse> result = brewSessionService.findByRecipeId(1L);
+    when(brewSessionRepository.findByRecipeIdOrderByBrewedAtDesc(1L, pageable))
+        .thenReturn(new PageImpl<>(List.of(session), pageable, 1));
 
-    assertThat(result).hasSize(1);
-    assertThat(result.getFirst().recipeId()).isEqualTo(1L);
+    PageResponse<BrewSessionResponse> result = brewSessionService.findByRecipeId(1L, pageable);
 
-    verify(brewSessionRepository).findByRecipeIdOrderByBrewedAtDesc(1L);
+    assertThat(result.content()).hasSize(1);
+    assertThat(result.content().getFirst().recipeId()).isEqualTo(1L);
+    assertThat(result.totalElements()).isEqualTo(1);
+
+    verify(brewSessionRepository).findByRecipeIdOrderByBrewedAtDesc(1L, pageable);
   }
 
   private Recipe buildRecipe() {
@@ -167,7 +219,6 @@ class BrewSessionServiceTest {
         .createdAt(LocalDateTime.now())
         .build();
   }
-<<<<<<< HEAD
 
   @Test
   void update_shouldUpdateBrewSession_whenSessionAndRecipeExist() {
@@ -295,6 +346,9 @@ class BrewSessionServiceTest {
     verify(brewSessionRepository).existsById(99L);
     verify(brewSessionRepository, never()).deleteById(anyLong());
   }
-=======
->>>>>>> 4bdaaf9 (test(api): add service unit tests for domain packages)
+
+  @SuppressWarnings("unchecked")
+  private Specification<BrewSession> anyBrewSessionSpecification() {
+    return any(Specification.class);
+  }
 }

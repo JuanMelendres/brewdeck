@@ -6,6 +6,7 @@ import static org.mockito.Mockito.*;
 
 import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.coffee.CoffeeRepository;
+import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
 import com.brewdeck.brewdeck_api.method.BrewMethod;
 import com.brewdeck.brewdeck_api.method.BrewMethodRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -18,6 +19,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 @ExtendWith(MockitoExtension.class)
 class RecipeServiceTest {
@@ -29,7 +34,7 @@ class RecipeServiceTest {
   @InjectMocks private RecipeService recipeService;
 
   @Test
-  void findAll_shouldReturnAllRecipes() {
+  void search_shouldReturnPagedRecipes_whenFilterIsEmpty() {
     Coffee coffee = Coffee.builder().id(1L).name("Mezcla Veracruz").build();
     BrewMethod method = BrewMethod.builder().id(1L).name("AeroPress").build();
 
@@ -43,16 +48,58 @@ class RecipeServiceTest {
             .createdAt(LocalDateTime.now())
             .build();
 
-    when(recipeRepository.findAll()).thenReturn(List.of(recipe));
+    Pageable pageable = PageRequest.of(0, 10);
 
-    List<RecipeResponse> result = recipeService.findAll();
+    when(recipeRepository.findAll(anyRecipeSpecification(), eq(pageable)))
+        .thenReturn(new PageImpl<>(List.of(recipe), pageable, 1));
 
-    assertThat(result).hasSize(1);
-    assertThat(result.getFirst().id()).isEqualTo(1L);
-    assertThat(result.getFirst().coffeeName()).isEqualTo("Mezcla Veracruz");
-    assertThat(result.getFirst().methodName()).isEqualTo("AeroPress");
+    PageResponse<RecipeResponse> result =
+        recipeService.search(new RecipeFilter(null, null, null, null), pageable);
 
-    verify(recipeRepository).findAll();
+    assertThat(result.content()).hasSize(1);
+    assertThat(result.content().getFirst().id()).isEqualTo(1L);
+    assertThat(result.content().getFirst().coffeeName()).isEqualTo("Mezcla Veracruz");
+    assertThat(result.content().getFirst().methodName()).isEqualTo("AeroPress");
+    assertThat(result.page()).isZero();
+    assertThat(result.size()).isEqualTo(10);
+    assertThat(result.totalElements()).isEqualTo(1);
+
+    verify(recipeRepository).findAll(anyRecipeSpecification(), eq(pageable));
+  }
+
+  @Test
+  void search_shouldReturnPagedFilteredRecipes() {
+    Coffee coffee = Coffee.builder().id(1L).name("Mezcla Veracruz").build();
+    BrewMethod method = BrewMethod.builder().id(1L).name("AeroPress").build();
+
+    Recipe recipe =
+        Recipe.builder()
+            .id(1L)
+            .coffee(coffee)
+            .method(method)
+            .name("Mezcla Veracruz AeroPress")
+            .favorite(true)
+            .createdAt(LocalDateTime.now())
+            .build();
+
+    RecipeFilter filter = new RecipeFilter(1L, 1L, true, "AeroPress");
+    Pageable pageable = PageRequest.of(0, 5);
+
+    when(recipeRepository.findAll(anyRecipeSpecification(), eq(pageable)))
+        .thenReturn(new PageImpl<>(List.of(recipe), pageable, 1));
+
+    PageResponse<RecipeResponse> result = recipeService.search(filter, pageable);
+
+    assertThat(result.content()).hasSize(1);
+    assertThat(result.content().getFirst().coffeeId()).isEqualTo(1L);
+    assertThat(result.content().getFirst().methodId()).isEqualTo(1L);
+    assertThat(result.content().getFirst().favorite()).isTrue();
+    assertThat(result.content().getFirst().name()).isEqualTo("Mezcla Veracruz AeroPress");
+    assertThat(result.page()).isZero();
+    assertThat(result.size()).isEqualTo(5);
+    assertThat(result.totalElements()).isEqualTo(1);
+
+    verify(recipeRepository).findAll(anyRecipeSpecification(), eq(pageable));
   }
 
   @Test
@@ -161,7 +208,7 @@ class RecipeServiceTest {
   }
 
   @Test
-  void findFavorites_shouldReturnFavoriteRecipes() {
+  void findFavorites_shouldReturnPagedFavoriteRecipes() {
     Coffee coffee = Coffee.builder().id(1L).name("Mezcla Veracruz").build();
     BrewMethod method = BrewMethod.builder().id(1L).name("AeroPress").build();
 
@@ -175,19 +222,22 @@ class RecipeServiceTest {
             .createdAt(LocalDateTime.now())
             .build();
 
-    when(recipeRepository.findByFavoriteTrue()).thenReturn(List.of(recipe));
+    Pageable pageable = PageRequest.of(0, 10);
 
-    List<RecipeResponse> result = recipeService.findFavorites();
+    when(recipeRepository.findByFavoriteTrue(pageable))
+        .thenReturn(new PageImpl<>(List.of(recipe), pageable, 1));
 
-    assertThat(result).hasSize(1);
-    assertThat(result.getFirst().favorite()).isTrue();
+    PageResponse<RecipeResponse> result = recipeService.findFavorites(pageable);
 
-    verify(recipeRepository).findByFavoriteTrue();
+    assertThat(result.content()).hasSize(1);
+    assertThat(result.content().getFirst().favorite()).isTrue();
+    assertThat(result.totalElements()).isEqualTo(1);
+
+    verify(recipeRepository).findByFavoriteTrue(pageable);
   }
-<<<<<<< HEAD
 
   @Test
-  void findByCoffeeId_shouldReturnRecipesForCoffee() {
+  void findByCoffeeId_shouldReturnPagedRecipesForCoffee() {
     Coffee coffee = Coffee.builder().id(1L).name("Mezcla Veracruz").build();
     BrewMethod method = BrewMethod.builder().id(1L).name("AeroPress").build();
 
@@ -201,19 +251,22 @@ class RecipeServiceTest {
             .createdAt(LocalDateTime.now())
             .build();
 
-    when(recipeRepository.findByCoffeeId(1L)).thenReturn(List.of(recipe));
+    Pageable pageable = PageRequest.of(0, 10);
 
-    List<RecipeResponse> result = recipeService.findByCoffeeId(1L);
+    when(recipeRepository.findByCoffeeId(1L, pageable))
+        .thenReturn(new PageImpl<>(List.of(recipe), pageable, 1));
 
-    assertThat(result).hasSize(1);
-    assertThat(result.getFirst().coffeeId()).isEqualTo(1L);
-    assertThat(result.getFirst().coffeeName()).isEqualTo("Mezcla Veracruz");
+    PageResponse<RecipeResponse> result = recipeService.findByCoffeeId(1L, pageable);
 
-    verify(recipeRepository).findByCoffeeId(1L);
+    assertThat(result.content()).hasSize(1);
+    assertThat(result.content().getFirst().coffeeId()).isEqualTo(1L);
+    assertThat(result.content().getFirst().coffeeName()).isEqualTo("Mezcla Veracruz");
+
+    verify(recipeRepository).findByCoffeeId(1L, pageable);
   }
 
   @Test
-  void findByMethodId_shouldReturnRecipesForMethod() {
+  void findByMethodId_shouldReturnPagedRecipesForMethod() {
     Coffee coffee = Coffee.builder().id(1L).name("Mezcla Veracruz").build();
     BrewMethod method = BrewMethod.builder().id(1L).name("AeroPress").build();
 
@@ -227,15 +280,18 @@ class RecipeServiceTest {
             .createdAt(LocalDateTime.now())
             .build();
 
-    when(recipeRepository.findByMethodId(1L)).thenReturn(List.of(recipe));
+    Pageable pageable = PageRequest.of(0, 10);
 
-    List<RecipeResponse> result = recipeService.findByMethodId(1L);
+    when(recipeRepository.findByMethodId(1L, pageable))
+        .thenReturn(new PageImpl<>(List.of(recipe), pageable, 1));
 
-    assertThat(result).hasSize(1);
-    assertThat(result.getFirst().methodId()).isEqualTo(1L);
-    assertThat(result.getFirst().methodName()).isEqualTo("AeroPress");
+    PageResponse<RecipeResponse> result = recipeService.findByMethodId(1L, pageable);
 
-    verify(recipeRepository).findByMethodId(1L);
+    assertThat(result.content()).hasSize(1);
+    assertThat(result.content().getFirst().methodId()).isEqualTo(1L);
+    assertThat(result.content().getFirst().methodName()).isEqualTo("AeroPress");
+
+    verify(recipeRepository).findByMethodId(1L, pageable);
   }
 
   @Test
@@ -390,6 +446,85 @@ class RecipeServiceTest {
     verify(recipeRepository).existsById(99L);
     verify(recipeRepository, never()).deleteById(anyLong());
   }
-=======
->>>>>>> 4bdaaf9 (test(api): add service unit tests for domain packages)
+
+  @Test
+  void markAsFavorite_shouldSetFavoriteTrue_whenRecipeExists() {
+    Coffee coffee = Coffee.builder().id(1L).name("Mezcla Veracruz").build();
+    BrewMethod method = BrewMethod.builder().id(1L).name("AeroPress").build();
+
+    Recipe recipe =
+        Recipe.builder()
+            .id(1L)
+            .coffee(coffee)
+            .method(method)
+            .name("Veracruz AeroPress")
+            .favorite(false)
+            .createdAt(LocalDateTime.now())
+            .build();
+
+    when(recipeRepository.findById(1L)).thenReturn(Optional.of(recipe));
+    when(recipeRepository.save(recipe)).thenReturn(recipe);
+
+    RecipeResponse result = recipeService.markAsFavorite(1L);
+
+    assertThat(result.favorite()).isTrue();
+
+    verify(recipeRepository).findById(1L);
+    verify(recipeRepository).save(recipe);
+  }
+
+  @Test
+  void markAsFavorite_shouldThrowException_whenRecipeDoesNotExist() {
+    when(recipeRepository.findById(99L)).thenReturn(Optional.empty());
+
+    assertThatThrownBy(() -> recipeService.markAsFavorite(99L))
+        .isInstanceOf(EntityNotFoundException.class)
+        .hasMessage("Recipe not found");
+
+    verify(recipeRepository).findById(99L);
+    verify(recipeRepository, never()).save(any());
+  }
+
+  @Test
+  void removeFromFavorites_shouldSetFavoriteFalse_whenRecipeExists() {
+    Coffee coffee = Coffee.builder().id(1L).name("Mezcla Veracruz").build();
+    BrewMethod method = BrewMethod.builder().id(1L).name("AeroPress").build();
+
+    Recipe recipe =
+        Recipe.builder()
+            .id(1L)
+            .coffee(coffee)
+            .method(method)
+            .name("Veracruz AeroPress")
+            .favorite(true)
+            .createdAt(LocalDateTime.now())
+            .build();
+
+    when(recipeRepository.findById(1L)).thenReturn(Optional.of(recipe));
+    when(recipeRepository.save(recipe)).thenReturn(recipe);
+
+    RecipeResponse result = recipeService.removeFromFavorites(1L);
+
+    assertThat(result.favorite()).isFalse();
+
+    verify(recipeRepository).findById(1L);
+    verify(recipeRepository).save(recipe);
+  }
+
+  @Test
+  void removeFromFavorites_shouldThrowException_whenRecipeDoesNotExist() {
+    when(recipeRepository.findById(99L)).thenReturn(Optional.empty());
+
+    assertThatThrownBy(() -> recipeService.removeFromFavorites(99L))
+        .isInstanceOf(EntityNotFoundException.class)
+        .hasMessage("Recipe not found");
+
+    verify(recipeRepository).findById(99L);
+    verify(recipeRepository, never()).save(any());
+  }
+
+  @SuppressWarnings("unchecked")
+  private Specification<Recipe> anyRecipeSpecification() {
+    return any(Specification.class);
+  }
 }
