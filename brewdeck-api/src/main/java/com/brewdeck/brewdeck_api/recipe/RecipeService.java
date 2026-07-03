@@ -62,21 +62,8 @@ public class RecipeService {
     Coffee coffee = findCoffeeById(request.coffeeId());
     BrewMethod method = findBrewMethodById(request.methodId());
 
-    Recipe recipe =
-        Recipe.builder()
-            .coffee(coffee)
-            .method(method)
-            .name(request.name())
-            .coffeeGrams(request.coffeeGrams())
-            .waterGrams(request.waterGrams())
-            .ratio(request.ratio())
-            .grindSetting(request.grindSetting())
-            .waterTemp(request.waterTemp())
-            .brewTime(request.brewTime())
-            .steps(request.steps())
-            .expectedTaste(request.expectedTaste())
-            .favorite(Boolean.TRUE.equals(request.favorite()))
-            .build();
+    Recipe recipe = new Recipe();
+    applyRequest(recipe, request, coffee, method);
 
     Recipe saved = recipeRepository.save(recipe);
     log.info("Created recipe id={}", saved.getId());
@@ -90,7 +77,7 @@ public class RecipeService {
     Coffee coffee = findCoffeeById(request.coffeeId());
     BrewMethod method = findBrewMethodById(request.methodId());
 
-    updateRecipeFields(recipe, request, coffee, method);
+    applyRequest(recipe, request, coffee, method);
 
     Recipe saved = recipeRepository.save(recipe);
     log.info("Updated recipe id={}", saved.getId());
@@ -150,7 +137,7 @@ public class RecipeService {
         .orElseThrow(() -> new EntityNotFoundException(BREW_METHOD_NOT_FOUND));
   }
 
-  private void updateRecipeFields(
+  private void applyRequest(
       Recipe recipe, RecipeRequest request, Coffee coffee, BrewMethod method) {
     recipe.setCoffee(coffee);
     recipe.setMethod(method);

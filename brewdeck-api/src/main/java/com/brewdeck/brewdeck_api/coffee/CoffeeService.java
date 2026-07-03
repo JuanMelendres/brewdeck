@@ -36,25 +36,8 @@ public class CoffeeService {
   }
 
   public CoffeeResponse create(CoffeeRequest request) {
-    Coffee coffee =
-        Coffee.builder()
-            .name(request.name())
-            .brand(request.brand())
-            .origin(request.origin())
-            .region(request.region())
-            .farm(request.farm())
-            .producer(request.producer())
-            .variety(request.variety())
-            .process(request.process())
-            .roastLevel(request.roastLevel())
-            .notesPrimary(request.notesPrimary())
-            .notesSecondary(request.notesSecondary())
-            .acidity(request.acidity())
-            .body(request.body())
-            .sweetness(request.sweetness())
-            .bitterness(request.bitterness())
-            .description(request.description())
-            .build();
+    Coffee coffee = new Coffee();
+    applyRequest(coffee, request);
 
     Coffee saved = coffeeRepository.save(coffee);
     log.info("Created coffee id={}", saved.getId());
@@ -68,6 +51,24 @@ public class CoffeeService {
             .findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Coffee not found"));
 
+    applyRequest(coffee, request);
+
+    Coffee saved = coffeeRepository.save(coffee);
+    log.info("Updated coffee id={}", saved.getId());
+
+    return CoffeeResponse.fromEntity(saved);
+  }
+
+  public void delete(Long id) {
+    if (!coffeeRepository.existsById(id)) {
+      throw new EntityNotFoundException("Coffee not found");
+    }
+
+    coffeeRepository.deleteById(id);
+    log.info("Deleted coffee id={}", id);
+  }
+
+  private void applyRequest(Coffee coffee, CoffeeRequest request) {
     coffee.setName(request.name());
     coffee.setBrand(request.brand());
     coffee.setOrigin(request.origin());
@@ -84,19 +85,5 @@ public class CoffeeService {
     coffee.setSweetness(request.sweetness());
     coffee.setBitterness(request.bitterness());
     coffee.setDescription(request.description());
-
-    Coffee saved = coffeeRepository.save(coffee);
-    log.info("Updated coffee id={}", saved.getId());
-
-    return CoffeeResponse.fromEntity(saved);
-  }
-
-  public void delete(Long id) {
-    if (!coffeeRepository.existsById(id)) {
-      throw new EntityNotFoundException("Coffee not found");
-    }
-
-    coffeeRepository.deleteById(id);
-    log.info("Deleted coffee id={}", id);
   }
 }
