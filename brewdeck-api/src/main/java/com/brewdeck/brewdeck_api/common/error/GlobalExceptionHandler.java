@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -74,6 +75,19 @@ public class GlobalExceptionHandler {
         buildErrorResponse(
             HttpStatus.BAD_REQUEST,
             "Invalid value for parameter '" + sanitize(exception.getName()) + "'",
+            sanitize(request.getRequestURI()),
+            null);
+
+    return ResponseEntity.badRequest().body(errorResponse);
+  }
+
+  @ExceptionHandler(PropertyReferenceException.class)
+  public ResponseEntity<ErrorResponse> handleInvalidSortProperty(
+      PropertyReferenceException exception, HttpServletRequest request) {
+    ErrorResponse errorResponse =
+        buildErrorResponse(
+            HttpStatus.BAD_REQUEST,
+            "Invalid sort property '" + sanitize(exception.getPropertyName()) + "'",
             sanitize(request.getRequestURI()),
             null);
 
