@@ -3,7 +3,7 @@ package com.brewdeck.brewdeck_api.common.error;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -34,7 +34,7 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<ErrorResponse> handleValidationException(
       MethodArgumentNotValidException exception, HttpServletRequest request) {
-    Map<String, String> validationErrors = new HashMap<>();
+    Map<String, String> validationErrors = new LinkedHashMap<>();
 
     exception
         .getBindingResult()
