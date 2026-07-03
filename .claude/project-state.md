@@ -2,11 +2,11 @@
 
 ## Last Updated
 
-2026-07-02
+2026-07-03
 
 ## Current Phase
 
-Backend hardening before frontend.
+Phase 3 (Backend UX for Frontend) completed. Ready to start Phase 4 (Next.js frontend).
 
 ## Completed
 
@@ -31,13 +31,17 @@ Backend hardening before frontend.
 - Spotless
 - SonarCloud
 - GitHub Actions
+- CORS config for Next.js
+- Dashboard summary endpoint
+- Structured service logs for write operations
+- OpenAPI/Swagger documentation
 
 ## Recently Worked On
 
-- Request validation hardening
-- Controller tests for validation errors
-- Integration test stabilization for paginated responses
-- Favorite workflow integration test correction
+- CORS configuration (WebConfig) for the Next.js frontend
+- Dashboard summary endpoint (GET /api/dashboard/summary)
+- Structured INFO logs on service write operations
+- Enriched OpenAPI/Swagger docs (tags, per-endpoint operations)
 
 ## Known Rules
 
@@ -49,11 +53,8 @@ Backend hardening before frontend.
 
 ## Immediate Next Steps
 
-1. Run full verification (use .cmd suffix if explicitly on Windows CMD):
-    - `./mvnw spotless:apply`
-    - `./mvnw clean verify`
-2. Review JaCoCo report.
-3. Review SonarCloud.
-4. Add CORS config for Next.js.
-5. Add service logs.
-6. Add dashboard summary endpoint.
+1. Push pending backend commits (dashboard, Swagger, service logs).
+2. Review JaCoCo and SonarCloud after push.
+3. Start Phase 4: scaffold Next.js frontend.
+4. Build API client layer against the documented endpoints.
+5. Implement dashboard page consuming GET /api/dashboard/summary.
