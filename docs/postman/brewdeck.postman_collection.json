@@ -1441,6 +1441,88 @@
       ]
     },
     {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "GET - Dashboard summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/dashboard/summary",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "dashboard",
+                "summary"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Has aggregate counters', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('totalCoffees');",
+                  "  pm.expect(json).to.have.property('totalRecipes');",
+                  "  pm.expect(json).to.have.property('totalBrewSessions');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "System",
+      "item": [
+        {
+          "name": "GET - Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/actuator/health",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "actuator",
+                "health"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Status is UP', function () {",
+                  "  pm.expect(pm.response.json().status).to.eql('UP');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "Validation Examples",
       "description": "Invalid request examples for checking GlobalExceptionHandler validation responses.",
       "item": [
