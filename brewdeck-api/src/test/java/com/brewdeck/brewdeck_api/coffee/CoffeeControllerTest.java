@@ -500,4 +500,27 @@ class CoffeeControllerTest {
         .andExpect(jsonPath("$.message").value("Validation failed"))
         .andExpect(jsonPath("$.validationErrors.name").value("Coffee name is required"));
   }
+
+  @Test
+  void create_shouldReturnBadRequest_whenBodyIsMalformedJson() throws Exception {
+    mockMvc
+        .perform(
+            post("/api/coffees")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{ not valid json"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.error").value("Bad Request"))
+        .andExpect(jsonPath("$.message").value("Malformed request body"));
+  }
+
+  @Test
+  void findById_shouldReturnBadRequest_whenIdIsNotNumeric() throws Exception {
+    mockMvc
+        .perform(get("/api/coffees/{id}", "not-a-number"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.error").value("Bad Request"))
+        .andExpect(jsonPath("$.message").value("Invalid value for parameter 'id'"));
+  }
 }

@@ -8,9 +8,11 @@ import java.util.Map;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.util.HtmlUtils;
 
 @RestControllerAdvice
@@ -48,6 +50,32 @@ public class GlobalExceptionHandler {
             "Validation failed",
             sanitize(request.getRequestURI()),
             validationErrors);
+
+    return ResponseEntity.badRequest().body(errorResponse);
+  }
+
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  public ResponseEntity<ErrorResponse> handleUnreadableMessage(
+      HttpMessageNotReadableException exception, HttpServletRequest request) {
+    ErrorResponse errorResponse =
+        buildErrorResponse(
+            HttpStatus.BAD_REQUEST,
+            "Malformed request body",
+            sanitize(request.getRequestURI()),
+            null);
+
+    return ResponseEntity.badRequest().body(errorResponse);
+  }
+
+  @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+  public ResponseEntity<ErrorResponse> handleTypeMismatch(
+      MethodArgumentTypeMismatchException exception, HttpServletRequest request) {
+    ErrorResponse errorResponse =
+        buildErrorResponse(
+            HttpStatus.BAD_REQUEST,
+            "Invalid value for parameter '" + sanitize(exception.getName()) + "'",
+            sanitize(request.getRequestURI()),
+            null);
 
     return ResponseEntity.badRequest().body(errorResponse);
   }
