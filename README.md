@@ -133,7 +133,31 @@ docs/postman/brewdeck.local.postman_environment.json
 
 ---
 
+## 🔐 Environment Variables
+
+The backend is configured through environment variables (with safe local
+defaults). No secrets are committed.
+
+```text
+SPRING_PROFILES_ACTIVE   # active profile (default: local)
+SERVER_PORT              # HTTP port (default: 8080)
+DB_URL                   # JDBC URL (default: jdbc:postgresql://localhost:5432/brewdeck)
+DB_USER                  # database user (default: brewdeck)
+DB_PASSWORD              # database password (default: brewdeck)
+CORS_ALLOWED_ORIGINS     # allowed CORS origins (default: http://localhost:3000)
+```
+
+CORS is enabled for `/api/**` for the configured origins, and a health probe
+is exposed at `/actuator/health` for the frontend and CI.
+
+---
+
 ## 📡 API Endpoints
+
+> Collection `GET` endpoints are paginated and support `page`, `size` and `sort`
+> query parameters (e.g. `?page=0&size=10&sort=id,asc`). They return a
+> `PageResponse<T>` envelope; `GET` by id returns the DTO directly.
+
 ### Coffee  
 ```html
 GET    /api/coffees
@@ -161,6 +185,8 @@ GET    /api/recipes/coffee/{coffeeId}
 GET    /api/recipes/method/{methodId}
 POST   /api/recipes
 PUT    /api/recipes/{id}
+PATCH  /api/recipes/{id}/favorite
+PATCH  /api/recipes/{id}/unfavorite
 DELETE /api/recipes/{id}
 ```
 
@@ -172,6 +198,16 @@ GET    /api/brew-sessions/recipe/{recipeId}
 POST   /api/brew-sessions
 PUT    /api/brew-sessions/{id}
 DELETE /api/brew-sessions/{id}
+```
+
+### Dashboard
+```html
+GET    /api/dashboard/summary
+```
+
+### System
+```html
+GET    /actuator/health
 ```
 
 ---
@@ -226,13 +262,15 @@ Pre-push → full validation + security scan
 - [x] Code quality setup
 - [x] Git hooks
 
-### Phase 2 (Current)
+### Phase 2
 - [x] Brew Methods
 - [x] Recipes
 - [x] Brew Sessions
--  [ ] Favorites
+- [x] Favorites
+- [x] Pagination, filters, dashboard summary
+- [x] CORS, health probe, OpenAPI docs, structured logs
 
-### Phase 3
+### Phase 3 (Current)
 -  [ ] Next.js frontend
 -  [ ] Mobile-first UI
 -  [ ] API integration
