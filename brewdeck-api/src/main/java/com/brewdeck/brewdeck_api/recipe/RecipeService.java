@@ -10,10 +10,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional(readOnly = true)
 public class RecipeService {
 
   private static final String RECIPE_NOT_FOUND = "Recipe not found";
@@ -55,6 +57,7 @@ public class RecipeService {
         recipeRepository.findByMethodId(methodId, pageable).map(RecipeResponse::fromEntity));
   }
 
+  @Transactional
   public RecipeResponse create(RecipeRequest request) {
     Coffee coffee = findCoffeeById(request.coffeeId());
     BrewMethod method = findBrewMethodById(request.methodId());
@@ -81,6 +84,7 @@ public class RecipeService {
     return RecipeResponse.fromEntity(saved);
   }
 
+  @Transactional
   public RecipeResponse update(Long id, RecipeRequest request) {
     Recipe recipe = findRecipeById(id);
     Coffee coffee = findCoffeeById(request.coffeeId());
@@ -94,6 +98,7 @@ public class RecipeService {
     return RecipeResponse.fromEntity(saved);
   }
 
+  @Transactional
   public void delete(Long id) {
     if (!recipeRepository.existsById(id)) {
       throw new EntityNotFoundException(RECIPE_NOT_FOUND);
@@ -103,6 +108,7 @@ public class RecipeService {
     log.info("Deleted recipe id={}", id);
   }
 
+  @Transactional
   public RecipeResponse markAsFavorite(Long id) {
     Recipe recipe = findRecipeById(id);
 
@@ -114,6 +120,7 @@ public class RecipeService {
     return RecipeResponse.fromEntity(saved);
   }
 
+  @Transactional
   public RecipeResponse removeFromFavorites(Long id) {
     Recipe recipe = findRecipeById(id);
 

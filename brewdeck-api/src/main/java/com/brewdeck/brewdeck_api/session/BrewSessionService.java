@@ -8,10 +8,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional(readOnly = true)
 public class BrewSessionService {
 
   private final BrewSessionRepository brewSessionRepository;
@@ -43,6 +45,7 @@ public class BrewSessionService {
             .map(BrewSessionResponse::fromEntity));
   }
 
+  @Transactional
   public BrewSessionResponse create(BrewSessionRequest request) {
     Recipe recipe =
         recipeRepository
@@ -66,6 +69,7 @@ public class BrewSessionService {
     return BrewSessionResponse.fromEntity(saved);
   }
 
+  @Transactional
   public BrewSessionResponse update(Long id, BrewSessionRequest request) {
     BrewSession session =
         brewSessionRepository
@@ -91,6 +95,7 @@ public class BrewSessionService {
     return BrewSessionResponse.fromEntity(saved);
   }
 
+  @Transactional
   public void delete(Long id) {
     if (!brewSessionRepository.existsById(id)) {
       throw new EntityNotFoundException("Brew session not found");
