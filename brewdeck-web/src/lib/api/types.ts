@@ -54,3 +54,28 @@ export type CoffeeFilters = {
   roastLevel?: string;
   process?: string;
 };
+
+export type Recipe = {
+  id: number;
+  coffeeId: number;
+  coffeeName: string;
+  methodId: number;
+  methodName: string;
+  name: string;
+  coffeeGrams: number | null;
+  waterGrams: number | null;
+  ratio: string | null;
+  grindSetting: string | null;
+  waterTemp: number | null;
+  brewTime: string | null;
+  steps: string | null;
+  expectedTaste: string | null;
+  favorite: boolean;
+  createdAt: string;
+  updatedAt: string | null;
+};
+
+export type RecipeFilters = {
+  name?: string;
+  favorite?: boolean;
+};
