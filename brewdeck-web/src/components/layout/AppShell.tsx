@@ -17,7 +17,7 @@ const NAV = [
   { label: 'Dashboard', href: '/dashboard', enabled: true },
   { label: 'Coffees', href: '/coffees', enabled: true },
   { label: 'Recipes', href: '/recipes', enabled: true },
-  { label: 'Brew Sessions', href: '/brew-sessions', enabled: false },
+  { label: 'Brew Sessions', href: '/brew-sessions', enabled: true },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
