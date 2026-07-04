@@ -79,3 +79,20 @@ export type RecipeFilters = {
   name?: string;
   favorite?: boolean;
 };
+
+export type BrewSession = {
+  id: number;
+  recipeId: number;
+  recipeName: string;
+  brewedAt: string;
+  actualGrind: string | null;
+  actualTemp: number | null;
+  actualTime: string | null;
+  tasteResult: string | null;
+  rating: number | null;
+  adjustmentNotes: string | null;
+};
+
+export type BrewSessionFilters = {
+  rating?: number;
+};
