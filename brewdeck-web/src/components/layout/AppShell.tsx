@@ -16,7 +16,7 @@ const DRAWER_WIDTH = 220;
 const NAV = [
   { label: 'Dashboard', href: '/dashboard', enabled: true },
   { label: 'Coffees', href: '/coffees', enabled: true },
-  { label: 'Recipes', href: '/recipes', enabled: false },
+  { label: 'Recipes', href: '/recipes', enabled: true },
   { label: 'Brew Sessions', href: '/brew-sessions', enabled: false },
 ];
 
