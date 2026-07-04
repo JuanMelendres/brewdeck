@@ -1,3 +1,4 @@
+import type { ListBrewSessionsParams } from '@/lib/api/brewSessions';
 import type { ListCoffeesParams } from '@/lib/api/coffees';
 import type { ListRecipesParams } from '@/lib/api/recipes';
 
@@ -10,5 +11,8 @@ export const keys = {
   },
   recipes: {
     list: (params: ListRecipesParams) => ['recipes', 'list', params] as const,
+  },
+  brewSessions: {
+    list: (params: ListBrewSessionsParams) => ['brew-sessions', 'list', params] as const,
   },
 } as const;
