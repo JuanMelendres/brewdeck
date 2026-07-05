@@ -21,6 +21,10 @@ describe('RecipesTable', () => {
     renderWithTheme(<RecipesTable recipes={[base, other]} />);
 
     expect(screen.getByText('Mezcla AeroPress')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Mezcla AeroPress' })).toHaveAttribute(
+      'href',
+      '/recipes/1',
+    );
     expect(screen.getByText('Mezcla')).toBeInTheDocument();
     expect(screen.getByText('AeroPress')).toBeInTheDocument();
     expect(screen.getByText('1:15')).toBeInTheDocument();

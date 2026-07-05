@@ -1,5 +1,5 @@
 import { apiFetch } from './client';
-import type { PageResponse, Recipe, RecipeFilters } from './types';
+import type { PageResponse, Recipe, RecipeFilters, RecipeStats } from './types';
 import type { RecipeFormValues } from '@/lib/validation/recipeSchema';
 
 export type ListRecipesParams = {
@@ -25,6 +25,14 @@ export function listRecipes(params: ListRecipesParams): Promise<PageResponse<Rec
   }
 
   return apiFetch<PageResponse<Recipe>>(`/api/recipes?${query.toString()}`);
+}
+
+export function getRecipe(id: number): Promise<Recipe> {
+  return apiFetch<Recipe>(`/api/recipes/${id}`);
+}
+
+export function getRecipeStats(id: number): Promise<RecipeStats> {
+  return apiFetch<RecipeStats>(`/api/recipes/${id}/stats`);
 }
 
 export function createRecipe(body: RecipeFormValues): Promise<Recipe> {

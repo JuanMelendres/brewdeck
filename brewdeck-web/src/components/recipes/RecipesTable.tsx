@@ -1,6 +1,7 @@
 'use client';
 
 import IconButton from '@mui/material/IconButton';
+import Link from '@mui/material/Link';
 import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -10,6 +11,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import NextLink from 'next/link';
 import type { Recipe } from '@/lib/api/types';
 
 function orDash(value: string | number | null): string {
@@ -46,7 +48,11 @@ export function RecipesTable({
         <TableBody>
           {recipes.map((recipe) => (
             <TableRow key={recipe.id}>
-              <TableCell>{recipe.name}</TableCell>
+              <TableCell>
+                <Link component={NextLink} href={`/recipes/${recipe.id}`}>
+                  {recipe.name}
+                </Link>
+              </TableCell>
               <TableCell>{recipe.coffeeName}</TableCell>
               <TableCell>{recipe.methodName}</TableCell>
               <TableCell>{orDash(recipe.ratio)}</TableCell>

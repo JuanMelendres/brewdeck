@@ -80,6 +80,13 @@ export type RecipeFilters = {
   favorite?: boolean;
 };
 
+export type RecipeStats = {
+  recipeId: number;
+  totalSessions: number;
+  averageRating: number | null;
+  lastBrewedAt: string | null;
+};
+
 export type BrewSession = {
   id: number;
   recipeId: number;
