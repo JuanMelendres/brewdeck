@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-function optionalNumber(inner: z.ZodNumber) {
+function optionalNumber<T extends z.ZodTypeAny>(inner: T) {
   return z.preprocess(
     (value) => (value === '' || value === null || value === undefined ? undefined : value),
     inner.optional(),

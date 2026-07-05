@@ -1,5 +1,7 @@
 'use client';
 
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import TablePagination from '@mui/material/TablePagination';
 import Typography from '@mui/material/Typography';
 import { useState, type ReactNode } from 'react';
@@ -10,7 +12,9 @@ import { ErrorState } from '@/components/ui/ErrorState';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { RecipeFilters } from './RecipeFilters';
 import { RecipesTable } from './RecipesTable';
-import type { RecipeFilters as Filters } from '@/lib/api/types';
+import { RecipeFormDialog } from './RecipeFormDialog';
+import { DeleteRecipeDialog } from './DeleteRecipeDialog';
+import type { RecipeFilters as Filters, Recipe } from '@/lib/api/types';
 
 export function RecipesView() {
   const [page, setPage] = useState(0);
@@ -29,6 +33,10 @@ export function RecipesView() {
     setFilters(next);
   };
 
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editing, setEditing] = useState<Recipe | null>(null);
+  const [deleting, setDeleting] = useState<Recipe | null>(null);
+
   let body: ReactNode;
   if (isLoading && !data) {
     body = <Spinner />;
@@ -39,7 +47,11 @@ export function RecipesView() {
   } else {
     body = (
       <>
-        <RecipesTable recipes={data.content} />
+        <RecipesTable
+          recipes={data.content}
+          onEdit={(recipe) => setEditing(recipe)}
+          onDelete={(recipe) => setDeleting(recipe)}
+        />
         <TablePagination
           component="div"
           count={data.totalElements}
@@ -58,11 +70,20 @@ export function RecipesView() {
 
   return (
     <>
-      <Typography variant="h5" component="h1" gutterBottom>
-        Recipes
-      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+        <Typography variant="h5" component="h1">
+          Recipes
+        </Typography>
+        <Button variant="contained" onClick={() => setCreateOpen(true)}>
+          Add Recipe
+        </Button>
+      </Box>
       <RecipeFilters value={filters} onChange={handleFiltersChange} />
       {body}
+
+      {createOpen ? <RecipeFormDialog open onClose={() => setCreateOpen(false)} /> : null}
+      {editing ? <RecipeFormDialog open recipe={editing} onClose={() => setEditing(null)} /> : null}
+      {deleting ? <DeleteRecipeDialog open recipe={deleting} onClose={() => setDeleting(null)} /> : null}
     </>
   );
 }
