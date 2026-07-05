@@ -2,11 +2,11 @@
 
 ## Last Updated
 
-2026-07-03
+2026-07-05
 
 ## Current Phase
 
-Phase 3 (Backend UX for Frontend) completed. Ready to start Phase 4 (Next.js frontend).
+Phase 4 (Next.js frontend) in progress. Backend Phases 1-3 complete. Coffee CRUD UI merged (PR #32); Recipe CRUD UI in progress on branch feature/recipe-crud.
 
 ## Completed
 
@@ -35,13 +35,16 @@ Phase 3 (Backend UX for Frontend) completed. Ready to start Phase 4 (Next.js fro
 - Dashboard summary endpoint
 - Structured service logs for write operations
 - OpenAPI/Swagger documentation
+- Next.js frontend scaffolded (Phase 4)
+- Coffee CRUD UI (list/table/create/edit/delete dialogs, mutation hooks) — PR #32 merged
+- Recipe CRUD UI in progress (API funcs, mutation hooks, form schema, form/delete dialogs, table actions)
+- brew-methods and coffee/method options frontend modules
 
 ## Recently Worked On
 
-- CORS configuration (WebConfig) for the Next.js frontend
-- Dashboard summary endpoint (GET /api/dashboard/summary)
-- Structured INFO logs on service write operations
-- Enriched OpenAPI/Swagger docs (tags, per-endpoint operations)
+- Recipe CRUD UI on branch feature/recipe-crud: wired create/edit/delete dialogs into recipes list, actions column, form dialog, options hooks
+- Coffee CRUD UI (merged)
+- Frontend API client layer (recipes, brew-methods)
 
 ## Known Rules
 
@@ -53,8 +56,8 @@ Phase 3 (Backend UX for Frontend) completed. Ready to start Phase 4 (Next.js fro
 
 ## Immediate Next Steps
 
-1. Push pending backend commits (dashboard, Swagger, service logs).
-2. Review JaCoCo and SonarCloud after push.
-3. Start Phase 4: scaffold Next.js frontend.
-4. Build API client layer against the documented endpoints.
-5. Implement dashboard page consuming GET /api/dashboard/summary.
+1. Finish Recipe CRUD UI on feature/recipe-crud; open PR.
+2. ~~Backend: recipe stats endpoint~~ — Done (GET /api/recipes/{id}/stats: totalSessions, averageRating, lastBrewedAt).
+3. Implement frontend recipe detail page consuming stats + dashboard summary.
+4. Build brew sessions list/create UI.
+5. Review JaCoCo and SonarCloud after backend stats change.
