@@ -43,29 +43,29 @@ Status: Completed
 
 ## Phase 4 — Frontend
 
-Status: Not Started
+Status: In Progress
 
-Planned stack:
+Stack (in use):
 
 - Next.js
 - React
 - TypeScript
-- Tailwind or shadcn/ui
+- Tailwind / shadcn/ui
 - API client layer
-- Forms with validation
-- Pagination UI
-- Filters UI
-- Dashboard page
+- Forms with validation (zod schemas)
+- TanStack Query mutation hooks
+- Vitest
 
-Planned screens:
+Screens:
 
-- Dashboard
-- Coffees list/detail/create/edit
-- Brew methods list
-- Recipes list/detail/create/edit
-- Favorite recipes
-- Brew sessions list/create
-- Brew session history by recipe
+- Coffees list/create/edit/delete — Done (PR #32)
+- Recipes list/create/edit/delete — In Progress (feature/recipe-crud)
+- Dashboard — Not Started
+- Brew methods list — Not Started
+- Recipes detail — Not Started
+- Favorite recipes — Not Started
+- Brew sessions list/create — Not Started
+- Brew session history by recipe — Not Started
 
 ## Phase 5 — Product Improvements
 

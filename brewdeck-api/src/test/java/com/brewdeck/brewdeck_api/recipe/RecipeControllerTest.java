@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -36,6 +37,8 @@ class RecipeControllerTest {
   @Autowired private ObjectMapper objectMapper;
 
   @MockitoBean private RecipeService recipeService;
+
+  @MockitoBean private RecipeStatsService recipeStatsService;
 
   @Test
   void findAll_shouldReturnRecipes() throws Exception {
@@ -109,6 +112,38 @@ class RecipeControllerTest {
         .andExpect(jsonPath("$.name").value("Mezcla Veracruz AeroPress"));
 
     verify(recipeService).findById(1L);
+  }
+
+  @Test
+  void getStats_shouldReturnRecipeStats() throws Exception {
+    RecipeStatsResponse stats =
+        new RecipeStatsResponse(1L, 3L, 8.5, LocalDateTime.of(2026, 7, 5, 10, 0));
+
+    when(recipeStatsService.getStats(1L)).thenReturn(stats);
+
+    mockMvc
+        .perform(get("/api/recipes/{id}/stats", 1L))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.recipeId").value(1L))
+        .andExpect(jsonPath("$.totalSessions").value(3))
+        .andExpect(jsonPath("$.averageRating").value(8.5))
+        .andExpect(jsonPath("$.lastBrewedAt").exists());
+
+    verify(recipeStatsService).getStats(1L);
+  }
+
+  @Test
+  void getStats_shouldReturnNotFound_whenRecipeMissing() throws Exception {
+    when(recipeStatsService.getStats(99L))
+        .thenThrow(new EntityNotFoundException("Recipe not found"));
+
+    mockMvc
+        .perform(get("/api/recipes/{id}/stats", 99L))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.status").value(404))
+        .andExpect(jsonPath("$.message").value("Recipe not found"));
+
+    verify(recipeStatsService).getStats(99L);
   }
 
   @Test
