@@ -1,5 +1,5 @@
-import { screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { fireEvent, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import { renderWithTheme } from '@/test/renderWithTheme';
 import { RecipesTable } from './RecipesTable';
 import type { Recipe } from '@/lib/api/types';
@@ -29,5 +29,17 @@ describe('RecipesTable', () => {
 
     // 'other' has null ratio, null waterTemp, and favorite=false → three dashes
     expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('calls onEdit and onDelete with the row recipe when the action buttons are clicked', () => {
+    const onEdit = vi.fn();
+    const onDelete = vi.fn();
+    renderWithTheme(<RecipesTable recipes={[base]} onEdit={onEdit} onDelete={onDelete} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'edit' }));
+    fireEvent.click(screen.getByRole('button', { name: 'delete' }));
+
+    expect(onEdit).toHaveBeenCalledWith(base);
+    expect(onDelete).toHaveBeenCalledWith(base);
   });
 });

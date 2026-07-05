@@ -5,6 +5,16 @@ import { RecipesView } from './RecipesView';
 import * as recipesHook from '@/hooks/useRecipes';
 import type { PageResponse, Recipe } from '@/lib/api/types';
 
+vi.mock('@/hooks/useRecipeMutations', () => ({
+  useCreateRecipe: () => ({ mutate: vi.fn(), isPending: false }),
+  useUpdateRecipe: () => ({ mutate: vi.fn(), isPending: false }),
+  useDeleteRecipe: () => ({ mutate: vi.fn(), isPending: false }),
+}));
+vi.mock('@/hooks/useResourceOptions', () => ({
+  useCoffeeOptions: () => ({ data: [], isLoading: false }),
+  useMethodOptions: () => ({ data: [], isLoading: false }),
+}));
+
 type HookReturn = ReturnType<typeof recipesHook.useRecipes>;
 
 function mockHook(value: Partial<HookReturn>) {
@@ -58,5 +68,15 @@ describe('RecipesView', () => {
 
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'V60' } });
     expect(hookMock).toHaveBeenLastCalledWith(expect.objectContaining({ page: 0 }));
+  });
+
+  it('opens the create dialog when Add Recipe is clicked', () => {
+    mockHook({ isLoading: false, isError: false, data: page([], 0) });
+    renderWithTheme(<RecipesView />);
+
+    fireEvent.click(screen.getByRole('button', { name: /add recipe/i }));
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByText('Add recipe')).toBeInTheDocument();
   });
 });
