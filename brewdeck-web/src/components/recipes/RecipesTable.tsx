@@ -1,5 +1,6 @@
 'use client';
 
+import IconButton from '@mui/material/IconButton';
 import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -7,6 +8,8 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 import type { Recipe } from '@/lib/api/types';
 
 function orDash(value: string | number | null): string {
@@ -17,7 +20,15 @@ function orDash(value: string | number | null): string {
   return text.trim() !== '' ? text : '—';
 }
 
-export function RecipesTable({ recipes }: { recipes: Recipe[] }) {
+export function RecipesTable({
+  recipes,
+  onEdit,
+  onDelete,
+}: {
+  recipes: Recipe[];
+  onEdit?: (recipe: Recipe) => void;
+  onDelete?: (recipe: Recipe) => void;
+}) {
   return (
     <TableContainer component={Paper} variant="outlined">
       <Table>
@@ -29,6 +40,7 @@ export function RecipesTable({ recipes }: { recipes: Recipe[] }) {
             <TableCell>Ratio</TableCell>
             <TableCell>Water Temp</TableCell>
             <TableCell>Favorite</TableCell>
+            <TableCell>Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -40,6 +52,14 @@ export function RecipesTable({ recipes }: { recipes: Recipe[] }) {
               <TableCell>{orDash(recipe.ratio)}</TableCell>
               <TableCell>{orDash(recipe.waterTemp)}</TableCell>
               <TableCell>{recipe.favorite ? '★' : '—'}</TableCell>
+              <TableCell>
+                <IconButton aria-label="edit" size="small" onClick={() => onEdit?.(recipe)}>
+                  <EditIcon fontSize="small" />
+                </IconButton>
+                <IconButton aria-label="delete" size="small" onClick={() => onDelete?.(recipe)}>
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
