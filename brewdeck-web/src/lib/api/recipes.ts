@@ -1,5 +1,6 @@
 import { apiFetch } from './client';
 import type { PageResponse, Recipe, RecipeFilters } from './types';
+import type { RecipeFormValues } from '@/lib/validation/recipeSchema';
 
 export type ListRecipesParams = {
   page: number;
@@ -24,4 +25,16 @@ export function listRecipes(params: ListRecipesParams): Promise<PageResponse<Rec
   }
 
   return apiFetch<PageResponse<Recipe>>(`/api/recipes?${query.toString()}`);
+}
+
+export function createRecipe(body: RecipeFormValues): Promise<Recipe> {
+  return apiFetch<Recipe>('/api/recipes', { method: 'POST', body: JSON.stringify(body) });
+}
+
+export function updateRecipe(id: number, body: RecipeFormValues): Promise<Recipe> {
+  return apiFetch<Recipe>(`/api/recipes/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+}
+
+export function deleteRecipe(id: number): Promise<void> {
+  return apiFetch<void>(`/api/recipes/${id}`, { method: 'DELETE' });
 }
