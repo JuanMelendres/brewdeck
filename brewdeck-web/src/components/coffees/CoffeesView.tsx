@@ -1,5 +1,7 @@
 'use client';
 
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import TablePagination from '@mui/material/TablePagination';
 import Typography from '@mui/material/Typography';
 import { useState } from 'react';
@@ -9,8 +11,10 @@ import { Spinner } from '@/components/ui/Spinner';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { CoffeeFilters } from './CoffeeFilters';
+import { CoffeeFormDialog } from './CoffeeFormDialog';
 import { CoffeesTable } from './CoffeesTable';
-import type { CoffeeFilters as Filters } from '@/lib/api/types';
+import { DeleteCoffeeDialog } from './DeleteCoffeeDialog';
+import type { Coffee, CoffeeFilters as Filters } from '@/lib/api/types';
 
 export function CoffeesView() {
   const [page, setPage] = useState(0);
@@ -29,6 +33,10 @@ export function CoffeesView() {
     setFilters(next);
   };
 
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editing, setEditing] = useState<Coffee | null>(null);
+  const [deleting, setDeleting] = useState<Coffee | null>(null);
+
   let body;
   if (isLoading && !data) {
     body = <Spinner />;
@@ -39,7 +47,11 @@ export function CoffeesView() {
   } else {
     body = (
       <>
-        <CoffeesTable coffees={data.content} />
+        <CoffeesTable
+          coffees={data.content}
+          onEdit={(coffee) => setEditing(coffee)}
+          onDelete={(coffee) => setDeleting(coffee)}
+        />
         <TablePagination
           component="div"
           count={data.totalElements}
@@ -58,11 +70,26 @@ export function CoffeesView() {
 
   return (
     <>
-      <Typography variant="h5" component="h1" gutterBottom>
-        Coffees
-      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+        <Typography variant="h5" component="h1">
+          Coffees
+        </Typography>
+        <Button variant="contained" onClick={() => setCreateOpen(true)}>
+          Add Coffee
+        </Button>
+      </Box>
       <CoffeeFilters value={filters} onChange={handleFiltersChange} />
       {body}
+
+      {createOpen ? (
+        <CoffeeFormDialog open onClose={() => setCreateOpen(false)} />
+      ) : null}
+      {editing ? (
+        <CoffeeFormDialog open coffee={editing} onClose={() => setEditing(null)} />
+      ) : null}
+      {deleting ? (
+        <DeleteCoffeeDialog open coffee={deleting} onClose={() => setDeleting(null)} />
+      ) : null}
     </>
   );
 }

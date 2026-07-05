@@ -5,6 +5,12 @@ import { CoffeesView } from './CoffeesView';
 import * as coffeesHook from '@/hooks/useCoffees';
 import type { Coffee, PageResponse } from '@/lib/api/types';
 
+vi.mock('@/hooks/useCoffeeMutations', () => ({
+  useCreateCoffee: () => ({ mutate: vi.fn(), isPending: false }),
+  useUpdateCoffee: () => ({ mutate: vi.fn(), isPending: false }),
+  useDeleteCoffee: () => ({ mutate: vi.fn(), isPending: false }),
+}));
+
 type HookReturn = ReturnType<typeof coffeesHook.useCoffees>;
 
 function mockHook(value: Partial<HookReturn>) {
@@ -58,5 +64,15 @@ describe('CoffeesView', () => {
 
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Blend' } });
     expect(hookMock).toHaveBeenLastCalledWith(expect.objectContaining({ page: 0 }));
+  });
+
+  it('opens the create dialog when Add Coffee is clicked', () => {
+    mockHook({ isLoading: false, isError: false, data: page([], 0) });
+    renderWithTheme(<CoffeesView />);
+
+    fireEvent.click(screen.getByRole('button', { name: /add coffee/i }));
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByText('Add coffee')).toBeInTheDocument();
   });
 });
