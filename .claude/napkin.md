@@ -35,3 +35,5 @@
    Do instead: end commit body with the `Co-Authored-By: Claude Opus 4.8 (1M context)` and `Claude-Session:` lines.
 4. **[2026-07-03] Session task flow**
    Do instead: on "next task", consult roadmap order + pick smallest safe change; use task-template (goal/DoD/risks/files/steps/tests/verify/commit). Update `.claude/project-state.md` + `roadmap.md` when a phase/task completes.
+5. **[2026-07-05] Frontend PRs target `develop`, NOT `master`**
+   Do instead: feature branches (e.g. `feature/recipe-crud`) PR into `origin/develop`; `develop` → `master` later. `gh pr create --base develop`. User merges/advances develop between turns (PRs #33/#34/#35), so `git fetch` + re-check `origin/develop` before opening PRs or assuming branch is ahead.

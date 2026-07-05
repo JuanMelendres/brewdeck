@@ -6,7 +6,7 @@
 
 ## Current Phase
 
-Phase 4 (Next.js frontend) in progress. Backend Phases 1-3 complete. Coffee CRUD UI merged (PR #32); Recipe CRUD UI in progress on branch feature/recipe-crud.
+Phase 4 (Next.js frontend) in progress. Backend Phases 1-3 complete. Dashboard, Coffee CRUD (PR #32), Recipe CRUD, and Recipe detail + stats (PR #35) done. Next: brew session create UI.
 
 ## Completed
 
@@ -36,15 +36,19 @@ Phase 4 (Next.js frontend) in progress. Backend Phases 1-3 complete. Coffee CRUD
 - Structured service logs for write operations
 - OpenAPI/Swagger documentation
 - Next.js frontend scaffolded (Phase 4)
+- Dashboard UI wired to GET /api/dashboard/summary
 - Coffee CRUD UI (list/table/create/edit/delete dialogs, mutation hooks) — PR #32 merged
-- Recipe CRUD UI in progress (API funcs, mutation hooks, form schema, form/delete dialogs, table actions)
+- Recipe CRUD UI (list/table/create/edit/delete dialogs, mutation hooks)
+- Recipe stats endpoint (GET /api/recipes/{id}/stats)
+- Recipe detail page consuming recipe + stats — PR #35
+- Brew sessions list UI (view/table/filters)
 - brew-methods and coffee/method options frontend modules
 
 ## Recently Worked On
 
-- Recipe CRUD UI on branch feature/recipe-crud: wired create/edit/delete dialogs into recipes list, actions column, form dialog, options hooks
-- Coffee CRUD UI (merged)
-- Frontend API client layer (recipes, brew-methods)
+- Recipe detail page (/recipes/[id]) with brew statistics; recipe names link to detail — PR #35
+- Backend recipe stats endpoint (totalSessions, averageRating, lastBrewedAt)
+- Recipe CRUD UI (merged)
 
 ## Known Rules
 
@@ -56,8 +60,8 @@ Phase 4 (Next.js frontend) in progress. Backend Phases 1-3 complete. Coffee CRUD
 
 ## Immediate Next Steps
 
-1. Finish Recipe CRUD UI on feature/recipe-crud; open PR.
-2. ~~Backend: recipe stats endpoint~~ — Done (GET /api/recipes/{id}/stats: totalSessions, averageRating, lastBrewedAt).
-3. Implement frontend recipe detail page consuming stats + dashboard summary.
-4. Build brew sessions list/create UI.
-5. Review JaCoCo and SonarCloud after backend stats change.
+1. Merge PR #35 (recipe detail + stats) into develop.
+2. Next task: Brew session create UI. Backend POST /api/brew-sessions is ready; mirror RecipeFormDialog (react-hook-form + zod). Add brewSessionSchema, create/mutation API + hook (invalidate sessions list and the recipe stats query), and an "Add Brew Session" dialog on the sessions list. Prefill recipe from list/detail where possible.
+3. Show a recipe's brew-session history on the recipe detail page (GET /api/brew-sessions/recipe/{recipeId}).
+4. Brew methods list page and a dedicated Favorite recipes screen.
+5. Review JaCoCo and SonarCloud.

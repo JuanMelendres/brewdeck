@@ -58,14 +58,15 @@ Stack (in use):
 
 Screens:
 
+- Dashboard — Done
 - Coffees list/create/edit/delete — Done (PR #32)
-- Recipes list/create/edit/delete — In Progress (feature/recipe-crud)
-- Dashboard — Not Started
-- Brew methods list — Not Started
-- Recipes detail — Not Started
-- Favorite recipes — Not Started
-- Brew sessions list/create — Not Started
+- Recipes list/create/edit/delete — Done
+- Recipes detail (+ brew stats) — Done (PR #35)
+- Brew sessions list — Done
+- Brew sessions create — Next
 - Brew session history by recipe — Not Started
+- Brew methods list — Not Started
+- Favorite recipes (dedicated screen) — Not Started
 
 ## Phase 5 — Product Improvements
 
