@@ -28,4 +28,14 @@ public interface BrewSessionRepository
 
   @Query("select avg(s.rating) from BrewSession s where s.rating is not null")
   Double findAverageRating();
+
+  @Query(
+      """
+      select count(s) as totalSessions,
+             avg(s.rating) as averageRating,
+             max(s.brewedAt) as lastBrewedAt
+      from BrewSession s
+      where s.recipe.id = :recipeId
+      """)
+  RecipeSessionStats findStatsByRecipeId(Long recipeId);
 }

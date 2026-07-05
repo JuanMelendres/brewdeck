@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 public class RecipeController {
 
   private final RecipeService recipeService;
+  private final RecipeStatsService recipeStatsService;
 
   @GetMapping
   @Operation(summary = "List recipes", description = "Returns a paginated list of recipes.")
@@ -32,6 +33,15 @@ public class RecipeController {
   @Operation(summary = "Get recipe by id")
   public ResponseEntity<RecipeResponse> findById(@PathVariable Long id) {
     return ResponseEntity.ok(recipeService.findById(id));
+  }
+
+  @GetMapping("/{id}/stats")
+  @Operation(
+      summary = "Get recipe brew statistics",
+      description =
+          "Returns total brew sessions, average rating, and last brewed timestamp for a recipe.")
+  public ResponseEntity<RecipeStatsResponse> getStats(@PathVariable Long id) {
+    return ResponseEntity.ok(recipeStatsService.getStats(id));
   }
 
   @GetMapping("/favorites")
