@@ -1,5 +1,6 @@
 import { apiFetch } from './client';
 import type { Coffee, CoffeeFilters, PageResponse } from './types';
+import type { CoffeeFormValues } from '@/lib/validation/coffeeSchema';
 
 export type ListCoffeesParams = {
   page: number;
@@ -23,4 +24,22 @@ export function listCoffees(params: ListCoffeesParams): Promise<PageResponse<Cof
   });
 
   return apiFetch<PageResponse<Coffee>>(`/api/coffees?${query.toString()}`);
+}
+
+export function createCoffee(body: CoffeeFormValues): Promise<Coffee> {
+  return apiFetch<Coffee>('/api/coffees', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export function updateCoffee(id: number, body: CoffeeFormValues): Promise<Coffee> {
+  return apiFetch<Coffee>(`/api/coffees/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(body),
+  });
+}
+
+export function deleteCoffee(id: number): Promise<void> {
+  return apiFetch<void>(`/api/coffees/${id}`, { method: 'DELETE' });
 }
