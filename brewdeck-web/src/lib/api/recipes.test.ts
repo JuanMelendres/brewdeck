@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { listRecipes } from './recipes';
+import { getRecipe, getRecipeStats, listRecipes } from './recipes';
 
 function stubFetch() {
   const fetchMock = vi.fn().mockResolvedValue({
@@ -12,6 +12,29 @@ function stubFetch() {
 }
 
 afterEach(() => vi.unstubAllGlobals());
+
+describe('getRecipe', () => {
+  it('requests the recipe by id', async () => {
+    const fetchMock = stubFetch();
+
+    await getRecipe(7);
+
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('/api/recipes/7');
+    expect(url).not.toContain('/stats');
+  });
+});
+
+describe('getRecipeStats', () => {
+  it('requests the recipe stats by id', async () => {
+    const fetchMock = stubFetch();
+
+    await getRecipeStats(7);
+
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('/api/recipes/7/stats');
+  });
+});
 
 describe('listRecipes', () => {
   it('includes page/size/default sort and omits a blank name and unset favorite', async () => {
