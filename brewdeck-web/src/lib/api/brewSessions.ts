@@ -1,5 +1,6 @@
 import { apiFetch } from './client';
 import type { BrewSession, BrewSessionFilters, PageResponse } from './types';
+import type { BrewSessionFormValues } from '@/lib/validation/brewSessionSchema';
 
 export type ListBrewSessionsParams = {
   page: number;
@@ -22,4 +23,11 @@ export function listBrewSessions(
   }
 
   return apiFetch<PageResponse<BrewSession>>(`/api/brew-sessions?${query.toString()}`);
+}
+
+export function createBrewSession(body: BrewSessionFormValues): Promise<BrewSession> {
+  return apiFetch<BrewSession>('/api/brew-sessions', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
 }
