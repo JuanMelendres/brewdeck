@@ -6,7 +6,7 @@
 
 ## Current Phase
 
-Phase 4 (Next.js frontend) complete. Backend Phases 1-3 complete. All planned screens shipped: Dashboard, Coffee CRUD (PR #32), Recipe CRUD, Recipe detail + stats + brew history, Brew sessions list + create, Brew methods list, Favorite recipes (PR #35). Next: merge PR #35, then start Phase 5 (product improvements / analytics).
+Phase 5 (product improvements / analytics) in progress. Phases 1-4 complete. First analytics slice shipped end-to-end: top-rated recipes endpoint (GET /api/recipes/top-rated, PR #38) and the dashboard "Top Rated Recipes" widget (PR #39). Next: most-brewed recipes endpoint.
 
 ## Completed
 
@@ -43,12 +43,14 @@ Phase 4 (Next.js frontend) complete. Backend Phases 1-3 complete. All planned sc
 - Recipe detail page consuming recipe + stats + brew history — PR #35
 - Brew sessions list UI (view/table/filters) and create dialog (form + mutation)
 - brew-methods and coffee/method/recipe options frontend modules
+- Top-rated recipes analytics endpoint (GET /api/recipes/top-rated, PR #38)
+- Dashboard "Top Rated Recipes" widget (PR #39)
 
 ## Recently Worked On
 
+- Top-rated recipes analytics slice: backend ranking endpoint + dashboard widget (PRs #38, #39)
 - Dedicated Favorite recipes screen (/recipes/favorites) + Favorites nav entry
 - Read-only Brew methods list page (/brew-methods) + nav entry
-- Brew session history on recipe detail page (GET /api/brew-sessions/recipe/{id})
 
 ## Known Rules
 
@@ -60,6 +62,6 @@ Phase 4 (Next.js frontend) complete. Backend Phases 1-3 complete. All planned sc
 
 ## Immediate Next Steps
 
-1. Merge PR #35 into develop (Phase 4 complete).
-2. Start Phase 5 (product improvements). Candidate first slice: brew session analytics — average rating over time per recipe, favorite coffee/recipe stats. Backend read-only aggregate endpoint(s) + frontend charts.
-3. Review JaCoCo and SonarCloud; address any coffee/recipe CRUD parity gaps.
+1. Most-brewed recipes endpoint (GET /api/recipes/most-brewed?limit=5) — recipes ranked by brew-session count; mirrors the top-rated pattern (projection + grouped aggregate + clamp 1-20). Then a matching dashboard "Most Brewed" widget.
+2. Further Phase 5 analytics: favorite coffee/recipe stats, method-usage breakdown, rating-trend-over-time chart (needs a charting lib).
+3. Review JaCoCo and SonarCloud.
