@@ -1,9 +1,12 @@
 package com.brewdeck.brewdeck_api.coffee;
 
 import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
+import com.brewdeck.brewdeck_api.recipe.RecipeRepository;
 import jakarta.persistence.EntityNotFoundException;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -12,7 +15,22 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class CoffeeService {
 
+  private static final int MIN_LIMIT = 1;
+  private static final int MAX_LIMIT = 20;
+
   private final CoffeeRepository coffeeRepository;
+  private final RecipeRepository recipeRepository;
+
+  public List<MostUsedCoffeeResponse> getMostUsed(int limit) {
+    int safeLimit = Math.min(Math.max(limit, MIN_LIMIT), MAX_LIMIT);
+
+    return recipeRepository.findMostUsedCoffees(PageRequest.of(0, safeLimit)).stream()
+        .map(
+            row ->
+                new MostUsedCoffeeResponse(
+                    row.getCoffeeId(), row.getCoffeeName(), row.getRecipeCount()))
+        .toList();
+  }
 
   public PageResponse<CoffeeResponse> search(CoffeeFilter filter, Pageable pageable) {
     return PageResponse.fromPage(

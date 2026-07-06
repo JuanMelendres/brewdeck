@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -26,6 +27,17 @@ public class CoffeeController {
       @ModelAttribute CoffeeFilter filter,
       @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
     return ResponseEntity.ok(coffeeService.search(filter, pageable));
+  }
+
+  @GetMapping("/most-used")
+  @Operation(
+      summary = "List most-used coffees",
+      description =
+          "Returns coffees ranked by the number of recipes using them, most-used first."
+              + " Limit defaults to 5 and is capped at 20.")
+  public ResponseEntity<List<MostUsedCoffeeResponse>> getMostUsed(
+      @RequestParam(defaultValue = "5") int limit) {
+    return ResponseEntity.ok(coffeeService.getMostUsed(limit));
   }
 
   @GetMapping("/{id}")
