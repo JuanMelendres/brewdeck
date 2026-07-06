@@ -41,6 +41,34 @@ class CoffeeControllerTest {
   @MockitoBean private CoffeeService coffeeService;
 
   @Test
+  void getMostUsed_shouldReturnRankedCoffees() throws Exception {
+    when(coffeeService.getMostUsed(5))
+        .thenReturn(
+            List.of(
+                new MostUsedCoffeeResponse(2L, "Popular", 7L),
+                new MostUsedCoffeeResponse(1L, "Rare", 1L)));
+
+    mockMvc
+        .perform(get("/api/coffees/most-used"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(2)))
+        .andExpect(jsonPath("$[0].coffeeId").value(2L))
+        .andExpect(jsonPath("$[0].coffeeName").value("Popular"))
+        .andExpect(jsonPath("$[0].recipeCount").value(7));
+
+    verify(coffeeService).getMostUsed(5);
+  }
+
+  @Test
+  void getMostUsed_shouldForwardLimitParam() throws Exception {
+    when(coffeeService.getMostUsed(3)).thenReturn(List.of());
+
+    mockMvc.perform(get("/api/coffees/most-used").param("limit", "3")).andExpect(status().isOk());
+
+    verify(coffeeService).getMostUsed(3);
+  }
+
+  @Test
   void findAll_shouldReturnCoffees() throws Exception {
     CoffeeResponse response =
         new CoffeeResponse(
