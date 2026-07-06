@@ -10,6 +10,7 @@ export const keys = {
   coffees: {
     list: (params: ListCoffeesParams) => ['coffees', 'list', params] as const,
     mostUsed: (limit: number) => ['coffees', 'most-used', limit] as const,
+    detail: (id: number) => ['coffees', 'detail', id] as const,
   },
   recipes: {
     list: (params: ListRecipesParams) => ['recipes', 'list', params] as const,

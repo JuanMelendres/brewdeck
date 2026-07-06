@@ -8,8 +8,10 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import IconButton from '@mui/material/IconButton';
+import Link from '@mui/material/Link';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import NextLink from 'next/link';
 import type { Coffee } from '@/lib/api/types';
 
 function orDash(value: string | null): string {
@@ -41,7 +43,11 @@ export function CoffeesTable({
         <TableBody>
           {coffees.map((coffee) => (
             <TableRow key={coffee.id}>
-              <TableCell>{coffee.name}</TableCell>
+              <TableCell>
+                <Link component={NextLink} href={`/coffees/${coffee.id}`}>
+                  {coffee.name}
+                </Link>
+              </TableCell>
               <TableCell>{orDash(coffee.brand)}</TableCell>
               <TableCell>{orDash(coffee.origin)}</TableCell>
               <TableCell>{orDash(coffee.roastLevel)}</TableCell>
