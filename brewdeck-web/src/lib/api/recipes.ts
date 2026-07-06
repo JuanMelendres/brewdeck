@@ -27,6 +27,19 @@ export function listRecipes(params: ListRecipesParams): Promise<PageResponse<Rec
   return apiFetch<PageResponse<Recipe>>(`/api/recipes?${query.toString()}`);
 }
 
+export type ListFavoriteRecipesParams = { page: number; size: number; sort?: string };
+
+export function listFavoriteRecipes(
+  params: ListFavoriteRecipesParams,
+): Promise<PageResponse<Recipe>> {
+  const query = new URLSearchParams();
+  query.set('page', String(params.page));
+  query.set('size', String(params.size));
+  query.set('sort', params.sort ?? 'id,asc');
+
+  return apiFetch<PageResponse<Recipe>>(`/api/recipes/favorites?${query.toString()}`);
+}
+
 export function getRecipe(id: number): Promise<Recipe> {
   return apiFetch<Recipe>(`/api/recipes/${id}`);
 }

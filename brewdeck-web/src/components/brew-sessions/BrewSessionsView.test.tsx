@@ -5,6 +5,11 @@ import { BrewSessionsView } from './BrewSessionsView';
 import * as sessionsHook from '@/hooks/useBrewSessions';
 import type { BrewSession, PageResponse } from '@/lib/api/types';
 
+vi.mock('./BrewSessionFormDialog', () => ({
+  BrewSessionFormDialog: ({ open }: { open: boolean }) =>
+    open ? <div>Add brew session</div> : null,
+}));
+
 type HookReturn = ReturnType<typeof sessionsHook.useBrewSessions>;
 
 function mockHook(value: Partial<HookReturn>) {
@@ -46,6 +51,15 @@ describe('BrewSessionsView', () => {
     mockHook({ isLoading: false, isError: false, data: page([session], 1) });
     renderWithTheme(<BrewSessionsView />);
     expect(screen.getByText('Mezcla AeroPress')).toBeInTheDocument();
+  });
+
+  it('opens the create dialog when Add Brew Session is clicked', () => {
+    mockHook({ isLoading: false, isError: false, data: page([session], 1) });
+    renderWithTheme(<BrewSessionsView />);
+
+    expect(screen.queryByText('Add brew session')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /add brew session/i }));
+    expect(screen.getByText('Add brew session')).toBeInTheDocument();
   });
 
   it('resets to page 0 when the filter changes', () => {

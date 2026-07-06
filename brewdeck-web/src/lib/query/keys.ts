@@ -1,6 +1,7 @@
+import type { ListBrewMethodsParams } from '@/lib/api/brewMethods';
 import type { ListBrewSessionsParams } from '@/lib/api/brewSessions';
 import type { ListCoffeesParams } from '@/lib/api/coffees';
-import type { ListRecipesParams } from '@/lib/api/recipes';
+import type { ListFavoriteRecipesParams, ListRecipesParams } from '@/lib/api/recipes';
 
 export const keys = {
   dashboard: {
@@ -11,10 +12,15 @@ export const keys = {
   },
   recipes: {
     list: (params: ListRecipesParams) => ['recipes', 'list', params] as const,
+    favorites: (params: ListFavoriteRecipesParams) => ['recipes', 'favorites', params] as const,
     detail: (id: number) => ['recipes', 'detail', id] as const,
     stats: (id: number) => ['recipes', 'stats', id] as const,
   },
+  brewMethods: {
+    list: (params: ListBrewMethodsParams) => ['brew-methods', 'list', params] as const,
+  },
   brewSessions: {
     list: (params: ListBrewSessionsParams) => ['brew-sessions', 'list', params] as const,
+    byRecipe: (recipeId: number) => ['brew-sessions', 'by-recipe', recipeId] as const,
   },
 } as const;
