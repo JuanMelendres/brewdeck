@@ -8,6 +8,7 @@ import { ErrorState } from '@/components/ui/ErrorState';
 import { StatCard } from './StatCard';
 import { TopRatedRecipes } from './TopRatedRecipes';
 import { MostBrewedRecipes } from './MostBrewedRecipes';
+import { MethodUsage } from './MethodUsage';
 
 export function DashboardView() {
   const { data, isLoading, isError, refetch } = useDashboardSummary();
@@ -51,6 +52,9 @@ export function DashboardView() {
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           <MostBrewedRecipes />
+        </Grid>
+        <Grid size={{ xs: 12 }}>
+          <MethodUsage />
         </Grid>
       </Grid>
     </>

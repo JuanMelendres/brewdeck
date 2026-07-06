@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { listBrewMethods } from './brewMethods';
+import { listBrewMethods, listMethodUsage } from './brewMethods';
 
 function stubFetch() {
   const fetchMock = vi.fn().mockResolvedValue({
@@ -21,5 +21,13 @@ describe('listBrewMethods', () => {
     expect(url).toContain('/api/brew-methods?');
     expect(url).toContain('page=0');
     expect(url).toContain('size=100');
+  });
+});
+
+describe('listMethodUsage', () => {
+  it('requests /api/brew-methods/usage', async () => {
+    const fetchMock = stubFetch();
+    await listMethodUsage();
+    expect(String(fetchMock.mock.calls[0][0])).toContain('/api/brew-methods/usage');
   });
 });
