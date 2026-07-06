@@ -73,9 +73,9 @@ Screens:
 Status: In Progress
 
 - Top-rated recipes (endpoint + dashboard widget) — Done (PRs #38, #39)
-- Most-brewed recipes (endpoint + widget) — Next
-- Favorite coffee/recipe stats — Not Started
-- Brew method usage breakdown — Not Started
+- Most-brewed recipes (endpoint + widget) — Done (PRs #40, #41)
+- Brew method usage breakdown (endpoint + widget) — Done (PRs #43, #44)
+- Favorite coffee/recipe stats — Next
 - Rating trend over time (chart) — Not Started
 - Recommended grind adjustments — Not Started
 - Coffee tasting notes visualization — Not Started
