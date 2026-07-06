@@ -1,5 +1,5 @@
 import { apiFetch } from './client';
-import type { PageResponse, Recipe, RecipeFilters, RecipeStats } from './types';
+import type { PageResponse, Recipe, RecipeFilters, RecipeStats, TopRatedRecipe } from './types';
 import type { RecipeFormValues } from '@/lib/validation/recipeSchema';
 
 export type ListRecipesParams = {
@@ -38,6 +38,13 @@ export function listFavoriteRecipes(
   query.set('sort', params.sort ?? 'id,asc');
 
   return apiFetch<PageResponse<Recipe>>(`/api/recipes/favorites?${query.toString()}`);
+}
+
+export function listTopRatedRecipes(limit = 5): Promise<TopRatedRecipe[]> {
+  const query = new URLSearchParams();
+  query.set('limit', String(limit));
+
+  return apiFetch<TopRatedRecipe[]>(`/api/recipes/top-rated?${query.toString()}`);
 }
 
 export function getRecipe(id: number): Promise<Recipe> {

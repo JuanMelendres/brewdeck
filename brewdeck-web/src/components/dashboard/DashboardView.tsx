@@ -1,11 +1,13 @@
 'use client';
 
+import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import { useDashboardSummary } from '@/hooks/useDashboardSummary';
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { StatCard } from './StatCard';
+import { TopRatedRecipes } from './TopRatedRecipes';
 
 export function DashboardView() {
   const { data, isLoading, isError, refetch } = useDashboardSummary();
@@ -42,6 +44,10 @@ export function DashboardView() {
           </Grid>
         ))}
       </Grid>
+
+      <Box sx={{ mt: 3 }}>
+        <TopRatedRecipes />
+      </Box>
     </>
   );
 }

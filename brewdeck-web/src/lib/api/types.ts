@@ -87,6 +87,13 @@ export type RecipeStats = {
   lastBrewedAt: string | null;
 };
 
+export type TopRatedRecipe = {
+  recipeId: number;
+  recipeName: string;
+  averageRating: number | null;
+  totalSessions: number;
+};
+
 export type BrewSession = {
   id: number;
   recipeId: number;

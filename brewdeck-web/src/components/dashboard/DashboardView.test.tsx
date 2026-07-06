@@ -4,6 +4,10 @@ import { renderWithTheme } from '@/test/renderWithTheme';
 import { DashboardView } from './DashboardView';
 import * as hook from '@/hooks/useDashboardSummary';
 
+vi.mock('./TopRatedRecipes', () => ({
+  TopRatedRecipes: () => <div>Top Rated Recipes</div>,
+}));
+
 type HookReturn = ReturnType<typeof hook.useDashboardSummary>;
 
 function mockHook(value: Partial<HookReturn>) {
