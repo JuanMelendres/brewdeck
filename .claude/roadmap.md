@@ -70,13 +70,15 @@ Screens:
 
 ## Phase 5 — Product Improvements
 
-Potential features:
+Status: In Progress
 
-- Brew session analytics
-- Average rating by recipe
-- Favorite coffee/recipe stats
-- Recommended grind adjustments
-- Coffee tasting notes visualization
-- AI-assisted recipe suggestions
-- Export recipes to PDF
-- Public share links
+- Top-rated recipes (endpoint + dashboard widget) — Done (PRs #38, #39)
+- Most-brewed recipes (endpoint + widget) — Next
+- Favorite coffee/recipe stats — Not Started
+- Brew method usage breakdown — Not Started
+- Rating trend over time (chart) — Not Started
+- Recommended grind adjustments — Not Started
+- Coffee tasting notes visualization — Not Started
+- AI-assisted recipe suggestions — Not Started
+- Export recipes to PDF — Not Started
+- Public share links — Not Started

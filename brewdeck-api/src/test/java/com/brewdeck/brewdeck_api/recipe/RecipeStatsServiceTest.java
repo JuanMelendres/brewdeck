@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.brewdeck.brewdeck_api.session.BrewSessionRepository;
+import com.brewdeck.brewdeck_api.session.MostBrewedRecipe;
 import com.brewdeck.brewdeck_api.session.RecipeSessionStats;
 import com.brewdeck.brewdeck_api.session.TopRatedRecipe;
 import jakarta.persistence.EntityNotFoundException;
@@ -97,6 +98,52 @@ class RecipeStatsServiceTest {
     assertThat(captor.getAllValues().get(0).getPageSize()).isEqualTo(1);
     assertThat(captor.getAllValues().get(1).getPageSize()).isEqualTo(20);
     assertThat(captor.getAllValues().get(0)).isEqualTo(PageRequest.of(0, 1));
+  }
+
+  @Test
+  void getMostBrewed_shouldMapRowsPreservingOrder() {
+    when(brewSessionRepository.findMostBrewed(any(Pageable.class)))
+        .thenReturn(List.of(mostBrewed(2L, "Busy", 9L), mostBrewed(1L, "Quiet", 3L)));
+
+    List<MostBrewedRecipeResponse> response = recipeStatsService.getMostBrewed(5);
+
+    assertThat(response).hasSize(2);
+    assertThat(response.get(0).recipeId()).isEqualTo(2L);
+    assertThat(response.get(0).recipeName()).isEqualTo("Busy");
+    assertThat(response.get(0).totalSessions()).isEqualTo(9L);
+    assertThat(response.get(1).recipeId()).isEqualTo(1L);
+  }
+
+  @Test
+  void getMostBrewed_shouldClampLimitToRange() {
+    when(brewSessionRepository.findMostBrewed(any(Pageable.class))).thenReturn(List.of());
+    ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+
+    recipeStatsService.getMostBrewed(0);
+    recipeStatsService.getMostBrewed(999);
+
+    verify(brewSessionRepository, org.mockito.Mockito.times(2)).findMostBrewed(captor.capture());
+    assertThat(captor.getAllValues().get(0)).isEqualTo(PageRequest.of(0, 1));
+    assertThat(captor.getAllValues().get(1).getPageSize()).isEqualTo(20);
+  }
+
+  private MostBrewedRecipe mostBrewed(Long id, String name, long total) {
+    return new MostBrewedRecipe() {
+      @Override
+      public Long getRecipeId() {
+        return id;
+      }
+
+      @Override
+      public String getRecipeName() {
+        return name;
+      }
+
+      @Override
+      public long getTotalSessions() {
+        return total;
+      }
+    };
   }
 
   private TopRatedRecipe topRated(Long id, String name, Double avg, long total) {

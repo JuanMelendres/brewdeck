@@ -51,4 +51,15 @@ public interface BrewSessionRepository
       order by avg(s.rating) desc
       """)
   List<TopRatedRecipe> findTopRated(Pageable pageable);
+
+  @Query(
+      """
+      select s.recipe.id as recipeId,
+             s.recipe.name as recipeName,
+             count(s) as totalSessions
+      from BrewSession s
+      group by s.recipe.id, s.recipe.name
+      order by count(s) desc
+      """)
+  List<MostBrewedRecipe> findMostBrewed(Pageable pageable);
 }
