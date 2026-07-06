@@ -6,7 +6,7 @@
 
 ## Current Phase
 
-Phase 5 (product improvements / analytics) in progress. Phases 1-4 complete. First analytics slice shipped end-to-end: top-rated recipes endpoint (GET /api/recipes/top-rated, PR #38) and the dashboard "Top Rated Recipes" widget (PR #39). Next: most-brewed recipes endpoint.
+Phase 5 (product improvements / analytics) in progress. Phases 1-4 complete. Three analytics slices shipped end-to-end (endpoint + dashboard widget each): top-rated recipes (PRs #38/#39), most-brewed recipes (PRs #40/#41), and brew-method usage (PRs #43/#44). Dashboard shows Top Rated, Most Brewed, and Method Usage widgets. Next: pick the next Phase 5 slice (favorite coffee stats, or rating-trend chart).
 
 ## Completed
 
@@ -43,14 +43,15 @@ Phase 5 (product improvements / analytics) in progress. Phases 1-4 complete. Fir
 - Recipe detail page consuming recipe + stats + brew history — PR #35
 - Brew sessions list UI (view/table/filters) and create dialog (form + mutation)
 - brew-methods and coffee/method/recipe options frontend modules
-- Top-rated recipes analytics endpoint (GET /api/recipes/top-rated, PR #38)
-- Dashboard "Top Rated Recipes" widget (PR #39)
+- Top-rated recipes endpoint + widget (PRs #38, #39)
+- Most-brewed recipes endpoint (GET /api/recipes/most-brewed) + widget (PRs #40, #41)
+- Brew-method usage endpoint (GET /api/brew-methods/usage) + widget (PRs #43, #44)
 
 ## Recently Worked On
 
-- Top-rated recipes analytics slice: backend ranking endpoint + dashboard widget (PRs #38, #39)
-- Dedicated Favorite recipes screen (/recipes/favorites) + Favorites nav entry
-- Read-only Brew methods list page (/brew-methods) + nav entry
+- Brew-method usage analytics slice: endpoint + dashboard widget (PRs #43, #44)
+- Most-brewed recipes analytics slice: endpoint + dashboard widget (PRs #40, #41)
+- Top-rated recipes analytics slice: endpoint + dashboard widget (PRs #38, #39)
 
 ## Known Rules
 
@@ -62,6 +63,7 @@ Phase 5 (product improvements / analytics) in progress. Phases 1-4 complete. Fir
 
 ## Immediate Next Steps
 
-1. Most-brewed recipes endpoint (GET /api/recipes/most-brewed?limit=5) — recipes ranked by brew-session count; mirrors the top-rated pattern (projection + grouped aggregate + clamp 1-20). Then a matching dashboard "Most Brewed" widget.
-2. Further Phase 5 analytics: favorite coffee/recipe stats, method-usage breakdown, rating-trend-over-time chart (needs a charting lib).
+1. Favorite coffee stats — most-used coffees across recipes/sessions (read-only aggregate endpoint, mirrors the analytics pattern) + a dashboard widget.
+2. Rating-trend-over-time chart (needs a charting lib, e.g. recharts) — larger slice.
+3. Recommended grind adjustments; other Phase 5 features.
 3. Review JaCoCo and SonarCloud.
