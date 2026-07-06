@@ -31,3 +31,19 @@ export function createBrewSession(body: BrewSessionFormValues): Promise<BrewSess
     body: JSON.stringify(body),
   });
 }
+
+export type ListByRecipeParams = { page: number; size: number; sort?: string };
+
+export function listBrewSessionsByRecipe(
+  recipeId: number,
+  params: ListByRecipeParams,
+): Promise<PageResponse<BrewSession>> {
+  const query = new URLSearchParams();
+  query.set('page', String(params.page));
+  query.set('size', String(params.size));
+  query.set('sort', params.sort ?? 'brewedAt,desc');
+
+  return apiFetch<PageResponse<BrewSession>>(
+    `/api/brew-sessions/recipe/${recipeId}?${query.toString()}`,
+  );
+}

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createBrewSession, listBrewSessions } from './brewSessions';
+import { createBrewSession, listBrewSessions, listBrewSessionsByRecipe } from './brewSessions';
 
 function stubFetch() {
   const fetchMock = vi.fn().mockResolvedValue({
@@ -49,5 +49,19 @@ describe('createBrewSession', () => {
     expect(url).toContain('/api/brew-sessions');
     expect(init.method).toBe('POST');
     expect(String(init.body)).toContain('"recipeId":1');
+  });
+});
+
+describe('listBrewSessionsByRecipe', () => {
+  it('requests the recipe sessions with a brewedAt,desc default sort', async () => {
+    const fetchMock = stubFetch();
+
+    await listBrewSessionsByRecipe(7, { page: 0, size: 50 });
+
+    const url = String(fetchMock.mock.calls[0][0]);
+    expect(url).toContain('/api/brew-sessions/recipe/7?');
+    expect(url).toContain('page=0');
+    expect(url).toContain('size=50');
+    expect(url).toContain('sort=brewedAt%2Cdesc');
   });
 });

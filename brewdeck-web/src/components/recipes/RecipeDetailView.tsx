@@ -8,9 +8,12 @@ import Typography from '@mui/material/Typography';
 import NextLink from 'next/link';
 import type { ReactNode } from 'react';
 import { useRecipe, useRecipeStats } from '@/hooks/useRecipe';
+import { useRecipeBrewSessions } from '@/hooks/useRecipeBrewSessions';
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorState } from '@/components/ui/ErrorState';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { StatCard } from '@/components/dashboard/StatCard';
+import { BrewSessionsTable } from '@/components/brew-sessions/BrewSessionsTable';
 
 function orDash(value: string | number | null): string {
   if (value === null) {
@@ -31,6 +34,7 @@ function formatDate(value: string | null): string {
 export function RecipeDetailView({ recipeId }: { recipeId: number }) {
   const recipeQuery = useRecipe(recipeId);
   const statsQuery = useRecipeStats(recipeId);
+  const historyQuery = useRecipeBrewSessions(recipeId);
 
   if (recipeQuery.isLoading && !recipeQuery.data) {
     return <Spinner />;
@@ -84,6 +88,19 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
     );
   }
 
+  let historyBody: ReactNode;
+  if (historyQuery.isLoading && !historyQuery.data) {
+    historyBody = <Spinner />;
+  } else if (historyQuery.isError || !historyQuery.data) {
+    historyBody = (
+      <ErrorState message="Could not load brew history." onRetry={() => historyQuery.refetch()} />
+    );
+  } else if (historyQuery.data.content.length === 0) {
+    historyBody = <EmptyState message="No brew sessions yet for this recipe." />;
+  } else {
+    historyBody = <BrewSessionsTable sessions={historyQuery.data.content} />;
+  }
+
   return (
     <>
       <Button component={NextLink} href="/recipes" size="small" sx={{ mb: 1 }}>
@@ -131,6 +148,11 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
         Brew statistics
       </Typography>
       {statsBody}
+
+      <Typography variant="h6" component="h2" gutterBottom sx={{ mt: 3 }}>
+        Brew history
+      </Typography>
+      {historyBody}
     </>
   );
 }
