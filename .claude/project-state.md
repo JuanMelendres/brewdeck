@@ -6,7 +6,7 @@
 
 ## Current Phase
 
-Phase 4 (Next.js frontend) in progress. Backend Phases 1-3 complete. Dashboard, Coffee CRUD (PR #32), Recipe CRUD, Recipe detail + stats + brew history, Brew session create, and Brew methods list all done (PR #35). Next: dedicated Favorite recipes screen.
+Phase 4 (Next.js frontend) complete. Backend Phases 1-3 complete. All planned screens shipped: Dashboard, Coffee CRUD (PR #32), Recipe CRUD, Recipe detail + stats + brew history, Brew sessions list + create, Brew methods list, Favorite recipes (PR #35). Next: merge PR #35, then start Phase 5 (product improvements / analytics).
 
 ## Completed
 
@@ -46,9 +46,9 @@ Phase 4 (Next.js frontend) in progress. Backend Phases 1-3 complete. Dashboard, 
 
 ## Recently Worked On
 
+- Dedicated Favorite recipes screen (/recipes/favorites) + Favorites nav entry
 - Read-only Brew methods list page (/brew-methods) + nav entry
 - Brew session history on recipe detail page (GET /api/brew-sessions/recipe/{id})
-- Brew session create dialog (POST /api/brew-sessions; invalidates sessions, recipes, dashboard)
 
 ## Known Rules
 
@@ -60,7 +60,6 @@ Phase 4 (Next.js frontend) in progress. Backend Phases 1-3 complete. Dashboard, 
 
 ## Immediate Next Steps
 
-1. Merge PR #35 into develop.
-2. Next task: dedicated Favorite recipes screen. Add a /recipes/favorites route + view backed by GET /api/recipes/favorites (returns PageResponse<Recipe>). Reuse RecipesTable and pagination; recipe names already link to detail. Add a "Favorites" nav entry. Add a listFavoriteRecipes API + useFavoriteRecipes hook.
-3. Review JaCoCo and SonarCloud.
-4. Consider recipe/coffee CRUD parity gaps and Phase 5 analytics.
+1. Merge PR #35 into develop (Phase 4 complete).
+2. Start Phase 5 (product improvements). Candidate first slice: brew session analytics — average rating over time per recipe, favorite coffee/recipe stats. Backend read-only aggregate endpoint(s) + frontend charts.
+3. Review JaCoCo and SonarCloud; address any coffee/recipe CRUD parity gaps.

@@ -43,7 +43,7 @@ Status: Completed
 
 ## Phase 4 — Frontend
 
-Status: In Progress
+Status: Completed
 
 Stack (in use):
 
@@ -66,7 +66,7 @@ Screens:
 - Brew sessions create — Done
 - Brew session history by recipe — Done
 - Brew methods list — Done
-- Favorite recipes (dedicated screen) — Next
+- Favorite recipes (dedicated screen) — Done
 
 ## Phase 5 — Product Improvements
 
