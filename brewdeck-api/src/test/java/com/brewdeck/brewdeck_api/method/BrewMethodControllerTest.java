@@ -38,6 +38,26 @@ class BrewMethodControllerTest {
   @MockitoBean private BrewMethodService brewMethodService;
 
   @Test
+  void getUsage_shouldReturnUsageBreakdown() throws Exception {
+    when(brewMethodService.getUsage())
+        .thenReturn(
+            List.of(
+                new MethodUsageResponse(1L, "AeroPress", 5L),
+                new MethodUsageResponse(2L, "V60", 0L)));
+
+    mockMvc
+        .perform(get("/api/brew-methods/usage"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(2)))
+        .andExpect(jsonPath("$[0].methodId").value(1L))
+        .andExpect(jsonPath("$[0].methodName").value("AeroPress"))
+        .andExpect(jsonPath("$[0].recipeCount").value(5))
+        .andExpect(jsonPath("$[1].recipeCount").value(0));
+
+    verify(brewMethodService).getUsage();
+  }
+
+  @Test
   void findAll_shouldReturnBrewMethods() throws Exception {
     BrewMethodResponse response =
         new BrewMethodResponse(
