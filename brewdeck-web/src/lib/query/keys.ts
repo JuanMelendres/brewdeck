@@ -20,6 +20,7 @@ export const keys = {
   },
   brewMethods: {
     list: (params: ListBrewMethodsParams) => ['brew-methods', 'list', params] as const,
+    usage: ['brew-methods', 'usage'],
   },
   brewSessions: {
     list: (params: ListBrewSessionsParams) => ['brew-sessions', 'list', params] as const,

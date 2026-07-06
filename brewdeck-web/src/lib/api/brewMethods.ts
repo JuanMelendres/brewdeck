@@ -17,3 +17,13 @@ export function listBrewMethods(params: ListBrewMethodsParams): Promise<PageResp
   query.set('size', String(params.size));
   return apiFetch<PageResponse<BrewMethod>>(`/api/brew-methods?${query.toString()}`);
 }
+
+export type MethodUsage = {
+  methodId: number;
+  methodName: string;
+  recipeCount: number;
+};
+
+export function listMethodUsage(): Promise<MethodUsage[]> {
+  return apiFetch<MethodUsage[]>('/api/brew-methods/usage');
+}
