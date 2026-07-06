@@ -202,6 +202,45 @@
           ]
         },
         {
+          "name": "GET - Most-used coffees",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/coffees/most-used?limit=5",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "coffees",
+                "most-used"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5",
+                  "description": "Max rows (1-20, default 5)"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Response is an array', function () {",
+                  "  pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "POST - Create coffee",
           "request": {
             "method": "POST",
@@ -418,6 +457,38 @@
                 "exec": [
                   "pm.test('Status code is 200, 404', function () {",
                   "  pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET - Method usage",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/brew-methods/usage",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "brew-methods",
+                "usage"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Response is an array', function () {",
+                  "  pm.expect(pm.response.json()).to.be.an('array');",
                   "});"
                 ]
               }
@@ -890,6 +961,121 @@
                   "  pm.expect(json).to.have.property('totalPages');",
                   "  pm.expect(json).to.have.property('first');",
                   "  pm.expect(json).to.have.property('last');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET - Recipe stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/recipes/{{recipeId}}/stats",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "recipes",
+                "{{recipeId}}",
+                "stats"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Has recipe stats fields', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('recipeId');",
+                  "  pm.expect(json).to.have.property('totalSessions');",
+                  "  pm.expect(json).to.have.property('averageRating');",
+                  "  pm.expect(json).to.have.property('lastBrewedAt');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET - Top-rated recipes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/recipes/top-rated?limit=5",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "recipes",
+                "top-rated"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5",
+                  "description": "Max rows (1-20, default 5)"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Response is an array', function () {",
+                  "  pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET - Most-brewed recipes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/recipes/most-brewed?limit=5",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "recipes",
+                "most-brewed"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5",
+                  "description": "Max rows (1-20, default 5)"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Response is an array', function () {",
+                  "  pm.expect(pm.response.json()).to.be.an('array');",
                   "});"
                 ]
               }
