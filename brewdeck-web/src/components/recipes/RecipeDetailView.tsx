@@ -15,6 +15,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { BrewSessionsTable } from '@/components/brew-sessions/BrewSessionsTable';
 import { RecipeRatingTrend } from './RecipeRatingTrend';
+import { RecommendedGrind } from './RecommendedGrind';
 
 function orDash(value: string | number | null): string {
   if (value === null) {
@@ -144,6 +145,10 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
           </Typography>
         </Box>
       ) : null}
+
+      <Box sx={{ mb: 3 }}>
+        <RecommendedGrind recipeId={recipeId} />
+      </Box>
 
       <Typography variant="h6" component="h2" gutterBottom>
         Brew statistics
