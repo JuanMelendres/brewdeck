@@ -172,6 +172,30 @@ class RecipeControllerTest {
   }
 
   @Test
+  void getMostBrewed_shouldReturnRankedRecipes() throws Exception {
+    when(recipeStatsService.getMostBrewed(5))
+        .thenReturn(java.util.List.of(new MostBrewedRecipeResponse(2L, "Busy", 9L)));
+
+    mockMvc
+        .perform(get("/api/recipes/most-brewed"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].recipeId").value(2L))
+        .andExpect(jsonPath("$[0].recipeName").value("Busy"))
+        .andExpect(jsonPath("$[0].totalSessions").value(9));
+
+    verify(recipeStatsService).getMostBrewed(5);
+  }
+
+  @Test
+  void getMostBrewed_shouldForwardLimitParam() throws Exception {
+    when(recipeStatsService.getMostBrewed(3)).thenReturn(java.util.List.of());
+
+    mockMvc.perform(get("/api/recipes/most-brewed").param("limit", "3")).andExpect(status().isOk());
+
+    verify(recipeStatsService).getMostBrewed(3);
+  }
+
+  @Test
   void findFavorites_shouldReturnFavoriteRecipes() throws Exception {
     RecipeResponse response = buildRecipeResponse();
 

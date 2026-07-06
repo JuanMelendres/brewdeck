@@ -57,6 +57,17 @@ public class RecipeController {
     return ResponseEntity.ok(recipeStatsService.getTopRated(limit));
   }
 
+  @GetMapping("/most-brewed")
+  @Operation(
+      summary = "List most-brewed recipes",
+      description =
+          "Returns recipes ranked by brew-session count (all sessions), each with its session"
+              + " count. Limit defaults to 5 and is capped at 20.")
+  public ResponseEntity<List<MostBrewedRecipeResponse>> getMostBrewed(
+      @RequestParam(defaultValue = "5") int limit) {
+    return ResponseEntity.ok(recipeStatsService.getMostBrewed(limit));
+  }
+
   @GetMapping("/favorites")
   @Operation(summary = "List favorite recipes")
   public ResponseEntity<PageResponse<RecipeResponse>> findFavorites(

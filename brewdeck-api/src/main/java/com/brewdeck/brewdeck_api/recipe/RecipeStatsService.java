@@ -33,7 +33,7 @@ public class RecipeStatsService {
   }
 
   public List<TopRatedRecipeResponse> getTopRated(int limit) {
-    int safeLimit = Math.min(Math.max(limit, MIN_LIMIT), MAX_LIMIT);
+    int safeLimit = clampLimit(limit);
 
     return brewSessionRepository.findTopRated(PageRequest.of(0, safeLimit)).stream()
         .map(
@@ -44,5 +44,20 @@ public class RecipeStatsService {
                     row.getAverageRating(),
                     row.getTotalSessions()))
         .toList();
+  }
+
+  public List<MostBrewedRecipeResponse> getMostBrewed(int limit) {
+    int safeLimit = clampLimit(limit);
+
+    return brewSessionRepository.findMostBrewed(PageRequest.of(0, safeLimit)).stream()
+        .map(
+            row ->
+                new MostBrewedRecipeResponse(
+                    row.getRecipeId(), row.getRecipeName(), row.getTotalSessions()))
+        .toList();
+  }
+
+  private int clampLimit(int limit) {
+    return Math.min(Math.max(limit, MIN_LIMIT), MAX_LIMIT);
   }
 }
