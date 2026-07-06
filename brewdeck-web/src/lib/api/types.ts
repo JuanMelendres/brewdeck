@@ -94,6 +94,12 @@ export type TopRatedRecipe = {
   totalSessions: number;
 };
 
+export type MostBrewedRecipe = {
+  recipeId: number;
+  recipeName: string;
+  totalSessions: number;
+};
+
 export type BrewSession = {
   id: number;
   recipeId: number;
