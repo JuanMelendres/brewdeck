@@ -6,7 +6,7 @@
 
 ## Current Phase
 
-Phase 5 (product improvements / analytics) in progress. Phases 1-4 complete. Three analytics slices shipped end-to-end (endpoint + dashboard widget each): top-rated recipes (PRs #38/#39), most-brewed recipes (PRs #40/#41), and brew-method usage (PRs #43/#44). Dashboard shows Top Rated, Most Brewed, and Method Usage widgets. Next: pick the next Phase 5 slice (favorite coffee stats, or rating-trend chart).
+Phase 5 (product improvements / analytics) in progress. Phases 1-4 complete. Four analytics slices shipped end-to-end (endpoint + dashboard widget each): top-rated recipes (PRs #38/#39), most-brewed recipes (PRs #40/#41), brew-method usage (PRs #43/#44), and most-used coffees (PRs #46/#47). Dashboard shows Top Rated, Most Brewed, Method Usage, and Most Used Coffees widgets. Next: rating-trend-over-time chart (needs a charting lib), or another Phase 5 feature.
 
 ## Completed
 
