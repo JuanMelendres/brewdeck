@@ -6,7 +6,7 @@
 
 ## Current Phase
 
-Phase 4 (Next.js frontend) in progress. Backend Phases 1-3 complete. Dashboard, Coffee CRUD (PR #32), Recipe CRUD, Recipe detail + stats + brew history, and Brew session create all done (PR #35). Next: brew methods list page.
+Phase 4 (Next.js frontend) in progress. Backend Phases 1-3 complete. Dashboard, Coffee CRUD (PR #32), Recipe CRUD, Recipe detail + stats + brew history, Brew session create, and Brew methods list all done (PR #35). Next: dedicated Favorite recipes screen.
 
 ## Completed
 
@@ -46,9 +46,9 @@ Phase 4 (Next.js frontend) in progress. Backend Phases 1-3 complete. Dashboard, 
 
 ## Recently Worked On
 
+- Read-only Brew methods list page (/brew-methods) + nav entry
 - Brew session history on recipe detail page (GET /api/brew-sessions/recipe/{id})
 - Brew session create dialog (POST /api/brew-sessions; invalidates sessions, recipes, dashboard)
-- Recipe detail page (/recipes/[id]) with brew statistics — PR #35
 
 ## Known Rules
 
@@ -61,6 +61,6 @@ Phase 4 (Next.js frontend) in progress. Backend Phases 1-3 complete. Dashboard, 
 ## Immediate Next Steps
 
 1. Merge PR #35 into develop.
-2. Next task: Brew methods list page. Add a /brew-methods route + view (list/table) using the existing listBrewMethods API and PageResponse pagination; mirror the coffees/recipes list views. Add a "Brew Methods" nav entry in AppShell. CRUD optional/later; start read-only list.
-3. Dedicated Favorite recipes screen (GET /api/recipes/favorites).
-4. Review JaCoCo and SonarCloud.
+2. Next task: dedicated Favorite recipes screen. Add a /recipes/favorites route + view backed by GET /api/recipes/favorites (returns PageResponse<Recipe>). Reuse RecipesTable and pagination; recipe names already link to detail. Add a "Favorites" nav entry. Add a listFavoriteRecipes API + useFavoriteRecipes hook.
+3. Review JaCoCo and SonarCloud.
+4. Consider recipe/coffee CRUD parity gaps and Phase 5 analytics.

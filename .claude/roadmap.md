@@ -65,8 +65,8 @@ Screens:
 - Brew sessions list — Done
 - Brew sessions create — Done
 - Brew session history by recipe — Done
-- Brew methods list — Next
-- Favorite recipes (dedicated screen) — Not Started
+- Brew methods list — Done
+- Favorite recipes (dedicated screen) — Next
 
 ## Phase 5 — Product Improvements
 
