@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { getRecipe, getRecipeStats, listFavoriteRecipes, listRecipes } from './recipes';
+import {
+  getRecipe,
+  getRecipeStats,
+  listFavoriteRecipes,
+  listRecipes,
+  listTopRatedRecipes,
+} from './recipes';
 
 function stubFetch() {
   const fetchMock = vi.fn().mockResolvedValue({
@@ -12,6 +18,26 @@ function stubFetch() {
 }
 
 afterEach(() => vi.unstubAllGlobals());
+
+describe('listTopRatedRecipes', () => {
+  it('requests /api/recipes/top-rated with the limit (default 5)', async () => {
+    const fetchMock = stubFetch();
+
+    await listTopRatedRecipes();
+
+    const url = String(fetchMock.mock.calls[0][0]);
+    expect(url).toContain('/api/recipes/top-rated?');
+    expect(url).toContain('limit=5');
+  });
+
+  it('forwards a custom limit', async () => {
+    const fetchMock = stubFetch();
+
+    await listTopRatedRecipes(10);
+
+    expect(String(fetchMock.mock.calls[0][0])).toContain('limit=10');
+  });
+});
 
 describe('listFavoriteRecipes', () => {
   it('requests /api/recipes/favorites with pagination and a default sort', async () => {
