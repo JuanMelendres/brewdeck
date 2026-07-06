@@ -2,19 +2,25 @@ package com.brewdeck.brewdeck_api.recipe;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.brewdeck.brewdeck_api.session.BrewSessionRepository;
 import com.brewdeck.brewdeck_api.session.RecipeSessionStats;
+import com.brewdeck.brewdeck_api.session.TopRatedRecipe;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class RecipeStatsServiceTest {
@@ -62,6 +68,59 @@ class RecipeStatsServiceTest {
         .hasMessage("Recipe not found");
 
     verify(brewSessionRepository, never()).findStatsByRecipeId(99L);
+  }
+
+  @Test
+  void getTopRated_shouldMapRowsPreservingOrder() {
+    when(brewSessionRepository.findTopRated(any(Pageable.class)))
+        .thenReturn(List.of(topRated(2L, "Best", 9.0, 4L), topRated(1L, "Good", 7.5, 2L)));
+
+    List<TopRatedRecipeResponse> response = recipeStatsService.getTopRated(5);
+
+    assertThat(response).hasSize(2);
+    assertThat(response.get(0).recipeId()).isEqualTo(2L);
+    assertThat(response.get(0).recipeName()).isEqualTo("Best");
+    assertThat(response.get(0).averageRating()).isEqualTo(9.0);
+    assertThat(response.get(0).totalSessions()).isEqualTo(4L);
+    assertThat(response.get(1).recipeId()).isEqualTo(1L);
+  }
+
+  @Test
+  void getTopRated_shouldClampLimitToRange() {
+    when(brewSessionRepository.findTopRated(any(Pageable.class))).thenReturn(List.of());
+    ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+
+    recipeStatsService.getTopRated(0);
+    recipeStatsService.getTopRated(999);
+
+    verify(brewSessionRepository, org.mockito.Mockito.times(2)).findTopRated(captor.capture());
+    assertThat(captor.getAllValues().get(0).getPageSize()).isEqualTo(1);
+    assertThat(captor.getAllValues().get(1).getPageSize()).isEqualTo(20);
+    assertThat(captor.getAllValues().get(0)).isEqualTo(PageRequest.of(0, 1));
+  }
+
+  private TopRatedRecipe topRated(Long id, String name, Double avg, long total) {
+    return new TopRatedRecipe() {
+      @Override
+      public Long getRecipeId() {
+        return id;
+      }
+
+      @Override
+      public String getRecipeName() {
+        return name;
+      }
+
+      @Override
+      public Double getAverageRating() {
+        return avg;
+      }
+
+      @Override
+      public long getTotalSessions() {
+        return total;
+      }
+    };
   }
 
   private RecipeSessionStats stats(long totalSessions, Double averageRating, LocalDateTime last) {

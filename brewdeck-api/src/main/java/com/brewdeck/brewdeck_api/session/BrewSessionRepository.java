@@ -38,4 +38,17 @@ public interface BrewSessionRepository
       where s.recipe.id = :recipeId
       """)
   RecipeSessionStats findStatsByRecipeId(Long recipeId);
+
+  @Query(
+      """
+      select s.recipe.id as recipeId,
+             s.recipe.name as recipeName,
+             avg(s.rating) as averageRating,
+             count(s) as totalSessions
+      from BrewSession s
+      where s.rating is not null
+      group by s.recipe.id, s.recipe.name
+      order by avg(s.rating) desc
+      """)
+  List<TopRatedRecipe> findTopRated(Pageable pageable);
 }
