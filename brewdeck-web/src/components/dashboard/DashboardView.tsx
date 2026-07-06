@@ -9,6 +9,7 @@ import { StatCard } from './StatCard';
 import { TopRatedRecipes } from './TopRatedRecipes';
 import { MostBrewedRecipes } from './MostBrewedRecipes';
 import { MethodUsage } from './MethodUsage';
+import { MostUsedCoffees } from './MostUsedCoffees';
 
 export function DashboardView() {
   const { data, isLoading, isError, refetch } = useDashboardSummary();
@@ -53,8 +54,11 @@ export function DashboardView() {
         <Grid size={{ xs: 12, md: 6 }}>
           <MostBrewedRecipes />
         </Grid>
-        <Grid size={{ xs: 12 }}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <MethodUsage />
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <MostUsedCoffees />
         </Grid>
       </Grid>
     </>

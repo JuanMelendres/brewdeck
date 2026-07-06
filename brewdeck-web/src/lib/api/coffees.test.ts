@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { listCoffees } from './coffees';
+import { listCoffees, listMostUsedCoffees } from './coffees';
 
 function stubFetch() {
   const fetchMock = vi.fn().mockResolvedValue({
@@ -44,5 +44,25 @@ describe('listCoffees', () => {
     expect(url).toContain('origin=Oaxaca');
     expect(url).toContain('roastLevel=Medio');
     expect(url).toContain('process=Lavado');
+  });
+});
+
+describe('listMostUsedCoffees', () => {
+  it('requests /api/coffees/most-used with the limit (default 5)', async () => {
+    const fetchMock = stubFetch();
+
+    await listMostUsedCoffees();
+
+    const url = String(fetchMock.mock.calls[0][0]);
+    expect(url).toContain('/api/coffees/most-used?');
+    expect(url).toContain('limit=5');
+  });
+
+  it('forwards a custom limit', async () => {
+    const fetchMock = stubFetch();
+
+    await listMostUsedCoffees(10);
+
+    expect(String(fetchMock.mock.calls[0][0])).toContain('limit=10');
   });
 });
