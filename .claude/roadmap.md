@@ -63,9 +63,9 @@ Screens:
 - Recipes list/create/edit/delete — Done
 - Recipes detail (+ brew stats) — Done (PR #35)
 - Brew sessions list — Done
-- Brew sessions create — Next
-- Brew session history by recipe — Not Started
-- Brew methods list — Not Started
+- Brew sessions create — Done
+- Brew session history by recipe — Done
+- Brew methods list — Next
 - Favorite recipes (dedicated screen) — Not Started
 
 ## Phase 5 — Product Improvements
