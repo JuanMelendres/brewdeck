@@ -9,10 +9,9 @@ export type BrewMethod = {
   updatedAt: string | null;
 };
 
-export function listBrewMethods(params: {
-  page: number;
-  size: number;
-}): Promise<PageResponse<BrewMethod>> {
+export type ListBrewMethodsParams = { page: number; size: number };
+
+export function listBrewMethods(params: ListBrewMethodsParams): Promise<PageResponse<BrewMethod>> {
   const query = new URLSearchParams();
   query.set('page', String(params.page));
   query.set('size', String(params.size));

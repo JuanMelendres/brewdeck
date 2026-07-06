@@ -43,7 +43,7 @@ Status: Completed
 
 ## Phase 4 — Frontend
 
-Status: In Progress
+Status: Completed
 
 Stack (in use):
 
@@ -58,14 +58,15 @@ Stack (in use):
 
 Screens:
 
+- Dashboard — Done
 - Coffees list/create/edit/delete — Done (PR #32)
-- Recipes list/create/edit/delete — In Progress (feature/recipe-crud)
-- Dashboard — Not Started
-- Brew methods list — Not Started
-- Recipes detail — Not Started
-- Favorite recipes — Not Started
-- Brew sessions list/create — Not Started
-- Brew session history by recipe — Not Started
+- Recipes list/create/edit/delete — Done
+- Recipes detail (+ brew stats) — Done (PR #35)
+- Brew sessions list — Done
+- Brew sessions create — Done
+- Brew session history by recipe — Done
+- Brew methods list — Done
+- Favorite recipes (dedicated screen) — Done
 
 ## Phase 5 — Product Improvements
 
