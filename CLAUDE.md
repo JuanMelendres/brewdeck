@@ -135,8 +135,10 @@ Run before considering a task done.
 ### Frontend (npm, in `brewdeck-web/`)
 - `npm run dev` — local dev server
 - `npm run test` — Vitest suite (`vitest run`)
-- `npm run lint` — ESLint (there is no `type-check` or `lint-fix` script; `next build` type-checks)
-- `npm run build` — production build (also runs TypeScript checks)
+- `npm run type-check` — strict TypeScript (`tsc --noEmit`), no emit
+- `npm run lint` — ESLint (whole project, read-only)
+- `npm run lint:fix` — ESLint autofix. **Scope it to the files you changed** — never fix the whole repo: `npm run lint:fix -- src/path/to/file.tsx`
+- `npm run build` — production build (also type-checks)
 
 ## Git Rules
 
@@ -164,7 +166,8 @@ Never hardcode secrets — use environment variables; commit `.env.example`, not
 4. **Don't ban default exports for Next.js pages.** `page.tsx`/`layout.tsx` require `export default`; use named exports everywhere else.
 5. **Don't assert `$[0]` on paginated bodies.** Use `$.content[0]`.
 6. **Don't put special symbols in validation messages** (`°C` → write `degrees Celsius`).
-7. **Don't hardcode secrets.** Use env vars and `.env.example`.
+7. **Don't run `lint:fix` on the whole repo.** Scope it to changed files (`npm run lint:fix -- <path>`) so it doesn't silently rewrite unrelated files.
+8. **Don't hardcode secrets.** Use env vars and `.env.example`.
 
 ## Important Instruction
 
