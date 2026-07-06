@@ -6,7 +6,7 @@
 
 ## Current Phase
 
-Phase 5 (product improvements / analytics) in progress. Phases 1-4 complete. Four analytics slices shipped end-to-end (endpoint + dashboard widget each): top-rated recipes (PRs #38/#39), most-brewed recipes (PRs #40/#41), brew-method usage (PRs #43/#44), and most-used coffees (PRs #46/#47). Dashboard shows Top Rated, Most Brewed, Method Usage, and Most Used Coffees widgets. Next: rating-trend-over-time chart (needs a charting lib), or another Phase 5 feature.
+Phase 5 (product improvements / analytics) in progress. Phases 1-4 complete. Four analytics slices shipped end-to-end (endpoint + dashboard widget each): top-rated recipes (PRs #38/#39), most-brewed recipes (PRs #40/#41), brew-method usage (PRs #43/#44), most-used coffees (PRs #46/#47). Dashboard shows all four widgets. Recipe detail also has a rating-trend line chart (recharts, PR #50) and a recommended-grind hint (PR #54). CLAUDE.md was reworked full-stack (PR #52) and web scripts added: type-check, lint:fix (PR #53). Next: tasting-notes visualization (needs a coffee detail page), or another Phase 5 feature.
 
 ## Completed
 
@@ -49,9 +49,11 @@ Phase 5 (product improvements / analytics) in progress. Phases 1-4 complete. Fou
 
 ## Recently Worked On
 
+- Recommended-grind hint on recipe detail (best-rated session's grind; no backend) — PR #54
+- Rating-trend line chart on recipe detail (recharts; reuses brew-history data) — PR #50
+- CLAUDE.md reworked full-stack (PR #52); web type-check + lint:fix scripts (PR #53)
+- Most-used coffees analytics slice: endpoint + dashboard widget (PRs #46, #47)
 - Brew-method usage analytics slice: endpoint + dashboard widget (PRs #43, #44)
-- Most-brewed recipes analytics slice: endpoint + dashboard widget (PRs #40, #41)
-- Top-rated recipes analytics slice: endpoint + dashboard widget (PRs #38, #39)
 
 ## Known Rules
 
@@ -63,7 +65,6 @@ Phase 5 (product improvements / analytics) in progress. Phases 1-4 complete. Fou
 
 ## Immediate Next Steps
 
-1. Favorite coffee stats — most-used coffees across recipes/sessions (read-only aggregate endpoint, mirrors the analytics pattern) + a dashboard widget.
-2. Rating-trend-over-time chart (needs a charting lib, e.g. recharts) — larger slice.
-3. Recommended grind adjustments; other Phase 5 features.
+1. Coffee tasting-notes visualization — a radar/spider chart of the coffee's acidity/body/sweetness/bitterness. Likely needs a coffee detail page first (`/coffees/[id]`), since only a coffees list exists today.
+2. Remaining Phase 5 features: AI-assisted recipe suggestions, export recipes to PDF, public share links.
 3. Review JaCoCo and SonarCloud.
