@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -42,6 +43,18 @@ public class RecipeController {
           "Returns total brew sessions, average rating, and last brewed timestamp for a recipe.")
   public ResponseEntity<RecipeStatsResponse> getStats(@PathVariable Long id) {
     return ResponseEntity.ok(recipeStatsService.getStats(id));
+  }
+
+  @GetMapping("/top-rated")
+  @Operation(
+      summary = "List top-rated recipes",
+      description =
+          "Returns recipes ranked by average brew-session rating (rated sessions only), each"
+              + " with its average rating and rated-session count. Limit defaults to 5 and is"
+              + " capped at 20.")
+  public ResponseEntity<List<TopRatedRecipeResponse>> getTopRated(
+      @RequestParam(defaultValue = "5") int limit) {
+    return ResponseEntity.ok(recipeStatsService.getTopRated(limit));
   }
 
   @GetMapping("/favorites")
