@@ -35,3 +35,5 @@
    Do instead: end commit body with the `Co-Authored-By: Claude Opus 4.8 (1M context)` and `Claude-Session:` lines.
 4. **[2026-07-03] Session task flow**
    Do instead: on "next task", consult roadmap order + pick smallest safe change; use task-template (goal/DoD/risks/files/steps/tests/verify/commit). Update `.claude/project-state.md` + `roadmap.md` when a phase/task completes.
+5. **[2026-07-05] Don't keep pushing to a branch that has an open PR the user may merge**
+   Do instead: a PR merges the branch tip AT MERGE TIME, and the user merges between turns — so commits pushed after the PR opens can be orphaned if they merge early (PR #35 merged an early tip; 8 later commits stranded, needed follow-up PR #36). Keep one branch = one PR scope; once a PR is up, branch fresh off `develop` for further work, or confirm before piling more commits on. On "merge PR", first `gh pr view <n> --json state` — it may already be MERGED.
