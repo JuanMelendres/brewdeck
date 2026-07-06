@@ -3,6 +3,7 @@ import {
   getRecipe,
   getRecipeStats,
   listFavoriteRecipes,
+  listMostBrewedRecipes,
   listRecipes,
   listTopRatedRecipes,
 } from './recipes';
@@ -34,6 +35,26 @@ describe('listTopRatedRecipes', () => {
     const fetchMock = stubFetch();
 
     await listTopRatedRecipes(10);
+
+    expect(String(fetchMock.mock.calls[0][0])).toContain('limit=10');
+  });
+});
+
+describe('listMostBrewedRecipes', () => {
+  it('requests /api/recipes/most-brewed with the limit (default 5)', async () => {
+    const fetchMock = stubFetch();
+
+    await listMostBrewedRecipes();
+
+    const url = String(fetchMock.mock.calls[0][0]);
+    expect(url).toContain('/api/recipes/most-brewed?');
+    expect(url).toContain('limit=5');
+  });
+
+  it('forwards a custom limit', async () => {
+    const fetchMock = stubFetch();
+
+    await listMostBrewedRecipes(10);
 
     expect(String(fetchMock.mock.calls[0][0])).toContain('limit=10');
   });
