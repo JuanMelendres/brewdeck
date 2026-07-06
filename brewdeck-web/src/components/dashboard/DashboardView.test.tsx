@@ -8,6 +8,10 @@ vi.mock('./TopRatedRecipes', () => ({
   TopRatedRecipes: () => <div>Top Rated Recipes</div>,
 }));
 
+vi.mock('./MostBrewedRecipes', () => ({
+  MostBrewedRecipes: () => <div>Most Brewed Recipes</div>,
+}));
+
 type HookReturn = ReturnType<typeof hook.useDashboardSummary>;
 
 function mockHook(value: Partial<HookReturn>) {

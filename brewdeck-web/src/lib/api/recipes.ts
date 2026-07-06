@@ -1,5 +1,12 @@
 import { apiFetch } from './client';
-import type { PageResponse, Recipe, RecipeFilters, RecipeStats, TopRatedRecipe } from './types';
+import type {
+  MostBrewedRecipe,
+  PageResponse,
+  Recipe,
+  RecipeFilters,
+  RecipeStats,
+  TopRatedRecipe,
+} from './types';
 import type { RecipeFormValues } from '@/lib/validation/recipeSchema';
 
 export type ListRecipesParams = {
@@ -45,6 +52,13 @@ export function listTopRatedRecipes(limit = 5): Promise<TopRatedRecipe[]> {
   query.set('limit', String(limit));
 
   return apiFetch<TopRatedRecipe[]>(`/api/recipes/top-rated?${query.toString()}`);
+}
+
+export function listMostBrewedRecipes(limit = 5): Promise<MostBrewedRecipe[]> {
+  const query = new URLSearchParams();
+  query.set('limit', String(limit));
+
+  return apiFetch<MostBrewedRecipe[]>(`/api/recipes/most-brewed?${query.toString()}`);
 }
 
 export function getRecipe(id: number): Promise<Recipe> {
