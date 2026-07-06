@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { listCoffees, listMostUsedCoffees } from './coffees';
+import { getCoffee, listCoffees, listMostUsedCoffees } from './coffees';
 
 function stubFetch() {
   const fetchMock = vi.fn().mockResolvedValue({
@@ -44,6 +44,18 @@ describe('listCoffees', () => {
     expect(url).toContain('origin=Oaxaca');
     expect(url).toContain('roastLevel=Medio');
     expect(url).toContain('process=Lavado');
+  });
+});
+
+describe('getCoffee', () => {
+  it('requests the coffee by id', async () => {
+    const fetchMock = stubFetch();
+
+    await getCoffee(7);
+
+    const url = String(fetchMock.mock.calls[0][0]);
+    expect(url).toContain('/api/coffees/7');
+    expect(url).not.toContain('most-used');
   });
 });
 

@@ -14,7 +14,10 @@ const coffee: Coffee = {
 describe('CoffeesTable', () => {
   it('renders a row with the coffee fields and an em dash for null roast', () => {
     renderWithTheme(<CoffeesTable coffees={[coffee]} />);
-    expect(screen.getByText('Mezcla Veracruz')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Mezcla Veracruz' })).toHaveAttribute(
+      'href',
+      '/coffees/1',
+    );
     expect(screen.getByText('Local')).toBeInTheDocument();
     expect(screen.getByText('Veracruz')).toBeInTheDocument();
     expect(screen.getByText('Lavado')).toBeInTheDocument();

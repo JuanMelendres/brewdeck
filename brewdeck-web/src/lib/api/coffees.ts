@@ -39,6 +39,10 @@ export function listMostUsedCoffees(limit = 5): Promise<MostUsedCoffee[]> {
   return apiFetch<MostUsedCoffee[]>(`/api/coffees/most-used?${query.toString()}`);
 }
 
+export function getCoffee(id: number): Promise<Coffee> {
+  return apiFetch<Coffee>(`/api/coffees/${id}`);
+}
+
 export function createCoffee(body: CoffeeFormValues): Promise<Coffee> {
   return apiFetch<Coffee>('/api/coffees', {
     method: 'POST',
