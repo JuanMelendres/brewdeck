@@ -2,6 +2,7 @@ package com.brewdeck.brewdeck_api.method;
 
 import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
 import jakarta.persistence.EntityNotFoundException;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +18,15 @@ public class BrewMethodService {
   public PageResponse<BrewMethodResponse> findAll(Pageable pageable) {
     return PageResponse.fromPage(
         brewMethodRepository.findAll(pageable).map(BrewMethodResponse::fromEntity));
+  }
+
+  public List<MethodUsageResponse> getUsage() {
+    return brewMethodRepository.findUsage().stream()
+        .map(
+            usage ->
+                new MethodUsageResponse(
+                    usage.getMethodId(), usage.getMethodName(), usage.getRecipeCount()))
+        .toList();
   }
 
   public BrewMethodResponse findById(Long id) {
