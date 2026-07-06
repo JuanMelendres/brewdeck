@@ -5,12 +5,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
+import com.brewdeck.brewdeck_api.recipe.RecipeRepository;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -24,7 +26,55 @@ class CoffeeServiceTest {
 
   @Mock private CoffeeRepository coffeeRepository;
 
+  @Mock private RecipeRepository recipeRepository;
+
   @InjectMocks private CoffeeService coffeeService;
+
+  @Test
+  void getMostUsed_shouldMapRowsPreservingOrder() {
+    when(recipeRepository.findMostUsedCoffees(any(Pageable.class)))
+        .thenReturn(List.of(mostUsed(2L, "Popular", 7L), mostUsed(1L, "Rare", 1L)));
+
+    List<MostUsedCoffeeResponse> result = coffeeService.getMostUsed(5);
+
+    assertThat(result).hasSize(2);
+    assertThat(result.get(0).coffeeId()).isEqualTo(2L);
+    assertThat(result.get(0).coffeeName()).isEqualTo("Popular");
+    assertThat(result.get(0).recipeCount()).isEqualTo(7L);
+    assertThat(result.get(1).coffeeId()).isEqualTo(1L);
+  }
+
+  @Test
+  void getMostUsed_shouldClampLimitToRange() {
+    when(recipeRepository.findMostUsedCoffees(any(Pageable.class))).thenReturn(List.of());
+    ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+
+    coffeeService.getMostUsed(0);
+    coffeeService.getMostUsed(999);
+
+    verify(recipeRepository, times(2)).findMostUsedCoffees(captor.capture());
+    assertThat(captor.getAllValues().get(0)).isEqualTo(PageRequest.of(0, 1));
+    assertThat(captor.getAllValues().get(1).getPageSize()).isEqualTo(20);
+  }
+
+  private MostUsedCoffee mostUsed(Long id, String name, long count) {
+    return new MostUsedCoffee() {
+      @Override
+      public Long getCoffeeId() {
+        return id;
+      }
+
+      @Override
+      public String getCoffeeName() {
+        return name;
+      }
+
+      @Override
+      public long getRecipeCount() {
+        return count;
+      }
+    };
+  }
 
   @Test
   void search_shouldReturnPagedCoffees_whenFilterIsEmpty() {
