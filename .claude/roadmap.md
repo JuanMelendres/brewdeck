@@ -80,5 +80,5 @@ Status: In Progress
 - Recommended grind adjustments (recipe detail hint) — Done (PR #54)
 - Coffee tasting notes visualization (radar chart on coffee detail) — Done (PR #57)
 - AI-assisted recipe suggestions — Done: generate slice (PR #58) + improve-from-history slice (POST /api/recipes/{id}/improve, "Improve with AI" on recipe detail)
-- Export recipes to PDF — Not Started
+- Export recipes to PDF — Done: client-side "Export PDF" on recipe detail (jspdf recipe card)
 - Public share links — Not Started

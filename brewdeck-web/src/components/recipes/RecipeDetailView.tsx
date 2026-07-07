@@ -24,14 +24,7 @@ import { BrewSessionsTable } from '@/components/brew-sessions/BrewSessionsTable'
 import { RecipeRatingTrend } from './RecipeRatingTrend';
 import { RecommendedGrind } from './RecommendedGrind';
 import { RecipeFormDialog } from './RecipeFormDialog';
-
-function orDash(value: string | number | null): string {
-  if (value === null) {
-    return '—';
-  }
-  const text = String(value);
-  return text.trim() !== '' ? text : '—';
-}
+import { downloadRecipePdf, orDash } from '@/lib/pdf/recipePdf';
 
 function formatDate(value: string | null): string {
   if (!value) {
@@ -49,6 +42,7 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
   const improve = useImproveRecipe();
   const [improved, setImproved] = useState<{ recipe: Recipe; rationale: string } | null>(null);
   const [improveError, setImproveError] = useState<string | null>(null);
+  const [pdfError, setPdfError] = useState<string | null>(null);
 
   if (recipeQuery.isLoading && !recipeQuery.data) {
     return <Spinner />;
@@ -89,6 +83,15 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
         }
       },
     });
+  };
+
+  const onExport = () => {
+    setPdfError(null);
+    try {
+      downloadRecipePdf(recipe);
+    } catch {
+      setPdfError('Could not generate the PDF.');
+    }
   };
 
   const details: Array<{ label: string; value: string }> = [
@@ -173,10 +176,18 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
             </Button>
           </span>
         </Tooltip>
+        <Button variant="outlined" size="small" onClick={onExport}>
+          Export PDF
+        </Button>
       </Box>
       {improveError ? (
         <Alert severity="error" sx={{ mb: 2 }}>
           {improveError}
+        </Alert>
+      ) : null}
+      {pdfError ? (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {pdfError}
         </Alert>
       ) : null}
 

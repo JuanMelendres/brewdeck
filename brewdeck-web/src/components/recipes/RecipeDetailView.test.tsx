@@ -12,6 +12,7 @@ type StatsReturn = ReturnType<typeof recipeHooks.useRecipeStats>;
 type HistoryReturn = ReturnType<typeof historyHook.useRecipeBrewSessions>;
 
 const { improveMutate } = vi.hoisted(() => ({ improveMutate: vi.fn() }));
+const { downloadRecipePdfMock } = vi.hoisted(() => ({ downloadRecipePdfMock: vi.fn() }));
 
 vi.mock('@/hooks/useImproveRecipe', () => ({
   useImproveRecipe: () => ({ mutate: improveMutate, isPending: false }),
@@ -27,6 +28,10 @@ vi.mock('@/hooks/useResourceOptions', () => ({
 }));
 vi.mock('@/hooks/useSuggestRecipe', () => ({
   useSuggestRecipe: () => ({ mutate: vi.fn(), isPending: false }),
+}));
+vi.mock('@/lib/pdf/recipePdf', async (importActual) => ({
+  ...(await importActual<typeof import('@/lib/pdf/recipePdf')>()),
+  downloadRecipePdf: downloadRecipePdfMock,
 }));
 
 function sessionsPage(content: BrewSession[]): PageResponse<BrewSession> {
@@ -82,6 +87,7 @@ function mockHistory(value: Partial<HistoryReturn>) {
 
 beforeEach(() => {
   improveMutate.mockReset();
+  downloadRecipePdfMock.mockReset();
   mockHistory({ isLoading: false, isError: false, data: sessionsPage([]) });
 });
 
@@ -256,5 +262,40 @@ describe('RecipeDetailView', () => {
     fireEvent.click(screen.getByRole('button', { name: /improve with ai/i }));
 
     expect(screen.getByText(/log a rated brew for this recipe first/i)).toBeInTheDocument();
+  });
+
+  it('renders the Export PDF button when the recipe is loaded', () => {
+    mockRecipe({ isLoading: false, isError: false, data: recipe });
+    mockStats({ isLoading: false, isError: false, data: undefined });
+    mockHistory({ isLoading: false, isError: false, data: sessionsPage([]) });
+
+    renderWithTheme(<RecipeDetailView recipeId={1} />);
+
+    expect(screen.getByRole('button', { name: /export pdf/i })).toBeInTheDocument();
+  });
+
+  it('downloads the PDF for the current recipe on click', () => {
+    mockRecipe({ isLoading: false, isError: false, data: recipe });
+    mockStats({ isLoading: false, isError: false, data: undefined });
+    mockHistory({ isLoading: false, isError: false, data: sessionsPage([]) });
+
+    renderWithTheme(<RecipeDetailView recipeId={1} />);
+    fireEvent.click(screen.getByRole('button', { name: /export pdf/i }));
+
+    expect(downloadRecipePdfMock).toHaveBeenCalledWith(recipe);
+  });
+
+  it('shows an error alert when PDF generation throws', () => {
+    downloadRecipePdfMock.mockImplementation(() => {
+      throw new Error('boom');
+    });
+    mockRecipe({ isLoading: false, isError: false, data: recipe });
+    mockStats({ isLoading: false, isError: false, data: undefined });
+    mockHistory({ isLoading: false, isError: false, data: sessionsPage([]) });
+
+    renderWithTheme(<RecipeDetailView recipeId={1} />);
+    fireEvent.click(screen.getByRole('button', { name: /export pdf/i }));
+
+    expect(screen.getByText(/could not generate the pdf/i)).toBeInTheDocument();
   });
 });
