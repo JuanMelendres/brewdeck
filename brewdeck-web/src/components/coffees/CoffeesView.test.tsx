@@ -24,7 +24,7 @@ function page(content: Coffee[], totalElements: number): PageResponse<Coffee> {
 const coffee: Coffee = {
   id: 1, name: 'Mezcla Veracruz', brand: null, origin: null, region: null, farm: null,
   producer: null, variety: null, process: null, roastLevel: null, notesPrimary: null,
-  notesSecondary: null, acidity: null, body: null, sweetness: null, bitterness: null,
+  notesSecondary: null, acidityScore: null, bodyScore: null, sweetnessScore: null, bitternessScore: null,
   description: null, createdAt: '2026-01-01T00:00:00', updatedAt: null,
 };
 

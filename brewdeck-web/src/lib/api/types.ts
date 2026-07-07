@@ -39,10 +39,10 @@ export type Coffee = {
   roastLevel: string | null;
   notesPrimary: string | null;
   notesSecondary: string | null;
-  acidity: string | null;
-  body: string | null;
-  sweetness: string | null;
-  bitterness: string | null;
+  acidityScore: number | null;
+  bodyScore: number | null;
+  sweetnessScore: number | null;
+  bitternessScore: number | null;
   description: string | null;
   createdAt: string;
   updatedAt: string | null;

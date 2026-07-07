@@ -7,11 +7,13 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
+import Slider from '@mui/material/Slider';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { ApiError } from '@/lib/api/client';
 import { coffeeSchema, type CoffeeFormValues } from '@/lib/validation/coffeeSchema';
 import { useCreateCoffee, useUpdateCoffee } from '@/hooks/useCoffeeMutations';
@@ -29,11 +31,14 @@ const FIELDS: Array<{ name: keyof CoffeeFormValues; label: string }> = [
   { name: 'roastLevel', label: 'Roast Level' },
   { name: 'notesPrimary', label: 'Primary Notes' },
   { name: 'notesSecondary', label: 'Secondary Notes' },
-  { name: 'acidity', label: 'Acidity' },
-  { name: 'body', label: 'Body' },
-  { name: 'sweetness', label: 'Sweetness' },
-  { name: 'bitterness', label: 'Bitterness' },
   { name: 'description', label: 'Description' },
+];
+
+const SCORE_FIELDS: Array<{ name: keyof CoffeeFormValues; label: string }> = [
+  { name: 'acidityScore', label: 'Acidity' },
+  { name: 'bodyScore', label: 'Body' },
+  { name: 'sweetnessScore', label: 'Sweetness' },
+  { name: 'bitternessScore', label: 'Bitterness' },
 ];
 
 function toDefaults(coffee?: Coffee): CoffeeFormValues {
@@ -49,10 +54,10 @@ function toDefaults(coffee?: Coffee): CoffeeFormValues {
     roastLevel: coffee?.roastLevel ?? '',
     notesPrimary: coffee?.notesPrimary ?? '',
     notesSecondary: coffee?.notesSecondary ?? '',
-    acidity: coffee?.acidity ?? '',
-    body: coffee?.body ?? '',
-    sweetness: coffee?.sweetness ?? '',
-    bitterness: coffee?.bitterness ?? '',
+    acidityScore: coffee?.acidityScore ?? 3,
+    bodyScore: coffee?.bodyScore ?? 3,
+    sweetnessScore: coffee?.sweetnessScore ?? 3,
+    bitternessScore: coffee?.bitternessScore ?? 3,
     description: coffee?.description ?? '',
   };
 }
@@ -75,6 +80,7 @@ export function CoffeeFormDialog({
     register,
     handleSubmit,
     setError,
+    control,
     formState: { errors },
   } = useForm<CoffeeFormValues>({
     resolver: zodResolver(coffeeSchema),
@@ -125,6 +131,34 @@ export function CoffeeFormDialog({
                 error={Boolean(errors[field.name])}
                 helperText={errors[field.name]?.message}
                 {...register(field.name)}
+              />
+            ))}
+            <Typography variant="subtitle2" sx={{ mt: 1 }}>
+              Tasting profile (1-5)
+            </Typography>
+            {SCORE_FIELDS.map((field) => (
+              <Controller
+                key={field.name}
+                name={field.name}
+                control={control}
+                render={({ field: { value, onChange } }) => (
+                  <div>
+                    <Typography variant="body2" gutterBottom id={`${field.name}-label`}>
+                      {field.label}
+                    </Typography>
+                    <Slider
+                      value={typeof value === 'number' ? value : 3}
+                      onChange={(_, next) => onChange(next as number)}
+                      step={1}
+                      marks
+                      min={1}
+                      max={5}
+                      valueLabelDisplay="auto"
+                      aria-labelledby={`${field.name}-label`}
+                      aria-label={field.label}
+                    />
+                  </div>
+                )}
               />
             ))}
           </Stack>
