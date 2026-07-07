@@ -78,7 +78,7 @@ Status: In Progress
 - Most-used coffees (endpoint + widget) — Done (PRs #46, #47)
 - Rating trend over time (chart, recipe detail) — Done (PR #50)
 - Recommended grind adjustments (recipe detail hint) — Done (PR #54)
-- Coffee tasting notes visualization — Next (needs a coffee detail page)
+- Coffee tasting notes visualization (radar chart on coffee detail) — Done
 - AI-assisted recipe suggestions — Not Started
 - Export recipes to PDF — Not Started
 - Public share links — Not Started
