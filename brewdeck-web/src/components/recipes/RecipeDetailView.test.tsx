@@ -1,4 +1,5 @@
 import { fireEvent, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderWithTheme } from '@/test/renderWithTheme';
 import { RecipeDetailView } from './RecipeDetailView';
@@ -28,6 +29,10 @@ vi.mock('@/hooks/useResourceOptions', () => ({
 }));
 vi.mock('@/hooks/useSuggestRecipe', () => ({
   useSuggestRecipe: () => ({ mutate: vi.fn(), isPending: false }),
+}));
+vi.mock('@/hooks/useShareRecipe', () => ({
+  useShareRecipe: () => ({ mutate: vi.fn(), isPending: false }),
+  useUnshareRecipe: () => ({ mutate: vi.fn(), isPending: false }),
 }));
 vi.mock('@/lib/pdf/recipePdf', async (importActual) => ({
   ...(await importActual<typeof import('@/lib/pdf/recipePdf')>()),
@@ -298,5 +303,16 @@ describe('RecipeDetailView', () => {
     fireEvent.click(screen.getByRole('button', { name: /export pdf/i }));
 
     expect(screen.getByText(/could not generate the pdf/i)).toBeInTheDocument();
+  });
+
+  it('opens the share dialog when Share is clicked', async () => {
+    mockRecipe({ isLoading: false, isError: false, data: recipe });
+    mockStats({ isLoading: false, isError: false, data: undefined });
+    mockHistory({ isLoading: false, isError: false, data: sessionsPage([]) });
+
+    renderWithTheme(<RecipeDetailView recipeId={1} />);
+    await userEvent.click(await screen.findByRole('button', { name: /^share$/i }));
+
+    expect(await screen.findByRole('dialog', { name: /share recipe/i })).toBeInTheDocument();
   });
 });
