@@ -47,4 +47,7 @@ public interface RecipeRepository
       order by count(r) desc, r.coffee.name asc
       """)
   List<MostUsedCoffee> findMostUsedCoffees(Pageable pageable);
+
+  @EntityGraph(attributePaths = {"coffee", "method"})
+  Optional<Recipe> findByShareToken(String shareToken);
 }

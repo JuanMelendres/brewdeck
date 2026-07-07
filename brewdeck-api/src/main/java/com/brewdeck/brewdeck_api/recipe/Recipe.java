@@ -57,6 +57,9 @@ public class Recipe {
   @Column(nullable = false)
   private Boolean favorite;
 
+  @Column(name = "share_token", unique = true)
+  private String shareToken;
+
   @Column(name = "created_at", nullable = false)
   private LocalDateTime createdAt;
 

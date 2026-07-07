@@ -127,4 +127,16 @@ public class RecipeController {
   public ResponseEntity<RecipeResponse> removeFromFavorites(@PathVariable Long id) {
     return ResponseEntity.ok(recipeService.removeFromFavorites(id));
   }
+
+  @PatchMapping("/{id}/share")
+  @Operation(summary = "Create a public share link for a recipe")
+  public ResponseEntity<RecipeResponse> share(@PathVariable Long id) {
+    return ResponseEntity.ok(recipeService.share(id));
+  }
+
+  @PatchMapping("/{id}/unshare")
+  @Operation(summary = "Revoke a recipe's public share link")
+  public ResponseEntity<RecipeResponse> unshare(@PathVariable Long id) {
+    return ResponseEntity.ok(recipeService.unshare(id));
+  }
 }

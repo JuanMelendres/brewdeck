@@ -21,6 +21,7 @@ public class RecipeService {
   private static final String RECIPE_NOT_FOUND = "Recipe not found";
   private static final String COFFEE_NOT_FOUND = "Coffee not found";
   private static final String BREW_METHOD_NOT_FOUND = "Brew method not found";
+  private static final java.security.SecureRandom SECURE_RANDOM = new java.security.SecureRandom();
 
   private final RecipeRepository recipeRepository;
   private final CoffeeRepository coffeeRepository;
@@ -151,5 +152,38 @@ public class RecipeService {
     recipe.setSteps(request.steps());
     recipe.setExpectedTaste(request.expectedTaste());
     recipe.setFavorite(Boolean.TRUE.equals(request.favorite()));
+  }
+
+  @Transactional
+  public RecipeResponse share(Long id) {
+    Recipe recipe = findRecipeById(id);
+    if (recipe.getShareToken() == null) {
+      recipe.setShareToken(generateToken());
+      recipe = recipeRepository.save(recipe);
+      log.info("Shared recipe id={}", recipe.getId());
+    }
+    return RecipeResponse.fromEntity(recipe);
+  }
+
+  @Transactional
+  public RecipeResponse unshare(Long id) {
+    Recipe recipe = findRecipeById(id);
+    recipe.setShareToken(null);
+    Recipe saved = recipeRepository.save(recipe);
+    log.info("Unshared recipe id={}", saved.getId());
+    return RecipeResponse.fromEntity(saved);
+  }
+
+  public PublicRecipeResponse getByShareToken(String token) {
+    return recipeRepository
+        .findByShareToken(token)
+        .map(PublicRecipeResponse::fromEntity)
+        .orElseThrow(() -> new EntityNotFoundException(RECIPE_NOT_FOUND));
+  }
+
+  private String generateToken() {
+    byte[] bytes = new byte[16];
+    SECURE_RANDOM.nextBytes(bytes);
+    return java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
   }
 }
