@@ -24,15 +24,7 @@ import { BrewSessionsTable } from '@/components/brew-sessions/BrewSessionsTable'
 import { RecipeRatingTrend } from './RecipeRatingTrend';
 import { RecommendedGrind } from './RecommendedGrind';
 import { RecipeFormDialog } from './RecipeFormDialog';
-import { downloadRecipePdf } from '@/lib/pdf/recipePdf';
-
-function orDash(value: string | number | null): string {
-  if (value === null) {
-    return '—';
-  }
-  const text = String(value);
-  return text.trim() !== '' ? text : '—';
-}
+import { downloadRecipePdf, orDash } from '@/lib/pdf/recipePdf';
 
 function formatDate(value: string | null): string {
   if (!value) {

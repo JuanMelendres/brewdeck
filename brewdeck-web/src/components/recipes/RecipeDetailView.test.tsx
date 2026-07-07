@@ -29,7 +29,8 @@ vi.mock('@/hooks/useResourceOptions', () => ({
 vi.mock('@/hooks/useSuggestRecipe', () => ({
   useSuggestRecipe: () => ({ mutate: vi.fn(), isPending: false }),
 }));
-vi.mock('@/lib/pdf/recipePdf', () => ({
+vi.mock('@/lib/pdf/recipePdf', async (importActual) => ({
+  ...(await importActual<typeof import('@/lib/pdf/recipePdf')>()),
   downloadRecipePdf: downloadRecipePdfMock,
 }));
 
