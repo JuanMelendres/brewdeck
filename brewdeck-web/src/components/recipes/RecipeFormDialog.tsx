@@ -19,6 +19,7 @@ import { ApiError } from '@/lib/api/client';
 import { recipeSchema, type RecipeFormValues } from '@/lib/validation/recipeSchema';
 import { useCreateRecipe, useUpdateRecipe } from '@/hooks/useRecipeMutations';
 import { useCoffeeOptions, useMethodOptions } from '@/hooks/useResourceOptions';
+import { useSuggestRecipe } from '@/hooks/useSuggestRecipe';
 import type { Recipe } from '@/lib/api/types';
 
 type RecipeFormInput = z.input<typeof recipeSchema>;
@@ -73,6 +74,8 @@ export function RecipeFormDialog({
     register,
     handleSubmit,
     setError,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<RecipeFormInput, unknown, RecipeFormValues>({
     resolver: zodResolver(recipeSchema),
@@ -80,6 +83,41 @@ export function RecipeFormDialog({
   });
 
   const pending = create.isPending || update.isPending;
+
+  const suggestion = useSuggestRecipe();
+  const [rationale, setRationale] = useState<string | null>(null);
+  const [suggestError, setSuggestError] = useState<string | null>(null);
+
+  const coffeeId = watch('coffeeId');
+  const methodId = watch('methodId');
+  const canSuggest = Boolean(coffeeId) && Boolean(methodId) && !suggestion.isPending;
+
+  const onSuggest = () => {
+    setRationale(null);
+    setSuggestError(null);
+    suggestion.mutate(
+      { coffeeId: Number(coffeeId), methodId: Number(methodId) },
+      {
+        onSuccess: (data) => {
+          const set = (name: keyof RecipeFormValues, value: string | number | null) => {
+            if (value !== null && value !== undefined) {
+              setValue(name, value as never, { shouldValidate: true });
+            }
+          };
+          set('coffeeGrams', data.coffeeGrams);
+          set('waterGrams', data.waterGrams);
+          set('ratio', data.ratio);
+          set('grindSetting', data.grindSetting);
+          set('waterTemp', data.waterTemp);
+          set('brewTime', data.brewTime);
+          set('steps', data.steps);
+          setRationale(data.rationale);
+        },
+        onError: () =>
+          setSuggestError('AI suggestions are unavailable right now. Please try again later.'),
+      },
+    );
+  };
 
   const onSubmit = (data: RecipeFormValues) => {
     setServerError(null);
@@ -165,6 +203,16 @@ export function RecipeFormDialog({
                 </TextField>
               )}
             />
+            <Button
+              variant="outlined"
+              onClick={onSuggest}
+              disabled={!canSuggest}
+              startIcon={suggestion.isPending ? <CircularProgress size={16} /> : undefined}
+            >
+              Suggest with AI
+            </Button>
+            {suggestError ? <Alert severity="error">{suggestError}</Alert> : null}
+            {rationale ? <Alert severity="info">{rationale}</Alert> : null}
             {TEXT_FIELDS.map((f) => (
               <TextField
                 key={f.name}

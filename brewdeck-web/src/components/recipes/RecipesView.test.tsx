@@ -14,6 +14,9 @@ vi.mock('@/hooks/useResourceOptions', () => ({
   useCoffeeOptions: () => ({ data: [], isLoading: false }),
   useMethodOptions: () => ({ data: [], isLoading: false }),
 }));
+vi.mock('@/hooks/useSuggestRecipe', () => ({
+  useSuggestRecipe: () => ({ mutate: vi.fn(), isPending: false }),
+}));
 
 type HookReturn = ReturnType<typeof recipesHook.useRecipes>;
 

@@ -1,0 +1,13 @@
+package com.brewdeck.brewdeck_api.ai;
+
+import java.math.BigDecimal;
+
+public record SuggestedRecipe(
+    BigDecimal coffeeGrams,
+    BigDecimal waterGrams,
+    String ratio,
+    String grindSetting,
+    Integer waterTemp,
+    String brewTime,
+    String steps,
+    String rationale) {}

@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.common.error;
 
+import com.brewdeck.brewdeck_api.ai.AiUnavailableException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
@@ -105,6 +106,19 @@ public class GlobalExceptionHandler {
             null);
 
     return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+  }
+
+  @ExceptionHandler(AiUnavailableException.class)
+  public ResponseEntity<ErrorResponse> handleAiUnavailable(
+      AiUnavailableException exception, HttpServletRequest request) {
+    ErrorResponse errorResponse =
+        buildErrorResponse(
+            HttpStatus.SERVICE_UNAVAILABLE,
+            "AI suggestion service is unavailable",
+            sanitize(request.getRequestURI()),
+            null);
+
+    return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(errorResponse);
   }
 
   @ExceptionHandler(Exception.class)

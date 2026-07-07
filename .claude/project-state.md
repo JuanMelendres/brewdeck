@@ -2,11 +2,11 @@
 
 ## Last Updated
 
-2026-07-06
+2026-07-07
 
 ## Current Phase
 
-Phase 5 (product improvements / analytics) in progress. Phases 1-4 complete. Four analytics slices shipped end-to-end (endpoint + dashboard widget each): top-rated recipes (PRs #38/#39), most-brewed recipes (PRs #40/#41), brew-method usage (PRs #43/#44), most-used coffees (PRs #46/#47). Dashboard shows all four widgets. Recipe detail also has a rating-trend line chart (recharts, PR #50) and a recommended-grind hint (PR #54). CLAUDE.md was reworked full-stack (PR #52) and web scripts added: type-check, lint:fix (PR #53). Coffee tasting-notes radar shipped full-stack: numeric 1-5 scores replaced the free-text tasting fields (backend migration + DTO validation) and a recharts radar renders on the coffee detail page. Next: remaining Phase 5 features (AI-assisted recipe suggestions, export recipes to PDF, public share links).
+Phase 5 (product improvements / analytics) in progress. Phases 1-4 complete. Four analytics slices shipped end-to-end (endpoint + dashboard widget each): top-rated recipes (PRs #38/#39), most-brewed recipes (PRs #40/#41), brew-method usage (PRs #43/#44), most-used coffees (PRs #46/#47). Dashboard shows all four widgets. Recipe detail also has a rating-trend line chart (recharts, PR #50) and a recommended-grind hint (PR #54). CLAUDE.md was reworked full-stack (PR #52) and web scripts added: type-check, lint:fix (PR #53). Coffee tasting-notes radar shipped full-stack (PR #57 merged): numeric 1-5 scores replaced the free-text tasting fields (backend migration + DTO validation) and a recharts radar renders on the coffee detail page. Next: remaining Phase 5 features (AI-assisted recipe suggestions, export recipes to PDF, public share links).
 
 ## Completed
 
@@ -49,7 +49,8 @@ Phase 5 (product improvements / analytics) in progress. Phases 1-4 complete. Fou
 
 ## Recently Worked On
 
-- Coffee tasting-notes radar (full-stack): numeric 1-5 acidity/body/sweetness/bitterness scores replaced free-text tasting fields; Flyway V3 migration, @Min/@Max DTO validation, MUI score sliders, recharts radar on coffee detail
+- AI recipe suggestions (generate slice): POST /api/recipes/suggest, Claude Java SDK behind a RecipeSuggestionPort with a claude-haiku-4-5 adapter (structured outputs), feature-toggled (brewdeck.ai.enabled, default off; ANTHROPIC_API_KEY from env), and a "Suggest with AI" button pre-filling the recipe form (ephemeral, not persisted)
+- Coffee tasting-notes radar (full-stack) — PR #57 merged: numeric 1-5 acidity/body/sweetness/bitterness scores replaced free-text tasting fields; Flyway V3 migration, @Min/@Max DTO validation, MUI score sliders, recharts radar on coffee detail; also added sonar.coverage.exclusions to mirror JaCoCo DTO excludes
 - Recommended-grind hint on recipe detail (best-rated session's grind; no backend) — PR #54
 - Rating-trend line chart on recipe detail (recharts; reuses brew-history data) — PR #50
 - CLAUDE.md reworked full-stack (PR #52); web type-check + lint:fix scripts (PR #53)
@@ -66,5 +67,6 @@ Phase 5 (product improvements / analytics) in progress. Phases 1-4 complete. Fou
 
 ## Immediate Next Steps
 
-1. Remaining Phase 5 features: AI-assisted recipe suggestions, export recipes to PDF, public share links.
-2. Review JaCoCo and SonarCloud.
+1. AI suggestions second slice: improve an existing recipe from its brew history (deferred from the generate slice).
+2. Remaining Phase 5 features: export recipes to PDF, public share links.
+3. Review JaCoCo and SonarCloud.
