@@ -37,6 +37,9 @@
 			${project.build.directory}/site/jacoco/jacoco.xml
 		</sonar.coverage.jacoco.xmlReportPaths>
 		<sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+		<sonar.coverage.exclusions>
+			**/*Application.java,**/*Request.java,**/*Response.java,**/config/**
+		</sonar.coverage.exclusions>
 	</properties>
 
 	<dependencyManagement>
