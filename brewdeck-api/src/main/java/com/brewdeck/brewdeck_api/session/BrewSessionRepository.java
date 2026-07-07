@@ -23,6 +23,8 @@ public interface BrewSessionRepository
 
   List<BrewSession> findByRecipeIdOrderByBrewedAtDesc(Long recipeId);
 
+  List<BrewSession> findTop10ByRecipeIdAndRatingIsNotNullOrderByBrewedAtDesc(Long recipeId);
+
   @EntityGraph(attributePaths = "recipe")
   Page<BrewSession> findByRecipeIdOrderByBrewedAtDesc(Long recipeId, Pageable pageable);
 

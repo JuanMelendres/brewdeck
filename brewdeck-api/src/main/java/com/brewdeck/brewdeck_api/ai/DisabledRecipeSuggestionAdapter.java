@@ -13,4 +13,9 @@ public class DisabledRecipeSuggestionAdapter implements RecipeSuggestionPort {
   public SuggestedRecipe suggest(SuggestionContext context) {
     throw new AiUnavailableException("AI suggestions are disabled");
   }
+
+  @Override
+  public SuggestedRecipe improve(ImprovementContext context) {
+    throw new AiUnavailableException("AI suggestions are disabled");
+  }
 }

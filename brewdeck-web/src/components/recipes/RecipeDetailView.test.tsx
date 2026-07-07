@@ -1,14 +1,33 @@
-import { screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderWithTheme } from '@/test/renderWithTheme';
 import { RecipeDetailView } from './RecipeDetailView';
 import * as recipeHooks from '@/hooks/useRecipe';
 import * as historyHook from '@/hooks/useRecipeBrewSessions';
 import type { BrewSession, PageResponse, Recipe, RecipeStats } from '@/lib/api/types';
+import { ApiError } from '@/lib/api/client';
 
 type RecipeReturn = ReturnType<typeof recipeHooks.useRecipe>;
 type StatsReturn = ReturnType<typeof recipeHooks.useRecipeStats>;
 type HistoryReturn = ReturnType<typeof historyHook.useRecipeBrewSessions>;
+
+const { improveMutate } = vi.hoisted(() => ({ improveMutate: vi.fn() }));
+
+vi.mock('@/hooks/useImproveRecipe', () => ({
+  useImproveRecipe: () => ({ mutate: improveMutate, isPending: false }),
+}));
+vi.mock('@/hooks/useRecipeMutations', () => ({
+  useCreateRecipe: () => ({ mutate: vi.fn(), isPending: false }),
+  useUpdateRecipe: () => ({ mutate: vi.fn(), isPending: false }),
+  useDeleteRecipe: () => ({ mutate: vi.fn(), isPending: false }),
+}));
+vi.mock('@/hooks/useResourceOptions', () => ({
+  useCoffeeOptions: () => ({ data: [], isLoading: false }),
+  useMethodOptions: () => ({ data: [], isLoading: false }),
+}));
+vi.mock('@/hooks/useSuggestRecipe', () => ({
+  useSuggestRecipe: () => ({ mutate: vi.fn(), isPending: false }),
+}));
 
 function sessionsPage(content: BrewSession[]): PageResponse<BrewSession> {
   return { content, page: 0, size: 50, totalElements: content.length, totalPages: 1, first: true, last: true };
@@ -34,6 +53,21 @@ const recipe: Recipe = {
   updatedAt: null,
 };
 
+const ratedSession: BrewSession = {
+  id: 1,
+  recipeId: 1,
+  recipeName: 'Mezcla Veracruz AeroPress',
+  brewedAt: '2026-04-21T10:00:00',
+  actualGrind: 'Timemore S3 - 5.5',
+  actualTemp: 91,
+  actualTime: '2:20',
+  tasteResult: 'Bright',
+  rating: 9,
+  adjustmentNotes: 'Grind finer next time.',
+};
+
+const unratedSession: BrewSession = { ...ratedSession, id: 2, rating: null };
+
 function mockRecipe(value: Partial<RecipeReturn>) {
   vi.spyOn(recipeHooks, 'useRecipe').mockReturnValue(value as RecipeReturn);
 }
@@ -47,6 +81,7 @@ function mockHistory(value: Partial<HistoryReturn>) {
 }
 
 beforeEach(() => {
+  improveMutate.mockReset();
   mockHistory({ isLoading: false, isError: false, data: sessionsPage([]) });
 });
 
@@ -162,5 +197,64 @@ describe('RecipeDetailView', () => {
     renderWithTheme(<RecipeDetailView recipeId={1} />);
 
     expect(screen.getByText(/no brew sessions yet for this recipe/i)).toBeInTheDocument();
+  });
+
+  it('disables Improve with AI when there is no rated history', () => {
+    mockRecipe({ isLoading: false, isError: false, data: recipe });
+    mockStats({ isLoading: false, isError: false, data: undefined });
+    mockHistory({ isLoading: false, isError: false, data: sessionsPage([unratedSession]) });
+
+    renderWithTheme(<RecipeDetailView recipeId={1} />);
+
+    expect(screen.getByRole('button', { name: /improve with ai/i })).toBeDisabled();
+  });
+
+  it('enables Improve with AI when at least one session is rated', () => {
+    mockRecipe({ isLoading: false, isError: false, data: recipe });
+    mockStats({ isLoading: false, isError: false, data: undefined });
+    mockHistory({ isLoading: false, isError: false, data: sessionsPage([ratedSession]) });
+
+    renderWithTheme(<RecipeDetailView recipeId={1} />);
+
+    expect(screen.getByRole('button', { name: /improve with ai/i })).toBeEnabled();
+  });
+
+  it('opens the pre-filled edit dialog with the rationale on success', () => {
+    improveMutate.mockImplementation((_id: number, { onSuccess }: { onSuccess: (data: unknown) => void }) =>
+      onSuccess({
+        coffeeGrams: 16,
+        waterGrams: 240,
+        ratio: '1:15',
+        grindSetting: 'Timemore S3 - 5.0',
+        waterTemp: 92,
+        brewTime: '2:15',
+        steps: 'Grind finer and shorten the brew.',
+        rationale: 'Finer grind improves sweetness.',
+      }),
+    );
+    mockRecipe({ isLoading: false, isError: false, data: recipe });
+    mockStats({ isLoading: false, isError: false, data: undefined });
+    mockHistory({ isLoading: false, isError: false, data: sessionsPage([ratedSession]) });
+
+    renderWithTheme(<RecipeDetailView recipeId={1} />);
+    fireEvent.click(screen.getByRole('button', { name: /improve with ai/i }));
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByText('Edit recipe')).toBeInTheDocument();
+    expect(screen.getByText('Finer grind improves sweetness.')).toBeInTheDocument();
+  });
+
+  it('shows a needs-history message when improve returns 422', () => {
+    improveMutate.mockImplementation((_id: number, { onError }: { onError: (error: unknown) => void }) =>
+      onError(new ApiError(422, 'Recipe has no rated brew sessions to improve from')),
+    );
+    mockRecipe({ isLoading: false, isError: false, data: recipe });
+    mockStats({ isLoading: false, isError: false, data: undefined });
+    mockHistory({ isLoading: false, isError: false, data: sessionsPage([ratedSession]) });
+
+    renderWithTheme(<RecipeDetailView recipeId={1} />);
+    fireEvent.click(screen.getByRole('button', { name: /improve with ai/i }));
+
+    expect(screen.getByText(/log a rated brew for this recipe first/i)).toBeInTheDocument();
   });
 });

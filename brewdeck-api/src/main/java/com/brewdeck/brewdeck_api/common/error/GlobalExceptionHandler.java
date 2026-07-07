@@ -1,6 +1,7 @@
 package com.brewdeck.brewdeck_api.common.error;
 
 import com.brewdeck.brewdeck_api.ai.AiUnavailableException;
+import com.brewdeck.brewdeck_api.ai.InsufficientBrewHistoryException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
@@ -119,6 +120,19 @@ public class GlobalExceptionHandler {
             null);
 
     return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(errorResponse);
+  }
+
+  @ExceptionHandler(InsufficientBrewHistoryException.class)
+  public ResponseEntity<ErrorResponse> handleInsufficientBrewHistory(
+      InsufficientBrewHistoryException exception, HttpServletRequest request) {
+    ErrorResponse errorResponse =
+        buildErrorResponse(
+            HttpStatus.UNPROCESSABLE_ENTITY,
+            "Recipe has no rated brew sessions to improve from",
+            sanitize(request.getRequestURI()),
+            null);
+
+    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(errorResponse);
   }
 
   @ExceptionHandler(Exception.class)

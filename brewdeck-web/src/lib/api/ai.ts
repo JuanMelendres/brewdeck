@@ -23,3 +23,9 @@ export function suggestRecipe(body: SuggestRecipeInput): Promise<SuggestedRecipe
     body: JSON.stringify(body),
   });
 }
+
+export function improveRecipe(recipeId: number): Promise<SuggestedRecipe> {
+  return apiFetch<SuggestedRecipe>(`/api/recipes/${recipeId}/improve`, {
+    method: 'POST',
+  });
+}

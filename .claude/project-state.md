@@ -6,7 +6,7 @@
 
 ## Current Phase
 
-Phase 5 (product improvements / analytics) in progress. Phases 1-4 complete. Four analytics slices shipped end-to-end (endpoint + dashboard widget each): top-rated recipes (PRs #38/#39), most-brewed recipes (PRs #40/#41), brew-method usage (PRs #43/#44), most-used coffees (PRs #46/#47). Dashboard shows all four widgets. Recipe detail also has a rating-trend line chart (recharts, PR #50) and a recommended-grind hint (PR #54). CLAUDE.md was reworked full-stack (PR #52) and web scripts added: type-check, lint:fix (PR #53). Coffee tasting-notes radar shipped full-stack (PR #57 merged): numeric 1-5 scores replaced the free-text tasting fields (backend migration + DTO validation) and a recharts radar renders on the coffee detail page. AI recipe suggestions generate slice shipped full-stack (PR #58 merged): feature-toggled POST /api/recipes/suggest calls Claude (claude-haiku-4-5, structured outputs) behind a RecipeSuggestionPort, and a "Suggest with AI" button pre-fills the recipe form. Next: remaining Phase 5 features (AI improve-from-history slice, export recipes to PDF, public share links).
+Phase 5 (product improvements / analytics) in progress. Phases 1-4 complete. Four analytics slices shipped end-to-end (endpoint + dashboard widget each): top-rated recipes (PRs #38/#39), most-brewed recipes (PRs #40/#41), brew-method usage (PRs #43/#44), most-used coffees (PRs #46/#47). Dashboard shows all four widgets. Recipe detail also has a rating-trend line chart (recharts, PR #50) and a recommended-grind hint (PR #54). CLAUDE.md was reworked full-stack (PR #52) and web scripts added: type-check, lint:fix (PR #53). Coffee tasting-notes radar shipped full-stack (PR #57 merged): numeric 1-5 scores replaced the free-text tasting fields (backend migration + DTO validation) and a recharts radar renders on the coffee detail page. AI recipe suggestions generate slice shipped full-stack (PR #58 merged): feature-toggled POST /api/recipes/suggest calls Claude (claude-haiku-4-5, structured outputs) behind a RecipeSuggestionPort, and a "Suggest with AI" button pre-fills the recipe form. AI recipe improve-from-history slice shipped full-stack: feature-toggled POST /api/recipes/{id}/improve tunes an existing recipe from its recent rated brew sessions (extends RecipeSuggestionPort with improve, 422 when no rated history), and an "Improve with AI" button on the recipe detail page pre-fills the edit dialog. Next: remaining Phase 5 features (export recipes to PDF, public share links).
 
 ## Completed
 
@@ -49,6 +49,7 @@ Phase 5 (product improvements / analytics) in progress. Phases 1-4 complete. Fou
 
 ## Recently Worked On
 
+- AI recipe improve-from-history slice — extends RecipeSuggestionPort with improve(ImprovementContext); POST /api/recipes/{id}/improve loads the recipe + its top-10 rated sessions, returns AI-tuned brewing params (SuggestedRecipeResponse); 404 recipe-missing, 422 no-rated-history, 503 AI-off/SDK-fail; frontend "Improve with AI" button (disabled with tooltip until a rated brew exists) opens the existing RecipeFormDialog pre-filled + rationale
 - AI recipe suggestions (generate slice) — PR #58 merged: POST /api/recipes/suggest, Claude Java SDK behind a RecipeSuggestionPort with a claude-haiku-4-5 adapter (structured outputs), feature-toggled (brewdeck.ai.enabled, default off; ANTHROPIC_API_KEY from env), and a "Suggest with AI" button pre-filling the recipe form (ephemeral, not persisted); adapter Sonar-excluded, live SDK path untested by design (feature off by default)
 - Coffee tasting-notes radar (full-stack) — PR #57 merged: numeric 1-5 acidity/body/sweetness/bitterness scores replaced free-text tasting fields; Flyway V3 migration, @Min/@Max DTO validation, MUI score sliders, recharts radar on coffee detail; also added sonar.coverage.exclusions to mirror JaCoCo DTO excludes
 - Recommended-grind hint on recipe detail (best-rated session's grind; no backend) — PR #54
@@ -67,6 +68,5 @@ Phase 5 (product improvements / analytics) in progress. Phases 1-4 complete. Fou
 
 ## Immediate Next Steps
 
-1. AI suggestions second slice: improve an existing recipe from its brew history (deferred from the generate slice).
-2. Remaining Phase 5 features: export recipes to PDF, public share links.
-3. Review JaCoCo and SonarCloud.
+1. Remaining Phase 5 features: export recipes to PDF, public share links.
+2. Review JaCoCo and SonarCloud.

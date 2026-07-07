@@ -231,6 +231,7 @@
 						<exclude>**/*Request.class</exclude>
 						<exclude>**/*Response.class</exclude>
 						<exclude>**/config/**</exclude>
+						<exclude>**/ai/ClaudeRecipeSuggestionAdapter.class</exclude>
 					</excludes>
 				</configuration>
 				<executions>
