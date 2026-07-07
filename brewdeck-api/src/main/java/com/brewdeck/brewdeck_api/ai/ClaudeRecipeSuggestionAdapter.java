@@ -56,7 +56,7 @@ public class ClaudeRecipeSuggestionAdapter implements RecipeSuggestionPort {
     } catch (AiUnavailableException exception) {
       throw exception;
     } catch (RuntimeException exception) {
-      log.warn("AI suggestion call failed: {}", exception.getClass().getSimpleName());
+      log.warn("AI suggestion call failed", exception);
       throw new AiUnavailableException("AI suggestion call failed", exception);
     }
   }

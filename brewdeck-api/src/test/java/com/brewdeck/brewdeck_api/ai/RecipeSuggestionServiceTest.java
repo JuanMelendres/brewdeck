@@ -57,6 +57,16 @@ class RecipeSuggestionServiceTest {
   }
 
   @Test
+  void suggest_shouldThrowNotFound_whenBrewMethodMissing() {
+    Coffee coffee = Coffee.builder().id(1L).name("Mezcla Veracruz").roastLevel("Medio").build();
+    when(coffeeRepository.findById(1L)).thenReturn(Optional.of(coffee));
+    when(brewMethodRepository.findById(2L)).thenReturn(Optional.empty());
+
+    assertThatThrownBy(() -> serviceEnabled().suggest(new SuggestRecipeRequest(1L, 2L, null)))
+        .isInstanceOf(EntityNotFoundException.class);
+  }
+
+  @Test
   void suggest_shouldReturnMappedResponse_whenEnabled() {
     Coffee coffee = Coffee.builder().id(1L).name("Mezcla Veracruz").roastLevel("Medio").build();
     BrewMethod method = BrewMethod.builder().id(2L).name("AeroPress").build();
