@@ -19,6 +19,7 @@ export const keys = {
     mostBrewed: (limit: number) => ['recipes', 'most-brewed', limit] as const,
     detail: (id: number) => ['recipes', 'detail', id] as const,
     stats: (id: number) => ['recipes', 'stats', id] as const,
+    public: (token: string) => ['recipes', 'public', token] as const,
   },
   brewMethods: {
     list: (params: ListBrewMethodsParams) => ['brew-methods', 'list', params] as const,

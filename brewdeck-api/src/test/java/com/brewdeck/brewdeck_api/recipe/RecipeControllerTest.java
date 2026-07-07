@@ -337,6 +337,7 @@ class RecipeControllerTest {
             "Clean, aromatic, spicy, balanced.",
             true,
             LocalDateTime.now(),
+            null,
             null);
 
     when(recipeService.markAsFavorite(1L)).thenReturn(response);
@@ -370,6 +371,7 @@ class RecipeControllerTest {
             "Clean, aromatic, spicy, balanced.",
             false,
             LocalDateTime.now(),
+            null,
             null);
 
     when(recipeService.removeFromFavorites(1L)).thenReturn(response);
@@ -417,6 +419,7 @@ class RecipeControllerTest {
         "Clean, aromatic, spicy, balanced.",
         true,
         LocalDateTime.now(),
+        null,
         null);
   }
 
@@ -647,5 +650,49 @@ class RecipeControllerTest {
         .andExpect(jsonPath("$.error").value("Bad Request"))
         .andExpect(jsonPath("$.message").value("Validation failed"))
         .andExpect(jsonPath("$.validationErrors.name").value("Recipe name is required"));
+  }
+
+  @Test
+  void share_returns200WithShareToken() throws Exception {
+    RecipeResponse shared = sampleResponseWithShareToken("Xk7pQ2mN8vL4wR9tYbZ0aQ");
+    when(recipeService.share(1L)).thenReturn(shared);
+
+    mockMvc
+        .perform(patch("/api/recipes/1/share"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.shareToken").value("Xk7pQ2mN8vL4wR9tYbZ0aQ"));
+  }
+
+  @Test
+  void unshare_returns200WithNullShareToken() throws Exception {
+    RecipeResponse unshared = sampleResponseWithShareToken(null);
+    when(recipeService.unshare(1L)).thenReturn(unshared);
+
+    mockMvc
+        .perform(patch("/api/recipes/1/unshare"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.shareToken").doesNotExist());
+  }
+
+  private RecipeResponse sampleResponseWithShareToken(String token) {
+    return new RecipeResponse(
+        1L,
+        1L,
+        "Ethiopia",
+        1L,
+        "V60",
+        "Morning Cup",
+        new java.math.BigDecimal("15.0"),
+        new java.math.BigDecimal("250.0"),
+        "1:16",
+        "Medium",
+        94,
+        "3:00",
+        "Bloom then pour",
+        "Floral",
+        false,
+        java.time.LocalDateTime.now(),
+        null,
+        token);
   }
 }

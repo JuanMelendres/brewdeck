@@ -2,6 +2,7 @@ package com.brewdeck.brewdeck_api.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -9,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.brewdeck.brewdeck_api.common.PostgresIntegrationTest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -65,6 +67,32 @@ class RecipeStatsIntegrationTest extends PostgresIntegrationTest {
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.status").value(404))
         .andExpect(jsonPath("$.message").value("Recipe not found"));
+  }
+
+  @Test
+  void shareFlow_createShareFetchUnshareRefetch() throws Exception {
+    Long coffeeId = createCoffee();
+    Long methodId = createBrewMethod();
+    Long recipeId = createRecipe(coffeeId, methodId);
+
+    String token =
+        JsonPath.read(
+            mockMvc
+                .perform(patch("/api/recipes/" + recipeId + "/share"))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString(),
+            "$.shareToken");
+
+    mockMvc
+        .perform(get("/api/public/recipes/" + token))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").exists());
+
+    mockMvc.perform(patch("/api/recipes/" + recipeId + "/unshare")).andExpect(status().isOk());
+
+    mockMvc.perform(get("/api/public/recipes/" + token)).andExpect(status().isNotFound());
   }
 
   private Long createCoffee() throws Exception {

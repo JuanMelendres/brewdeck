@@ -70,7 +70,7 @@ Screens:
 
 ## Phase 5 — Product Improvements
 
-Status: In Progress
+Status: Completed
 
 - Top-rated recipes (endpoint + dashboard widget) — Done (PRs #38, #39)
 - Most-brewed recipes (endpoint + widget) — Done (PRs #40, #41)
@@ -81,4 +81,4 @@ Status: In Progress
 - Coffee tasting notes visualization (radar chart on coffee detail) — Done (PR #57)
 - AI-assisted recipe suggestions — Done: generate slice (PR #58) + improve-from-history slice (POST /api/recipes/{id}/improve, "Improve with AI" on recipe detail)
 - Export recipes to PDF — Done: client-side "Export PDF" on recipe detail (jspdf recipe card)
-- Public share links — Not Started
+- Public share links (opt-in revocable token, public /share/[token] page) — Done

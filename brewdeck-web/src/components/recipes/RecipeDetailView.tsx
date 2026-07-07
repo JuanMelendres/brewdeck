@@ -24,6 +24,7 @@ import { BrewSessionsTable } from '@/components/brew-sessions/BrewSessionsTable'
 import { RecipeRatingTrend } from './RecipeRatingTrend';
 import { RecommendedGrind } from './RecommendedGrind';
 import { RecipeFormDialog } from './RecipeFormDialog';
+import { ShareRecipeDialog } from './ShareRecipeDialog';
 import { downloadRecipePdf, orDash } from '@/lib/pdf/recipePdf';
 
 function formatDate(value: string | null): string {
@@ -43,6 +44,7 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
   const [improved, setImproved] = useState<{ recipe: Recipe; rationale: string } | null>(null);
   const [improveError, setImproveError] = useState<string | null>(null);
   const [pdfError, setPdfError] = useState<string | null>(null);
+  const [shareOpen, setShareOpen] = useState(false);
 
   if (recipeQuery.isLoading && !recipeQuery.data) {
     return <Spinner />;
@@ -179,6 +181,9 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
         <Button variant="outlined" size="small" onClick={onExport}>
           Export PDF
         </Button>
+        <Button variant="outlined" size="small" onClick={() => setShareOpen(true)}>
+          Share
+        </Button>
       </Box>
       {improveError ? (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -247,6 +252,7 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
           onClose={() => setImproved(null)}
         />
       ) : null}
+      <ShareRecipeDialog open={shareOpen} recipe={recipe} onClose={() => setShareOpen(false)} />
     </>
   );
 }

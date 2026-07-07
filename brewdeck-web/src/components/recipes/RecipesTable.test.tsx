@@ -8,7 +8,7 @@ const base: Recipe = {
   id: 1, coffeeId: 1, coffeeName: 'Mezcla', methodId: 1, methodName: 'AeroPress',
   name: 'Mezcla AeroPress', coffeeGrams: 15, waterGrams: 230, ratio: '1:15',
   grindSetting: null, waterTemp: 90, brewTime: null, steps: null, expectedTaste: null,
-  favorite: true, createdAt: '2026-01-01T00:00:00', updatedAt: null,
+  favorite: true, createdAt: '2026-01-01T00:00:00', updatedAt: null, shareToken: null,
 };
 
 const other: Recipe = {

@@ -20,7 +20,8 @@ public record RecipeResponse(
     String expectedTaste,
     Boolean favorite,
     LocalDateTime createdAt,
-    LocalDateTime updatedAt) {
+    LocalDateTime updatedAt,
+    String shareToken) {
   public static RecipeResponse fromEntity(Recipe recipe) {
     return new RecipeResponse(
         recipe.getId(),
@@ -39,6 +40,7 @@ public record RecipeResponse(
         recipe.getExpectedTaste(),
         recipe.getFavorite(),
         recipe.getCreatedAt(),
-        recipe.getUpdatedAt());
+        recipe.getUpdatedAt(),
+        recipe.getShareToken());
   }
 }

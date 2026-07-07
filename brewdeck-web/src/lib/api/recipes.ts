@@ -80,3 +80,11 @@ export function updateRecipe(id: number, body: RecipeFormValues): Promise<Recipe
 export function deleteRecipe(id: number): Promise<void> {
   return apiFetch<void>(`/api/recipes/${id}`, { method: 'DELETE' });
 }
+
+export function shareRecipe(id: number): Promise<Recipe> {
+  return apiFetch<Recipe>(`/api/recipes/${id}/share`, { method: 'PATCH' });
+}
+
+export function unshareRecipe(id: number): Promise<Recipe> {
+  return apiFetch<Recipe>(`/api/recipes/${id}/unshare`, { method: 'PATCH' });
+}

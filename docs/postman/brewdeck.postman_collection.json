@@ -30,6 +30,11 @@
       "key": "sessionId",
       "value": "1",
       "type": "string"
+    },
+    {
+      "key": "shareToken",
+      "value": "",
+      "type": "string"
     }
   ],
   "item": [
@@ -1305,6 +1310,105 @@
                 "exec": [
                   "pm.test('Status code is 200', function () {",
                   "  pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH - Share recipe",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/recipes/{{recipeId}}/share",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "recipes",
+                "{{recipeId}}",
+                "share"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH - Unshare recipe",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/recipes/{{recipeId}}/unshare",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "recipes",
+                "{{recipeId}}",
+                "unshare"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET - Get public recipe by token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/public/recipes/{{shareToken}}",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "public",
+                "recipes",
+                "{{shareToken}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200, 404', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
                   "});"
                 ]
               }
