@@ -190,10 +190,10 @@ class CoffeeServiceTest {
             "Medio",
             "Cardamomo",
             "Canela, clavo",
-            "Media",
-            "Medio",
-            "Media",
-            "Baja",
+            3,
+            3,
+            4,
+            2,
             "Café limpio y aromático.");
 
     Coffee savedCoffee =
@@ -210,10 +210,10 @@ class CoffeeServiceTest {
             .roastLevel(request.roastLevel())
             .notesPrimary(request.notesPrimary())
             .notesSecondary(request.notesSecondary())
-            .acidity(request.acidity())
-            .body(request.body())
-            .sweetness(request.sweetness())
-            .bitterness(request.bitterness())
+            .acidityScore(request.acidityScore())
+            .bodyScore(request.bodyScore())
+            .sweetnessScore(request.sweetnessScore())
+            .bitternessScore(request.bitternessScore())
             .description(request.description())
             .createdAt(LocalDateTime.now())
             .build();
@@ -275,10 +275,10 @@ class CoffeeServiceTest {
             "Medio",
             "Cardamomo",
             "Canela, clavo",
-            "Media",
-            "Medio",
-            "Media",
-            "Baja",
+            3,
+            3,
+            4,
+            2,
             "Updated description");
 
     when(coffeeRepository.findById(1L)).thenReturn(Optional.of(existingCoffee));
@@ -298,10 +298,10 @@ class CoffeeServiceTest {
     assertThat(result.roastLevel()).isEqualTo("Medio");
     assertThat(result.notesPrimary()).isEqualTo("Cardamomo");
     assertThat(result.notesSecondary()).isEqualTo("Canela, clavo");
-    assertThat(result.acidity()).isEqualTo("Media");
-    assertThat(result.body()).isEqualTo("Medio");
-    assertThat(result.sweetness()).isEqualTo("Media");
-    assertThat(result.bitterness()).isEqualTo("Baja");
+    assertThat(result.acidityScore()).isEqualTo(3);
+    assertThat(result.bodyScore()).isEqualTo(3);
+    assertThat(result.sweetnessScore()).isEqualTo(4);
+    assertThat(result.bitternessScore()).isEqualTo(2);
     assertThat(result.description()).isEqualTo("Updated description");
 
     verify(coffeeRepository).findById(1L);
@@ -323,10 +323,10 @@ class CoffeeServiceTest {
             "Medio",
             "Cardamomo",
             "Canela, clavo",
-            "Media",
-            "Medio",
-            "Media",
-            "Baja",
+            3,
+            3,
+            4,
+            2,
             "Updated description");
 
     when(coffeeRepository.findById(99L)).thenReturn(Optional.empty());

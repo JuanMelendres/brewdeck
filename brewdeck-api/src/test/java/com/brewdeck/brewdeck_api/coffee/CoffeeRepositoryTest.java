@@ -28,10 +28,10 @@ class CoffeeRepositoryTest extends PostgresRepositoryTest {
             .roastLevel("Medio")
             .notesPrimary("Cardamomo")
             .notesSecondary("Canela, clavo")
-            .acidity("Media")
-            .body("Medio")
-            .sweetness("Media")
-            .bitterness("Baja")
+            .acidityScore(3)
+            .bodyScore(3)
+            .sweetnessScore(4)
+            .bitternessScore(2)
             .description("Clean and aromatic coffee.")
             .build();
 
@@ -54,10 +54,10 @@ class CoffeeRepositoryTest extends PostgresRepositoryTest {
             .roastLevel("Medio")
             .notesPrimary("Chocolate")
             .notesSecondary("Nuez, caramelo")
-            .acidity("Media")
-            .body("Medio")
-            .sweetness("Alta")
-            .bitterness("Baja")
+            .acidityScore(3)
+            .bodyScore(3)
+            .sweetnessScore(4)
+            .bitternessScore(2)
             .description("Balanced coffee for daily brewing.")
             .build();
 
