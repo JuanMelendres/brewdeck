@@ -15,10 +15,10 @@ export const coffeeSchema = z.object({
   roastLevel: z.string().max(80, 'Roast level must not exceed 80 characters').optional(),
   notesPrimary: z.string().max(255, 'Primary notes must not exceed 255 characters').optional(),
   notesSecondary: z.string().max(500, 'Secondary notes must not exceed 500 characters').optional(),
-  acidity: z.string().max(80, 'Acidity must not exceed 80 characters').optional(),
-  body: z.string().max(80, 'Body must not exceed 80 characters').optional(),
-  sweetness: z.string().max(80, 'Sweetness must not exceed 80 characters').optional(),
-  bitterness: z.string().max(80, 'Bitterness must not exceed 80 characters').optional(),
+  acidityScore: z.number().int().min(1).max(5).optional(),
+  bodyScore: z.number().int().min(1).max(5).optional(),
+  sweetnessScore: z.number().int().min(1).max(5).optional(),
+  bitternessScore: z.number().int().min(1).max(5).optional(),
   description: z.string().max(1000, 'Description must not exceed 1000 characters').optional(),
 });
 

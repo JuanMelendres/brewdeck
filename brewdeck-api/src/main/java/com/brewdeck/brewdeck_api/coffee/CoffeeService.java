@@ -98,10 +98,10 @@ public class CoffeeService {
     coffee.setRoastLevel(request.roastLevel());
     coffee.setNotesPrimary(request.notesPrimary());
     coffee.setNotesSecondary(request.notesSecondary());
-    coffee.setAcidity(request.acidity());
-    coffee.setBody(request.body());
-    coffee.setSweetness(request.sweetness());
-    coffee.setBitterness(request.bitterness());
+    coffee.setAcidityScore(request.acidityScore());
+    coffee.setBodyScore(request.bodyScore());
+    coffee.setSweetnessScore(request.sweetnessScore());
+    coffee.setBitternessScore(request.bitternessScore());
     coffee.setDescription(request.description());
   }
 }

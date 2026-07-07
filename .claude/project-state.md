@@ -2,11 +2,11 @@
 
 ## Last Updated
 
-2026-07-05
+2026-07-06
 
 ## Current Phase
 
-Phase 5 (product improvements / analytics) in progress. Phases 1-4 complete. Four analytics slices shipped end-to-end (endpoint + dashboard widget each): top-rated recipes (PRs #38/#39), most-brewed recipes (PRs #40/#41), brew-method usage (PRs #43/#44), most-used coffees (PRs #46/#47). Dashboard shows all four widgets. Recipe detail also has a rating-trend line chart (recharts, PR #50) and a recommended-grind hint (PR #54). CLAUDE.md was reworked full-stack (PR #52) and web scripts added: type-check, lint:fix (PR #53). Next: tasting-notes visualization (needs a coffee detail page), or another Phase 5 feature.
+Phase 5 (product improvements / analytics) in progress. Phases 1-4 complete. Four analytics slices shipped end-to-end (endpoint + dashboard widget each): top-rated recipes (PRs #38/#39), most-brewed recipes (PRs #40/#41), brew-method usage (PRs #43/#44), most-used coffees (PRs #46/#47). Dashboard shows all four widgets. Recipe detail also has a rating-trend line chart (recharts, PR #50) and a recommended-grind hint (PR #54). CLAUDE.md was reworked full-stack (PR #52) and web scripts added: type-check, lint:fix (PR #53). Coffee tasting-notes radar shipped full-stack: numeric 1-5 scores replaced the free-text tasting fields (backend migration + DTO validation) and a recharts radar renders on the coffee detail page. Next: remaining Phase 5 features (AI-assisted recipe suggestions, export recipes to PDF, public share links).
 
 ## Completed
 
@@ -49,6 +49,7 @@ Phase 5 (product improvements / analytics) in progress. Phases 1-4 complete. Fou
 
 ## Recently Worked On
 
+- Coffee tasting-notes radar (full-stack): numeric 1-5 acidity/body/sweetness/bitterness scores replaced free-text tasting fields; Flyway V3 migration, @Min/@Max DTO validation, MUI score sliders, recharts radar on coffee detail
 - Recommended-grind hint on recipe detail (best-rated session's grind; no backend) — PR #54
 - Rating-trend line chart on recipe detail (recharts; reuses brew-history data) — PR #50
 - CLAUDE.md reworked full-stack (PR #52); web type-check + lint:fix scripts (PR #53)
@@ -65,6 +66,5 @@ Phase 5 (product improvements / analytics) in progress. Phases 1-4 complete. Fou
 
 ## Immediate Next Steps
 
-1. Coffee tasting-notes visualization — a radar/spider chart of the coffee's acidity/body/sweetness/bitterness. Likely needs a coffee detail page first (`/coffees/[id]`), since only a coffees list exists today.
-2. Remaining Phase 5 features: AI-assisted recipe suggestions, export recipes to PDF, public share links.
-3. Review JaCoCo and SonarCloud.
+1. Remaining Phase 5 features: AI-assisted recipe suggestions, export recipes to PDF, public share links.
+2. Review JaCoCo and SonarCloud.

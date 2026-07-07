@@ -162,10 +162,10 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
             .roastLevel("Medio")
             .notesPrimary("Cardamomo")
             .notesSecondary("Canela, clavo")
-            .acidity("Media")
-            .body("Medio")
-            .sweetness("Media")
-            .bitterness("Baja")
+            .acidityScore(3)
+            .bodyScore(3)
+            .sweetnessScore(3)
+            .bitternessScore(2)
             .description("Coffee created for repository tests.")
             .build();
 

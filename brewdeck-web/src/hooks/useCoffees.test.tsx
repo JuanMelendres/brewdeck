@@ -17,7 +17,7 @@ describe('useCoffees', () => {
         {
           id: 1, name: 'Mezcla', brand: null, origin: 'Veracruz', region: null, farm: null,
           producer: null, variety: null, process: null, roastLevel: null, notesPrimary: null,
-          notesSecondary: null, acidity: null, body: null, sweetness: null, bitterness: null,
+          notesSecondary: null, acidityScore: null, bodyScore: null, sweetnessScore: null, bitternessScore: null,
           description: null, createdAt: '2026-01-01T00:00:00', updatedAt: null,
         },
       ],

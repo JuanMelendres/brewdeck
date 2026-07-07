@@ -15,6 +15,8 @@
    Do instead: before verify, `grep -rn '^<<<<<<<\|^>>>>>>>\|^=======$' brewdeck-api/src`; resolve then build.
 4. **[2026-07-03] JaCoCo coverage gate enforced in `verify`**
    Do instead: add tests for new code (service+controller+integration) or build fails at jacoco:check.
+5. **[2026-07-06] SonarCloud gate needs >=80% coverage on NEW code; JaCoCo excludes DTOs but Sonar must too**
+   Trap: new executable lines in a `*Request`/`*Response`/config/`*Application` file (e.g. a mapper like `CoffeeResponse.fromEntity`) count as uncovered in Sonar even though JaCoCo excludes the class — a test can't fix it (JaCoCo won't record an excluded class). Fix once via `sonar.coverage.exclusions` in `pom.xml` mirroring the JaCoCo `<exclude>` list. Local `./mvnw clean verify` passes regardless; this only shows on the PR's "SonarCloud Code Analysis" check.
 
 ## Domain Behavior Guardrails
 1. **[2026-07-03] Collection GET endpoints must return `PageResponse<T>`**

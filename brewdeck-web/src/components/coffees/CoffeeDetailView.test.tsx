@@ -24,10 +24,10 @@ const coffee: Coffee = {
   roastLevel: 'Medio',
   notesPrimary: 'Cardamomo',
   notesSecondary: 'Canela',
-  acidity: 'Media',
-  body: 'Medio',
-  sweetness: 'Media',
-  bitterness: 'Baja',
+  acidityScore: 3,
+  bodyScore: 3,
+  sweetnessScore: 3,
+  bitternessScore: 2,
   description: 'Clean and aromatic.',
   createdAt: '2026-01-01T00:00:00',
   updatedAt: null,
@@ -57,5 +57,11 @@ describe('CoffeeDetailView', () => {
     expect(screen.getByText('Lavado')).toBeInTheDocument();
     expect(screen.getByText('Cardamomo · Canela')).toBeInTheDocument();
     expect(screen.getByText('Clean and aromatic.')).toBeInTheDocument();
+  });
+
+  it('renders the tasting profile radar', () => {
+    mockHook({ isLoading: false, isError: false, data: coffee });
+    renderWithTheme(<CoffeeDetailView coffeeId={1} />);
+    expect(screen.getByRole('heading', { name: 'Tasting profile' })).toBeInTheDocument();
   });
 });

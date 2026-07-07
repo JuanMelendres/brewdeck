@@ -9,6 +9,7 @@ import { useCoffee } from '@/hooks/useCoffee';
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { StatCard } from '@/components/dashboard/StatCard';
+import { CoffeeTastingRadar } from '@/components/coffees/CoffeeTastingRadar';
 
 function orDash(value: string | null): string {
   return value && value.trim() !== '' ? value : '—';
@@ -34,10 +35,6 @@ export function CoffeeDetailView({ coffeeId }: { coffeeId: number }) {
     { label: 'Variety', value: orDash(coffee.variety) },
     { label: 'Process', value: orDash(coffee.process) },
     { label: 'Roast', value: orDash(coffee.roastLevel) },
-    { label: 'Acidity', value: orDash(coffee.acidity) },
-    { label: 'Body', value: orDash(coffee.body) },
-    { label: 'Sweetness', value: orDash(coffee.sweetness) },
-    { label: 'Bitterness', value: orDash(coffee.bitterness) },
   ];
 
   return (
@@ -57,6 +54,15 @@ export function CoffeeDetailView({ coffeeId }: { coffeeId: number }) {
           </Grid>
         ))}
       </Grid>
+
+      <Box sx={{ mb: 3 }}>
+        <CoffeeTastingRadar
+          acidity={coffee.acidityScore}
+          body={coffee.bodyScore}
+          sweetness={coffee.sweetnessScore}
+          bitterness={coffee.bitternessScore}
+        />
+      </Box>
 
       {coffee.notesPrimary || coffee.notesSecondary ? (
         <Box sx={{ mb: 3 }}>

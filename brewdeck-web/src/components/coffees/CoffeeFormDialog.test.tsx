@@ -42,6 +42,16 @@ describe('CoffeeFormDialog', () => {
     expect(createMutate.mock.calls[0][0]).toEqual(expect.objectContaining({ name: 'Mezcla' }));
   });
 
+  it('renders tasting score sliders', () => {
+    mockHooks();
+    renderWithTheme(<CoffeeFormDialog open onClose={vi.fn()} />);
+
+    expect(screen.getByRole('slider', { name: /acidity/i })).toBeInTheDocument();
+    expect(screen.getByRole('slider', { name: /body/i })).toBeInTheDocument();
+    expect(screen.getByRole('slider', { name: /sweetness/i })).toBeInTheDocument();
+    expect(screen.getByRole('slider', { name: /bitterness/i })).toBeInTheDocument();
+  });
+
   it('maps a server 400 validation error onto the field', async () => {
     mockHooks();
     createMutate.mockImplementation((_body, opts) => {

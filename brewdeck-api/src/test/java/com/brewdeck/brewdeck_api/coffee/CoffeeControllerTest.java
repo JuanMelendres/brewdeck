@@ -84,10 +84,10 @@ class CoffeeControllerTest {
             "Medio",
             "Cardamomo",
             "Canela, clavo",
-            "Media",
-            "Medio",
-            "Media",
-            "Baja",
+            3,
+            3,
+            4,
+            2,
             "Café limpio y aromático",
             LocalDateTime.now(),
             null);
@@ -147,10 +147,10 @@ class CoffeeControllerTest {
             "Medio",
             "Cardamomo",
             "Canela, clavo",
-            "Media",
-            "Medio",
-            "Media",
-            "Baja",
+            3,
+            3,
+            4,
+            2,
             "Café limpio y aromático",
             LocalDateTime.now(),
             null);
@@ -201,10 +201,10 @@ class CoffeeControllerTest {
             "Medio",
             "Cardamomo",
             "Canela, clavo",
-            "Media",
-            "Medio",
-            "Media",
-            "Baja",
+            3,
+            3,
+            4,
+            2,
             "Café limpio y aromático",
             LocalDateTime.now(),
             null);
@@ -250,10 +250,10 @@ class CoffeeControllerTest {
             "Medio",
             "Cardamomo",
             "Canela, clavo",
-            "Media",
-            "Medio",
-            "Media",
-            "Baja",
+            3,
+            3,
+            4,
+            2,
             "Café limpio y aromático");
 
     CoffeeResponse response =
@@ -270,10 +270,10 @@ class CoffeeControllerTest {
             request.roastLevel(),
             request.notesPrimary(),
             request.notesSecondary(),
-            request.acidity(),
-            request.body(),
-            request.sweetness(),
-            request.bitterness(),
+            request.acidityScore(),
+            request.bodyScore(),
+            request.sweetnessScore(),
+            request.bitternessScore(),
             request.description(),
             LocalDateTime.now(),
             null);
@@ -307,10 +307,10 @@ class CoffeeControllerTest {
             "Medio",
             "Cardamomo",
             "Canela, clavo",
-            "Media",
-            "Medio",
-            "Media",
-            "Baja",
+            3,
+            3,
+            4,
+            2,
             "Café limpio y aromático");
 
     mockMvc
@@ -340,10 +340,10 @@ class CoffeeControllerTest {
             "Medio",
             "Cardamomo",
             "Canela, clavo",
-            "Media",
-            "Medio",
-            "Media",
-            "Baja",
+            3,
+            3,
+            4,
+            2,
             "Updated description");
 
     CoffeeResponse response =
@@ -360,10 +360,10 @@ class CoffeeControllerTest {
             request.roastLevel(),
             request.notesPrimary(),
             request.notesSecondary(),
-            request.acidity(),
-            request.body(),
-            request.sweetness(),
-            request.bitterness(),
+            request.acidityScore(),
+            request.bodyScore(),
+            request.sweetnessScore(),
+            request.bitternessScore(),
             request.description(),
             LocalDateTime.now(),
             LocalDateTime.now());
@@ -406,10 +406,10 @@ class CoffeeControllerTest {
             "Medio",
             "Cardamomo",
             "Canela, clavo",
-            "Media",
-            "Medio",
-            "Media",
-            "Baja",
+            3,
+            3,
+            4,
+            2,
             "Café limpio y aromático");
 
     mockMvc
@@ -441,10 +441,10 @@ class CoffeeControllerTest {
             "Medio",
             "Cardamomo",
             "Canela, clavo",
-            "Media",
-            "Medio",
-            "Media",
-            "Baja",
+            3,
+            3,
+            4,
+            2,
             "A".repeat(1001));
 
     mockMvc
@@ -472,11 +472,7 @@ class CoffeeControllerTest {
     "process,81,Process must not exceed 80 characters",
     "roastLevel,81,Roast level must not exceed 80 characters",
     "notesPrimary,256,Primary notes must not exceed 255 characters",
-    "notesSecondary,501,Secondary notes must not exceed 500 characters",
-    "acidity,81,Acidity must not exceed 80 characters",
-    "body,81,Body must not exceed 80 characters",
-    "sweetness,81,Sweetness must not exceed 80 characters",
-    "bitterness,81,Bitterness must not exceed 80 characters"
+    "notesSecondary,501,Secondary notes must not exceed 500 characters"
   })
   void create_shouldReturnBadRequest_whenOptionalTextFieldExceedsMaxLength(
       String fieldName, int length, String message) throws Exception {
@@ -496,6 +492,66 @@ class CoffeeControllerTest {
         .andExpect(jsonPath("$.validationErrors." + fieldName).value(message));
   }
 
+  @ParameterizedTest
+  @CsvSource({
+    "acidityScore,0,Acidity score must be at least 1",
+    "acidityScore,6,Acidity score must not exceed 5",
+    "bodyScore,0,Body score must be at least 1",
+    "bodyScore,6,Body score must not exceed 5",
+    "sweetnessScore,0,Sweetness score must be at least 1",
+    "sweetnessScore,6,Sweetness score must not exceed 5",
+    "bitternessScore,0,Bitterness score must be at least 1",
+    "bitternessScore,6,Bitterness score must not exceed 5"
+  })
+  void create_shouldReturnValidationError_whenScoreOutOfRange(
+      String fieldName, int value, String message) throws Exception {
+    ObjectNode request = objectMapper.createObjectNode();
+    request.put("name", "Mezcla Veracruz");
+    request.put(fieldName, value);
+
+    mockMvc
+        .perform(
+            post("/api/coffees")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.validationErrors." + fieldName).value(message));
+  }
+
+  @Test
+  void create_shouldSucceed_whenScoresAreOmitted() throws Exception {
+    when(coffeeService.create(any(CoffeeRequest.class)))
+        .thenReturn(
+            new CoffeeResponse(
+                1L,
+                "No scores",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                LocalDateTime.now(),
+                null));
+
+    mockMvc
+        .perform(
+            post("/api/coffees")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"No scores\"}"))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.acidityScore").doesNotExist());
+  }
+
   @Test
   void update_shouldReturnBadRequest_whenNameIsBlank() throws Exception {
     CoffeeRequest request =
@@ -511,10 +567,10 @@ class CoffeeControllerTest {
             "Medio",
             "Cardamomo",
             "Canela, clavo",
-            "Media",
-            "Medio",
-            "Media",
-            "Baja",
+            3,
+            3,
+            4,
+            2,
             "Updated description");
 
     mockMvc

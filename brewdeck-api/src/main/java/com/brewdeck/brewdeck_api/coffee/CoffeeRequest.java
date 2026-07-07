@@ -1,5 +1,7 @@
 package com.brewdeck.brewdeck_api.coffee;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -18,9 +20,17 @@ public record CoffeeRequest(
     @Size(max = 255, message = "Primary notes must not exceed 255 characters") String notesPrimary,
     @Size(max = 500, message = "Secondary notes must not exceed 500 characters")
         String notesSecondary,
-    @Size(max = 80, message = "Acidity must not exceed 80 characters") String acidity,
-    @Size(max = 80, message = "Body must not exceed 80 characters") String body,
-    @Size(max = 80, message = "Sweetness must not exceed 80 characters") String sweetness,
-    @Size(max = 80, message = "Bitterness must not exceed 80 characters") String bitterness,
+    @Min(value = 1, message = "Acidity score must be at least 1")
+        @Max(value = 5, message = "Acidity score must not exceed 5")
+        Integer acidityScore,
+    @Min(value = 1, message = "Body score must be at least 1")
+        @Max(value = 5, message = "Body score must not exceed 5")
+        Integer bodyScore,
+    @Min(value = 1, message = "Sweetness score must be at least 1")
+        @Max(value = 5, message = "Sweetness score must not exceed 5")
+        Integer sweetnessScore,
+    @Min(value = 1, message = "Bitterness score must be at least 1")
+        @Max(value = 5, message = "Bitterness score must not exceed 5")
+        Integer bitternessScore,
     @Size(max = 1000, message = "Description must not exceed 1000 characters")
         String description) {}

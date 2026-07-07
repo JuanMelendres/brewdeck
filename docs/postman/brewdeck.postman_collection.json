@@ -262,7 +262,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Mezcla Veracruz\",\n  \"brand\": \"Café local\",\n  \"origin\": \"Veracruz\",\n  \"region\": \"Coatepec\",\n  \"farm\": null,\n  \"producer\": null,\n  \"variety\": \"Blend\",\n  \"process\": \"Lavado\",\n  \"roastLevel\": \"Medio\",\n  \"notesPrimary\": \"Cardamomo\",\n  \"notesSecondary\": \"Canela, clavo, limpio, aromático\",\n  \"acidity\": \"Media\",\n  \"body\": \"Medio\",\n  \"sweetness\": \"Media\",\n  \"bitterness\": \"Baja\",\n  \"description\": \"Café especiado, limpio y aromático, ideal para AeroPress.\"\n}",
+              "raw": "{\n  \"name\": \"Mezcla Veracruz\",\n  \"brand\": \"Café local\",\n  \"origin\": \"Veracruz\",\n  \"region\": \"Coatepec\",\n  \"farm\": null,\n  \"producer\": null,\n  \"variety\": \"Blend\",\n  \"process\": \"Lavado\",\n  \"roastLevel\": \"Medio\",\n  \"notesPrimary\": \"Cardamomo\",\n  \"notesSecondary\": \"Canela, clavo, limpio, aromático\",\n  \"acidityScore\": 4,\n  \"bodyScore\": 3,\n  \"sweetnessScore\": 5,\n  \"bitternessScore\": 2,\n  \"description\": \"Café especiado, limpio y aromático, ideal para AeroPress.\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -314,7 +314,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Mezcla Veracruz\",\n  \"brand\": \"Café local\",\n  \"origin\": \"Veracruz\",\n  \"region\": \"Coatepec\",\n  \"farm\": null,\n  \"producer\": null,\n  \"variety\": \"Blend\",\n  \"process\": \"Lavado\",\n  \"roastLevel\": \"Medio\",\n  \"notesPrimary\": \"Cardamomo\",\n  \"notesSecondary\": \"Canela, clavo, limpio, aromático\",\n  \"acidity\": \"Media\",\n  \"body\": \"Medio\",\n  \"sweetness\": \"Media\",\n  \"bitterness\": \"Baja\",\n  \"description\": \"Updated coffee description.\"\n}",
+              "raw": "{\n  \"name\": \"Mezcla Veracruz\",\n  \"brand\": \"Café local\",\n  \"origin\": \"Veracruz\",\n  \"region\": \"Coatepec\",\n  \"farm\": null,\n  \"producer\": null,\n  \"variety\": \"Blend\",\n  \"process\": \"Lavado\",\n  \"roastLevel\": \"Medio\",\n  \"notesPrimary\": \"Cardamomo\",\n  \"notesSecondary\": \"Canela, clavo, limpio, aromático\",\n  \"acidityScore\": 4,\n  \"bodyScore\": 3,\n  \"sweetnessScore\": 5,\n  \"bitternessScore\": 2,\n  \"description\": \"Updated coffee description.\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1734,7 +1734,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"\",\n  \"brand\": \"Café local\",\n  \"origin\": \"Veracruz\",\n  \"region\": \"Coatepec\",\n  \"farm\": null,\n  \"producer\": null,\n  \"variety\": \"Blend\",\n  \"process\": \"Lavado\",\n  \"roastLevel\": \"Medio\",\n  \"notesPrimary\": \"Cardamomo\",\n  \"notesSecondary\": \"Canela, clavo, limpio, aromático\",\n  \"acidity\": \"Media\",\n  \"body\": \"Medio\",\n  \"sweetness\": \"Media\",\n  \"bitterness\": \"Baja\",\n  \"description\": \"Café especiado, limpio y aromático, ideal para AeroPress.\"\n}",
+              "raw": "{\n  \"name\": \"\",\n  \"brand\": \"Café local\",\n  \"origin\": \"Veracruz\",\n  \"region\": \"Coatepec\",\n  \"farm\": null,\n  \"producer\": null,\n  \"variety\": \"Blend\",\n  \"process\": \"Lavado\",\n  \"roastLevel\": \"Medio\",\n  \"notesPrimary\": \"Cardamomo\",\n  \"notesSecondary\": \"Canela, clavo, limpio, aromático\",\n  \"acidityScore\": 4,\n  \"bodyScore\": 3,\n  \"sweetnessScore\": 5,\n  \"bitternessScore\": 2,\n  \"description\": \"Café especiado, limpio y aromático, ideal para AeroPress.\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
