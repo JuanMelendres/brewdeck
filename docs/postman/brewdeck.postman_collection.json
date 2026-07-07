@@ -1180,6 +1180,26 @@
           ]
         },
         {
+          "name": "Improve recipe from history",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/recipes/{{recipeId}}/improve",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "recipes",
+                "{{recipeId}}",
+                "improve"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "PUT - Update recipe",
           "request": {
             "method": "PUT",
