@@ -1134,6 +1134,52 @@
           ]
         },
         {
+          "name": "POST - Suggest recipe (AI)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseURL}}/api/recipes/suggest",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "recipes",
+                "suggest"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"coffeeId\": \"{{coffeeId}}\",\n  \"methodId\": \"{{methodId}}\",\n  \"notes\": \"fruity and bright\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 (AI enabled) or 503 (AI disabled)', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 503]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "PUT - Update recipe",
           "request": {
             "method": "PUT",
