@@ -1,14 +1,21 @@
 'use client';
 
+import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
+import CircularProgress from '@mui/material/CircularProgress';
 import Grid from '@mui/material/Grid';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import NextLink from 'next/link';
 import type { ReactNode } from 'react';
+import { useState } from 'react';
+import type { Recipe } from '@/lib/api/types';
+import { ApiError } from '@/lib/api/client';
 import { useRecipe, useRecipeStats } from '@/hooks/useRecipe';
 import { useRecipeBrewSessions } from '@/hooks/useRecipeBrewSessions';
+import { useImproveRecipe } from '@/hooks/useImproveRecipe';
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -16,6 +23,7 @@ import { StatCard } from '@/components/dashboard/StatCard';
 import { BrewSessionsTable } from '@/components/brew-sessions/BrewSessionsTable';
 import { RecipeRatingTrend } from './RecipeRatingTrend';
 import { RecommendedGrind } from './RecommendedGrind';
+import { RecipeFormDialog } from './RecipeFormDialog';
 
 function orDash(value: string | number | null): string {
   if (value === null) {
@@ -38,6 +46,10 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
   const statsQuery = useRecipeStats(recipeId);
   const historyQuery = useRecipeBrewSessions(recipeId);
 
+  const improve = useImproveRecipe();
+  const [improved, setImproved] = useState<{ recipe: Recipe; rationale: string } | null>(null);
+  const [improveError, setImproveError] = useState<string | null>(null);
+
   if (recipeQuery.isLoading && !recipeQuery.data) {
     return <Spinner />;
   }
@@ -47,6 +59,37 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
   }
 
   const recipe = recipeQuery.data;
+
+  const hasRatedHistory =
+    historyQuery.data?.content.some((session) => session.rating !== null) ?? false;
+
+  const onImprove = () => {
+    setImproveError(null);
+    improve.mutate(recipe.id, {
+      onSuccess: (data) => {
+        setImproved({
+          recipe: {
+            ...recipe,
+            coffeeGrams: data.coffeeGrams ?? recipe.coffeeGrams,
+            waterGrams: data.waterGrams ?? recipe.waterGrams,
+            ratio: data.ratio ?? recipe.ratio,
+            grindSetting: data.grindSetting ?? recipe.grindSetting,
+            waterTemp: data.waterTemp ?? recipe.waterTemp,
+            brewTime: data.brewTime ?? recipe.brewTime,
+            steps: data.steps ?? recipe.steps,
+          },
+          rationale: data.rationale,
+        });
+      },
+      onError: (error) => {
+        if (error instanceof ApiError && error.status === 422) {
+          setImproveError('Log a rated brew for this recipe first, then try again.');
+        } else {
+          setImproveError('AI improvements are unavailable right now. Please try again later.');
+        }
+      },
+    });
+  };
 
   const details: Array<{ label: string; value: string }> = [
     { label: 'Coffee', value: recipe.coffeeName },
@@ -116,6 +159,27 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
         {recipe.favorite ? <Chip label="Favorite" color="primary" size="small" /> : null}
       </Box>
 
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+        <Tooltip title={hasRatedHistory ? '' : 'Log a rated brew to enable AI improvements'}>
+          <span>
+            <Button
+              variant="outlined"
+              size="small"
+              disabled={!hasRatedHistory || improve.isPending}
+              onClick={onImprove}
+              startIcon={improve.isPending ? <CircularProgress size={16} /> : undefined}
+            >
+              Improve with AI
+            </Button>
+          </span>
+        </Tooltip>
+      </Box>
+      {improveError ? (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {improveError}
+        </Alert>
+      ) : null}
+
       <Grid container spacing={2} sx={{ mb: 3 }}>
         {details.map((item) => (
           <Grid key={item.label} size={{ xs: 6, sm: 4, md: 3 }}>
@@ -163,6 +227,15 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
         Brew history
       </Typography>
       {historyBody}
+
+      {improved ? (
+        <RecipeFormDialog
+          open
+          recipe={improved.recipe}
+          initialRationale={improved.rationale}
+          onClose={() => setImproved(null)}
+        />
+      ) : null}
     </>
   );
 }

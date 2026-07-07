@@ -57,10 +57,12 @@ export function RecipeFormDialog({
   open,
   recipe,
   onClose,
+  initialRationale,
 }: {
   open: boolean;
   recipe?: Recipe;
   onClose: () => void;
+  initialRationale?: string | null;
 }) {
   const isEdit = recipe !== undefined;
   const create = useCreateRecipe();
@@ -85,7 +87,7 @@ export function RecipeFormDialog({
   const pending = create.isPending || update.isPending;
 
   const suggestion = useSuggestRecipe();
-  const [rationale, setRationale] = useState<string | null>(null);
+  const [rationale, setRationale] = useState<string | null>(initialRationale ?? null);
   const [suggestError, setSuggestError] = useState<string | null>(null);
 
   const coffeeId = watch('coffeeId');
