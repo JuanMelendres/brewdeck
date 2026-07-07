@@ -79,6 +79,6 @@ Status: In Progress
 - Rating trend over time (chart, recipe detail) — Done (PR #50)
 - Recommended grind adjustments (recipe detail hint) — Done (PR #54)
 - Coffee tasting notes visualization (radar chart on coffee detail) — Done (PR #57)
-- AI-assisted recipe suggestions (generate brew params; Claude via Java SDK) — In Progress (generate slice)
+- AI-assisted recipe suggestions (generate brew params; Claude via Java SDK) — Done, generate slice (PR #58); improve-from-history slice deferred
 - Export recipes to PDF — Not Started
 - Public share links — Not Started
