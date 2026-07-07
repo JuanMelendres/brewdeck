@@ -11,7 +11,7 @@ const recipe: Recipe = {
   id: 7, coffeeId: 1, coffeeName: 'Mezcla', methodId: 2, methodName: 'AeroPress',
   name: 'My Recipe', coffeeGrams: null, waterGrams: null, ratio: null, grindSetting: null,
   waterTemp: null, brewTime: null, steps: null, expectedTaste: null, favorite: false,
-  createdAt: '2026-01-01T00:00:00', updatedAt: null,
+  createdAt: '2026-01-01T00:00:00', updatedAt: null, shareToken: null,
 };
 
 afterEach(() => vi.restoreAllMocks());

@@ -43,6 +43,7 @@ const fullRecipe: Recipe = {
   favorite: true,
   createdAt: '2026-01-01T00:00:00',
   updatedAt: null,
+  shareToken: null,
 };
 
 const emptyRecipe: Recipe = {

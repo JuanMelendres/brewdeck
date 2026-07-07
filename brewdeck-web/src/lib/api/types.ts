@@ -73,6 +73,21 @@ export type Recipe = {
   favorite: boolean;
   createdAt: string;
   updatedAt: string | null;
+  shareToken: string | null;
+};
+
+export type PublicRecipe = {
+  name: string;
+  coffeeName: string;
+  methodName: string;
+  coffeeGrams: number | null;
+  waterGrams: number | null;
+  ratio: string | null;
+  grindSetting: string | null;
+  waterTemp: number | null;
+  brewTime: string | null;
+  steps: string | null;
+  expectedTaste: string | null;
 };
 
 export type RecipeFilters = {

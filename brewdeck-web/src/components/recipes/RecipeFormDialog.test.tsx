@@ -106,6 +106,7 @@ describe('RecipeFormDialog', () => {
       favorite: false,
       createdAt: '2024-01-01T00:00:00Z',
       updatedAt: null,
+      shareToken: null,
     };
     renderWithTheme(<RecipeFormDialog open recipe={recipe} onClose={vi.fn()} />);
     fireEvent.click(screen.getByRole('button', { name: /suggest with ai/i }));
