@@ -6,7 +6,7 @@
 
 ## Current Phase
 
-Phase 5 (product improvements / analytics) in progress. Phases 1-4 complete. Four analytics slices shipped end-to-end (endpoint + dashboard widget each): top-rated recipes (PRs #38/#39), most-brewed recipes (PRs #40/#41), brew-method usage (PRs #43/#44), most-used coffees (PRs #46/#47). Dashboard shows all four widgets. Recipe detail also has a rating-trend line chart (recharts, PR #50) and a recommended-grind hint (PR #54). CLAUDE.md was reworked full-stack (PR #52) and web scripts added: type-check, lint:fix (PR #53). Coffee tasting-notes radar shipped full-stack (PR #57 merged): numeric 1-5 scores replaced the free-text tasting fields (backend migration + DTO validation) and a recharts radar renders on the coffee detail page. AI recipe suggestions generate slice shipped full-stack (PR #58 merged): feature-toggled POST /api/recipes/suggest calls Claude (claude-haiku-4-5, structured outputs) behind a RecipeSuggestionPort, and a "Suggest with AI" button pre-fills the recipe form. AI recipe improve-from-history slice shipped full-stack: feature-toggled POST /api/recipes/{id}/improve tunes an existing recipe from its recent rated brew sessions (extends RecipeSuggestionPort with improve, 422 when no rated history), and an "Improve with AI" button on the recipe detail page pre-fills the edit dialog. Recipe PDF export shipped (frontend-only): a client-side "Export PDF" button on the recipe detail page downloads a branded one-page recipe card built with jspdf from the loaded recipe. Next: remaining Phase 5 features (public share links).
+Phase 5 (product improvements / analytics) complete; all roadmap slices shipped end-to-end. Phase 6 not yet scoped (awaiting product direction). Phases 1-4 complete. Four analytics slices shipped end-to-end (endpoint + dashboard widget each): top-rated recipes (PRs #38/#39), most-brewed recipes (PRs #40/#41), brew-method usage (PRs #43/#44), most-used coffees (PRs #46/#47). Dashboard shows all four widgets. Recipe detail also has a rating-trend line chart (recharts, PR #50) and a recommended-grind hint (PR #54). CLAUDE.md was reworked full-stack (PR #52) and web scripts added: type-check, lint:fix (PR #53). Coffee tasting-notes radar shipped full-stack (PR #57 merged): numeric 1-5 scores replaced the free-text tasting fields (backend migration + DTO validation) and a recharts radar renders on the coffee detail page. AI recipe suggestions generate slice shipped full-stack (PR #58 merged): feature-toggled POST /api/recipes/suggest calls Claude (claude-haiku-4-5, structured outputs) behind a RecipeSuggestionPort, and a "Suggest with AI" button pre-fills the recipe form. AI recipe improve-from-history slice shipped full-stack: feature-toggled POST /api/recipes/{id}/improve tunes an existing recipe from its recent rated brew sessions (extends RecipeSuggestionPort with improve, 422 when no rated history), and an "Improve with AI" button on the recipe detail page pre-fills the edit dialog. Recipe PDF export shipped (frontend-only): a client-side "Export PDF" button on the recipe detail page downloads a branded one-page recipe card built with jspdf from the loaded recipe. Public share links shipped full-stack (PR #62 merged): opt-in revocable base64url token on recipes, PATCH share/unshare, curated public GET /api/public/recipes/{token}, ShareRecipeDialog + standalone /share/[token] page. Phase 5 now fully complete; next: scope Phase 6.
 
 ## Completed
 
@@ -46,6 +46,7 @@ Phase 5 (product improvements / analytics) in progress. Phases 1-4 complete. Fou
 - Top-rated recipes endpoint + widget (PRs #38, #39)
 - Most-brewed recipes endpoint (GET /api/recipes/most-brewed) + widget (PRs #40, #41)
 - Brew-method usage endpoint (GET /api/brew-methods/usage) + widget (PRs #43, #44)
+- Public share links full-stack (PR #62) — completes Phase 5
 
 ## Recently Worked On
 
@@ -70,5 +71,6 @@ Phase 5 (product improvements / analytics) in progress. Phases 1-4 complete. Fou
 
 ## Immediate Next Steps
 
-1. Remaining Phase 5 feature: public share links.
-2. Review JaCoCo and SonarCloud.
+1. Scope Phase 6 (awaiting product direction — auth/multi-user, brew timer, coffee inventory, or OG preview for share links).
+2. Sweep deferred Minors catalogued in .superpowers/sdd/progress.md (test-coverage nits, onRetry wrappers, orphaned globals.css).
+3. Review JaCoCo and SonarCloud.
