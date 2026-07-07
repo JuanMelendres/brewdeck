@@ -38,7 +38,7 @@
 		</sonar.coverage.jacoco.xmlReportPaths>
 		<sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
 		<sonar.coverage.exclusions>
-			**/*Application.java,**/*Request.java,**/*Response.java,**/config/**
+			**/*Application.java,**/*Request.java,**/*Response.java,**/config/**,**/ai/ClaudeRecipeSuggestionAdapter.java
 		</sonar.coverage.exclusions>
 	</properties>
 
@@ -136,6 +136,13 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-testcontainers</artifactId>
 			<scope>test</scope>
+		</dependency>
+
+		<!-- Anthropic Java SDK for AI recipe suggestions -->
+		<dependency>
+			<groupId>com.anthropic</groupId>
+			<artifactId>anthropic-java</artifactId>
+			<version>2.34.0</version>
 		</dependency>
 	</dependencies>
 

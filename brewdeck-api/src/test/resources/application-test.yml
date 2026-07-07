@@ -10,3 +10,10 @@ spring:
 app:
   cors:
     allowed-origins: http://localhost:3000
+
+brewdeck:
+  ai:
+    enabled: false
+    model: claude-haiku-4-5
+    timeout-seconds: 20
+    max-tokens: 1024
