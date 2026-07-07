@@ -69,7 +69,7 @@ Recipe detail page (recipe already loaded)
 Single page, single data source (the loaded `recipe`; no async at export time):
 
 - **Header band:** "BrewDeck" wordmark, "Recipe" subtitle.
-- **Title:** `recipe.name`. If `recipe.favorite`, render a "★ Favorite" badge.
+- **Title:** `recipe.name`. If `recipe.favorite`, render a "Favorite" badge (plain text — jspdf's default Helvetica is WinAnsi and cannot encode the `★` glyph).
 - **Details section** — labeled lines, in this order:
   Coffee (`coffeeName`), Method (`methodName`), Coffee (g) (`coffeeGrams`),
   Water (g) (`waterGrams`), Ratio (`ratio`), Grind (`grindSetting`),
