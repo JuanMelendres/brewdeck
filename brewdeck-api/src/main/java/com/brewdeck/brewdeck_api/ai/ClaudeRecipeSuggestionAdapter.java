@@ -21,6 +21,13 @@ public class ClaudeRecipeSuggestionAdapter implements RecipeSuggestionPort {
           + " as structured data only. Water temperature is in degrees Celsius, between 70 and 100."
           + " Keep steps and rationale concise.";
 
+  private static final String IMPROVE_SYSTEM_PROMPT =
+      "You are an expert barista tuning an existing coffee recipe using its brew history."
+          + " Given the current parameters and recent rated brews, return improved brewing"
+          + " parameters as structured data only. Water temperature is in degrees Celsius,"
+          + " between 70 and 100. Keep steps concise, and use the rationale to explain what you"
+          + " changed and why.";
+
   private final AnthropicClient client;
   private final AiProperties properties;
 
@@ -58,6 +65,34 @@ public class ClaudeRecipeSuggestionAdapter implements RecipeSuggestionPort {
     } catch (RuntimeException exception) {
       log.warn("AI suggestion call failed", exception);
       throw new AiUnavailableException("AI suggestion call failed", exception);
+    }
+  }
+
+  @Override
+  public SuggestedRecipe improve(ImprovementContext context) {
+    try {
+      StructuredMessageCreateParams<SuggestedRecipePayload> params =
+          MessageCreateParams.builder()
+              .model(properties.model())
+              .maxTokens((long) properties.maxTokens())
+              .system(IMPROVE_SYSTEM_PROMPT)
+              .addUserMessage(buildImproveMessage(context))
+              .outputConfig(SuggestedRecipePayload.class)
+              .build();
+
+      SuggestedRecipePayload payload =
+          client.messages().create(params).content().stream()
+              .flatMap(block -> block.text().stream())
+              .map(text -> text.text())
+              .findFirst()
+              .orElseThrow(() -> new AiUnavailableException("Empty AI response"));
+
+      return toSuggestedRecipe(payload);
+    } catch (AiUnavailableException exception) {
+      throw exception;
+    } catch (RuntimeException exception) {
+      log.warn("AI improvement call failed", exception);
+      throw new AiUnavailableException("AI improvement call failed", exception);
     }
   }
 
@@ -100,6 +135,69 @@ public class ClaudeRecipeSuggestionAdapter implements RecipeSuggestionPort {
         + ")"
         + "\nUser notes: "
         + orDash(c.notes());
+  }
+
+  private String buildImproveMessage(ImprovementContext c) {
+    StringBuilder message = new StringBuilder();
+    message
+        .append("Coffee: ")
+        .append(c.coffeeName())
+        .append("\nOrigin: ")
+        .append(orDash(c.origin()))
+        .append("\nRoast: ")
+        .append(orDash(c.roastLevel()))
+        .append("\nProcess: ")
+        .append(orDash(c.process()))
+        .append("\nTasting scores (1-5): acidity=")
+        .append(orDash(c.acidityScore()))
+        .append(", body=")
+        .append(orDash(c.bodyScore()))
+        .append(", sweetness=")
+        .append(orDash(c.sweetnessScore()))
+        .append(", bitterness=")
+        .append(orDash(c.bitternessScore()))
+        .append("\nBrew method: ")
+        .append(c.methodName())
+        .append(" (")
+        .append(orDash(c.methodDescription()))
+        .append(")")
+        .append("\n\nCurrent recipe parameters:")
+        .append("\n  Coffee grams: ")
+        .append(orDash(c.currentCoffeeGrams()))
+        .append("\n  Water grams: ")
+        .append(orDash(c.currentWaterGrams()))
+        .append("\n  Ratio: ")
+        .append(orDash(c.currentRatio()))
+        .append("\n  Grind: ")
+        .append(orDash(c.currentGrindSetting()))
+        .append("\n  Water temp: ")
+        .append(orDash(c.currentWaterTemp()))
+        .append("\n  Brew time: ")
+        .append(orDash(c.currentBrewTime()))
+        .append("\n  Steps: ")
+        .append(orDash(c.currentSteps()))
+        .append("\n\nRecent rated brews (newest first):");
+
+    int index = 1;
+    for (BrewHistoryEntry entry : c.history()) {
+      message
+          .append("\n  ")
+          .append(index++)
+          .append(". rating=")
+          .append(orDash(entry.rating()))
+          .append(", grind=")
+          .append(orDash(entry.actualGrind()))
+          .append(", temp=")
+          .append(orDash(entry.actualTemp()))
+          .append(", time=")
+          .append(orDash(entry.actualTime()))
+          .append(", taste=")
+          .append(orDash(entry.tasteResult()))
+          .append(", notes=")
+          .append(orDash(entry.adjustmentNotes()));
+    }
+
+    return message.toString();
   }
 
   private String orDash(Object value) {
