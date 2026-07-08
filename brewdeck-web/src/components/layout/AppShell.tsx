@@ -2,6 +2,7 @@
 
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import Drawer from '@mui/material/Drawer';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -9,7 +10,9 @@ import ListItemText from '@mui/material/ListItemText';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import type { ReactNode } from 'react';
+import { useAuth } from '@/lib/auth/AuthProvider';
 
 const DRAWER_WIDTH = 220;
 
@@ -23,16 +26,33 @@ const NAV = [
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const { user, logout } = useAuth();
+  const router = useRouter();
+  const onLogout = () => {
+    logout();
+    router.replace('/login');
+  };
+
   return (
     <Box sx={{ display: 'flex' }}>
       <AppBar
         position="fixed"
         sx={{ zIndex: (t) => t.zIndex.drawer + 1 }}
       >
-        <Toolbar>
+        <Toolbar sx={{ justifyContent: 'space-between' }}>
           <Typography variant="h6" noWrap>
             BrewDeck
           </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            {user ? (
+              <Typography variant="body2" noWrap>
+                {user.email}
+              </Typography>
+            ) : null}
+            <Button color="inherit" onClick={onLogout}>
+              Logout
+            </Button>
+          </Box>
         </Toolbar>
       </AppBar>
       <Drawer
