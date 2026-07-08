@@ -45,3 +45,6 @@ brewdeck:
     model: claude-haiku-4-5
     timeout-seconds: 20
     max-tokens: 1024
+  auth:
+    secret: ${BREWDECK_JWT_SECRET:dev-only-insecure-secret-change-me-at-least-32-bytes}
+    token-ttl: ${AUTH_TOKEN_TTL:PT24H}

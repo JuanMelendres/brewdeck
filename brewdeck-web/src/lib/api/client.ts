@@ -1,4 +1,5 @@
 import { API_BASE_URL } from '@/config/env';
+import { clearToken, getToken } from '@/lib/auth/tokenStore';
 import type { ErrorResponse } from './types';
 
 export class ApiError extends Error {
@@ -21,10 +22,23 @@ export class ApiError extends Error {
 }
 
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const token = getToken();
+  const authHeader: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
-    headers: { 'Content-Type': 'application/json', ...init?.headers },
+    headers: { 'Content-Type': 'application/json', ...authHeader, ...init?.headers },
   });
+
+  if (response.status === 401) {
+    clearToken();
+    if (typeof window !== 'undefined') {
+      const p = window.location.pathname;
+      const onPublic = p === '/login' || p === '/register' || p.startsWith('/share');
+      if (!onPublic) {
+        window.location.assign('/login');
+      }
+    }
+  }
 
   if (!response.ok) {
     let body: Partial<ErrorResponse> = {};

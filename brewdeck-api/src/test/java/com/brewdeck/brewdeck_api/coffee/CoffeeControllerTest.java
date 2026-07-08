@@ -23,15 +23,30 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(CoffeeController.class)
+@WebMvcTest(
+    controllers = CoffeeController.class,
+    excludeFilters =
+        @ComponentScan.Filter(
+            type = FilterType.ASSIGNABLE_TYPE,
+            classes = {
+              com.brewdeck.brewdeck_api.auth.JwtAuthenticationFilter.class,
+              com.brewdeck.brewdeck_api.common.config.SecurityConfig.class,
+              com.brewdeck.brewdeck_api.common.config.RestAuthenticationEntryPoint.class
+            }))
+@AutoConfigureMockMvc(addFilters = false)
+@WithMockUser
 class CoffeeControllerTest {
 
   @Autowired private MockMvc mockMvc;

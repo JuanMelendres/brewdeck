@@ -82,3 +82,11 @@ Status: Completed
 - AI-assisted recipe suggestions — Done: generate slice (PR #58) + improve-from-history slice (POST /api/recipes/{id}/improve, "Improve with AI" on recipe detail)
 - Export recipes to PDF — Done: client-side "Export PDF" on recipe detail (jspdf recipe card)
 - Public share links (opt-in revocable token, public /share/[token] page) — Done
+
+## Phase 6 — Auth & Multi-User
+
+Status: In progress
+
+- Auth foundation (Slice A) — self-registration, JWT login, gate all /api/** (public share + auth endpoints open) — Done
+- Per-user ownership (Slice B) — owner FK on coffees/recipes/sessions, per-user filtering + data migration — Pending
+- Account UX (Slice C) — email verification, password reset, refresh tokens, profile — Pending

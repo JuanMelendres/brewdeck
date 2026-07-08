@@ -131,3 +131,15 @@ export type BrewSession = {
 export type BrewSessionFilters = {
   rating?: number;
 };
+
+export type AuthResponse = {
+  token: string;
+  expiresAt: string;
+  email: string;
+};
+
+export type UserResponse = {
+  id: number;
+  email: string;
+  createdAt: string;
+};
