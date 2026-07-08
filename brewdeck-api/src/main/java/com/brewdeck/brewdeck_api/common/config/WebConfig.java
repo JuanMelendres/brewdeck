@@ -25,4 +25,19 @@ public class WebConfig implements WebMvcConfigurer {
         .allowCredentials(true)
         .maxAge(3600);
   }
+
+  @org.springframework.context.annotation.Bean
+  public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
+    org.springframework.web.cors.CorsConfiguration config =
+        new org.springframework.web.cors.CorsConfiguration();
+    config.setAllowedOrigins(allowedOrigins);
+    config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+    config.setAllowedHeaders(java.util.List.of("*"));
+    config.setAllowCredentials(true);
+    config.setMaxAge(3600L);
+    org.springframework.web.cors.UrlBasedCorsConfigurationSource source =
+        new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/api/**", config);
+    return source;
+  }
 }

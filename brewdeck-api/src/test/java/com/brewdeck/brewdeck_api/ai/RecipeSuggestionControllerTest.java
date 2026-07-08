@@ -11,12 +11,27 @@ import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(RecipeSuggestionController.class)
+@WebMvcTest(
+    controllers = RecipeSuggestionController.class,
+    excludeFilters =
+        @ComponentScan.Filter(
+            type = FilterType.ASSIGNABLE_TYPE,
+            classes = {
+              com.brewdeck.brewdeck_api.auth.JwtAuthenticationFilter.class,
+              com.brewdeck.brewdeck_api.common.config.SecurityConfig.class,
+              com.brewdeck.brewdeck_api.common.config.RestAuthenticationEntryPoint.class
+            }))
+@AutoConfigureMockMvc(addFilters = false)
+@WithMockUser
 class RecipeSuggestionControllerTest {
 
   @Autowired private MockMvc mockMvc;

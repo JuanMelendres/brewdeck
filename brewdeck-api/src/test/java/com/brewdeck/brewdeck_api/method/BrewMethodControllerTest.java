@@ -19,16 +19,31 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(BrewMethodController.class)
+@WebMvcTest(
+    controllers = BrewMethodController.class,
+    excludeFilters =
+        @ComponentScan.Filter(
+            type = FilterType.ASSIGNABLE_TYPE,
+            classes = {
+              com.brewdeck.brewdeck_api.auth.JwtAuthenticationFilter.class,
+              com.brewdeck.brewdeck_api.common.config.SecurityConfig.class,
+              com.brewdeck.brewdeck_api.common.config.RestAuthenticationEntryPoint.class
+            }))
+@AutoConfigureMockMvc(addFilters = false)
+@WithMockUser
 class BrewMethodControllerTest {
 
   @Autowired private MockMvc mockMvc;
