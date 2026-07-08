@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AuthProvider, useAuth } from './AuthProvider';
-import { clearToken, setToken } from './tokenStore';
+import { clearToken, getToken, setToken } from './tokenStore';
 import * as authApi from '@/lib/api/auth';
 
 function wrapper({ children }: { children: ReactNode }) {
@@ -65,5 +65,31 @@ describe('AuthProvider', () => {
     render(<Probe />, { wrapper });
     await userEvent.click(screen.getByRole('button', { name: 'login' }));
     await waitFor(() => expect(screen.getByTestId('email')).toHaveTextContent('a@b.com'));
+  });
+
+  it('resets to anonymous and clears the user on logout', async () => {
+    setToken('jwt');
+    vi.spyOn(authApi, 'getMe').mockResolvedValue({
+      id: 3,
+      email: 'brewer@example.com',
+      createdAt: '2026-07-01T00:00:00Z',
+    });
+    render(<Probe />, { wrapper });
+    await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('authenticated'));
+
+    await userEvent.click(screen.getByRole('button', { name: 'logout' }));
+
+    await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('anonymous'));
+    expect(screen.getByTestId('email')).toHaveTextContent('none');
+  });
+
+  it('falls back to anonymous when getMe rejects during hydration', async () => {
+    setToken('jwt');
+    vi.spyOn(authApi, 'getMe').mockRejectedValue(new Error('Unauthorized'));
+    render(<Probe />, { wrapper });
+
+    await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('anonymous'));
+    expect(screen.getByTestId('email')).toHaveTextContent('none');
+    expect(getToken()).toBeNull();
   });
 });

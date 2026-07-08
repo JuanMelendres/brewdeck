@@ -94,4 +94,36 @@ describe('apiFetch', () => {
     expect(getToken()).toBeNull();
     expect(assignMock).toHaveBeenCalledWith('/login');
   });
+
+  it('does NOT redirect on 401 when already on /login', async () => {
+    setToken('jwt-token');
+    const assignMock = vi.fn();
+    vi.stubGlobal('location', { pathname: '/login', assign: assignMock });
+    vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: false,
+      status: 401,
+      statusText: 'Unauthorized',
+      json: () => Promise.resolve({ message: 'Authentication required' }),
+    } as unknown as Response);
+
+    await expect(apiFetch('/api/coffees')).rejects.toThrow();
+    expect(getToken()).toBeNull();
+    expect(assignMock).not.toHaveBeenCalled();
+  });
+
+  it('does NOT redirect on 401 when on a /share/* path', async () => {
+    setToken('jwt-token');
+    const assignMock = vi.fn();
+    vi.stubGlobal('location', { pathname: '/share/xyz', assign: assignMock });
+    vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: false,
+      status: 401,
+      statusText: 'Unauthorized',
+      json: () => Promise.resolve({ message: 'Authentication required' }),
+    } as unknown as Response);
+
+    await expect(apiFetch('/api/coffees')).rejects.toThrow();
+    expect(getToken()).toBeNull();
+    expect(assignMock).not.toHaveBeenCalled();
+  });
 });
