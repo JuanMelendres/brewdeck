@@ -2,6 +2,7 @@ package com.brewdeck.brewdeck_api.common.error;
 
 import com.brewdeck.brewdeck_api.ai.AiUnavailableException;
 import com.brewdeck.brewdeck_api.ai.InsufficientBrewHistoryException;
+import com.brewdeck.brewdeck_api.auth.EmailAlreadyUsedException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
@@ -94,6 +95,19 @@ public class GlobalExceptionHandler {
             null);
 
     return ResponseEntity.badRequest().body(errorResponse);
+  }
+
+  @ExceptionHandler(EmailAlreadyUsedException.class)
+  public ResponseEntity<ErrorResponse> handleEmailAlreadyUsed(
+      EmailAlreadyUsedException exception, HttpServletRequest request) {
+    ErrorResponse errorResponse =
+        buildErrorResponse(
+            HttpStatus.CONFLICT,
+            sanitize(exception.getMessage()),
+            sanitize(request.getRequestURI()),
+            null);
+
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
   }
 
   @ExceptionHandler(DataIntegrityViolationException.class)
