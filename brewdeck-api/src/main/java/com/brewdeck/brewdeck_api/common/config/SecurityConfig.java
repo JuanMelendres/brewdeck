@@ -27,7 +27,14 @@ public class SecurityConfig {
     this.corsConfigurationSource = corsConfigurationSource;
   }
 
+  // CSRF protection is intentionally disabled. This is a stateless, token-based REST
+  // API: sessions are STATELESS and the JWT is sent as an Authorization: Bearer header,
+  // never via a cookie or server session. CSRF attacks rely on ambient cookie credentials
+  // the browser attaches automatically; a Bearer token must be set explicitly by the
+  // client and is not exposed to CSRF. Disabling CSRF here follows Spring Security's
+  // guidance for stateless APIs. Sonar java:S4502 is a false positive in this context.
   @Bean
+  @SuppressWarnings("java:S4502")
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http.csrf(AbstractHttpConfigurer::disable)
         .cors(cors -> cors.configurationSource(corsConfigurationSource))
