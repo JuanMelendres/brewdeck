@@ -6,6 +6,11 @@ export default defineConfig({
   plugins: [react(), tsconfigPaths()],
   test: {
     environment: 'jsdom',
+    environmentOptions: {
+      jsdom: {
+        url: 'http://localhost',
+      },
+    },
     globals: true,
     restoreMocks: true,
     setupFiles: './vitest.setup.ts',
