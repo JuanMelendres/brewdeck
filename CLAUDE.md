@@ -154,6 +154,17 @@ Examples:
 Collection: `docs/postman/brewdeck.postman_collection.json`, env: `docs/postman/brewdeck.local.postman_environment.json`.
 Keep requests aligned with the API; collection GETs carry `page`/`size`/`sort`. Use Long ID vars (`{{coffeeId}}`, `{{methodId}}`, `{{recipeId}}`, `{{sessionId}}`), not `{{$guid}}`. Base URL from the environment (`http://localhost:8080`). No real credentials/tokens. Update the collection when endpoints change.
 
+## Documentation (docs-as-code)
+
+Project documentation lives in [`docs/`](docs/README.md), organized as: `product/` (vision, roadmap, features, FDDs), `architecture/` (overview, technical-design, database-design, api-design, diagrams), `decisions/` (ADRs), `api/` (endpoint reference + seed `openapi.yaml`; Postman stays at `docs/postman/`), `testing/`, and `development/`.
+
+Conventions:
+- Update docs in the **same PR** as the code they describe. Don't let README, CLAUDE.md, and `docs/` drift or duplicate — link to a single source.
+- Keep `docs/api/README.md`, `docs/api/openapi.yaml`, and the Postman collection in sync with the controllers when endpoints change.
+- Update `docs/product/roadmap.md` when a phase changes status; keep `.claude/roadmap.md` and `.claude/project-state.md` (the living source of truth) current.
+- Add an ADR under `docs/decisions/` for decisions affecting architecture, tooling, persistence, deployment, or long-term maintainability.
+- Mark unknowns as `TODO` and guesses as `Assumption`. Don't invent product behavior or architecture.
+
 ## Security & Quality
 
 Never hardcode secrets — use environment variables; commit `.env.example`, not `.env`. Keep OWASP Dependency Check and SonarCloud passing unless working on a known false positive.
