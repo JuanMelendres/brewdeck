@@ -151,12 +151,12 @@ Examples:
 
 ## Postman
 
-Collection: `docs/postman/brewdeck.postman_collection.json`, env: `docs/postman/brewdeck.local.postman_environment.json`.
+Collection: `docs/api/postman/brewdeck.postman_collection.json`, env: `docs/api/postman/brewdeck.local.postman_environment.json`.
 Keep requests aligned with the API; collection GETs carry `page`/`size`/`sort`. Use Long ID vars (`{{coffeeId}}`, `{{methodId}}`, `{{recipeId}}`, `{{sessionId}}`), not `{{$guid}}`. Base URL from the environment (`http://localhost:8080`). No real credentials/tokens. Update the collection when endpoints change.
 
 ## Documentation (docs-as-code)
 
-Project documentation lives in [`docs/`](docs/README.md), organized as: `product/` (vision, roadmap, features, FDDs), `architecture/` (overview, technical-design, database-design, api-design, diagrams), `decisions/` (ADRs), `api/` (endpoint reference + seed `openapi.yaml`; Postman stays at `docs/postman/`), `testing/`, and `development/`.
+Project documentation lives in [`docs/`](docs/README.md), organized as: `product/` (vision, roadmap, features, FDDs), `architecture/` (overview, technical-design, database-design, api-design, diagrams), `decisions/` (ADRs), `api/` (endpoint reference + seed `openapi.yaml` + `postman/`), `testing/`, and `development/`.
 
 Conventions:
 - Update docs in the **same PR** as the code they describe. Don't let README, CLAUDE.md, and `docs/` drift or duplicate — link to a single source.
