@@ -72,7 +72,7 @@ Docs-as-code lives in [`docs/`](docs/README.md):
 - **Product** — [vision](docs/product/vision.md) · [roadmap](docs/product/roadmap.md) · [features](docs/product/features.md) · [FDDs](docs/product/fdd/)
 - **Architecture** — [overview](docs/architecture/overview.md) · [technical design](docs/architecture/technical-design.md) · [database](docs/architecture/database-design.md) · [API design](docs/architecture/api-design.md) · [diagrams](docs/architecture/diagrams.md)
 - **Decisions** — [ADRs](docs/decisions/)
-- **API** — [reference](docs/api/README.md) · [openapi.yaml](docs/api/openapi.yaml) · [Postman](docs/postman/)
+- **API** — [reference](docs/api/README.md) · [openapi.yaml](docs/api/openapi.yaml) · [Postman](docs/api/postman/)
 - **Testing** — [strategy](docs/testing/testing-strategy.md) · [plan](docs/testing/test-plan.md)
 - **Development** — [setup](docs/development/setup.md) · [env vars](docs/development/environment-variables.md) · [coding standards](docs/development/coding-standards.md) · [contributing](docs/development/contribution-guide.md)
 
