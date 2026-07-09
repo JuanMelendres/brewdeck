@@ -60,4 +60,4 @@ Stateless JWT. All `/api/**` require a `Bearer` token except `/api/public/**`,
 
 - Live Swagger UI: `http://localhost:8080/swagger-ui/index.html`
 - OpenAPI seed: [`docs/api/openapi.yaml`](../api/openapi.yaml)
-- Postman: [`docs/postman/`](../postman/)
+- Postman: [`docs/api/postman/`](../api/postman/)

@@ -5,8 +5,8 @@ Review and update the BrewDeck Postman collection.
 ## Location
 
 ```text
-docs/postman/brewdeck.postman_collection.json
-docs/postman/brewdeck.local.postman_environment.json
+docs/api/postman/brewdeck.postman_collection.json
+docs/api/postman/brewdeck.local.postman_environment.json
 ```
 
 ## Checklist

@@ -6,7 +6,7 @@ in [`architecture/api-design.md`](../architecture/api-design.md).
 - **Base URL (local):** `http://localhost:8080`
 - **Live docs:** `http://localhost:8080/swagger-ui/index.html`
 - **OpenAPI seed:** [`openapi.yaml`](openapi.yaml)
-- **Postman:** [`../postman/brewdeck.postman_collection.json`](../postman/brewdeck.postman_collection.json) + [`brewdeck.local.postman_environment.json`](../postman/brewdeck.local.postman_environment.json)
+- **Postman:** [`postman/brewdeck.postman_collection.json`](postman/brewdeck.postman_collection.json) + [`brewdeck.local.postman_environment.json`](postman/brewdeck.local.postman_environment.json)
 
 > Collection GETs are paginated: `?page=0&size=10&sort=id,asc` and return `PageResponse<T>`.
 
