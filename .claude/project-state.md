@@ -2,7 +2,7 @@
 
 ## Last Updated
 
-2026-07-08
+2026-07-09
 
 ## Current Phase
 
@@ -47,9 +47,11 @@ Phase 6 (auth & multi-user) in progress: Auth foundation Slice A shipped full-st
 - Most-brewed recipes endpoint (GET /api/recipes/most-brewed) + widget (PRs #40, #41)
 - Brew-method usage endpoint (GET /api/brew-methods/usage) + widget (PRs #43, #44)
 - Public share links full-stack (PR #62) — completes Phase 5
+- Docs-as-code structure under docs/ (product/architecture/decisions/api/testing/development) — PR #66
 
 ## Recently Worked On
 
+- Docs-as-code reorg (PR #66 merged) — new docs/ tree: product/ (vision, roadmap, features, 2 FDDs), architecture/ (overview, technical-design, database-design, api-design, diagrams), decisions/ (6 ADRs), api/ (README + seed openapi.yaml; Postman stays at docs/postman/), testing/ (strategy/plan/unit/integration), development/ (setup/env/coding-standards/contribution). Existing .claude/ and docs/superpowers/ left as source of truth and linked, not moved. README refreshed (frontend shipped, MUI stack, correct roadmap, docs links), new CHANGELOG.md, docs-as-code section added to CLAUDE.md. Also merged earlier same day: write-fdd/write-tdd/write-spike skills (PR #64, four-backtick template fences) and review-skills-delivery skill (PR #65, frontmatter fix).
 - Auth foundation (Slice A, full-stack) — backend: users table (Flyway V5), stateless JWT (jjwt) filter chain gating all /api/** except /api/public/** and /api/auth/{register,login}; BCrypt passwords; POST /api/auth/register (201), POST /api/auth/login (200), GET /api/auth/me (401 without token); RestAuthenticationEntryPoint returns 401 JSON; existing MockMvc suite migrated with @WithMockUser. Frontend: tokenStore (localStorage), auth api, apiFetch bearer injection + 401 redirect, AuthProvider (Context DI), /login + /register screens, RequireAuth on the (app) route-group layout; /login, /register, /share/[token] stay public. Ownership deferred to Slice B.
 - Public share links (full-stack) — backend: nullable shareToken column on recipes, PATCH /api/recipes/{id}/share (generates token), PATCH /api/recipes/{id}/unshare (clears token), public GET /api/public/recipes/{token} (curated PublicRecipeResponse without id/favorite/timestamps); frontend: ShareRecipeDialog in recipe detail, Share button, standalone public /share/[token] page
 - Recipe PDF export (frontend-only) — client-side "Export PDF" button on the recipe detail page; pure buildRecipePdf(recipe) → jsPDF recipe card (name, favorite, coffee, method, params, steps, expected taste), downloadRecipePdf saves a slugified filename; failures surface as an MUI Alert
