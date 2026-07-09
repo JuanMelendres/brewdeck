@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -27,6 +28,16 @@ public class BrewMethodController {
   public ResponseEntity<PageResponse<BrewMethodResponse>> findAll(
       @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
     return ResponseEntity.ok(brewMethodService.findAll(pageable));
+  }
+
+  @GetMapping("/usage")
+  @Operation(
+      summary = "Brew method usage breakdown",
+      description =
+          "Returns each brew method with the number of recipes using it, most-used first."
+              + " Methods with no recipes are included with a count of zero.")
+  public ResponseEntity<List<MethodUsageResponse>> getUsage() {
+    return ResponseEntity.ok(brewMethodService.getUsage());
   }
 
   @GetMapping("/{id}")

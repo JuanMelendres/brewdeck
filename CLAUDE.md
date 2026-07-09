@@ -3,117 +3,48 @@
 ## Role
 
 Act as a senior full-stack software engineer with strong experience in:
-- Java 21
-- Spring Boot 3
-- PostgreSQL
-- Flyway
-- Spring Data JPA
-- Testcontainers
-- REST API design
-- GitHub Actions
-- SonarCloud
-- OWASP Dependency Check
-- Next.js / React / TypeScript
+- Java 21 / Spring Boot 3 / Spring Data JPA
+- PostgreSQL / Flyway / Testcontainers
+- REST API design (RESTful status codes, JSON validation, pagination)
+- Next.js (App Router) / React / TypeScript
+- Material UI (MUI)
+- TanStack Query, React Hook Form, Zod
+- CI/CD & Quality: GitHub Actions, SonarCloud, OWASP Dependency Check
 
-Prioritize maintainability, correctness, small incremental changes, and production-ready conventions.
+Prioritize maintainability, strict type safety, correctness, behavioral UI testing, small incremental changes, and production-ready conventions.
 
 ## Project Summary
 
 BrewDeck is a coffee brewing application.
 
-The backend is a Spring Boot REST API used to manage:
+- **Backend:** A Spring Boot REST API managing coffees, brew methods, recipes, and brew sessions.
+- **Frontend:** A Next.js (App Router) app that consumes the REST API — dashboard, CRUD screens, and analytics.
 
-- Coffees
-- Brew methods
-- Recipes
-- Brew sessions
+Both backend and frontend are active. Prioritize full-stack consistency: keep endpoints and interfaces structured, predictable, and fully tested.
 
-The project is currently backend-first. The frontend will be built later with Next.js.
+## Backend Stack & Architecture
 
-## Current Backend Stack
+### Stack
+Java 21, Spring Boot 3, Maven Wrapper, PostgreSQL 16, Docker Compose, Flyway, Spring Data JPA, Hibernate, Bean Validation, Testcontainers, JUnit 5, Mockito, MockMvc, JaCoCo, Spotless, OWASP Dependency Check, SonarCloud, GitHub Actions, Springdoc OpenAPI / Swagger.
 
-- Java 21
-- Spring Boot 3
-- Maven Wrapper
-- PostgreSQL 16
-- Docker Compose
-- Flyway
-- Spring Data JPA
-- Hibernate
-- Bean Validation
-- Testcontainers
-- JUnit 5
-- Mockito
-- MockMvc
-- JaCoCo
-- Spotless
-- OWASP Dependency Check
-- SonarCloud
-- GitHub Actions
-- Springdoc OpenAPI / Swagger
+### Packages & Resources
+- Main packages: `coffee`, `method`, `recipe`, `session`, `common`, `integration`
+- API resources: `/api/coffees`, `/api/brew-methods`, `/api/recipes`, `/api/brew-sessions`, `/api/dashboard`
 
-## Current Architecture
+### Completed backend features
+- Full CRUD for Coffee, BrewMethod, Recipe, BrewSession
+- PostgreSQL + Docker Compose, Flyway migrations, initial brew-method seed
+- `GlobalExceptionHandler` + `ErrorResponse`; RESTful status codes (POST 201, DELETE 204, GET/PUT/PATCH 200)
+- Recipe favorites: `PATCH /api/recipes/{id}/favorite`, `PATCH /api/recipes/{id}/unfavorite`, `GET /api/recipes/favorites`
+- Filters via Specification: `CoffeeFilter`, `RecipeFilter`, `BrewSessionFilter`
+- Standard paginated `PageResponse`; request validation on all `*Request` records
+- Dashboard summary endpoint; structured service logs; CORS for the frontend; OpenAPI/Swagger
+- Analytics (read-only): `GET /api/recipes/{id}/stats`, `GET /api/recipes/top-rated`, `GET /api/recipes/most-brewed`, `GET /api/coffees/most-used`, `GET /api/brew-methods/usage`
+- Tests: service, controller (MockMvc), repository, specification, integration (Testcontainers); JaCoCo coverage
 
-Main backend packages:
-
-- `coffee`
-- `method`
-- `recipe`
-- `session`
-- `common`
-- `integration`
-
-Current API resources:
-
-- `/api/coffees`
-- `/api/brew-methods`
-- `/api/recipes`
-- `/api/brew-sessions`
-
-## Current Completed Features
-
-The backend already includes:
-
-- Full CRUD for Coffee
-- Full CRUD for BrewMethod
-- Full CRUD for Recipe
-- Full CRUD for BrewSession
-- PostgreSQL with Docker Compose
-- Flyway migrations
-- Initial brew methods seed
-- GlobalExceptionHandler
-- ErrorResponse
-- RESTful status codes:
-    - POST returns 201 Created
-    - DELETE returns 204 No Content
-    - GET, PUT, PATCH return 200 OK
-- Recipe favorites:
-    - `PATCH /api/recipes/{id}/favorite`
-    - `PATCH /api/recipes/{id}/unfavorite`
-    - `GET /api/recipes/favorites`
-- Basic filters with Specification:
-    - CoffeeFilter
-    - RecipeFilter
-    - BrewSessionFilter
-- Standard paginated responses with `PageResponse`
-- Request validation on:
-    - CoffeeRequest
-    - BrewMethodRequest
-    - RecipeRequest
-    - BrewSessionRequest
-- Unit tests for services
-- Controller tests
-- Repository tests
-- Specification repository tests
-- Integration tests with Testcontainers
-- JaCoCo coverage
-- GitHub Actions
-- SonarCloud
-
-## Response Shape Rules
+## Response & Pagination Rules
 
 All GET endpoints that return collections must return `PageResponse<T>`:
-
 ```json
 {
   "content": [],
@@ -125,206 +56,133 @@ All GET endpoints that return collections must return `PageResponse<T>`:
   "last": true
 }
 ```
-GET by ID endpoints return the DTO directly.
+GET-by-id returns the DTO directly. Bounded analytics rankings (top-rated / most-brewed / most-used / usage) return a plain `List<T>`, not `PageResponse` — they are top-N, not browsable collections.
 
-## Pagination Rules
-All collection GET endpoints should support:
-
-- page
-- size
-- sort
-
-Prefer safe default sorting while the project is evolving:
+Collection GET endpoints support `page`, `size`, `sort`. Prefer a safe default while the project evolves:
 ```java
 @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC)
 ```
-
 In integration tests, use explicit pagination params:
 ```java
-.param("page", "0")
-.param("size", "10")
-.param("sort", "id,asc")
+.param("page", "0").param("size", "10").param("sort", "id,asc")
 ```
 
-## Validation Rules
+## Frontend Stack & Architecture
 
-Use Bean Validation on request records.
+### Stack (in use)
+Next.js (App Router) + React 19 + TypeScript, MUI, **TanStack Query** (server state), **React Hook Form + Zod** (forms/validation), a `fetch`-based API client, **Vitest + React Testing Library**. No axios; no Formik/Yup; no Redux.
 
-Avoid special symbols in validation messages, especially °C, because error responses are sanitized and symbols may be escaped to HTML entities like &deg;.
+### Directory structure (as built — match it)
+- `src/app/` — App Router routes and `page.tsx`/`layout.tsx`. **Pages/layouts use `export default`** (required by Next.js).
+- `src/components/<feature>/` — feature-organized components (`coffees/`, `recipes/`, `brew-sessions/`, `brew-methods/`, `dashboard/`, `ui/`, `layout/`).
+- `src/hooks/` — custom hooks (`useRecipes.ts`, `useMethodUsage.ts`, ...).
+- `src/lib/api/` — API client (`client.ts` → `apiFetch`) and per-resource modules (`recipes.ts`, `coffees.ts`, ...). **Domain types live here** (`src/lib/api/types.ts` and per-module exports like `MostUsedCoffee`).
+- `src/lib/query/` — TanStack Query keys (`keys.ts`) and provider.
+- `src/lib/validation/` — Zod schemas (`recipeSchema.ts`, `brewSessionSchema.ts`).
 
-Use:
-```txt
-degrees Celsius
-```
+### Naming conventions (as built)
+- **Components:** PascalCase files (`RecipeFormDialog.tsx`, `StatCard.tsx`).
+- **Hooks:** camelCase, `use` prefix (`useRecipe.ts`, `useMostUsedCoffees.ts`) — NOT kebab-case.
+- **Feature directories:** kebab-case for multi-word (`brew-sessions/`, `brew-methods/`).
+- **Colocation:** keep `*.test.tsx` next to the component/hook it covers.
 
-instead of:
+### React / TypeScript rules
+- **Strict types:** never use `any`; use precise interfaces or `unknown` + guards. Import domain types from `src/lib/api` (not a `src/types/` folder — there isn't one).
+- **Functional components + hooks only.** No class components.
+- **Exports:** named exports for components/hooks (`export function X`); `export default` **only** for Next.js `page.tsx`/`layout.tsx`.
+- **Imports:** absolute paths via the `@/` alias; group React → third-party → internal.
+- **Server state:** use **TanStack Query** (`useQuery`/`useMutation`) for all API data — never store server data in global client state. Centralize query keys in `src/lib/query/keys.ts`; invalidate the right key prefixes in mutation `onSuccess`.
+- **Client state:** `useState` for local, `useReducer` for complex local; React Context only for DI (theme/providers), not high-frequency updates.
+- **Forms:** React Hook Form + `zodResolver`; Zod schema in `src/lib/validation/`. Map server-400 `validationErrors` back onto fields.
+- **Performance:** memoize heavy work with `useMemo`/`useCallback`; avoid needless inline objects/handlers in hot render paths.
+- **UX:** always handle loading, error, and empty states (reuse `Spinner`, `ErrorState`, `EmptyState`).
 
-```txt
-°C
-```
+## Validation & Error Handling
 
-## Error Handling
+- **Backend:** Bean Validation on request records. Avoid special symbols like `°C` in messages (responses are sanitized → `&deg;`); write `degrees Celsius`.
+- **Frontend:** Zod schema mirrors backend limits; surface API failures as user-visible states, not `console.error`.
 
-The project uses `GlobalExceptionHandler` and `ErrorResponse`.
-
-Validation errors should return:
-
+Validation errors conform to `GlobalExceptionHandler`:
 ```json
 {
   "status": 400,
   "error": "Bad Request",
   "message": "Validation failed",
   "path": "/api/example",
-  "validationErrors": {
-    "field": "message"
-  }
+  "validationErrors": { "field": "message" }
 }
 ```
 
 ## Testing Standards
 
-Every meaningful backend change should include or update tests.
+Every meaningful backend or frontend change includes or updates tests. Follow Arrange–Act–Assert.
 
-Use:
+### Backend
+Service (business logic), controller (HTTP/validation/status via MockMvc), repository (custom queries), specification (filters), integration (workflows via Testcontainers). Don't assume the shared integration DB has one record — assert `greaterThanOrEqualTo` or fully control the dataset. For paginated bodies assert `$.content`, `$.content[0].id`, `$.page`, `$.size`, `$.totalElements` — never `$[0]`.
 
-- Service tests for business logic
-- Controller tests for HTTP behavior, validation, and status codes
-- Repository tests for custom queries
-- Specification repository tests for filters
-- Integration tests for complete workflows
+### Frontend
+Vitest + React Testing Library. Test behavior, not implementation. Prefer accessible queries (`getByRole`, `getByText`, `getByLabelText`); avoid `getByTestId` unless necessary. Mock the API-client layer / hooks (not child components, generally); wrap the query hooks with a `QueryClientProvider` in hook tests. For components that render server data, mock the corresponding hook.
 
-Avoid fragile assertions that assume an integration test database has only one record unless the test fully controls the dataset.
+## Quality & Verification Commands
 
-For paginated responses, assert:
+Run before considering a task done.
 
-```java
-jsonPath("$.content")
-jsonPath("$.content[0].id")
-jsonPath("$.page")
-jsonPath("$.size")
-jsonPath("$.totalElements")
-```
-Do not assert $[0] for paginated endpoints.
+### Backend (Maven Wrapper)
+- macOS/Linux: `./mvnw spotless:apply` then `./mvnw clean verify`
+- Windows: `.\mvnw.cmd spotless:apply` then `.\mvnw.cmd clean verify`
+- Focused: `./mvnw -Dtest=ClassName test` (or `.\mvnw.cmd -Dtest=ClassName test`)
 
-## Quality Commands
-
-Run these before considering a task done:
-
-For Windows PowerShell or CMD:
-
-```powershell
-.\mvnw.cmd spotless:apply
-.\mvnw.cmd clean verify
-```
-
-For macOS/Linux:
-
-```bash
-./mvnw spotless:apply
-./mvnw clean verify
-```
-
-Focused test on Windows:
-
-```bash
-.\mvnw.cmd -Dtest=ClassName test
-```
-
-Focused test on macOS/Linux:
-
-```bash
-./mvnw -Dtest=ClassName test
-```
+### Frontend (npm, in `brewdeck-web/`)
+- `npm run dev` — local dev server
+- `npm run test` — Vitest suite (`vitest run`)
+- `npm run type-check` — strict TypeScript (`tsc --noEmit`), no emit
+- `npm run lint` — ESLint (whole project, read-only)
+- `npm run lint:fix` — ESLint autofix. **Scope it to the files you changed** — never fix the whole repo: `npm run lint:fix -- src/path/to/file.tsx`
+- `npm run build` — production build (also type-checks)
 
 ## Git Rules
 
-Use Conventional Commits.
-
+Conventional Commits; provide exactly one message per commit. Scopes: `api` (backend), `web` (frontend), plus `docs`/`test`/`ci`/`chore`/`refactor`/`style`/`fix`/`perf`.
 Examples:
-
-- `feat(api): add request validation for brew sessions`
-- `fix(api): correct paginated favorites integration test`
-- `test(api): update controller tests for validation errors`
-- `refactor(api): reduce duplication in recipe service`
-- `docs(api): update backend roadmap`
-- `ci(api): improve sonar workflow`
-- `style(api): format code without functional changes`
-- `chore(api): update build scripts or dependencies`
-
-When suggesting a commit, always provide one Conventional Commit message.
-
-## Coding Style
-
-- Keep changes small and focused.
-- Do not refactor unrelated areas.
-- Do not remove tests unless they are obsolete and replaced by better coverage.
-- Prefer readable code to clever abstractions.
-- Keep DTOs explicit.
-- Use records for request/response/filter objects when appropriate.
-- Keep controllers thin.
-- Keep business logic in services.
-- Keep persistence logic in repositories/specifications.
-- Avoid leaking entity objects directly from controllers.
-
-## Security and Quality
-
-Never hardcode real secrets.
-
-Use environment variables for credentials.
-
-Use `.env.example`, not `.env`, in Git.
-
-Keep OWASP Dependency Check and SonarCloud passing unless explicitly working on known false positives.
+- `feat(api): add most-used coffees analytics endpoint`
+- `feat(web): add top-rated recipes widget to the dashboard`
+- `fix(web): guard against a null average rating`
+- `test(api): cover recipe stats not-found path`
 
 ## Postman
 
-The project includes a Postman collection for manual API testing.
+Collection: `docs/postman/brewdeck.postman_collection.json`, env: `docs/postman/brewdeck.local.postman_environment.json`.
+Keep requests aligned with the API; collection GETs carry `page`/`size`/`sort`. Use Long ID vars (`{{coffeeId}}`, `{{methodId}}`, `{{recipeId}}`, `{{sessionId}}`), not `{{$guid}}`. Base URL from the environment (`http://localhost:8080`). No real credentials/tokens. Update the collection when endpoints change.
 
-Location:
+## Documentation (docs-as-code)
 
-```text
-docs/postman/brewdeck.postman_collection.json
-docs/postman/brewdeck.local.postman_environment.json
-```
+Project documentation lives in [`docs/`](docs/README.md), organized as: `product/` (vision, roadmap, features, FDDs), `architecture/` (overview, technical-design, database-design, api-design, diagrams), `decisions/` (ADRs), `api/` (endpoint reference + seed `openapi.yaml`; Postman stays at `docs/postman/`), `testing/`, and `development/`.
 
-## Postman Rules
-- Keep Postman requests aligned with the current REST API.
-- Use Long ID variables, not `{{$guid}}`.
-- Use:
-  - `{{coffeeId}}`
-  - `{{methodId}}`
-  - `{{recipeId}}`
-  - `{{sessionId}}`
-- Do not commit real credentials or tokens.
-- Prefer environment variables for base URLs.
-- Update the collection when endpoints change.
+Conventions:
+- Update docs in the **same PR** as the code they describe. Don't let README, CLAUDE.md, and `docs/` drift or duplicate — link to a single source.
+- Keep `docs/api/README.md`, `docs/api/openapi.yaml`, and the Postman collection in sync with the controllers when endpoints change.
+- Update `docs/product/roadmap.md` when a phase changes status; keep `.claude/roadmap.md` and `.claude/project-state.md` (the living source of truth) current.
+- Add an ADR under `docs/decisions/` for decisions affecting architecture, tooling, persistence, deployment, or long-term maintainability.
+- Mark unknowns as `TODO` and guesses as `Assumption`. Don't invent product behavior or architecture.
 
-### Current Phase
+## Security & Quality
 
-Current phase:
-Backend stabilization and frontend preparation.
+Never hardcode secrets — use environment variables; commit `.env.example`, not `.env`. Keep OWASP Dependency Check and SonarCloud passing unless working on a known false positive.
 
-Recently completed:
+## Critical Anti-Patterns (what NOT to do)
 
-- Pagination standardized across GET collection endpoints.
-- Controller, service, repository, specification, and integration tests updated.
-- Request validations improved for Coffee, BrewMethod, Recipe, and BrewSession.
-- Postman collection updated for current API endpoints.
-
-Next recommended tasks:
-
-1. Run full verification.
-2. Review JaCoCo and SonarCloud.
-3. Add CORS for Next.js.
-4. Add basic structured logs in services.
-5. Add dashboard summary endpoint.
-6. Improve Swagger/OpenAPI docs.
-7. Start Next.js frontend.
+1. **Don't leak entities.** Never return Hibernate/JPA entities from controllers — map to explicit DTOs/records.
+2. **Don't use `any`.** Use precise types or `unknown` + guards.
+3. **Don't store server data in global client state.** Use TanStack Query and invalidate the right keys.
+4. **Don't ban default exports for Next.js pages.** `page.tsx`/`layout.tsx` require `export default`; use named exports everywhere else.
+5. **Don't assert `$[0]` on paginated bodies.** Use `$.content[0]`.
+6. **Don't put special symbols in validation messages** (`°C` → write `degrees Celsius`).
+7. **Don't run `lint:fix` on the whole repo.** Scope it to changed files (`npm run lint:fix -- <path>`) so it doesn't silently rewrite unrelated files.
+8. **Don't hardcode secrets.** Use env vars and `.env.example`.
 
 ## Important Instruction
 
 Before making changes:
-
 1. Inspect current files.
 2. Identify the smallest safe change.
 3. Explain what will change.

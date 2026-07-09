@@ -30,9 +30,162 @@
       "key": "sessionId",
       "value": "1",
       "type": "string"
+    },
+    {
+      "key": "shareToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
     }
   ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{authToken}}",
+        "type": "string"
+      }
+    ]
+  },
   "item": [
+    {
+      "name": "Auth",
+      "description": "Self-registration, JWT login, and current-user endpoints. Register/login are unauthenticated; login and register save the returned token into the authToken collection variable so protected requests inherit it via collection-level Bearer auth.",
+      "item": [
+        {
+          "name": "POST - Register",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"brewer@example.com\",\n  \"password\": \"password1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/auth/register",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('authToken', pm.response.json().token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST - Login",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"brewer@example.com\",\n  \"password\": \"password1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/auth/login",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.collectionVariables.set('authToken', pm.response.json().token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET - Current user (me)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseURL}}/api/auth/me",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
     {
       "name": "Coffee",
       "description": "Coffee CRUD and search endpoints.",
@@ -202,6 +355,45 @@
           ]
         },
         {
+          "name": "GET - Most-used coffees",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/coffees/most-used?limit=5",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "coffees",
+                "most-used"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5",
+                  "description": "Max rows (1-20, default 5)"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Response is an array', function () {",
+                  "  pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "POST - Create coffee",
           "request": {
             "method": "POST",
@@ -223,7 +415,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Mezcla Veracruz\",\n  \"brand\": \"Café local\",\n  \"origin\": \"Veracruz\",\n  \"region\": \"Coatepec\",\n  \"farm\": null,\n  \"producer\": null,\n  \"variety\": \"Blend\",\n  \"process\": \"Lavado\",\n  \"roastLevel\": \"Medio\",\n  \"notesPrimary\": \"Cardamomo\",\n  \"notesSecondary\": \"Canela, clavo, limpio, aromático\",\n  \"acidity\": \"Media\",\n  \"body\": \"Medio\",\n  \"sweetness\": \"Media\",\n  \"bitterness\": \"Baja\",\n  \"description\": \"Café especiado, limpio y aromático, ideal para AeroPress.\"\n}",
+              "raw": "{\n  \"name\": \"Mezcla Veracruz\",\n  \"brand\": \"Café local\",\n  \"origin\": \"Veracruz\",\n  \"region\": \"Coatepec\",\n  \"farm\": null,\n  \"producer\": null,\n  \"variety\": \"Blend\",\n  \"process\": \"Lavado\",\n  \"roastLevel\": \"Medio\",\n  \"notesPrimary\": \"Cardamomo\",\n  \"notesSecondary\": \"Canela, clavo, limpio, aromático\",\n  \"acidityScore\": 4,\n  \"bodyScore\": 3,\n  \"sweetnessScore\": 5,\n  \"bitternessScore\": 2,\n  \"description\": \"Café especiado, limpio y aromático, ideal para AeroPress.\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -275,7 +467,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Mezcla Veracruz\",\n  \"brand\": \"Café local\",\n  \"origin\": \"Veracruz\",\n  \"region\": \"Coatepec\",\n  \"farm\": null,\n  \"producer\": null,\n  \"variety\": \"Blend\",\n  \"process\": \"Lavado\",\n  \"roastLevel\": \"Medio\",\n  \"notesPrimary\": \"Cardamomo\",\n  \"notesSecondary\": \"Canela, clavo, limpio, aromático\",\n  \"acidity\": \"Media\",\n  \"body\": \"Medio\",\n  \"sweetness\": \"Media\",\n  \"bitterness\": \"Baja\",\n  \"description\": \"Updated coffee description.\"\n}",
+              "raw": "{\n  \"name\": \"Mezcla Veracruz\",\n  \"brand\": \"Café local\",\n  \"origin\": \"Veracruz\",\n  \"region\": \"Coatepec\",\n  \"farm\": null,\n  \"producer\": null,\n  \"variety\": \"Blend\",\n  \"process\": \"Lavado\",\n  \"roastLevel\": \"Medio\",\n  \"notesPrimary\": \"Cardamomo\",\n  \"notesSecondary\": \"Canela, clavo, limpio, aromático\",\n  \"acidityScore\": 4,\n  \"bodyScore\": 3,\n  \"sweetnessScore\": 5,\n  \"bitternessScore\": 2,\n  \"description\": \"Updated coffee description.\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -418,6 +610,38 @@
                 "exec": [
                   "pm.test('Status code is 200, 404', function () {",
                   "  pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET - Method usage",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/brew-methods/usage",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "brew-methods",
+                "usage"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Response is an array', function () {",
+                  "  pm.expect(pm.response.json()).to.be.an('array');",
                   "});"
                 ]
               }
@@ -897,6 +1121,121 @@
           ]
         },
         {
+          "name": "GET - Recipe stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/recipes/{{recipeId}}/stats",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "recipes",
+                "{{recipeId}}",
+                "stats"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Has recipe stats fields', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('recipeId');",
+                  "  pm.expect(json).to.have.property('totalSessions');",
+                  "  pm.expect(json).to.have.property('averageRating');",
+                  "  pm.expect(json).to.have.property('lastBrewedAt');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET - Top-rated recipes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/recipes/top-rated?limit=5",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "recipes",
+                "top-rated"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5",
+                  "description": "Max rows (1-20, default 5)"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Response is an array', function () {",
+                  "  pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET - Most-brewed recipes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/recipes/most-brewed?limit=5",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "recipes",
+                "most-brewed"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5",
+                  "description": "Max rows (1-20, default 5)"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Response is an array', function () {",
+                  "  pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "POST - Create recipe",
           "request": {
             "method": "POST",
@@ -946,6 +1285,72 @@
               }
             }
           ]
+        },
+        {
+          "name": "POST - Suggest recipe (AI)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseURL}}/api/recipes/suggest",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "recipes",
+                "suggest"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"coffeeId\": \"{{coffeeId}}\",\n  \"methodId\": \"{{methodId}}\",\n  \"notes\": \"fruity and bright\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 (AI enabled) or 503 (AI disabled)', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 503]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Improve recipe from history",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/recipes/{{recipeId}}/improve",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "recipes",
+                "{{recipeId}}",
+                "improve"
+              ]
+            }
+          },
+          "response": []
         },
         {
           "name": "PUT - Update recipe",
@@ -1053,6 +1458,108 @@
                 "exec": [
                   "pm.test('Status code is 200', function () {",
                   "  pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH - Share recipe",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/recipes/{{recipeId}}/share",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "recipes",
+                "{{recipeId}}",
+                "share"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH - Unshare recipe",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/recipes/{{recipeId}}/unshare",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "recipes",
+                "{{recipeId}}",
+                "unshare"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET - Get public recipe by token",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/public/recipes/{{shareToken}}",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "public",
+                "recipes",
+                "{{shareToken}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200, 404', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
                   "});"
                 ]
               }
@@ -1441,6 +1948,88 @@
       ]
     },
     {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "GET - Dashboard summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/dashboard/summary",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "dashboard",
+                "summary"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Has aggregate counters', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('totalCoffees');",
+                  "  pm.expect(json).to.have.property('totalRecipes');",
+                  "  pm.expect(json).to.have.property('totalBrewSessions');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "System",
+      "item": [
+        {
+          "name": "GET - Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/actuator/health",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "actuator",
+                "health"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Status is UP', function () {",
+                  "  pm.expect(pm.response.json().status).to.eql('UP');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "Validation Examples",
       "description": "Invalid request examples for checking GlobalExceptionHandler validation responses.",
       "item": [
@@ -1466,7 +2055,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"\",\n  \"brand\": \"Café local\",\n  \"origin\": \"Veracruz\",\n  \"region\": \"Coatepec\",\n  \"farm\": null,\n  \"producer\": null,\n  \"variety\": \"Blend\",\n  \"process\": \"Lavado\",\n  \"roastLevel\": \"Medio\",\n  \"notesPrimary\": \"Cardamomo\",\n  \"notesSecondary\": \"Canela, clavo, limpio, aromático\",\n  \"acidity\": \"Media\",\n  \"body\": \"Medio\",\n  \"sweetness\": \"Media\",\n  \"bitterness\": \"Baja\",\n  \"description\": \"Café especiado, limpio y aromático, ideal para AeroPress.\"\n}",
+              "raw": "{\n  \"name\": \"\",\n  \"brand\": \"Café local\",\n  \"origin\": \"Veracruz\",\n  \"region\": \"Coatepec\",\n  \"farm\": null,\n  \"producer\": null,\n  \"variety\": \"Blend\",\n  \"process\": \"Lavado\",\n  \"roastLevel\": \"Medio\",\n  \"notesPrimary\": \"Cardamomo\",\n  \"notesSecondary\": \"Canela, clavo, limpio, aromático\",\n  \"acidityScore\": 4,\n  \"bodyScore\": 3,\n  \"sweetnessScore\": 5,\n  \"bitternessScore\": 2,\n  \"description\": \"Café especiado, limpio y aromático, ideal para AeroPress.\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

@@ -56,6 +56,42 @@ class BrewMethodServiceTest {
   }
 
   @Test
+  void getUsage_shouldMapUsageRowsPreservingOrder() {
+    when(brewMethodRepository.findUsage())
+        .thenReturn(List.of(usage(1L, "AeroPress", 5L), usage(2L, "V60", 0L)));
+
+    List<MethodUsageResponse> result = brewMethodService.getUsage();
+
+    assertThat(result).hasSize(2);
+    assertThat(result.get(0).methodId()).isEqualTo(1L);
+    assertThat(result.get(0).methodName()).isEqualTo("AeroPress");
+    assertThat(result.get(0).recipeCount()).isEqualTo(5L);
+    assertThat(result.get(1).methodName()).isEqualTo("V60");
+    assertThat(result.get(1).recipeCount()).isZero();
+
+    verify(brewMethodRepository).findUsage();
+  }
+
+  private MethodUsage usage(Long id, String name, long count) {
+    return new MethodUsage() {
+      @Override
+      public Long getMethodId() {
+        return id;
+      }
+
+      @Override
+      public String getMethodName() {
+        return name;
+      }
+
+      @Override
+      public long getRecipeCount() {
+        return count;
+      }
+    };
+  }
+
+  @Test
   void findById_shouldReturnBrewMethod_whenExists() {
     BrewMethod method =
         BrewMethod.builder().id(1L).name("V60").createdAt(LocalDateTime.now()).build();

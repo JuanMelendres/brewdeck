@@ -6,6 +6,7 @@ import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.common.PostgresRepositoryTest;
 import com.brewdeck.brewdeck_api.method.BrewMethod;
 import java.math.BigDecimal;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -189,10 +190,10 @@ class RecipeRepositoryTest extends PostgresRepositoryTest {
             .roastLevel("Medio")
             .notesPrimary("Cardamomo")
             .notesSecondary("Canela, clavo")
-            .acidity("Media")
-            .body("Medio")
-            .sweetness("Media")
-            .bitterness("Baja")
+            .acidityScore(3)
+            .bodyScore(3)
+            .sweetnessScore(3)
+            .bitternessScore(2)
             .description("Coffee created for repository tests.")
             .build();
 
@@ -207,5 +208,33 @@ class RecipeRepositoryTest extends PostgresRepositoryTest {
             .build();
 
     return entityManager.persistAndFlush(method);
+  }
+
+  @Test
+  void findByShareToken_returnsRecipeWhenTokenPresent() {
+    Coffee coffee = persistCoffee("Share Token Coffee");
+    BrewMethod method = persistBrewMethod("Share Token Method");
+
+    Recipe recipe =
+        Recipe.builder()
+            .coffee(coffee)
+            .method(method)
+            .name("Shared Recipe")
+            .favorite(false)
+            .build();
+
+    recipe = entityManager.persistAndFlush(recipe);
+    recipe.setShareToken("tok-abc123");
+    recipeRepository.saveAndFlush(recipe);
+
+    Optional<Recipe> found = recipeRepository.findByShareToken("tok-abc123");
+
+    assertThat(found).isPresent();
+    assertThat(found.get().getId()).isEqualTo(recipe.getId());
+  }
+
+  @Test
+  void findByShareToken_returnsEmptyWhenTokenAbsent() {
+    assertThat(recipeRepository.findByShareToken("does-not-exist")).isEmpty();
   }
 }

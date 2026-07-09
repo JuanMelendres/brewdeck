@@ -23,15 +23,30 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(CoffeeController.class)
+@WebMvcTest(
+    controllers = CoffeeController.class,
+    excludeFilters =
+        @ComponentScan.Filter(
+            type = FilterType.ASSIGNABLE_TYPE,
+            classes = {
+              com.brewdeck.brewdeck_api.auth.JwtAuthenticationFilter.class,
+              com.brewdeck.brewdeck_api.common.config.SecurityConfig.class,
+              com.brewdeck.brewdeck_api.common.config.RestAuthenticationEntryPoint.class
+            }))
+@AutoConfigureMockMvc(addFilters = false)
+@WithMockUser
 class CoffeeControllerTest {
 
   @Autowired private MockMvc mockMvc;
@@ -39,6 +54,34 @@ class CoffeeControllerTest {
   @Autowired private ObjectMapper objectMapper;
 
   @MockitoBean private CoffeeService coffeeService;
+
+  @Test
+  void getMostUsed_shouldReturnRankedCoffees() throws Exception {
+    when(coffeeService.getMostUsed(5))
+        .thenReturn(
+            List.of(
+                new MostUsedCoffeeResponse(2L, "Popular", 7L),
+                new MostUsedCoffeeResponse(1L, "Rare", 1L)));
+
+    mockMvc
+        .perform(get("/api/coffees/most-used"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(2)))
+        .andExpect(jsonPath("$[0].coffeeId").value(2L))
+        .andExpect(jsonPath("$[0].coffeeName").value("Popular"))
+        .andExpect(jsonPath("$[0].recipeCount").value(7));
+
+    verify(coffeeService).getMostUsed(5);
+  }
+
+  @Test
+  void getMostUsed_shouldForwardLimitParam() throws Exception {
+    when(coffeeService.getMostUsed(3)).thenReturn(List.of());
+
+    mockMvc.perform(get("/api/coffees/most-used").param("limit", "3")).andExpect(status().isOk());
+
+    verify(coffeeService).getMostUsed(3);
+  }
 
   @Test
   void findAll_shouldReturnCoffees() throws Exception {
@@ -56,10 +99,10 @@ class CoffeeControllerTest {
             "Medio",
             "Cardamomo",
             "Canela, clavo",
-            "Media",
-            "Medio",
-            "Media",
-            "Baja",
+            3,
+            3,
+            4,
+            2,
             "Café limpio y aromático",
             LocalDateTime.now(),
             null);
@@ -119,10 +162,10 @@ class CoffeeControllerTest {
             "Medio",
             "Cardamomo",
             "Canela, clavo",
-            "Media",
-            "Medio",
-            "Media",
-            "Baja",
+            3,
+            3,
+            4,
+            2,
             "Café limpio y aromático",
             LocalDateTime.now(),
             null);
@@ -173,10 +216,10 @@ class CoffeeControllerTest {
             "Medio",
             "Cardamomo",
             "Canela, clavo",
-            "Media",
-            "Medio",
-            "Media",
-            "Baja",
+            3,
+            3,
+            4,
+            2,
             "Café limpio y aromático",
             LocalDateTime.now(),
             null);
@@ -222,10 +265,10 @@ class CoffeeControllerTest {
             "Medio",
             "Cardamomo",
             "Canela, clavo",
-            "Media",
-            "Medio",
-            "Media",
-            "Baja",
+            3,
+            3,
+            4,
+            2,
             "Café limpio y aromático");
 
     CoffeeResponse response =
@@ -242,10 +285,10 @@ class CoffeeControllerTest {
             request.roastLevel(),
             request.notesPrimary(),
             request.notesSecondary(),
-            request.acidity(),
-            request.body(),
-            request.sweetness(),
-            request.bitterness(),
+            request.acidityScore(),
+            request.bodyScore(),
+            request.sweetnessScore(),
+            request.bitternessScore(),
             request.description(),
             LocalDateTime.now(),
             null);
@@ -279,10 +322,10 @@ class CoffeeControllerTest {
             "Medio",
             "Cardamomo",
             "Canela, clavo",
-            "Media",
-            "Medio",
-            "Media",
-            "Baja",
+            3,
+            3,
+            4,
+            2,
             "Café limpio y aromático");
 
     mockMvc
@@ -312,10 +355,10 @@ class CoffeeControllerTest {
             "Medio",
             "Cardamomo",
             "Canela, clavo",
-            "Media",
-            "Medio",
-            "Media",
-            "Baja",
+            3,
+            3,
+            4,
+            2,
             "Updated description");
 
     CoffeeResponse response =
@@ -332,10 +375,10 @@ class CoffeeControllerTest {
             request.roastLevel(),
             request.notesPrimary(),
             request.notesSecondary(),
-            request.acidity(),
-            request.body(),
-            request.sweetness(),
-            request.bitterness(),
+            request.acidityScore(),
+            request.bodyScore(),
+            request.sweetnessScore(),
+            request.bitternessScore(),
             request.description(),
             LocalDateTime.now(),
             LocalDateTime.now());
@@ -378,10 +421,10 @@ class CoffeeControllerTest {
             "Medio",
             "Cardamomo",
             "Canela, clavo",
-            "Media",
-            "Medio",
-            "Media",
-            "Baja",
+            3,
+            3,
+            4,
+            2,
             "Café limpio y aromático");
 
     mockMvc
@@ -413,10 +456,10 @@ class CoffeeControllerTest {
             "Medio",
             "Cardamomo",
             "Canela, clavo",
-            "Media",
-            "Medio",
-            "Media",
-            "Baja",
+            3,
+            3,
+            4,
+            2,
             "A".repeat(1001));
 
     mockMvc
@@ -444,11 +487,7 @@ class CoffeeControllerTest {
     "process,81,Process must not exceed 80 characters",
     "roastLevel,81,Roast level must not exceed 80 characters",
     "notesPrimary,256,Primary notes must not exceed 255 characters",
-    "notesSecondary,501,Secondary notes must not exceed 500 characters",
-    "acidity,81,Acidity must not exceed 80 characters",
-    "body,81,Body must not exceed 80 characters",
-    "sweetness,81,Sweetness must not exceed 80 characters",
-    "bitterness,81,Bitterness must not exceed 80 characters"
+    "notesSecondary,501,Secondary notes must not exceed 500 characters"
   })
   void create_shouldReturnBadRequest_whenOptionalTextFieldExceedsMaxLength(
       String fieldName, int length, String message) throws Exception {
@@ -468,6 +507,66 @@ class CoffeeControllerTest {
         .andExpect(jsonPath("$.validationErrors." + fieldName).value(message));
   }
 
+  @ParameterizedTest
+  @CsvSource({
+    "acidityScore,0,Acidity score must be at least 1",
+    "acidityScore,6,Acidity score must not exceed 5",
+    "bodyScore,0,Body score must be at least 1",
+    "bodyScore,6,Body score must not exceed 5",
+    "sweetnessScore,0,Sweetness score must be at least 1",
+    "sweetnessScore,6,Sweetness score must not exceed 5",
+    "bitternessScore,0,Bitterness score must be at least 1",
+    "bitternessScore,6,Bitterness score must not exceed 5"
+  })
+  void create_shouldReturnValidationError_whenScoreOutOfRange(
+      String fieldName, int value, String message) throws Exception {
+    ObjectNode request = objectMapper.createObjectNode();
+    request.put("name", "Mezcla Veracruz");
+    request.put(fieldName, value);
+
+    mockMvc
+        .perform(
+            post("/api/coffees")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.validationErrors." + fieldName).value(message));
+  }
+
+  @Test
+  void create_shouldSucceed_whenScoresAreOmitted() throws Exception {
+    when(coffeeService.create(any(CoffeeRequest.class)))
+        .thenReturn(
+            new CoffeeResponse(
+                1L,
+                "No scores",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                LocalDateTime.now(),
+                null));
+
+    mockMvc
+        .perform(
+            post("/api/coffees")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"No scores\"}"))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.acidityScore").doesNotExist());
+  }
+
   @Test
   void update_shouldReturnBadRequest_whenNameIsBlank() throws Exception {
     CoffeeRequest request =
@@ -483,10 +582,10 @@ class CoffeeControllerTest {
             "Medio",
             "Cardamomo",
             "Canela, clavo",
-            "Media",
-            "Medio",
-            "Media",
-            "Baja",
+            3,
+            3,
+            4,
+            2,
             "Updated description");
 
     mockMvc
@@ -499,5 +598,28 @@ class CoffeeControllerTest {
         .andExpect(jsonPath("$.error").value("Bad Request"))
         .andExpect(jsonPath("$.message").value("Validation failed"))
         .andExpect(jsonPath("$.validationErrors.name").value("Coffee name is required"));
+  }
+
+  @Test
+  void create_shouldReturnBadRequest_whenBodyIsMalformedJson() throws Exception {
+    mockMvc
+        .perform(
+            post("/api/coffees")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{ not valid json"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.error").value("Bad Request"))
+        .andExpect(jsonPath("$.message").value("Malformed request body"));
+  }
+
+  @Test
+  void findById_shouldReturnBadRequest_whenIdIsNotNumeric() throws Exception {
+    mockMvc
+        .perform(get("/api/coffees/{id}", "not-a-number"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.error").value("Bad Request"))
+        .andExpect(jsonPath("$.message").value("Invalid value for parameter 'id'"));
   }
 }

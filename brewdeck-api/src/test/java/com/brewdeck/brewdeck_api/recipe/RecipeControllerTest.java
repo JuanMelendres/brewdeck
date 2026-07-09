@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,15 +21,30 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(RecipeController.class)
+@WebMvcTest(
+    controllers = RecipeController.class,
+    excludeFilters =
+        @ComponentScan.Filter(
+            type = FilterType.ASSIGNABLE_TYPE,
+            classes = {
+              com.brewdeck.brewdeck_api.auth.JwtAuthenticationFilter.class,
+              com.brewdeck.brewdeck_api.common.config.SecurityConfig.class,
+              com.brewdeck.brewdeck_api.common.config.RestAuthenticationEntryPoint.class
+            }))
+@AutoConfigureMockMvc(addFilters = false)
+@WithMockUser
 class RecipeControllerTest {
 
   @Autowired private MockMvc mockMvc;
@@ -36,6 +52,8 @@ class RecipeControllerTest {
   @Autowired private ObjectMapper objectMapper;
 
   @MockitoBean private RecipeService recipeService;
+
+  @MockitoBean private RecipeStatsService recipeStatsService;
 
   @Test
   void findAll_shouldReturnRecipes() throws Exception {
@@ -109,6 +127,87 @@ class RecipeControllerTest {
         .andExpect(jsonPath("$.name").value("Mezcla Veracruz AeroPress"));
 
     verify(recipeService).findById(1L);
+  }
+
+  @Test
+  void getStats_shouldReturnRecipeStats() throws Exception {
+    RecipeStatsResponse stats =
+        new RecipeStatsResponse(1L, 3L, 8.5, LocalDateTime.of(2026, 7, 5, 10, 0));
+
+    when(recipeStatsService.getStats(1L)).thenReturn(stats);
+
+    mockMvc
+        .perform(get("/api/recipes/{id}/stats", 1L))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.recipeId").value(1L))
+        .andExpect(jsonPath("$.totalSessions").value(3))
+        .andExpect(jsonPath("$.averageRating").value(8.5))
+        .andExpect(jsonPath("$.lastBrewedAt").exists());
+
+    verify(recipeStatsService).getStats(1L);
+  }
+
+  @Test
+  void getStats_shouldReturnNotFound_whenRecipeMissing() throws Exception {
+    when(recipeStatsService.getStats(99L))
+        .thenThrow(new EntityNotFoundException("Recipe not found"));
+
+    mockMvc
+        .perform(get("/api/recipes/{id}/stats", 99L))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.status").value(404))
+        .andExpect(jsonPath("$.message").value("Recipe not found"));
+
+    verify(recipeStatsService).getStats(99L);
+  }
+
+  @Test
+  void getTopRated_shouldReturnRankedRecipes() throws Exception {
+    when(recipeStatsService.getTopRated(5))
+        .thenReturn(java.util.List.of(new TopRatedRecipeResponse(2L, "Best", 9.0, 4L)));
+
+    mockMvc
+        .perform(get("/api/recipes/top-rated"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].recipeId").value(2L))
+        .andExpect(jsonPath("$[0].recipeName").value("Best"))
+        .andExpect(jsonPath("$[0].averageRating").value(9.0))
+        .andExpect(jsonPath("$[0].totalSessions").value(4));
+
+    verify(recipeStatsService).getTopRated(5);
+  }
+
+  @Test
+  void getTopRated_shouldForwardLimitParam() throws Exception {
+    when(recipeStatsService.getTopRated(3)).thenReturn(java.util.List.of());
+
+    mockMvc.perform(get("/api/recipes/top-rated").param("limit", "3")).andExpect(status().isOk());
+
+    verify(recipeStatsService).getTopRated(3);
+  }
+
+  @Test
+  void getMostBrewed_shouldReturnRankedRecipes() throws Exception {
+    when(recipeStatsService.getMostBrewed(5))
+        .thenReturn(java.util.List.of(new MostBrewedRecipeResponse(2L, "Busy", 9L)));
+
+    mockMvc
+        .perform(get("/api/recipes/most-brewed"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].recipeId").value(2L))
+        .andExpect(jsonPath("$[0].recipeName").value("Busy"))
+        .andExpect(jsonPath("$[0].totalSessions").value(9));
+
+    verify(recipeStatsService).getMostBrewed(5);
+  }
+
+  @Test
+  void getMostBrewed_shouldForwardLimitParam() throws Exception {
+    when(recipeStatsService.getMostBrewed(3)).thenReturn(java.util.List.of());
+
+    mockMvc.perform(get("/api/recipes/most-brewed").param("limit", "3")).andExpect(status().isOk());
+
+    verify(recipeStatsService).getMostBrewed(3);
   }
 
   @Test
@@ -253,6 +352,7 @@ class RecipeControllerTest {
             "Clean, aromatic, spicy, balanced.",
             true,
             LocalDateTime.now(),
+            null,
             null);
 
     when(recipeService.markAsFavorite(1L)).thenReturn(response);
@@ -286,6 +386,7 @@ class RecipeControllerTest {
             "Clean, aromatic, spicy, balanced.",
             false,
             LocalDateTime.now(),
+            null,
             null);
 
     when(recipeService.removeFromFavorites(1L)).thenReturn(response);
@@ -333,6 +434,7 @@ class RecipeControllerTest {
         "Clean, aromatic, spicy, balanced.",
         true,
         LocalDateTime.now(),
+        null,
         null);
   }
 
@@ -563,5 +665,49 @@ class RecipeControllerTest {
         .andExpect(jsonPath("$.error").value("Bad Request"))
         .andExpect(jsonPath("$.message").value("Validation failed"))
         .andExpect(jsonPath("$.validationErrors.name").value("Recipe name is required"));
+  }
+
+  @Test
+  void share_returns200WithShareToken() throws Exception {
+    RecipeResponse shared = sampleResponseWithShareToken("Xk7pQ2mN8vL4wR9tYbZ0aQ");
+    when(recipeService.share(1L)).thenReturn(shared);
+
+    mockMvc
+        .perform(patch("/api/recipes/1/share"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.shareToken").value("Xk7pQ2mN8vL4wR9tYbZ0aQ"));
+  }
+
+  @Test
+  void unshare_returns200WithNullShareToken() throws Exception {
+    RecipeResponse unshared = sampleResponseWithShareToken(null);
+    when(recipeService.unshare(1L)).thenReturn(unshared);
+
+    mockMvc
+        .perform(patch("/api/recipes/1/unshare"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.shareToken").doesNotExist());
+  }
+
+  private RecipeResponse sampleResponseWithShareToken(String token) {
+    return new RecipeResponse(
+        1L,
+        1L,
+        "Ethiopia",
+        1L,
+        "V60",
+        "Morning Cup",
+        new java.math.BigDecimal("15.0"),
+        new java.math.BigDecimal("250.0"),
+        "1:16",
+        "Medium",
+        94,
+        "3:00",
+        "Bloom then pour",
+        "Floral",
+        false,
+        java.time.LocalDateTime.now(),
+        null,
+        token);
   }
 }

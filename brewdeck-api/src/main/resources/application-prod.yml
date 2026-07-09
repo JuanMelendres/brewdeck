@@ -6,3 +6,7 @@ spring:
 
   jpa:
     show-sql: false
+
+brewdeck:
+  auth:
+    secret: ${BREWDECK_JWT_SECRET}

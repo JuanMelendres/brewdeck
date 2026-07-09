@@ -2,6 +2,7 @@ package com.brewdeck.brewdeck_api.recipe;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.brewdeck.brewdeck_api.coffee.Coffee;
@@ -521,6 +522,121 @@ class RecipeServiceTest {
 
     verify(recipeRepository).findById(99L);
     verify(recipeRepository, never()).save(any());
+  }
+
+  @Test
+  void share_generatesTokenOnFirstShare() {
+    Coffee coffee = Coffee.builder().id(1L).name("Mezcla Veracruz").build();
+    BrewMethod method = BrewMethod.builder().id(1L).name("AeroPress").build();
+
+    Recipe recipe =
+        Recipe.builder()
+            .id(1L)
+            .coffee(coffee)
+            .method(method)
+            .name("Veracruz AeroPress")
+            .favorite(false)
+            .shareToken(null)
+            .createdAt(LocalDateTime.now())
+            .build();
+
+    when(recipeRepository.findById(1L)).thenReturn(Optional.of(recipe));
+    when(recipeRepository.save(any(Recipe.class))).thenAnswer(inv -> inv.getArgument(0));
+
+    RecipeResponse response = recipeService.share(1L);
+
+    assertThat(response.shareToken()).isNotBlank();
+    assertThat(recipe.getShareToken()).isEqualTo(response.shareToken());
+    verify(recipeRepository).save(recipe);
+  }
+
+  @Test
+  void share_isIdempotentWhenAlreadyShared() {
+    Coffee coffee = Coffee.builder().id(1L).name("Mezcla Veracruz").build();
+    BrewMethod method = BrewMethod.builder().id(1L).name("AeroPress").build();
+
+    Recipe recipe =
+        Recipe.builder()
+            .id(1L)
+            .coffee(coffee)
+            .method(method)
+            .name("Veracruz AeroPress")
+            .favorite(false)
+            .shareToken("existing-token")
+            .createdAt(LocalDateTime.now())
+            .build();
+
+    when(recipeRepository.findById(1L)).thenReturn(Optional.of(recipe));
+
+    RecipeResponse response = recipeService.share(1L);
+
+    assertThat(response.shareToken()).isEqualTo("existing-token");
+    verify(recipeRepository, never()).save(any(Recipe.class));
+  }
+
+  @Test
+  void share_throwsWhenRecipeMissing() {
+    when(recipeRepository.findById(99L)).thenReturn(Optional.empty());
+
+    assertThatThrownBy(() -> recipeService.share(99L)).isInstanceOf(EntityNotFoundException.class);
+  }
+
+  @Test
+  void unshare_clearsToken() {
+    Coffee coffee = Coffee.builder().id(1L).name("Mezcla Veracruz").build();
+    BrewMethod method = BrewMethod.builder().id(1L).name("AeroPress").build();
+
+    Recipe recipe =
+        Recipe.builder()
+            .id(1L)
+            .coffee(coffee)
+            .method(method)
+            .name("Veracruz AeroPress")
+            .favorite(false)
+            .shareToken("existing-token")
+            .createdAt(LocalDateTime.now())
+            .build();
+
+    when(recipeRepository.findById(1L)).thenReturn(Optional.of(recipe));
+    when(recipeRepository.save(any(Recipe.class))).thenAnswer(inv -> inv.getArgument(0));
+
+    RecipeResponse response = recipeService.unshare(1L);
+
+    assertThat(response.shareToken()).isNull();
+    assertThat(recipe.getShareToken()).isNull();
+  }
+
+  @Test
+  void getByShareToken_returnsCuratedDto() {
+    Coffee coffee = Coffee.builder().id(1L).name("Ethiopia").build();
+    BrewMethod method = BrewMethod.builder().id(1L).name("V60").build();
+
+    Recipe recipe =
+        Recipe.builder()
+            .id(1L)
+            .coffee(coffee)
+            .method(method)
+            .name("Morning Cup")
+            .shareToken("tok-1")
+            .favorite(false)
+            .createdAt(LocalDateTime.now())
+            .build();
+
+    when(recipeRepository.findByShareToken("tok-1")).thenReturn(Optional.of(recipe));
+
+    PublicRecipeResponse response = recipeService.getByShareToken("tok-1");
+
+    assertThat(response.name()).isEqualTo(recipe.getName());
+    assertThat(response.coffeeName()).isEqualTo(recipe.getCoffee().getName());
+    assertThat(response.methodName()).isEqualTo(recipe.getMethod().getName());
+  }
+
+  @Test
+  void getByShareToken_throwsWhenTokenUnknown() {
+    when(recipeRepository.findByShareToken("nope")).thenReturn(Optional.empty());
+
+    assertThatThrownBy(() -> recipeService.getByShareToken("nope"))
+        .isInstanceOf(EntityNotFoundException.class);
   }
 
   @SuppressWarnings("unchecked")

@@ -1,281 +1,95 @@
 # ☕ BrewDeck
 
-BrewDeck is a personal coffee companion platform designed to help coffee enthusiasts track, optimize, and reproduce their brewing recipes.
+BrewDeck is a personal coffee companion that helps enthusiasts track, optimize, and reproduce their brewing recipes — so a great cup is repeatable, not lucky.
 
-It allows users to store coffee profiles, define brewing recipes, and log brewing sessions to continuously improve extraction results.
+Instead of notes scattered across apps and memory, BrewDeck centralizes coffees, recipes, and brew sessions into one structured, data-driven system. The long-term vision includes a physical e-paper companion device that syncs with the platform.
 
----
-
-## 📖 Description
-
-BrewDeck aims to solve a common problem among coffee enthusiasts:
-
-> “How do I consistently reproduce the perfect cup of coffee?”
-
-Instead of relying on notes scattered across apps or memory, BrewDeck centralizes all brewing knowledge into a structured, data-driven system.
-
-Future vision includes a **physical companion device (e-paper based)** that syncs with the platform.
+[![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=JuanMelendres_brewdeck)](https://sonarcloud.io/summary/new_code?id=JuanMelendres_brewdeck)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=JuanMelendres_brewdeck&metric=coverage)](https://sonarcloud.io/summary/new_code?id=JuanMelendres_brewdeck)
 
 ---
 
 ## 🚀 Features
 
-- ☕ Coffee management (origin, process, roast, notes)
-- 🧪 Brewing recipes (grind size, ratio, temperature, time)
-- 📊 Brew session tracking (results, ratings, adjustments)
-- ⭐ Favorite recipes
-- 📚 Historical brewing data for optimization
-- 🔍 Clean REST API design
-- 🧱 Scalable architecture for future features
-
----
+- ☕ Coffee, brew-method, recipe, and brew-session management (full CRUD)
+- ⭐ Favorites, filters, and pagination
+- 📊 Analytics — top-rated/most-brewed recipes, most-used coffees, method usage, rating trend, tasting radar
+- 🤖 AI-assisted recipe suggestions & improvement (feature-flagged)
+- 🔗 Opt-in public share links for recipes
+- 🔐 Auth foundation — self-registration + JWT login
+- 🧱 Clean REST API + mobile-first web client
 
 ## 🛠 Tech Stack
 
-### Backend
-- Java 21
-- Spring Boot 3
-- Spring Data JPA
-- PostgreSQL
-- Flyway (database migrations)
-- Maven
-
-### Code Quality
-- Spotless (code formatting)
-- PMD (static analysis)
-- OWASP Dependency Check (security scanning)
-
-### DevOps (planned / in progress)
-- Docker
-- GitHub Actions (CI/CD)
-- SonarCloud (code quality & coverage)
-- Dependabot (dependency updates)
-
----
+**Backend:** Java 21 · Spring Boot 3.5 · Spring Data JPA · PostgreSQL 16 · Flyway · Maven
+**Frontend:** Next.js (App Router) · React 19 · TypeScript · MUI · TanStack Query · React Hook Form + Zod
+**Quality/DevOps:** JUnit 5 · Mockito · Testcontainers · JaCoCo · Spotless · PMD · OWASP Dependency Check · SonarCloud · Qodana · GitHub Actions · Docker Compose
 
 ## 🏗 Architecture
 
 ```text
-Client (Next.js - future)
-        ↓
-Spring Boot REST API
-        ↓
-PostgreSQL Database
-        ↓
-Flyway (schema versioning)
+Next.js Web App  ──REST/JSON──▶  Spring Boot API  ──▶  PostgreSQL 16
+                                       │
+                                       └─ (feature-flagged) Anthropic Claude
 ```
 
----
+Package-by-domain modular monolith. Full detail in [`docs/architecture/`](docs/architecture/overview.md).
 
-## Future extension
-```text
-E-paper device (Raspberry Pi Pico)
-        ↓
-Sync API
-```
+## ⚙️ Quick Start
 
----
-
-## 📁 Project Structure
-```text
-brewdeck/
-├── brewdeck-api/        # Spring Boot backend
-│   ├── src/main/java/com/brewdeck/
-│   │   ├── coffee/
-│   │   ├── recipe/
-│   │   ├── session/
-│   │   └── method/
-│   ├── src/main/resources/
-│   │   └── db/migration/
-│   └── pom.xml
-│
-├── brewdeck-web/        # Next.js frontend (coming soon)
-│
-├── scripts/             # Git hooks scripts
-├── docker-compose.yml   # Local PostgreSQL
-└── README.md
-```
-
----
-
-## ⚙️ Local Setup
-
-### 1. Clone repository
 ```bash
-   git clone https://github.com/JuanMelendres/brewdeck.git
-   cd brewdeck
- ```
-### 2. Start PostgreSQL
+git clone https://github.com/JuanMelendres/brewdeck.git
+cd brewdeck
+
+# 1. Database
+docker compose up -d
+
+# 2. Backend  →  http://localhost:8080  (Swagger at /swagger-ui/index.html)
+cd brewdeck-api && ./mvnw spring-boot:run
+
+# 3. Frontend →  http://localhost:3000
+cd ../brewdeck-web && cp .env.example .env.local && npm install && npm run dev
+```
+
+Full instructions: [`docs/development/setup.md`](docs/development/setup.md).
+
+## 🧰 Common Commands
+
 ```bash
-   docker compose up -d
- ```
-### 3. Run backend
-```bash
-   cd brewdeck-api
-   ./mvnw spring-boot:run
-```
-### 4. Access API
-http://localhost:8080
+# backend
+./mvnw spotless:apply && ./mvnw clean verify   # format + build + tests
+./mvnw pmd:check                               # static analysis
+./mvnw dependency-check:check                  # security scan
 
-### 5. Swagger UI:
-http://localhost:8080/swagger-ui/index.html
-
-### 6. Postman Collection
-
-A Postman collection is available for manual API testing.
-
-Files:
-
-```text
-docs/postman/brewdeck.postman_collection.json
-docs/postman/brewdeck.local.postman_environment.json
+# frontend (in brewdeck-web/)
+npm run test && npm run type-check && npm run build
 ```
 
----
+## 📚 Documentation
 
-## 📡 API Endpoints
-### Coffee  
-```html
-GET    /api/coffees
-GET    /api/coffees/{id}
-POST   /api/coffees
-PUT    /api/coffees/{id}
-DELETE /api/coffees/{id}
-```
+Docs-as-code lives in [`docs/`](docs/README.md):
 
-### Methods
-```html
-GET    /api/brew-methods
-GET    /api/brew-methods/{id}
-POST   /api/brew-methods
-PUT    /api/brew-methods/{id}
-DELETE /api/brew-methods/{id}
-```
+- **Product** — [vision](docs/product/vision.md) · [roadmap](docs/product/roadmap.md) · [features](docs/product/features.md) · [FDDs](docs/product/fdd/)
+- **Architecture** — [overview](docs/architecture/overview.md) · [technical design](docs/architecture/technical-design.md) · [database](docs/architecture/database-design.md) · [API design](docs/architecture/api-design.md) · [diagrams](docs/architecture/diagrams.md)
+- **Decisions** — [ADRs](docs/decisions/)
+- **API** — [reference](docs/api/README.md) · [openapi.yaml](docs/api/openapi.yaml) · [Postman](docs/postman/)
+- **Testing** — [strategy](docs/testing/testing-strategy.md) · [plan](docs/testing/test-plan.md)
+- **Development** — [setup](docs/development/setup.md) · [env vars](docs/development/environment-variables.md) · [coding standards](docs/development/coding-standards.md) · [contributing](docs/development/contribution-guide.md)
 
-### Recipes
-```html
-GET    /api/recipes
-GET    /api/recipes/{id}
-GET    /api/recipes/favorites
-GET    /api/recipes/coffee/{coffeeId}
-GET    /api/recipes/method/{methodId}
-POST   /api/recipes
-PUT    /api/recipes/{id}
-DELETE /api/recipes/{id}
-```
+## 📊 Project Status
 
-### Brew Sessions
-```html
-GET    /api/brew-sessions
-GET    /api/brew-sessions/{id}
-GET    /api/brew-sessions/recipe/{recipeId}
-POST   /api/brew-sessions
-PUT    /api/brew-sessions/{id}
-DELETE /api/brew-sessions/{id}
-```
+Phases 1–5 complete (backend, quality, backend-UX, frontend, product improvements). **Phase 6 (auth & multi-user) in progress** — auth foundation shipped; per-user ownership and account UX are next.
 
----
+## 🗺 Roadmap (short)
 
-## 🧪 Quality Gates
+1–5 ✅ Backend, quality, frontend, analytics, AI/sharing · **6 🔄 Auth & multi-user (in progress)** · Vision 🚀 e-paper device, offline sync, advanced analytics.
 
-The project enforces professional-grade quality standards:
-
-### SonarQube
-#### Quality Gate
-[![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=JuanMelendres_brewdeck)](https://sonarcloud.io/summary/new_code?id=JuanMelendres_brewdeck)
-
-#### Bugs
-[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=JuanMelendres_brewdeck&metric=bugs)](https://sonarcloud.io/summary/new_code?id=JuanMelendres_brewdeck)
-
-#### Coverage
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=JuanMelendres_brewdeck&metric=coverage)](https://sonarcloud.io/summary/new_code?id=JuanMelendres_brewdeck)
-
-#### Reliability Rating
-[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=JuanMelendres_brewdeck&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=JuanMelendres_brewdeck)
-
-
-### Code Formatting
-```bash
-./mvnw spotless:apply
-```
-
-### Validation
-```bash
-./mvnw spotless:check
-./mvnw test
-./mvnw pmd:check
-```
-
-### Security Scan
-```bash
-./mvnw dependency-check:check
-```
-
-### Git Hooks
-```text
-Pre-commit → format + tests
-Pre-push → full validation + security scan
-```
-
----
-
-## 🗺 Roadmap
-### Phase 1
-- [x] Coffee CRUD
-- [x] PostgreSQL + Flyway
-- [x] Code quality setup
-- [x] Git hooks
-
-### Phase 2 (Current)
-- [x] Brew Methods
-- [x] Recipes
-- [x] Brew Sessions
--  [ ] Favorites
-
-### Phase 3
--  [ ] Next.js frontend
--  [ ] Mobile-first UI
--  [ ] API integration
-
-### Phase 4
--  [ ] Authentication
--  [ ] User profiles
--  [ ] Cloud deployment
-
-### Phase 5 (Vision 🚀)
--  [ ] Hardware integration (e-paper device)
--  [ ] Offline sync
--  [ ] Advanced analytics
-
----
-
-## 💡 Vision
-
-BrewDeck is not just a CRUD app.
-
-It is evolving into:
-
-- ☕ A data-driven brewing system
-- 📱 A mobile-first coffee companion
-- 📟 A physical smart coffee device
-
----
+Detail: [`docs/product/roadmap.md`](docs/product/roadmap.md).
 
 ## 👨‍💻 Author
 
-Juan Melendres
-
-Backend Developer | Java & Spring Boot | Microservices
-
----
+Juan Melendres — Backend Developer · Java & Spring Boot
 
 ## ⭐ Support
 
-If you like this project:
-
-Star ⭐ the repository
-
-Contribute ideas or improvements
-
----
-
+If you like this project, star ⭐ the repository and share ideas or improvements.

@@ -1,0 +1,208 @@
+openapi: 3.0.3
+info:
+  title: BrewDeck API
+  description: >
+    Seed OpenAPI description for the BrewDeck REST API. This is a hand-maintained
+    starting point derived from the controllers; the authoritative, always-current
+    spec is served live by springdoc at /v3/api-docs (Swagger UI at
+    /swagger-ui/index.html). TODO: expand request/response schemas to full fidelity.
+  version: 0.1.0
+servers:
+  - url: http://localhost:8080
+    description: Local
+tags:
+  - name: Auth
+  - name: Coffees
+  - name: Brew Methods
+  - name: Recipes
+  - name: Brew Sessions
+  - name: Public
+  - name: Dashboard
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    Page:
+      name: page
+      in: query
+      schema: { type: integer, default: 0 }
+    Size:
+      name: size
+      in: query
+      schema: { type: integer, default: 10 }
+    Sort:
+      name: sort
+      in: query
+      schema: { type: string, example: id,asc }
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        status: { type: integer, example: 400 }
+        error: { type: string, example: Bad Request }
+        message: { type: string, example: Validation failed }
+        path: { type: string, example: /api/recipes }
+        validationErrors:
+          type: object
+          additionalProperties: { type: string }
+    PageResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items: {}
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+        first: { type: boolean }
+        last: { type: boolean }
+security:
+  - bearerAuth: []
+paths:
+  /api/auth/register:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Self-register
+      responses:
+        "201": { description: Created }
+        "400": { description: Validation error, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Log in, returns a JWT
+      responses:
+        "200": { description: OK }
+        "401": { description: Bad credentials }
+  /api/auth/me:
+    get:
+      tags: [Auth]
+      summary: Current user
+      responses:
+        "200": { description: OK }
+        "401": { description: Unauthenticated }
+  /api/coffees:
+    get:
+      tags: [Coffees]
+      summary: List coffees (paginated)
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Size"
+        - $ref: "#/components/parameters/Sort"
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/PageResponse" } } } }
+    post:
+      tags: [Coffees]
+      summary: Create a coffee
+      responses:
+        "201": { description: Created }
+        "400": { description: Validation error }
+  /api/coffees/{id}:
+    get:
+      tags: [Coffees]
+      summary: Get a coffee
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer, format: int64 } }]
+      responses:
+        "200": { description: OK }
+        "404": { description: Not found }
+    put:
+      tags: [Coffees]
+      summary: Update a coffee
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer, format: int64 } }]
+      responses: { "200": { description: OK }, "404": { description: Not found } }
+    delete:
+      tags: [Coffees]
+      summary: Delete a coffee
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer, format: int64 } }]
+      responses: { "204": { description: No Content }, "404": { description: Not found } }
+  /api/coffees/most-used:
+    get:
+      tags: [Coffees]
+      summary: Most-used coffees (top-N list)
+      responses: { "200": { description: OK } }
+  /api/brew-methods:
+    get:
+      tags: [Brew Methods]
+      summary: List brew methods (paginated)
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Size"
+        - $ref: "#/components/parameters/Sort"
+      responses: { "200": { description: OK } }
+    post:
+      tags: [Brew Methods]
+      summary: Create a brew method
+      responses: { "201": { description: Created }, "409": { description: Duplicate name } }
+  /api/brew-methods/{id}:
+    get: { tags: [Brew Methods], summary: Get a brew method, parameters: [{ name: id, in: path, required: true, schema: { type: integer, format: int64 } }], responses: { "200": { description: OK }, "404": { description: Not found } } }
+    put: { tags: [Brew Methods], summary: Update a brew method, parameters: [{ name: id, in: path, required: true, schema: { type: integer, format: int64 } }], responses: { "200": { description: OK } } }
+    delete: { tags: [Brew Methods], summary: Delete a brew method, parameters: [{ name: id, in: path, required: true, schema: { type: integer, format: int64 } }], responses: { "204": { description: No Content } } }
+  /api/brew-methods/usage:
+    get: { tags: [Brew Methods], summary: Brew-method usage breakdown (list), responses: { "200": { description: OK } } }
+  /api/recipes:
+    get:
+      tags: [Recipes]
+      summary: List recipes (paginated)
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Size"
+        - $ref: "#/components/parameters/Sort"
+      responses: { "200": { description: OK } }
+    post:
+      tags: [Recipes]
+      summary: Create a recipe
+      responses: { "201": { description: Created }, "400": { description: Validation error } }
+  /api/recipes/{id}:
+    get: { tags: [Recipes], summary: Get a recipe, parameters: [{ name: id, in: path, required: true, schema: { type: integer, format: int64 } }], responses: { "200": { description: OK }, "404": { description: Not found } } }
+    put: { tags: [Recipes], summary: Update a recipe, parameters: [{ name: id, in: path, required: true, schema: { type: integer, format: int64 } }], responses: { "200": { description: OK } } }
+    delete: { tags: [Recipes], summary: Delete a recipe, parameters: [{ name: id, in: path, required: true, schema: { type: integer, format: int64 } }], responses: { "204": { description: No Content } } }
+  /api/recipes/{id}/stats:
+    get: { tags: [Recipes], summary: Recipe brew stats, parameters: [{ name: id, in: path, required: true, schema: { type: integer, format: int64 } }], responses: { "200": { description: OK }, "404": { description: Not found } } }
+  /api/recipes/favorites:
+    get: { tags: [Recipes], summary: Favorite recipes (paginated), responses: { "200": { description: OK } } }
+  /api/recipes/top-rated:
+    get: { tags: [Recipes], summary: Top-rated recipes (list), responses: { "200": { description: OK } } }
+  /api/recipes/most-brewed:
+    get: { tags: [Recipes], summary: Most-brewed recipes (list), responses: { "200": { description: OK } } }
+  /api/recipes/{id}/favorite:
+    patch: { tags: [Recipes], summary: Mark recipe as favorite, parameters: [{ name: id, in: path, required: true, schema: { type: integer, format: int64 } }], responses: { "200": { description: OK } } }
+  /api/recipes/{id}/unfavorite:
+    patch: { tags: [Recipes], summary: Unmark recipe as favorite, parameters: [{ name: id, in: path, required: true, schema: { type: integer, format: int64 } }], responses: { "200": { description: OK } } }
+  /api/recipes/{id}/share:
+    patch: { tags: [Recipes], summary: Generate a public share token, parameters: [{ name: id, in: path, required: true, schema: { type: integer, format: int64 } }], responses: { "200": { description: OK } } }
+  /api/recipes/{id}/unshare:
+    patch: { tags: [Recipes], summary: Revoke the public share token, parameters: [{ name: id, in: path, required: true, schema: { type: integer, format: int64 } }], responses: { "200": { description: OK } } }
+  /api/recipes/suggest:
+    post: { tags: [Recipes], summary: "AI: suggest a recipe (feature-flagged)", responses: { "200": { description: OK }, "503": { description: AI disabled/unavailable } } }
+  /api/recipes/{id}/improve:
+    post: { tags: [Recipes], summary: "AI: improve a recipe from rated history (feature-flagged)", parameters: [{ name: id, in: path, required: true, schema: { type: integer, format: int64 } }], responses: { "200": { description: OK }, "404": { description: Not found }, "422": { description: No rated history }, "503": { description: AI disabled/unavailable } } }
+  /api/brew-sessions:
+    get:
+      tags: [Brew Sessions]
+      summary: List brew sessions (paginated)
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Size"
+        - $ref: "#/components/parameters/Sort"
+      responses: { "200": { description: OK } }
+    post: { tags: [Brew Sessions], summary: Create a brew session, responses: { "201": { description: Created } } }
+  /api/brew-sessions/{id}:
+    get: { tags: [Brew Sessions], summary: Get a brew session, parameters: [{ name: id, in: path, required: true, schema: { type: integer, format: int64 } }], responses: { "200": { description: OK }, "404": { description: Not found } } }
+    put: { tags: [Brew Sessions], summary: Update a brew session, parameters: [{ name: id, in: path, required: true, schema: { type: integer, format: int64 } }], responses: { "200": { description: OK } } }
+    delete: { tags: [Brew Sessions], summary: Delete a brew session, parameters: [{ name: id, in: path, required: true, schema: { type: integer, format: int64 } }], responses: { "204": { description: No Content } } }
+  /api/brew-sessions/recipe/{recipeId}:
+    get: { tags: [Brew Sessions], summary: Brew sessions for a recipe (paginated), parameters: [{ name: recipeId, in: path, required: true, schema: { type: integer, format: int64 } }], responses: { "200": { description: OK } } }
+  /api/public/recipes/{token}:
+    get:
+      tags: [Public]
+      security: []
+      summary: Public read-only recipe by share token
+      parameters: [{ name: token, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: OK }, "404": { description: Unknown or revoked token } }
+  /api/dashboard/summary:
+    get: { tags: [Dashboard], summary: Dashboard summary, responses: { "200": { description: OK } } }

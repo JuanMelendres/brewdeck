@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class RecipeController {
 
   private final RecipeService recipeService;
+  private final RecipeStatsService recipeStatsService;
 
   @GetMapping
   @Operation(summary = "List recipes", description = "Returns a paginated list of recipes.")
@@ -32,6 +34,38 @@ public class RecipeController {
   @Operation(summary = "Get recipe by id")
   public ResponseEntity<RecipeResponse> findById(@PathVariable Long id) {
     return ResponseEntity.ok(recipeService.findById(id));
+  }
+
+  @GetMapping("/{id}/stats")
+  @Operation(
+      summary = "Get recipe brew statistics",
+      description =
+          "Returns total brew sessions, average rating, and last brewed timestamp for a recipe.")
+  public ResponseEntity<RecipeStatsResponse> getStats(@PathVariable Long id) {
+    return ResponseEntity.ok(recipeStatsService.getStats(id));
+  }
+
+  @GetMapping("/top-rated")
+  @Operation(
+      summary = "List top-rated recipes",
+      description =
+          "Returns recipes ranked by average brew-session rating (rated sessions only), each"
+              + " with its average rating and rated-session count. Limit defaults to 5 and is"
+              + " capped at 20.")
+  public ResponseEntity<List<TopRatedRecipeResponse>> getTopRated(
+      @RequestParam(defaultValue = "5") int limit) {
+    return ResponseEntity.ok(recipeStatsService.getTopRated(limit));
+  }
+
+  @GetMapping("/most-brewed")
+  @Operation(
+      summary = "List most-brewed recipes",
+      description =
+          "Returns recipes ranked by brew-session count (all sessions), each with its session"
+              + " count. Limit defaults to 5 and is capped at 20.")
+  public ResponseEntity<List<MostBrewedRecipeResponse>> getMostBrewed(
+      @RequestParam(defaultValue = "5") int limit) {
+    return ResponseEntity.ok(recipeStatsService.getMostBrewed(limit));
   }
 
   @GetMapping("/favorites")
@@ -92,5 +126,17 @@ public class RecipeController {
   @Operation(summary = "Remove recipe from favorites")
   public ResponseEntity<RecipeResponse> removeFromFavorites(@PathVariable Long id) {
     return ResponseEntity.ok(recipeService.removeFromFavorites(id));
+  }
+
+  @PatchMapping("/{id}/share")
+  @Operation(summary = "Create a public share link for a recipe")
+  public ResponseEntity<RecipeResponse> share(@PathVariable Long id) {
+    return ResponseEntity.ok(recipeService.share(id));
+  }
+
+  @PatchMapping("/{id}/unshare")
+  @Operation(summary = "Revoke a recipe's public share link")
+  public ResponseEntity<RecipeResponse> unshare(@PathVariable Long id) {
+    return ResponseEntity.ok(recipeService.unshare(id));
   }
 }

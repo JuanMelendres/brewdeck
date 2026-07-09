@@ -7,6 +7,7 @@ import com.brewdeck.brewdeck_api.common.PostgresRepositoryTest;
 import com.brewdeck.brewdeck_api.method.BrewMethod;
 import com.brewdeck.brewdeck_api.recipe.Recipe;
 import java.time.LocalDateTime;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -151,6 +152,44 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
     assertThat(result.getContent().getFirst().getRating()).isEqualTo(10);
   }
 
+  @Test
+  void findTop10ByRecipeIdAndRatingIsNotNull_shouldReturnOnlyRatedNewestFirstCappedAt10() {
+    Recipe recipe = persistRecipe("Mezcla Veracruz AeroPress");
+
+    // Unrated session (rating null) must be excluded.
+    entityManager.persist(
+        BrewSession.builder()
+            .recipe(recipe)
+            .brewedAt(LocalDateTime.of(2026, 5, 1, 10, 0))
+            .actualTemp(90)
+            .build());
+
+    // 11 rated sessions with ascending brewedAt: only the newest 10 come back, newest first.
+    for (int i = 1; i <= 11; i++) {
+      entityManager.persist(
+          BrewSession.builder()
+              .recipe(recipe)
+              .brewedAt(LocalDateTime.of(2026, 4, i, 10, 0))
+              .actualTemp(88 + i)
+              .actualTime("2:30")
+              .tasteResult("taste " + i)
+              .rating((i % 10) + 1)
+              .build());
+    }
+
+    entityManager.flush();
+    entityManager.clear();
+
+    List<BrewSession> result =
+        brewSessionRepository.findTop10ByRecipeIdAndRatingIsNotNullOrderByBrewedAtDesc(
+            recipe.getId());
+
+    assertThat(result).hasSize(10);
+    assertThat(result).allSatisfy(session -> assertThat(session.getRating()).isNotNull());
+    assertThat(result.get(0).getBrewedAt()).isEqualTo(LocalDateTime.of(2026, 4, 11, 10, 0));
+    assertThat(result.get(0).getBrewedAt()).isAfter(result.get(1).getBrewedAt());
+  }
+
   private Recipe persistRecipe(String recipeName) {
     Coffee coffee =
         Coffee.builder()
@@ -162,10 +201,10 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
             .roastLevel("Medio")
             .notesPrimary("Cardamomo")
             .notesSecondary("Canela, clavo")
-            .acidity("Media")
-            .body("Medio")
-            .sweetness("Media")
-            .bitterness("Baja")
+            .acidityScore(3)
+            .bodyScore(3)
+            .sweetnessScore(3)
+            .bitternessScore(2)
             .description("Coffee created for repository tests.")
             .build();
 

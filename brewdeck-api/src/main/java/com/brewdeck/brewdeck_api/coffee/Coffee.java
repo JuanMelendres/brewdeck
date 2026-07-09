@@ -37,10 +37,17 @@ public class Coffee {
   @Column(name = "notes_secondary", columnDefinition = "TEXT")
   private String notesSecondary;
 
-  private String acidity;
-  private String body;
-  private String sweetness;
-  private String bitterness;
+  @Column(name = "acidity_score")
+  private Integer acidityScore;
+
+  @Column(name = "body_score")
+  private Integer bodyScore;
+
+  @Column(name = "sweetness_score")
+  private Integer sweetnessScore;
+
+  @Column(name = "bitterness_score")
+  private Integer bitternessScore;
 
   @Column(columnDefinition = "TEXT")
   private String description;
