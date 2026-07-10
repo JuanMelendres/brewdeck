@@ -94,6 +94,7 @@ class CoffeeServiceTest {
 
     Pageable pageable = PageRequest.of(0, 10);
 
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
     when(coffeeRepository.findAll(anyCoffeeSpecification(), eq(pageable)))
         .thenReturn(new PageImpl<>(List.of(coffee), pageable, 1));
 
@@ -135,6 +136,7 @@ class CoffeeServiceTest {
     CoffeeFilter filter = new CoffeeFilter("Veracruz", "Veracruz", "Medio", "Lavado");
     Pageable pageable = PageRequest.of(0, 5);
 
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
     when(coffeeRepository.findAll(anyCoffeeSpecification(), eq(pageable)))
         .thenReturn(new PageImpl<>(List.of(coffee), pageable, 1));
 
@@ -158,25 +160,37 @@ class CoffeeServiceTest {
     Coffee coffee =
         Coffee.builder().id(1L).name("Mezcla Veracruz").createdAt(LocalDateTime.now()).build();
 
-    when(coffeeRepository.findById(1L)).thenReturn(Optional.of(coffee));
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(coffeeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(coffee));
 
     CoffeeResponse result = coffeeService.findById(1L);
 
     assertThat(result.id()).isEqualTo(1L);
     assertThat(result.name()).isEqualTo("Mezcla Veracruz");
 
-    verify(coffeeRepository).findById(1L);
+    verify(coffeeRepository).findByIdAndOwnerId(1L, 42L);
   }
 
   @Test
   void findById_shouldThrowException_whenCoffeeDoesNotExist() {
-    when(coffeeRepository.findById(99L)).thenReturn(Optional.empty());
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(coffeeRepository.findByIdAndOwnerId(99L, 42L)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> coffeeService.findById(99L))
         .isInstanceOf(EntityNotFoundException.class)
         .hasMessage("Coffee not found");
 
-    verify(coffeeRepository).findById(99L);
+    verify(coffeeRepository).findByIdAndOwnerId(99L, 42L);
+  }
+
+  @Test
+  void findById_shouldThrow_whenCoffeeOwnedByAnotherUser() {
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(coffeeRepository.findByIdAndOwnerId(99L, 42L)).thenReturn(Optional.empty());
+
+    assertThatThrownBy(() -> coffeeService.findById(99L))
+        .isInstanceOf(EntityNotFoundException.class)
+        .hasMessage("Coffee not found");
   }
 
   @Test
@@ -268,23 +282,25 @@ class CoffeeServiceTest {
 
   @Test
   void delete_shouldDeleteCoffee_whenCoffeeExists() {
-    when(coffeeRepository.existsById(1L)).thenReturn(true);
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(coffeeRepository.existsByIdAndOwnerId(1L, 42L)).thenReturn(true);
 
     coffeeService.delete(1L);
 
-    verify(coffeeRepository).existsById(1L);
+    verify(coffeeRepository).existsByIdAndOwnerId(1L, 42L);
     verify(coffeeRepository).deleteById(1L);
   }
 
   @Test
   void delete_shouldThrowException_whenCoffeeDoesNotExist() {
-    when(coffeeRepository.existsById(99L)).thenReturn(false);
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(coffeeRepository.existsByIdAndOwnerId(99L, 42L)).thenReturn(false);
 
     assertThatThrownBy(() -> coffeeService.delete(99L))
         .isInstanceOf(EntityNotFoundException.class)
         .hasMessage("Coffee not found");
 
-    verify(coffeeRepository).existsById(99L);
+    verify(coffeeRepository).existsByIdAndOwnerId(99L, 42L);
     verify(coffeeRepository, never()).deleteById(anyLong());
   }
 
@@ -318,7 +334,8 @@ class CoffeeServiceTest {
             2,
             "Updated description");
 
-    when(coffeeRepository.findById(1L)).thenReturn(Optional.of(existingCoffee));
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(coffeeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(existingCoffee));
     when(coffeeRepository.save(existingCoffee)).thenReturn(existingCoffee);
 
     CoffeeResponse result = coffeeService.update(1L, request);
@@ -341,7 +358,7 @@ class CoffeeServiceTest {
     assertThat(result.bitternessScore()).isEqualTo(2);
     assertThat(result.description()).isEqualTo("Updated description");
 
-    verify(coffeeRepository).findById(1L);
+    verify(coffeeRepository).findByIdAndOwnerId(1L, 42L);
     verify(coffeeRepository).save(existingCoffee);
   }
 
@@ -366,13 +383,14 @@ class CoffeeServiceTest {
             2,
             "Updated description");
 
-    when(coffeeRepository.findById(99L)).thenReturn(Optional.empty());
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(coffeeRepository.findByIdAndOwnerId(99L, 42L)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> coffeeService.update(99L, request))
         .isInstanceOf(EntityNotFoundException.class)
         .hasMessage("Coffee not found");
 
-    verify(coffeeRepository).findById(99L);
+    verify(coffeeRepository).findByIdAndOwnerId(99L, 42L);
     verify(coffeeRepository, never()).save(any());
   }
 }
