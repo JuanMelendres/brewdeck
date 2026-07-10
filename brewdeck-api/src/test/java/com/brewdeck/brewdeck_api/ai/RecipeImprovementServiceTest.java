@@ -7,6 +7,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
+import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.method.BrewMethod;
 import com.brewdeck.brewdeck_api.recipe.Recipe;
@@ -30,13 +32,15 @@ class RecipeImprovementServiceTest {
   @Mock private RecipeRepository recipeRepository;
   @Mock private BrewSessionRepository brewSessionRepository;
   @Mock private RecipeSuggestionPort port;
+  @Mock private CurrentUserProvider currentUserProvider;
 
   private RecipeImprovementService serviceEnabled() {
     return new RecipeImprovementService(
         recipeRepository,
         brewSessionRepository,
         port,
-        new AiProperties(true, "claude-haiku-4-5", 20, 1024));
+        new AiProperties(true, "claude-haiku-4-5", 20, 1024),
+        currentUserProvider);
   }
 
   private Recipe sampleRecipe() {
@@ -77,7 +81,8 @@ class RecipeImprovementServiceTest {
             recipeRepository,
             brewSessionRepository,
             port,
-            new AiProperties(false, "claude-haiku-4-5", 20, 1024));
+            new AiProperties(false, "claude-haiku-4-5", 20, 1024),
+            currentUserProvider);
 
     assertThatThrownBy(() -> service.improve(5L)).isInstanceOf(AiUnavailableException.class);
     verify(port, never()).improve(any());
@@ -85,7 +90,8 @@ class RecipeImprovementServiceTest {
 
   @Test
   void improve_shouldThrowNotFound_whenRecipeMissing() {
-    when(recipeRepository.findById(5L)).thenReturn(Optional.empty());
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findByIdAndOwnerId(5L, 42L)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> serviceEnabled().improve(5L))
         .isInstanceOf(EntityNotFoundException.class);
@@ -93,8 +99,18 @@ class RecipeImprovementServiceTest {
   }
 
   @Test
+  void improve_shouldThrowNotFound_whenRecipeOwnedByAnotherUser() {
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findByIdAndOwnerId(99L, 42L)).thenReturn(Optional.empty());
+
+    assertThatThrownBy(() -> serviceEnabled().improve(99L))
+        .isInstanceOf(EntityNotFoundException.class);
+  }
+
+  @Test
   void improve_shouldThrowInsufficientHistory_whenNoRatedSessions() {
-    when(recipeRepository.findById(5L)).thenReturn(Optional.of(sampleRecipe()));
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findByIdAndOwnerId(5L, 42L)).thenReturn(Optional.of(sampleRecipe()));
     when(brewSessionRepository.findTop10ByRecipeIdAndRatingIsNotNullOrderByBrewedAtDesc(5L))
         .thenReturn(List.of());
 
@@ -117,7 +133,8 @@ class RecipeImprovementServiceTest {
             .rating(9)
             .adjustmentNotes("Grind finer next time.")
             .build();
-    when(recipeRepository.findById(5L)).thenReturn(Optional.of(recipe));
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findByIdAndOwnerId(5L, 42L)).thenReturn(Optional.of(recipe));
     when(brewSessionRepository.findTop10ByRecipeIdAndRatingIsNotNullOrderByBrewedAtDesc(5L))
         .thenReturn(List.of(session));
     when(port.improve(any()))

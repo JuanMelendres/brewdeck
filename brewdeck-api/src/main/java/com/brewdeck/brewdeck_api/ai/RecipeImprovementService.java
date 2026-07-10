@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.ai;
 
+import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
 import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.method.BrewMethod;
 import com.brewdeck.brewdeck_api.recipe.Recipe;
@@ -24,6 +25,7 @@ public class RecipeImprovementService {
   private final BrewSessionRepository brewSessionRepository;
   private final RecipeSuggestionPort suggestionPort;
   private final AiProperties aiProperties;
+  private final CurrentUserProvider currentUserProvider;
 
   public SuggestedRecipeResponse improve(Long recipeId) {
     if (!aiProperties.enabled()) {
@@ -32,7 +34,7 @@ public class RecipeImprovementService {
 
     Recipe recipe =
         recipeRepository
-            .findById(recipeId)
+            .findByIdAndOwnerId(recipeId, currentUserProvider.require().getId())
             .orElseThrow(() -> new EntityNotFoundException(RECIPE_NOT_FOUND));
 
     List<BrewSession> sessions =
