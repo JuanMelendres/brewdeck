@@ -34,8 +34,11 @@ are invisible.
 | `brew_sessions` | Yes    | `owner_id` stamped on create (B.1). |
 | `brew_methods`  | **No** | Shared, seeded reference data. No owner column; lists stay global. |
 
-Public share endpoints (`GET /api/public/recipes/{token}`, share/unshare) remain
-token-based and cross-user — an explicit, intentional bypass of ownership.
+The **unauthenticated** public read (`GET /api/public/recipes/{token}`,
+`findByShareToken`) stays token-based and cross-user — the one intentional
+ownership bypass. The authenticated `share`/`unshare` PATCH mutations are
+**owner-scoped**: a user may only publish/revoke a recipe they own (consistent
+with `update`/`delete`; a non-owner gets 404).
 
 ## Design Decisions (locked)
 
@@ -92,6 +95,9 @@ Owner-scoped variants:
 - `countByFavoriteTrue()` → `countByFavoriteTrueAndOwnerId(ownerId)` (dashboard).
 - `findByCoffeeId` / `findByMethodId` (and their `Page` overloads) →
   `...AndOwnerId` where used by owner-scoped flows.
+- Session history by recipe (`GET /api/brew-sessions/recipe/{recipeId}` →
+  `findByRecipeIdOrderByBrewedAtDesc`) → `findByRecipeIdAndOwnerIdOrderByBrewedAtDesc`,
+  so a user cannot read another user's sessions by passing a foreign recipe id.
 
 ### 4. Analytics queries (per-user)
 

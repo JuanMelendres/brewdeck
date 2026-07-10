@@ -12,7 +12,7 @@
 
 - Spec: `docs/superpowers/specs/2026-07-10-per-user-read-isolation-design.md`.
 - Owned resources: `coffees`, `recipes`, `brew_sessions`. `brew_methods` is shared/global — never owner-filter it (except its usage analytics, which filters the joined recipes).
-- Public share endpoints (`findByShareToken`, share/unshare) stay cross-user — do not owner-scope them.
+- Only the unauthenticated public GET-by-token (`findByShareToken`) stays cross-user. The authenticated `share`/`unshare` PATCH mutations are owner-scoped (a non-owner gets 404), consistent with update/delete.
 - Cross-user access to a row by id → `EntityNotFoundException` → 404 (reuse existing path; no new exception).
 - `ownerId` = `currentUserProvider.require().getId()`. Add a private `currentOwnerId()` helper in each service that needs it.
 - Collection GETs keep returning `PageResponse<T>`; bounded analytics keep returning `List<T>`. No API shape/status changes.
