@@ -231,7 +231,8 @@ class BrewSessionServiceTest {
 
     Pageable pageable = PageRequest.of(0, 10);
 
-    when(brewSessionRepository.findByRecipeIdOrderByBrewedAtDesc(1L, pageable))
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(brewSessionRepository.findByRecipeIdAndOwnerIdOrderByBrewedAtDesc(1L, 42L, pageable))
         .thenReturn(new PageImpl<>(List.of(session), pageable, 1));
 
     PageResponse<BrewSessionResponse> result = brewSessionService.findByRecipeId(1L, pageable);
@@ -240,7 +241,8 @@ class BrewSessionServiceTest {
     assertThat(result.content().getFirst().recipeId()).isEqualTo(1L);
     assertThat(result.totalElements()).isEqualTo(1);
 
-    verify(brewSessionRepository).findByRecipeIdOrderByBrewedAtDesc(1L, pageable);
+    verify(brewSessionRepository)
+        .findByRecipeIdAndOwnerIdOrderByBrewedAtDesc(eq(1L), eq(42L), any(Pageable.class));
   }
 
   private Recipe buildRecipe() {

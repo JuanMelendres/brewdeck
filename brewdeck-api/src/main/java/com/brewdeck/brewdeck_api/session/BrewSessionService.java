@@ -44,7 +44,7 @@ public class BrewSessionService {
   public PageResponse<BrewSessionResponse> findByRecipeId(Long recipeId, Pageable pageable) {
     return PageResponse.fromPage(
         brewSessionRepository
-            .findByRecipeIdOrderByBrewedAtDesc(recipeId, pageable)
+            .findByRecipeIdAndOwnerIdOrderByBrewedAtDesc(recipeId, currentOwnerId(), pageable)
             .map(BrewSessionResponse::fromEntity));
   }
 

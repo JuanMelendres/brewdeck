@@ -35,6 +35,10 @@ public interface BrewSessionRepository
   @EntityGraph(attributePaths = "recipe")
   Page<BrewSession> findByRecipeIdOrderByBrewedAtDesc(Long recipeId, Pageable pageable);
 
+  @EntityGraph(attributePaths = "recipe")
+  Page<BrewSession> findByRecipeIdAndOwnerIdOrderByBrewedAtDesc(
+      Long recipeId, Long ownerId, Pageable pageable);
+
   @Query("select avg(s.rating) from BrewSession s where s.rating is not null")
   Double findAverageRating();
 
