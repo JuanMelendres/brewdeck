@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.session;
 
+import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
 import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
 import com.brewdeck.brewdeck_api.recipe.Recipe;
 import com.brewdeck.brewdeck_api.recipe.RecipeRepository;
@@ -18,6 +19,7 @@ public class BrewSessionService {
 
   private final BrewSessionRepository brewSessionRepository;
   private final RecipeRepository recipeRepository;
+  private final CurrentUserProvider currentUserProvider;
 
   public PageResponse<BrewSessionResponse> search(BrewSessionFilter filter, Pageable pageable) {
     return PageResponse.fromPage(
@@ -53,6 +55,7 @@ public class BrewSessionService {
             .orElseThrow(() -> new EntityNotFoundException("Recipe not found"));
 
     BrewSession session = new BrewSession();
+    session.setOwner(currentUserProvider.require());
     applyRequest(session, request, recipe);
 
     BrewSession saved = brewSessionRepository.save(session);

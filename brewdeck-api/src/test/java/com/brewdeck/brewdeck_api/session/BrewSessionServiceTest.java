@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
+import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
+import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
 import com.brewdeck.brewdeck_api.method.BrewMethod;
@@ -15,6 +17,7 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -28,6 +31,7 @@ class BrewSessionServiceTest {
 
   @Mock private BrewSessionRepository brewSessionRepository;
   @Mock private RecipeRepository recipeRepository;
+  @Mock private CurrentUserProvider currentUserProvider;
 
   @InjectMocks private BrewSessionService brewSessionService;
 
@@ -169,6 +173,23 @@ class BrewSessionServiceTest {
 
     verify(recipeRepository).findById(1L);
     verify(brewSessionRepository).save(any(BrewSession.class));
+  }
+
+  @Test
+  void create_shouldStampOwnerFromCurrentUser() {
+    Recipe recipe = buildRecipe();
+    User owner = User.builder().id(42L).email("owner@brewdeck.test").build();
+
+    when(recipeRepository.findById(1L)).thenReturn(Optional.of(recipe));
+    when(currentUserProvider.require()).thenReturn(owner);
+    when(brewSessionRepository.save(any(BrewSession.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    brewSessionService.create(new BrewSessionRequest(1L, null, null, null, null, null, null));
+
+    ArgumentCaptor<BrewSession> captor = ArgumentCaptor.forClass(BrewSession.class);
+    verify(brewSessionRepository).save(captor.capture());
+    assertThat(captor.getValue().getOwner()).isSameAs(owner);
   }
 
   @Test
