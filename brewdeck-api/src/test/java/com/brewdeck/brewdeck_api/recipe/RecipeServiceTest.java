@@ -594,7 +594,8 @@ class RecipeServiceTest {
             .createdAt(LocalDateTime.now())
             .build();
 
-    when(recipeRepository.findById(1L)).thenReturn(Optional.of(recipe));
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(recipe));
     when(recipeRepository.save(any(Recipe.class))).thenAnswer(inv -> inv.getArgument(0));
 
     RecipeResponse response = recipeService.share(1L);
@@ -620,7 +621,8 @@ class RecipeServiceTest {
             .createdAt(LocalDateTime.now())
             .build();
 
-    when(recipeRepository.findById(1L)).thenReturn(Optional.of(recipe));
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(recipe));
 
     RecipeResponse response = recipeService.share(1L);
 
@@ -630,7 +632,16 @@ class RecipeServiceTest {
 
   @Test
   void share_throwsWhenRecipeMissing() {
-    when(recipeRepository.findById(99L)).thenReturn(Optional.empty());
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findByIdAndOwnerId(99L, 42L)).thenReturn(Optional.empty());
+
+    assertThatThrownBy(() -> recipeService.share(99L)).isInstanceOf(EntityNotFoundException.class);
+  }
+
+  @Test
+  void share_shouldThrow_whenRecipeOwnedByAnotherUser() {
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findByIdAndOwnerId(99L, 42L)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> recipeService.share(99L)).isInstanceOf(EntityNotFoundException.class);
   }
@@ -651,7 +662,8 @@ class RecipeServiceTest {
             .createdAt(LocalDateTime.now())
             .build();
 
-    when(recipeRepository.findById(1L)).thenReturn(Optional.of(recipe));
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(recipe));
     when(recipeRepository.save(any(Recipe.class))).thenAnswer(inv -> inv.getArgument(0));
 
     RecipeResponse response = recipeService.unshare(1L);

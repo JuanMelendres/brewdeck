@@ -170,7 +170,7 @@ public class RecipeService {
 
   @Transactional
   public RecipeResponse share(Long id) {
-    Recipe recipe = findRecipeByIdGlobal(id);
+    Recipe recipe = findRecipeById(id);
     if (recipe.getShareToken() == null) {
       recipe.setShareToken(generateToken());
       recipe = recipeRepository.save(recipe);
@@ -181,7 +181,7 @@ public class RecipeService {
 
   @Transactional
   public RecipeResponse unshare(Long id) {
-    Recipe recipe = findRecipeByIdGlobal(id);
+    Recipe recipe = findRecipeById(id);
     recipe.setShareToken(null);
     Recipe saved = recipeRepository.save(recipe);
     log.info("Unshared recipe id={}", saved.getId());
@@ -192,12 +192,6 @@ public class RecipeService {
     return recipeRepository
         .findByShareToken(token)
         .map(PublicRecipeResponse::fromEntity)
-        .orElseThrow(() -> new EntityNotFoundException(RECIPE_NOT_FOUND));
-  }
-
-  private Recipe findRecipeByIdGlobal(Long id) {
-    return recipeRepository
-        .findById(id)
         .orElseThrow(() -> new EntityNotFoundException(RECIPE_NOT_FOUND));
   }
 
