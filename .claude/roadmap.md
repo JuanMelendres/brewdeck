@@ -88,7 +88,7 @@ Status: Completed
 Status: In progress
 
 - Auth foundation (Slice A) — self-registration, JWT login, gate all /api/** (public share + auth endpoints open) — Done
-- Per-user ownership (Slice B) — In progress
+- Per-user ownership (Slice B) — Done
   - B.1 (write path) — owner_id FK (Flyway V6) on coffees/recipes/sessions, backfill, CurrentUserProvider, stamp owner on create — Done
-  - B.2 (read path) — per-user filtering on collection/analytics reads + owner_id NOT NULL enforcement — Pending
+  - B.2 (read path) — per-user filtering on all reads (CRUD, favorites, session-by-recipe, analytics, dashboard, AI improve; share/unshare owner-scoped, public token read stays global) + owner_id NOT NULL (Flyway V7) — Done
 - Account UX (Slice C) — email verification, password reset, refresh tokens, profile — Pending
