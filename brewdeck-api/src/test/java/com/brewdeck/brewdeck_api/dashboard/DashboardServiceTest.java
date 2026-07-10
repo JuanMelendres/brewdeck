@@ -3,6 +3,8 @@ package com.brewdeck.brewdeck_api.dashboard;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
+import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.coffee.CoffeeRepository;
 import com.brewdeck.brewdeck_api.method.BrewMethodRepository;
 import com.brewdeck.brewdeck_api.recipe.RecipeRepository;
@@ -24,16 +26,19 @@ class DashboardServiceTest {
 
   @Mock private BrewSessionRepository brewSessionRepository;
 
+  @Mock private CurrentUserProvider currentUserProvider;
+
   @InjectMocks private DashboardService dashboardService;
 
   @Test
   void getSummary_shouldAggregateCounts() {
-    when(coffeeRepository.count()).thenReturn(5L);
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(coffeeRepository.countByOwnerId(42L)).thenReturn(5L);
     when(brewMethodRepository.count()).thenReturn(4L);
-    when(recipeRepository.count()).thenReturn(10L);
-    when(recipeRepository.countByFavoriteTrue()).thenReturn(3L);
-    when(brewSessionRepository.count()).thenReturn(20L);
-    when(brewSessionRepository.findAverageRating()).thenReturn(4.25);
+    when(recipeRepository.countByOwnerId(42L)).thenReturn(10L);
+    when(recipeRepository.countByFavoriteTrueAndOwnerId(42L)).thenReturn(3L);
+    when(brewSessionRepository.countByOwnerId(42L)).thenReturn(20L);
+    when(brewSessionRepository.findAverageRating(42L)).thenReturn(4.25);
 
     DashboardSummaryResponse summary = dashboardService.getSummary();
 
@@ -47,12 +52,13 @@ class DashboardServiceTest {
 
   @Test
   void getSummary_shouldReturnNullAverage_whenNoRatings() {
-    when(coffeeRepository.count()).thenReturn(0L);
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(coffeeRepository.countByOwnerId(42L)).thenReturn(0L);
     when(brewMethodRepository.count()).thenReturn(0L);
-    when(recipeRepository.count()).thenReturn(0L);
-    when(recipeRepository.countByFavoriteTrue()).thenReturn(0L);
-    when(brewSessionRepository.count()).thenReturn(0L);
-    when(brewSessionRepository.findAverageRating()).thenReturn(null);
+    when(recipeRepository.countByOwnerId(42L)).thenReturn(0L);
+    when(recipeRepository.countByFavoriteTrueAndOwnerId(42L)).thenReturn(0L);
+    when(brewSessionRepository.countByOwnerId(42L)).thenReturn(0L);
+    when(brewSessionRepository.findAverageRating(42L)).thenReturn(null);
 
     DashboardSummaryResponse summary = dashboardService.getSummary();
 

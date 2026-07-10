@@ -2,6 +2,7 @@ package com.brewdeck.brewdeck_api.session;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.common.PostgresRepositoryTest;
 import com.brewdeck.brewdeck_api.method.BrewMethod;
@@ -188,6 +189,63 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
     assertThat(result).allSatisfy(session -> assertThat(session.getRating()).isNotNull());
     assertThat(result.get(0).getBrewedAt()).isEqualTo(LocalDateTime.of(2026, 4, 11, 10, 0));
     assertThat(result.get(0).getBrewedAt()).isAfter(result.get(1).getBrewedAt());
+  }
+
+  @Test
+  void findTopRated_shouldReturnOnlyOwnersRecipe() {
+    User owner = persistUser("owner@brewdeck.test");
+    User other = persistUser("other@brewdeck.test");
+
+    Recipe ownedRecipe = persistRecipe("Owned Recipe");
+    Recipe foreignRecipe = persistRecipe("Foreign Recipe");
+
+    persistRatedSession(ownedRecipe, owner, 9);
+    persistRatedSession(foreignRecipe, other, 5);
+
+    List<TopRatedRecipe> result =
+        brewSessionRepository.findTopRated(owner.getId(), PageRequest.of(0, 10));
+
+    assertThat(result).hasSize(1);
+    assertThat(result.getFirst().getRecipeName()).isEqualTo("Owned Recipe");
+  }
+
+  @Test
+  void findAverageRating_shouldOnlyAverageOwnersSessions() {
+    User owner = persistUser("owner-avg@brewdeck.test");
+    User other = persistUser("other-avg@brewdeck.test");
+
+    Recipe ownedRecipe = persistRecipe("Owned Avg Recipe");
+    Recipe foreignRecipe = persistRecipe("Foreign Avg Recipe");
+
+    persistRatedSession(ownedRecipe, owner, 8);
+    persistRatedSession(foreignRecipe, other, 2);
+
+    Double result = brewSessionRepository.findAverageRating(owner.getId());
+
+    assertThat(result).isEqualTo(8.0);
+  }
+
+  private User persistUser(String email) {
+    User user =
+        User.builder()
+            .email(email)
+            .passwordHash("hashed-password")
+            .createdAt(LocalDateTime.now())
+            .build();
+
+    return entityManager.persistAndFlush(user);
+  }
+
+  private BrewSession persistRatedSession(Recipe recipe, User owner, int rating) {
+    BrewSession session =
+        BrewSession.builder()
+            .recipe(recipe)
+            .owner(owner)
+            .brewedAt(LocalDateTime.now())
+            .rating(rating)
+            .build();
+
+    return entityManager.persistAndFlush(session);
   }
 
   private Recipe persistRecipe(String recipeName) {

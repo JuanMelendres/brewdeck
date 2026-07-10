@@ -36,7 +36,8 @@ class CoffeeServiceTest {
 
   @Test
   void getMostUsed_shouldMapRowsPreservingOrder() {
-    when(recipeRepository.findMostUsedCoffees(any(Pageable.class)))
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findMostUsedCoffees(eq(42L), any(Pageable.class)))
         .thenReturn(List.of(mostUsed(2L, "Popular", 7L), mostUsed(1L, "Rare", 1L)));
 
     List<MostUsedCoffeeResponse> result = coffeeService.getMostUsed(5);
@@ -46,17 +47,20 @@ class CoffeeServiceTest {
     assertThat(result.get(0).coffeeName()).isEqualTo("Popular");
     assertThat(result.get(0).recipeCount()).isEqualTo(7L);
     assertThat(result.get(1).coffeeId()).isEqualTo(1L);
+
+    verify(recipeRepository).findMostUsedCoffees(eq(42L), any(Pageable.class));
   }
 
   @Test
   void getMostUsed_shouldClampLimitToRange() {
-    when(recipeRepository.findMostUsedCoffees(any(Pageable.class))).thenReturn(List.of());
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findMostUsedCoffees(eq(42L), any(Pageable.class))).thenReturn(List.of());
     ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
 
     coffeeService.getMostUsed(0);
     coffeeService.getMostUsed(999);
 
-    verify(recipeRepository, times(2)).findMostUsedCoffees(captor.capture());
+    verify(recipeRepository, times(2)).findMostUsedCoffees(eq(42L), captor.capture());
     assertThat(captor.getAllValues().get(0)).isEqualTo(PageRequest.of(0, 1));
     assertThat(captor.getAllValues().get(1).getPageSize()).isEqualTo(20);
   }

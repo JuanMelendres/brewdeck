@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
+import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
+import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
@@ -22,6 +24,8 @@ import org.springframework.data.domain.Pageable;
 class BrewMethodServiceTest {
 
   @Mock private BrewMethodRepository brewMethodRepository;
+
+  @Mock private CurrentUserProvider currentUserProvider;
 
   @InjectMocks private BrewMethodService brewMethodService;
 
@@ -57,7 +61,8 @@ class BrewMethodServiceTest {
 
   @Test
   void getUsage_shouldMapUsageRowsPreservingOrder() {
-    when(brewMethodRepository.findUsage())
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(brewMethodRepository.findUsage(42L))
         .thenReturn(List.of(usage(1L, "AeroPress", 5L), usage(2L, "V60", 0L)));
 
     List<MethodUsageResponse> result = brewMethodService.getUsage();
@@ -69,7 +74,7 @@ class BrewMethodServiceTest {
     assertThat(result.get(1).methodName()).isEqualTo("V60");
     assertThat(result.get(1).recipeCount()).isZero();
 
-    verify(brewMethodRepository).findUsage();
+    verify(brewMethodRepository).findUsage(42L);
   }
 
   private MethodUsage usage(Long id, String name, long count) {

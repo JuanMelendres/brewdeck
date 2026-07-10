@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.method;
 
+import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
 import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 public class BrewMethodService {
 
   private final BrewMethodRepository brewMethodRepository;
+  private final CurrentUserProvider currentUserProvider;
 
   public PageResponse<BrewMethodResponse> findAll(Pageable pageable) {
     return PageResponse.fromPage(
@@ -21,7 +23,7 @@ public class BrewMethodService {
   }
 
   public List<MethodUsageResponse> getUsage() {
-    return brewMethodRepository.findUsage().stream()
+    return brewMethodRepository.findUsage(currentUserProvider.require().getId()).stream()
         .map(
             usage ->
                 new MethodUsageResponse(

@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.recipe;
 
+import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
 import com.brewdeck.brewdeck_api.session.BrewSessionRepository;
 import com.brewdeck.brewdeck_api.session.RecipeSessionStats;
 import jakarta.persistence.EntityNotFoundException;
@@ -20,13 +21,16 @@ public class RecipeStatsService {
 
   private final RecipeRepository recipeRepository;
   private final BrewSessionRepository brewSessionRepository;
+  private final CurrentUserProvider currentUserProvider;
 
   public RecipeStatsResponse getStats(Long recipeId) {
-    if (!recipeRepository.existsById(recipeId)) {
+    Long ownerId = currentOwnerId();
+
+    if (!recipeRepository.existsByIdAndOwnerId(recipeId, ownerId)) {
       throw new EntityNotFoundException(RECIPE_NOT_FOUND);
     }
 
-    RecipeSessionStats stats = brewSessionRepository.findStatsByRecipeId(recipeId);
+    RecipeSessionStats stats = brewSessionRepository.findStatsByRecipeId(recipeId, ownerId);
 
     return new RecipeStatsResponse(
         recipeId, stats.getTotalSessions(), stats.getAverageRating(), stats.getLastBrewedAt());
@@ -35,7 +39,9 @@ public class RecipeStatsService {
   public List<TopRatedRecipeResponse> getTopRated(int limit) {
     int safeLimit = clampLimit(limit);
 
-    return brewSessionRepository.findTopRated(PageRequest.of(0, safeLimit)).stream()
+    return brewSessionRepository
+        .findTopRated(currentOwnerId(), PageRequest.of(0, safeLimit))
+        .stream()
         .map(
             row ->
                 new TopRatedRecipeResponse(
@@ -49,7 +55,9 @@ public class RecipeStatsService {
   public List<MostBrewedRecipeResponse> getMostBrewed(int limit) {
     int safeLimit = clampLimit(limit);
 
-    return brewSessionRepository.findMostBrewed(PageRequest.of(0, safeLimit)).stream()
+    return brewSessionRepository
+        .findMostBrewed(currentOwnerId(), PageRequest.of(0, safeLimit))
+        .stream()
         .map(
             row ->
                 new MostBrewedRecipeResponse(
@@ -59,5 +67,9 @@ public class RecipeStatsService {
 
   private int clampLimit(int limit) {
     return Math.min(Math.max(limit, MIN_LIMIT), MAX_LIMIT);
+  }
+
+  private Long currentOwnerId() {
+    return currentUserProvider.require().getId();
   }
 }

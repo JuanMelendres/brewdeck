@@ -61,10 +61,11 @@ public interface RecipeRepository
       """
       select r.coffee.id as coffeeId, r.coffee.name as coffeeName, count(r) as recipeCount
       from Recipe r
+      where r.owner.id = :ownerId
       group by r.coffee.id, r.coffee.name
       order by count(r) desc, r.coffee.name asc
       """)
-  List<MostUsedCoffee> findMostUsedCoffees(Pageable pageable);
+  List<MostUsedCoffee> findMostUsedCoffees(Long ownerId, Pageable pageable);
 
   @EntityGraph(attributePaths = {"coffee", "method"})
   Optional<Recipe> findByShareToken(String shareToken);
