@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.recipe;
 
+import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
 import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.coffee.CoffeeRepository;
 import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
@@ -26,6 +27,7 @@ public class RecipeService {
   private final RecipeRepository recipeRepository;
   private final CoffeeRepository coffeeRepository;
   private final BrewMethodRepository brewMethodRepository;
+  private final CurrentUserProvider currentUserProvider;
 
   public PageResponse<RecipeResponse> search(RecipeFilter filter, Pageable pageable) {
     return PageResponse.fromPage(
@@ -64,6 +66,7 @@ public class RecipeService {
     BrewMethod method = findBrewMethodById(request.methodId());
 
     Recipe recipe = new Recipe();
+    recipe.setOwner(currentUserProvider.require());
     applyRequest(recipe, request, coffee, method);
 
     Recipe saved = recipeRepository.save(recipe);

@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
+import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
+import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
 import com.brewdeck.brewdeck_api.recipe.RecipeRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -27,6 +29,8 @@ class CoffeeServiceTest {
   @Mock private CoffeeRepository coffeeRepository;
 
   @Mock private RecipeRepository recipeRepository;
+
+  @Mock private CurrentUserProvider currentUserProvider;
 
   @InjectMocks private CoffeeService coffeeService;
 
@@ -227,6 +231,39 @@ class CoffeeServiceTest {
     assertThat(result.notesPrimary()).isEqualTo("Cardamomo");
 
     verify(coffeeRepository).save(any(Coffee.class));
+  }
+
+  @Test
+  void create_shouldStampOwnerFromCurrentUser() {
+    User owner = User.builder().id(42L).email("owner@brewdeck.test").build();
+    when(currentUserProvider.require()).thenReturn(owner);
+    when(coffeeRepository.save(any(Coffee.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    CoffeeRequest request =
+        new CoffeeRequest(
+            "Owned Coffee",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null);
+
+    coffeeService.create(request);
+
+    ArgumentCaptor<Coffee> captor = ArgumentCaptor.forClass(Coffee.class);
+    verify(coffeeRepository).save(captor.capture());
+    assertThat(captor.getValue().getOwner()).isSameAs(owner);
   }
 
   @Test

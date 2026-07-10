@@ -16,7 +16,7 @@ This is a stable, high-level summary. The living, detailed roadmap is
 ## Phase 6 breakdown
 
 - **Slice A — Auth foundation:** self-registration, JWT login, gate all `/api/**` (public share + auth endpoints open). — **Done**
-- **Slice B — Per-user ownership:** owner FK on coffees/recipes/sessions, per-user filtering + data migration. — Pending
+- **Slice B — Per-user ownership:** owner FK on coffees/recipes/sessions, per-user filtering + data migration. — In progress (B.1 write path done: owner_id FK + create-time stamping; B.2 read filtering + NOT NULL pending)
 - **Slice C — Account UX:** email verification, password reset, refresh tokens, profile. — Pending
 
 ## Vision (post-roadmap)

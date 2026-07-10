@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
+import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.coffee.CoffeeRepository;
 import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
@@ -17,6 +19,7 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -31,6 +34,7 @@ class RecipeServiceTest {
   @Mock private RecipeRepository recipeRepository;
   @Mock private CoffeeRepository coffeeRepository;
   @Mock private BrewMethodRepository brewMethodRepository;
+  @Mock private CurrentUserProvider currentUserProvider;
 
   @InjectMocks private RecipeService recipeService;
 
@@ -190,6 +194,27 @@ class RecipeServiceTest {
     verify(coffeeRepository).findById(1L);
     verify(brewMethodRepository).findById(1L);
     verify(recipeRepository).save(any(Recipe.class));
+  }
+
+  @Test
+  void create_shouldStampOwnerFromCurrentUser() {
+    Coffee coffee = Coffee.builder().id(1L).name("Mezcla Veracruz").build();
+    BrewMethod method = BrewMethod.builder().id(1L).name("AeroPress").build();
+    User owner = User.builder().id(42L).email("owner@brewdeck.test").build();
+
+    when(coffeeRepository.findById(1L)).thenReturn(Optional.of(coffee));
+    when(brewMethodRepository.findById(1L)).thenReturn(Optional.of(method));
+    when(currentUserProvider.require()).thenReturn(owner);
+    when(recipeRepository.save(any(Recipe.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    recipeService.create(
+        new RecipeRequest(
+            1L, 1L, "Owned Recipe", null, null, null, null, null, null, null, null, false));
+
+    ArgumentCaptor<Recipe> captor = ArgumentCaptor.forClass(Recipe.class);
+    verify(recipeRepository).save(captor.capture());
+    assertThat(captor.getValue().getOwner()).isSameAs(owner);
   }
 
   @Test

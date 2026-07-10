@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.coffee;
 
+import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
 import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
 import com.brewdeck.brewdeck_api.recipe.RecipeRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -20,6 +21,7 @@ public class CoffeeService {
 
   private final CoffeeRepository coffeeRepository;
   private final RecipeRepository recipeRepository;
+  private final CurrentUserProvider currentUserProvider;
 
   public List<MostUsedCoffeeResponse> getMostUsed(int limit) {
     int safeLimit = Math.min(Math.max(limit, MIN_LIMIT), MAX_LIMIT);
@@ -55,6 +57,7 @@ public class CoffeeService {
 
   public CoffeeResponse create(CoffeeRequest request) {
     Coffee coffee = new Coffee();
+    coffee.setOwner(currentUserProvider.require());
     applyRequest(coffee, request);
 
     Coffee saved = coffeeRepository.save(coffee);
