@@ -2,6 +2,7 @@ package com.brewdeck.brewdeck_api.session;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.common.PostgresRepositoryTest;
 import com.brewdeck.brewdeck_api.method.BrewMethod;
@@ -83,6 +84,50 @@ class BrewSessionSpecificationRepositoryTest extends PostgresRepositoryTest {
 
     assertThat(result).hasSizeGreaterThanOrEqualTo(2);
     assertThat(result).extracting(BrewSession::getRating).contains(9, 8);
+  }
+
+  @Test
+  void hasOwner_shouldReturnOnlyOwnedSessions() {
+    Recipe recipe = persistRecipe("Mezcla Veracruz AeroPress");
+    User owner = persistUser("owner@brewdeck.test");
+    User other = persistUser("other@brewdeck.test");
+
+    BrewSession ownedSession =
+        BrewSession.builder()
+            .recipe(recipe)
+            .brewedAt(LocalDateTime.now())
+            .rating(9)
+            .owner(owner)
+            .build();
+
+    BrewSession foreignSession =
+        BrewSession.builder()
+            .recipe(recipe)
+            .brewedAt(LocalDateTime.now())
+            .rating(7)
+            .owner(other)
+            .build();
+
+    entityManager.persist(ownedSession);
+    entityManager.persist(foreignSession);
+    entityManager.flush();
+    entityManager.clear();
+
+    List<BrewSession> result =
+        brewSessionRepository.findAll(BrewSessionSpecification.hasOwner(owner.getId()));
+
+    assertThat(result).extracting(BrewSession::getRating).containsExactly(9);
+  }
+
+  private User persistUser(String email) {
+    User user =
+        User.builder()
+            .email(email)
+            .passwordHash("hashed-password")
+            .createdAt(LocalDateTime.now())
+            .build();
+
+    return entityManager.persistAndFlush(user);
   }
 
   private Recipe persistRecipe(String recipeName) {

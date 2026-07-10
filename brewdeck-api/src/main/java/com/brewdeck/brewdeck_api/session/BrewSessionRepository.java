@@ -21,6 +21,13 @@ public interface BrewSessionRepository
   @EntityGraph(attributePaths = "recipe")
   Page<BrewSession> findAll(Specification<BrewSession> spec, Pageable pageable);
 
+  @EntityGraph(attributePaths = "recipe")
+  Optional<BrewSession> findByIdAndOwnerId(Long id, Long ownerId);
+
+  boolean existsByIdAndOwnerId(Long id, Long ownerId);
+
+  long countByOwnerId(Long ownerId);
+
   List<BrewSession> findByRecipeIdOrderByBrewedAtDesc(Long recipeId);
 
   List<BrewSession> findTop10ByRecipeIdAndRatingIsNotNullOrderByBrewedAtDesc(Long recipeId);
