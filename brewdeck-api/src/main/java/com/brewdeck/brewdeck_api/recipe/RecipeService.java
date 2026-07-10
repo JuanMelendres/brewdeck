@@ -36,7 +36,8 @@ public class RecipeService {
                 RecipeSpecification.hasCoffeeId(filter.coffeeId())
                     .and(RecipeSpecification.hasMethodId(filter.methodId()))
                     .and(RecipeSpecification.isFavorite(filter.favorite()))
-                    .and(RecipeSpecification.nameContains(filter.name())),
+                    .and(RecipeSpecification.nameContains(filter.name()))
+                    .and(RecipeSpecification.hasOwner(currentOwnerId())),
                 pageable)
             .map(RecipeResponse::fromEntity));
   }
@@ -47,17 +48,23 @@ public class RecipeService {
 
   public PageResponse<RecipeResponse> findFavorites(Pageable pageable) {
     return PageResponse.fromPage(
-        recipeRepository.findByFavoriteTrue(pageable).map(RecipeResponse::fromEntity));
+        recipeRepository
+            .findByFavoriteTrueAndOwnerId(currentOwnerId(), pageable)
+            .map(RecipeResponse::fromEntity));
   }
 
   public PageResponse<RecipeResponse> findByCoffeeId(Long coffeeId, Pageable pageable) {
     return PageResponse.fromPage(
-        recipeRepository.findByCoffeeId(coffeeId, pageable).map(RecipeResponse::fromEntity));
+        recipeRepository
+            .findByCoffeeIdAndOwnerId(coffeeId, currentOwnerId(), pageable)
+            .map(RecipeResponse::fromEntity));
   }
 
   public PageResponse<RecipeResponse> findByMethodId(Long methodId, Pageable pageable) {
     return PageResponse.fromPage(
-        recipeRepository.findByMethodId(methodId, pageable).map(RecipeResponse::fromEntity));
+        recipeRepository
+            .findByMethodIdAndOwnerId(methodId, currentOwnerId(), pageable)
+            .map(RecipeResponse::fromEntity));
   }
 
   @Transactional
@@ -91,7 +98,7 @@ public class RecipeService {
 
   @Transactional
   public void delete(Long id) {
-    if (!recipeRepository.existsById(id)) {
+    if (!recipeRepository.existsByIdAndOwnerId(id, currentOwnerId())) {
       throw new EntityNotFoundException(RECIPE_NOT_FOUND);
     }
 
@@ -123,15 +130,19 @@ public class RecipeService {
     return RecipeResponse.fromEntity(saved);
   }
 
+  private Long currentOwnerId() {
+    return currentUserProvider.require().getId();
+  }
+
   private Recipe findRecipeById(Long id) {
     return recipeRepository
-        .findById(id)
+        .findByIdAndOwnerId(id, currentOwnerId())
         .orElseThrow(() -> new EntityNotFoundException(RECIPE_NOT_FOUND));
   }
 
   private Coffee findCoffeeById(Long id) {
     return coffeeRepository
-        .findById(id)
+        .findByIdAndOwnerId(id, currentOwnerId())
         .orElseThrow(() -> new EntityNotFoundException(COFFEE_NOT_FOUND));
   }
 
@@ -159,7 +170,7 @@ public class RecipeService {
 
   @Transactional
   public RecipeResponse share(Long id) {
-    Recipe recipe = findRecipeById(id);
+    Recipe recipe = findRecipeByIdGlobal(id);
     if (recipe.getShareToken() == null) {
       recipe.setShareToken(generateToken());
       recipe = recipeRepository.save(recipe);
@@ -170,7 +181,7 @@ public class RecipeService {
 
   @Transactional
   public RecipeResponse unshare(Long id) {
-    Recipe recipe = findRecipeById(id);
+    Recipe recipe = findRecipeByIdGlobal(id);
     recipe.setShareToken(null);
     Recipe saved = recipeRepository.save(recipe);
     log.info("Unshared recipe id={}", saved.getId());
@@ -181,6 +192,12 @@ public class RecipeService {
     return recipeRepository
         .findByShareToken(token)
         .map(PublicRecipeResponse::fromEntity)
+        .orElseThrow(() -> new EntityNotFoundException(RECIPE_NOT_FOUND));
+  }
+
+  private Recipe findRecipeByIdGlobal(Long id) {
+    return recipeRepository
+        .findById(id)
         .orElseThrow(() -> new EntityNotFoundException(RECIPE_NOT_FOUND));
   }
 

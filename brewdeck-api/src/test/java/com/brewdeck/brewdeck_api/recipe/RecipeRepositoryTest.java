@@ -2,10 +2,12 @@ package com.brewdeck.brewdeck_api.recipe;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.common.PostgresRepositoryTest;
 import com.brewdeck.brewdeck_api.method.BrewMethod;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,6 +78,19 @@ class RecipeRepositoryTest extends PostgresRepositoryTest {
     assertThat(result.getNumber()).isZero();
     assertThat(result.getSize()).isEqualTo(10);
     assertThat(result.getTotalElements()).isEqualTo(1);
+  }
+
+  @Test
+  void findByFavoriteTrueAndOwnerId_shouldReturnOnlyOwnersFavorites() {
+    User owner = persistUser("owner@brewdeck.test");
+    User other = persistUser("other@brewdeck.test");
+    persistFavoriteRecipe("Owned fav", owner);
+    persistFavoriteRecipe("Foreign fav", other);
+
+    Page<Recipe> result =
+        recipeRepository.findByFavoriteTrueAndOwnerId(owner.getId(), PageRequest.of(0, 10));
+
+    assertThat(result.getContent()).extracting(Recipe::getName).containsExactly("Owned fav");
   }
 
   @Test
@@ -208,6 +223,33 @@ class RecipeRepositoryTest extends PostgresRepositoryTest {
             .build();
 
     return entityManager.persistAndFlush(method);
+  }
+
+  private User persistUser(String email) {
+    User user =
+        User.builder()
+            .email(email)
+            .passwordHash("hashed-password")
+            .createdAt(LocalDateTime.now())
+            .build();
+
+    return entityManager.persistAndFlush(user);
+  }
+
+  private Recipe persistFavoriteRecipe(String name, User owner) {
+    Coffee coffee = persistCoffee(name + " Coffee");
+    BrewMethod method = persistBrewMethod(name + " Method");
+
+    Recipe recipe =
+        Recipe.builder()
+            .coffee(coffee)
+            .method(method)
+            .name(name)
+            .favorite(true)
+            .owner(owner)
+            .build();
+
+    return entityManager.persistAndFlush(recipe);
   }
 
   @Test

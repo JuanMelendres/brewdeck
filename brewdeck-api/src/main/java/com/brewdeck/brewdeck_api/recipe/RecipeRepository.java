@@ -39,6 +39,24 @@ public interface RecipeRepository
   @EntityGraph(attributePaths = {"coffee", "method"})
   Page<Recipe> findByMethodId(Long methodId, Pageable pageable);
 
+  @EntityGraph(attributePaths = {"coffee", "method"})
+  Optional<Recipe> findByIdAndOwnerId(Long id, Long ownerId);
+
+  boolean existsByIdAndOwnerId(Long id, Long ownerId);
+
+  long countByOwnerId(Long ownerId);
+
+  @EntityGraph(attributePaths = {"coffee", "method"})
+  Page<Recipe> findByFavoriteTrueAndOwnerId(Long ownerId, Pageable pageable);
+
+  long countByFavoriteTrueAndOwnerId(Long ownerId);
+
+  @EntityGraph(attributePaths = {"coffee", "method"})
+  Page<Recipe> findByCoffeeIdAndOwnerId(Long coffeeId, Long ownerId, Pageable pageable);
+
+  @EntityGraph(attributePaths = {"coffee", "method"})
+  Page<Recipe> findByMethodIdAndOwnerId(Long methodId, Long ownerId, Pageable pageable);
+
   @Query(
       """
       select r.coffee.id as coffeeId, r.coffee.name as coffeeName, count(r) as recipeCount
