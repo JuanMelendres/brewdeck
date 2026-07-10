@@ -30,6 +30,7 @@ class RecipeSpecificationRepositoryTest extends PostgresRepositoryTest {
 
     BrewMethod method = persistBrewMethod("AeroPress");
     BrewMethod otherMethod = persistBrewMethod("V60");
+    User owner = persistUser("search-owner@brewdeck.test");
 
     Recipe matchingRecipe =
         Recipe.builder()
@@ -37,6 +38,7 @@ class RecipeSpecificationRepositoryTest extends PostgresRepositoryTest {
             .method(method)
             .name("Mezcla Veracruz AeroPress")
             .favorite(true)
+            .owner(owner)
             .build();
 
     Recipe otherRecipe =
@@ -45,6 +47,7 @@ class RecipeSpecificationRepositoryTest extends PostgresRepositoryTest {
             .method(otherMethod)
             .name("Chiapas V60")
             .favorite(false)
+            .owner(owner)
             .build();
 
     entityManager.persist(matchingRecipe);
@@ -71,12 +74,25 @@ class RecipeSpecificationRepositoryTest extends PostgresRepositoryTest {
   void search_shouldReturnAllRecipes_whenFiltersAreNullOrBlank() {
     Coffee coffee = persistCoffee("Mezcla Veracruz");
     BrewMethod method = persistBrewMethod("AeroPress");
+    User owner = persistUser("search-all-owner@brewdeck.test");
 
     Recipe recipeOne =
-        Recipe.builder().coffee(coffee).method(method).name("Recipe One").favorite(true).build();
+        Recipe.builder()
+            .coffee(coffee)
+            .method(method)
+            .name("Recipe One")
+            .favorite(true)
+            .owner(owner)
+            .build();
 
     Recipe recipeTwo =
-        Recipe.builder().coffee(coffee).method(method).name("Recipe Two").favorite(false).build();
+        Recipe.builder()
+            .coffee(coffee)
+            .method(method)
+            .name("Recipe Two")
+            .favorite(false)
+            .owner(owner)
+            .build();
 
     entityManager.persist(recipeOne);
     entityManager.persist(recipeTwo);
@@ -141,6 +157,7 @@ class RecipeSpecificationRepositoryTest extends PostgresRepositoryTest {
   }
 
   private Coffee persistCoffee(String name) {
+    User owner = persistUser("coffee-helper-owner-" + System.nanoTime() + "@brewdeck.test");
     Coffee coffee =
         Coffee.builder()
             .name(name + " " + System.nanoTime())
@@ -148,6 +165,7 @@ class RecipeSpecificationRepositoryTest extends PostgresRepositoryTest {
             .origin("Veracruz")
             .roastLevel("Medio")
             .process("Lavado")
+            .owner(owner)
             .build();
 
     return entityManager.persistAndFlush(coffee);

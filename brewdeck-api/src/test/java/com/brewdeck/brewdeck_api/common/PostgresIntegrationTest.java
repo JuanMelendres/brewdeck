@@ -43,4 +43,10 @@ public abstract class PostgresIntegrationTest {
               .build());
     }
   }
+
+  protected User mockUser() {
+    return userRepository
+        .findByEmail(MOCK_USER_EMAIL)
+        .orElseThrow(() -> new IllegalStateException("mock user not seeded"));
+  }
 }

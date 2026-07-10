@@ -23,6 +23,7 @@ class CoffeeSpecificationRepositoryTest extends PostgresRepositoryTest {
 
   @Test
   void search_shouldFilterByNameOriginRoastLevelAndProcess() {
+    User owner = persistUser("search-filter-owner@brewdeck.test");
     Coffee veracruz =
         Coffee.builder()
             .name("Mezcla Veracruz")
@@ -31,6 +32,7 @@ class CoffeeSpecificationRepositoryTest extends PostgresRepositoryTest {
             .roastLevel("Medio")
             .process("Lavado")
             .notesPrimary("Cardamomo")
+            .owner(owner)
             .build();
 
     Coffee chiapas =
@@ -41,6 +43,7 @@ class CoffeeSpecificationRepositoryTest extends PostgresRepositoryTest {
             .roastLevel("Oscuro")
             .process("Natural")
             .notesPrimary("Chocolate")
+            .owner(owner)
             .build();
 
     coffeeRepository.saveAll(List.of(veracruz, chiapas));
@@ -62,6 +65,7 @@ class CoffeeSpecificationRepositoryTest extends PostgresRepositoryTest {
 
   @Test
   void search_shouldReturnAllCoffees_whenFiltersAreNullOrBlank() {
+    User owner = persistUser("search-all-owner@brewdeck.test");
     Coffee veracruz =
         Coffee.builder()
             .name("Mezcla Veracruz")
@@ -69,6 +73,7 @@ class CoffeeSpecificationRepositoryTest extends PostgresRepositoryTest {
             .origin("Veracruz")
             .roastLevel("Medio")
             .process("Lavado")
+            .owner(owner)
             .build();
 
     Coffee chiapas =
@@ -78,6 +83,7 @@ class CoffeeSpecificationRepositoryTest extends PostgresRepositoryTest {
             .origin("Chiapas")
             .roastLevel("Oscuro")
             .process("Natural")
+            .owner(owner)
             .build();
 
     coffeeRepository.saveAll(List.of(veracruz, chiapas));
