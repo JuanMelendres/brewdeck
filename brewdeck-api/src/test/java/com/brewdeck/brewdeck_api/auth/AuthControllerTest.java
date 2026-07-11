@@ -1,13 +1,18 @@
 package com.brewdeck.brewdeck_api.auth;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.security.Principal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -93,5 +98,71 @@ class AuthControllerTest {
                     objectMapper.writeValueAsString(
                         new LoginRequest("brewer@example.com", "wrong"))))
         .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  void updateProfile_returns200WithUpdatedName() throws Exception {
+    Principal principal = () -> "brewer@example.com";
+    when(authService.updateProfile(eq("brewer@example.com"), any()))
+        .thenReturn(
+            new UserResponse(
+                1L, "brewer@example.com", "Barista Bob", LocalDateTime.parse("2026-07-09T00:00")));
+
+    mockMvc
+        .perform(
+            patch("/api/auth/me")
+                .principal(principal)
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(new UpdateProfileRequest("Barista Bob"))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.displayName").value("Barista Bob"));
+  }
+
+  @Test
+  void changePassword_returns204() throws Exception {
+    Principal principal = () -> "brewer@example.com";
+
+    mockMvc
+        .perform(
+            post("/api/auth/change-password")
+                .principal(principal)
+                .contentType("application/json")
+                .content(
+                    objectMapper.writeValueAsString(
+                        new ChangePasswordRequest("password1", "newpassword1"))))
+        .andExpect(status().isNoContent());
+  }
+
+  @Test
+  void changePassword_wrongCurrentReturns400() throws Exception {
+    Principal principal = () -> "brewer@example.com";
+    doThrow(new InvalidCurrentPasswordException("Current password is incorrect"))
+        .when(authService)
+        .changePassword(eq("brewer@example.com"), any());
+
+    mockMvc
+        .perform(
+            post("/api/auth/change-password")
+                .principal(principal)
+                .contentType("application/json")
+                .content(
+                    objectMapper.writeValueAsString(
+                        new ChangePasswordRequest("wrong", "newpassword1"))))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void changePassword_shortNewPasswordReturns400() throws Exception {
+    Principal principal = () -> "brewer@example.com";
+
+    mockMvc
+        .perform(
+            post("/api/auth/change-password")
+                .principal(principal)
+                .contentType("application/json")
+                .content(
+                    objectMapper.writeValueAsString(
+                        new ChangePasswordRequest("password1", "short"))))
+        .andExpect(status().isBadRequest());
   }
 }

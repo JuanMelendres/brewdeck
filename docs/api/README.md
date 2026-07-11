@@ -12,9 +12,11 @@ in [`architecture/api-design.md`](../architecture/api-design.md).
 
 ## Auth (`/api/auth`)
 ```
-POST /api/auth/register        201
-POST /api/auth/login           200
-GET  /api/auth/me              200 (401 without token)
+POST  /api/auth/register          201
+POST  /api/auth/login             200
+GET   /api/auth/me                200 (401 without token)
+PATCH /api/auth/me                200 (update display name)
+POST  /api/auth/change-password   204 (400 if current password wrong)
 ```
 
 ## Coffees (`/api/coffees`)

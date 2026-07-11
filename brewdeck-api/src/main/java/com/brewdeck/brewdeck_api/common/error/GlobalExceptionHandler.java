@@ -3,6 +3,7 @@ package com.brewdeck.brewdeck_api.common.error;
 import com.brewdeck.brewdeck_api.ai.AiUnavailableException;
 import com.brewdeck.brewdeck_api.ai.InsufficientBrewHistoryException;
 import com.brewdeck.brewdeck_api.auth.EmailAlreadyUsedException;
+import com.brewdeck.brewdeck_api.auth.InvalidCurrentPasswordException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
@@ -109,6 +110,19 @@ public class GlobalExceptionHandler {
             null);
 
     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+  }
+
+  @ExceptionHandler(InvalidCurrentPasswordException.class)
+  public ResponseEntity<ErrorResponse> handleInvalidCurrentPassword(
+      InvalidCurrentPasswordException exception, HttpServletRequest request) {
+    ErrorResponse errorResponse =
+        buildErrorResponse(
+            HttpStatus.BAD_REQUEST,
+            "Current password is incorrect",
+            sanitize(request.getRequestURI()),
+            null);
+
+    return ResponseEntity.badRequest().body(errorResponse);
   }
 
   @ExceptionHandler(EmailAlreadyUsedException.class)

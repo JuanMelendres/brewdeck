@@ -183,6 +183,96 @@
               }
             }
           ]
+        },
+        {
+          "name": "PATCH - Update profile (me)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayName\": \"Barista Bob\"\n}"
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/auth/me",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST - Change password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"password1\",\n  \"newPassword\": \"newpassword1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/auth/change-password",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "change-password"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 204', function () {",
+                  "  pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -415,7 +505,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Mezcla Veracruz\",\n  \"brand\": \"Café local\",\n  \"origin\": \"Veracruz\",\n  \"region\": \"Coatepec\",\n  \"farm\": null,\n  \"producer\": null,\n  \"variety\": \"Blend\",\n  \"process\": \"Lavado\",\n  \"roastLevel\": \"Medio\",\n  \"notesPrimary\": \"Cardamomo\",\n  \"notesSecondary\": \"Canela, clavo, limpio, aromático\",\n  \"acidityScore\": 4,\n  \"bodyScore\": 3,\n  \"sweetnessScore\": 5,\n  \"bitternessScore\": 2,\n  \"description\": \"Café especiado, limpio y aromático, ideal para AeroPress.\"\n}",
+              "raw": "{\n  \"name\": \"Mezcla Veracruz\",\n  \"brand\": \"Caf\u00e9 local\",\n  \"origin\": \"Veracruz\",\n  \"region\": \"Coatepec\",\n  \"farm\": null,\n  \"producer\": null,\n  \"variety\": \"Blend\",\n  \"process\": \"Lavado\",\n  \"roastLevel\": \"Medio\",\n  \"notesPrimary\": \"Cardamomo\",\n  \"notesSecondary\": \"Canela, clavo, limpio, arom\u00e1tico\",\n  \"acidityScore\": 4,\n  \"bodyScore\": 3,\n  \"sweetnessScore\": 5,\n  \"bitternessScore\": 2,\n  \"description\": \"Caf\u00e9 especiado, limpio y arom\u00e1tico, ideal para AeroPress.\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -467,7 +557,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Mezcla Veracruz\",\n  \"brand\": \"Café local\",\n  \"origin\": \"Veracruz\",\n  \"region\": \"Coatepec\",\n  \"farm\": null,\n  \"producer\": null,\n  \"variety\": \"Blend\",\n  \"process\": \"Lavado\",\n  \"roastLevel\": \"Medio\",\n  \"notesPrimary\": \"Cardamomo\",\n  \"notesSecondary\": \"Canela, clavo, limpio, aromático\",\n  \"acidityScore\": 4,\n  \"bodyScore\": 3,\n  \"sweetnessScore\": 5,\n  \"bitternessScore\": 2,\n  \"description\": \"Updated coffee description.\"\n}",
+              "raw": "{\n  \"name\": \"Mezcla Veracruz\",\n  \"brand\": \"Caf\u00e9 local\",\n  \"origin\": \"Veracruz\",\n  \"region\": \"Coatepec\",\n  \"farm\": null,\n  \"producer\": null,\n  \"variety\": \"Blend\",\n  \"process\": \"Lavado\",\n  \"roastLevel\": \"Medio\",\n  \"notesPrimary\": \"Cardamomo\",\n  \"notesSecondary\": \"Canela, clavo, limpio, arom\u00e1tico\",\n  \"acidityScore\": 4,\n  \"bodyScore\": 3,\n  \"sweetnessScore\": 5,\n  \"bitternessScore\": 2,\n  \"description\": \"Updated coffee description.\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2055,7 +2145,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"\",\n  \"brand\": \"Café local\",\n  \"origin\": \"Veracruz\",\n  \"region\": \"Coatepec\",\n  \"farm\": null,\n  \"producer\": null,\n  \"variety\": \"Blend\",\n  \"process\": \"Lavado\",\n  \"roastLevel\": \"Medio\",\n  \"notesPrimary\": \"Cardamomo\",\n  \"notesSecondary\": \"Canela, clavo, limpio, aromático\",\n  \"acidityScore\": 4,\n  \"bodyScore\": 3,\n  \"sweetnessScore\": 5,\n  \"bitternessScore\": 2,\n  \"description\": \"Café especiado, limpio y aromático, ideal para AeroPress.\"\n}",
+              "raw": "{\n  \"name\": \"\",\n  \"brand\": \"Caf\u00e9 local\",\n  \"origin\": \"Veracruz\",\n  \"region\": \"Coatepec\",\n  \"farm\": null,\n  \"producer\": null,\n  \"variety\": \"Blend\",\n  \"process\": \"Lavado\",\n  \"roastLevel\": \"Medio\",\n  \"notesPrimary\": \"Cardamomo\",\n  \"notesSecondary\": \"Canela, clavo, limpio, arom\u00e1tico\",\n  \"acidityScore\": 4,\n  \"bodyScore\": 3,\n  \"sweetnessScore\": 5,\n  \"bitternessScore\": 2,\n  \"description\": \"Caf\u00e9 especiado, limpio y arom\u00e1tico, ideal para AeroPress.\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
