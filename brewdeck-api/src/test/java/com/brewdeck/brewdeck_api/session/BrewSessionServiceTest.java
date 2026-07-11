@@ -54,6 +54,7 @@ class BrewSessionServiceTest {
 
     Pageable pageable = PageRequest.of(0, 10);
 
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
     when(brewSessionRepository.findAll(anyBrewSessionSpecification(), eq(pageable)))
         .thenReturn(new PageImpl<>(List.of(session), pageable, 1));
 
@@ -91,6 +92,7 @@ class BrewSessionServiceTest {
     BrewSessionFilter filter = new BrewSessionFilter(1L, 9);
     Pageable pageable = PageRequest.of(0, 5);
 
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
     when(brewSessionRepository.findAll(anyBrewSessionSpecification(), eq(pageable)))
         .thenReturn(new PageImpl<>(List.of(session), pageable, 1));
 
@@ -114,25 +116,37 @@ class BrewSessionServiceTest {
     BrewSession session =
         BrewSession.builder().id(1L).recipe(recipe).brewedAt(LocalDateTime.now()).rating(9).build();
 
-    when(brewSessionRepository.findById(1L)).thenReturn(Optional.of(session));
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(brewSessionRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(session));
 
     BrewSessionResponse result = brewSessionService.findById(1L);
 
     assertThat(result.id()).isEqualTo(1L);
     assertThat(result.recipeId()).isEqualTo(1L);
 
-    verify(brewSessionRepository).findById(1L);
+    verify(brewSessionRepository).findByIdAndOwnerId(1L, 42L);
   }
 
   @Test
   void findById_shouldThrowException_whenSessionDoesNotExist() {
-    when(brewSessionRepository.findById(99L)).thenReturn(Optional.empty());
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(brewSessionRepository.findByIdAndOwnerId(99L, 42L)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> brewSessionService.findById(99L))
         .isInstanceOf(EntityNotFoundException.class)
         .hasMessage("Brew session not found");
 
-    verify(brewSessionRepository).findById(99L);
+    verify(brewSessionRepository).findByIdAndOwnerId(99L, 42L);
+  }
+
+  @Test
+  void findById_shouldThrow_whenSessionOwnedByAnotherUser() {
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(brewSessionRepository.findByIdAndOwnerId(99L, 42L)).thenReturn(Optional.empty());
+
+    assertThatThrownBy(() -> brewSessionService.findById(99L))
+        .isInstanceOf(EntityNotFoundException.class)
+        .hasMessage("Brew session not found");
   }
 
   @Test
@@ -162,7 +176,8 @@ class BrewSessionServiceTest {
             .adjustmentNotes(request.adjustmentNotes())
             .build();
 
-    when(recipeRepository.findById(1L)).thenReturn(Optional.of(recipe));
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(recipe));
     when(brewSessionRepository.save(any(BrewSession.class))).thenReturn(savedSession);
 
     BrewSessionResponse result = brewSessionService.create(request);
@@ -171,7 +186,7 @@ class BrewSessionServiceTest {
     assertThat(result.recipeName()).isEqualTo("Veracruz AeroPress");
     assertThat(result.rating()).isEqualTo(9);
 
-    verify(recipeRepository).findById(1L);
+    verify(recipeRepository).findByIdAndOwnerId(1L, 42L);
     verify(brewSessionRepository).save(any(BrewSession.class));
   }
 
@@ -180,8 +195,8 @@ class BrewSessionServiceTest {
     Recipe recipe = buildRecipe();
     User owner = User.builder().id(42L).email("owner@brewdeck.test").build();
 
-    when(recipeRepository.findById(1L)).thenReturn(Optional.of(recipe));
     when(currentUserProvider.require()).thenReturn(owner);
+    when(recipeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(recipe));
     when(brewSessionRepository.save(any(BrewSession.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -196,13 +211,14 @@ class BrewSessionServiceTest {
   void create_shouldThrowException_whenRecipeDoesNotExist() {
     BrewSessionRequest request = new BrewSessionRequest(99L, null, null, null, null, null, null);
 
-    when(recipeRepository.findById(99L)).thenReturn(Optional.empty());
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findByIdAndOwnerId(99L, 42L)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> brewSessionService.create(request))
         .isInstanceOf(EntityNotFoundException.class)
         .hasMessage("Recipe not found");
 
-    verify(recipeRepository).findById(99L);
+    verify(recipeRepository).findByIdAndOwnerId(99L, 42L);
     verify(brewSessionRepository, never()).save(any());
   }
 
@@ -215,7 +231,8 @@ class BrewSessionServiceTest {
 
     Pageable pageable = PageRequest.of(0, 10);
 
-    when(brewSessionRepository.findByRecipeIdOrderByBrewedAtDesc(1L, pageable))
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(brewSessionRepository.findByRecipeIdAndOwnerIdOrderByBrewedAtDesc(1L, 42L, pageable))
         .thenReturn(new PageImpl<>(List.of(session), pageable, 1));
 
     PageResponse<BrewSessionResponse> result = brewSessionService.findByRecipeId(1L, pageable);
@@ -224,7 +241,8 @@ class BrewSessionServiceTest {
     assertThat(result.content().getFirst().recipeId()).isEqualTo(1L);
     assertThat(result.totalElements()).isEqualTo(1);
 
-    verify(brewSessionRepository).findByRecipeIdOrderByBrewedAtDesc(1L, pageable);
+    verify(brewSessionRepository)
+        .findByRecipeIdAndOwnerIdOrderByBrewedAtDesc(eq(1L), eq(42L), any(Pageable.class));
   }
 
   private Recipe buildRecipe() {
@@ -269,8 +287,10 @@ class BrewSessionServiceTest {
             10,
             "Repeat this version.");
 
-    when(brewSessionRepository.findById(1L)).thenReturn(Optional.of(existingSession));
-    when(recipeRepository.findById(1L)).thenReturn(Optional.of(newRecipe));
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(brewSessionRepository.findByIdAndOwnerId(1L, 42L))
+        .thenReturn(Optional.of(existingSession));
+    when(recipeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(newRecipe));
     when(brewSessionRepository.save(existingSession)).thenReturn(existingSession);
 
     BrewSessionResponse result = brewSessionService.update(1L, request);
@@ -284,8 +304,8 @@ class BrewSessionServiceTest {
     assertThat(result.rating()).isEqualTo(10);
     assertThat(result.adjustmentNotes()).isEqualTo("Repeat this version.");
 
-    verify(brewSessionRepository).findById(1L);
-    verify(recipeRepository).findById(1L);
+    verify(brewSessionRepository).findByIdAndOwnerId(1L, 42L);
+    verify(recipeRepository).findByIdAndOwnerId(1L, 42L);
     verify(brewSessionRepository).save(existingSession);
   }
 
@@ -301,14 +321,15 @@ class BrewSessionServiceTest {
             10,
             "Repeat this version.");
 
-    when(brewSessionRepository.findById(99L)).thenReturn(Optional.empty());
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(brewSessionRepository.findByIdAndOwnerId(99L, 42L)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> brewSessionService.update(99L, request))
         .isInstanceOf(EntityNotFoundException.class)
         .hasMessage("Brew session not found");
 
-    verify(brewSessionRepository).findById(99L);
-    verify(recipeRepository, never()).findById(anyLong());
+    verify(brewSessionRepository).findByIdAndOwnerId(99L, 42L);
+    verify(recipeRepository, never()).findByIdAndOwnerId(anyLong(), anyLong());
     verify(brewSessionRepository, never()).save(any());
   }
 
@@ -334,37 +355,41 @@ class BrewSessionServiceTest {
             10,
             "Repeat this version.");
 
-    when(brewSessionRepository.findById(1L)).thenReturn(Optional.of(existingSession));
-    when(recipeRepository.findById(99L)).thenReturn(Optional.empty());
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(brewSessionRepository.findByIdAndOwnerId(1L, 42L))
+        .thenReturn(Optional.of(existingSession));
+    when(recipeRepository.findByIdAndOwnerId(99L, 42L)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> brewSessionService.update(1L, request))
         .isInstanceOf(EntityNotFoundException.class)
         .hasMessage("Recipe not found");
 
-    verify(brewSessionRepository).findById(1L);
-    verify(recipeRepository).findById(99L);
+    verify(brewSessionRepository).findByIdAndOwnerId(1L, 42L);
+    verify(recipeRepository).findByIdAndOwnerId(99L, 42L);
     verify(brewSessionRepository, never()).save(any());
   }
 
   @Test
   void delete_shouldDeleteBrewSession_whenSessionExists() {
-    when(brewSessionRepository.existsById(1L)).thenReturn(true);
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(brewSessionRepository.existsByIdAndOwnerId(1L, 42L)).thenReturn(true);
 
     brewSessionService.delete(1L);
 
-    verify(brewSessionRepository).existsById(1L);
+    verify(brewSessionRepository).existsByIdAndOwnerId(1L, 42L);
     verify(brewSessionRepository).deleteById(1L);
   }
 
   @Test
   void delete_shouldThrowException_whenBrewSessionDoesNotExist() {
-    when(brewSessionRepository.existsById(99L)).thenReturn(false);
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(brewSessionRepository.existsByIdAndOwnerId(99L, 42L)).thenReturn(false);
 
     assertThatThrownBy(() -> brewSessionService.delete(99L))
         .isInstanceOf(EntityNotFoundException.class)
         .hasMessage("Brew session not found");
 
-    verify(brewSessionRepository).existsById(99L);
+    verify(brewSessionRepository).existsByIdAndOwnerId(99L, 42L);
     verify(brewSessionRepository, never()).deleteById(anyLong());
   }
 

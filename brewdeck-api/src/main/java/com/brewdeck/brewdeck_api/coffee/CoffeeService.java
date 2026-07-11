@@ -26,7 +26,9 @@ public class CoffeeService {
   public List<MostUsedCoffeeResponse> getMostUsed(int limit) {
     int safeLimit = Math.min(Math.max(limit, MIN_LIMIT), MAX_LIMIT);
 
-    return recipeRepository.findMostUsedCoffees(PageRequest.of(0, safeLimit)).stream()
+    return recipeRepository
+        .findMostUsedCoffees(currentOwnerId(), PageRequest.of(0, safeLimit))
+        .stream()
         .map(
             row ->
                 new MostUsedCoffeeResponse(
@@ -41,7 +43,8 @@ public class CoffeeService {
                 CoffeeSpecification.nameContains(filter.name())
                     .and(CoffeeSpecification.hasOrigin(filter.origin()))
                     .and(CoffeeSpecification.hasRoastLevel(filter.roastLevel()))
-                    .and(CoffeeSpecification.hasProcess(filter.process())),
+                    .and(CoffeeSpecification.hasProcess(filter.process()))
+                    .and(CoffeeSpecification.hasOwner(currentOwnerId())),
                 pageable)
             .map(CoffeeResponse::fromEntity));
   }
@@ -49,7 +52,7 @@ public class CoffeeService {
   public CoffeeResponse findById(Long id) {
     Coffee coffee =
         coffeeRepository
-            .findById(id)
+            .findByIdAndOwnerId(id, currentOwnerId())
             .orElseThrow(() -> new EntityNotFoundException("Coffee not found"));
 
     return CoffeeResponse.fromEntity(coffee);
@@ -69,7 +72,7 @@ public class CoffeeService {
   public CoffeeResponse update(Long id, CoffeeRequest request) {
     Coffee coffee =
         coffeeRepository
-            .findById(id)
+            .findByIdAndOwnerId(id, currentOwnerId())
             .orElseThrow(() -> new EntityNotFoundException("Coffee not found"));
 
     applyRequest(coffee, request);
@@ -81,12 +84,16 @@ public class CoffeeService {
   }
 
   public void delete(Long id) {
-    if (!coffeeRepository.existsById(id)) {
+    if (!coffeeRepository.existsByIdAndOwnerId(id, currentOwnerId())) {
       throw new EntityNotFoundException("Coffee not found");
     }
 
     coffeeRepository.deleteById(id);
     log.info("Deleted coffee id={}", id);
+  }
+
+  private Long currentOwnerId() {
+    return currentUserProvider.require().getId();
   }
 
   private void applyRequest(Coffee coffee, CoffeeRequest request) {

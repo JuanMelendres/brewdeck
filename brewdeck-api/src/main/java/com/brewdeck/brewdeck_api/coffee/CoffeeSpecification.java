@@ -37,4 +37,11 @@ public final class CoffeeSpecification {
             : criteriaBuilder.like(
                 criteriaBuilder.lower(root.get("name")), "%" + name.toLowerCase() + "%");
   }
+
+  public static Specification<Coffee> hasOwner(Long ownerId) {
+    return (root, query, criteriaBuilder) ->
+        ownerId == null
+            ? criteriaBuilder.disjunction()
+            : criteriaBuilder.equal(root.get("owner").get("id"), ownerId);
+  }
 }

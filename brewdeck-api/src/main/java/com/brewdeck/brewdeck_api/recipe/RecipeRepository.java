@@ -39,14 +39,33 @@ public interface RecipeRepository
   @EntityGraph(attributePaths = {"coffee", "method"})
   Page<Recipe> findByMethodId(Long methodId, Pageable pageable);
 
+  @EntityGraph(attributePaths = {"coffee", "method"})
+  Optional<Recipe> findByIdAndOwnerId(Long id, Long ownerId);
+
+  boolean existsByIdAndOwnerId(Long id, Long ownerId);
+
+  long countByOwnerId(Long ownerId);
+
+  @EntityGraph(attributePaths = {"coffee", "method"})
+  Page<Recipe> findByFavoriteTrueAndOwnerId(Long ownerId, Pageable pageable);
+
+  long countByFavoriteTrueAndOwnerId(Long ownerId);
+
+  @EntityGraph(attributePaths = {"coffee", "method"})
+  Page<Recipe> findByCoffeeIdAndOwnerId(Long coffeeId, Long ownerId, Pageable pageable);
+
+  @EntityGraph(attributePaths = {"coffee", "method"})
+  Page<Recipe> findByMethodIdAndOwnerId(Long methodId, Long ownerId, Pageable pageable);
+
   @Query(
       """
       select r.coffee.id as coffeeId, r.coffee.name as coffeeName, count(r) as recipeCount
       from Recipe r
+      where r.owner.id = :ownerId
       group by r.coffee.id, r.coffee.name
       order by count(r) desc, r.coffee.name asc
       """)
-  List<MostUsedCoffee> findMostUsedCoffees(Pageable pageable);
+  List<MostUsedCoffee> findMostUsedCoffees(Long ownerId, Pageable pageable);
 
   @EntityGraph(attributePaths = {"coffee", "method"})
   Optional<Recipe> findByShareToken(String shareToken);

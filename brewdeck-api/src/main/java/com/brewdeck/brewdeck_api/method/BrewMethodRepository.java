@@ -10,9 +10,9 @@ public interface BrewMethodRepository extends JpaRepository<BrewMethod, Long> {
       """
       select m.id as methodId, m.name as methodName, count(r) as recipeCount
       from BrewMethod m
-      left join Recipe r on r.method = m
+      left join Recipe r on r.method = m and r.owner.id = :ownerId
       group by m.id, m.name
       order by count(r) desc, m.name asc
       """)
-  List<MethodUsage> findUsage();
+  List<MethodUsage> findUsage(Long ownerId);
 }
