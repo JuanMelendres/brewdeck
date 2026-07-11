@@ -48,3 +48,6 @@ brewdeck:
   auth:
     secret: ${BREWDECK_JWT_SECRET:dev-only-insecure-secret-change-me-at-least-32-bytes}
     token-ttl: ${AUTH_TOKEN_TTL:PT24H}
+  mail:
+    enabled: ${BREWDECK_MAIL_ENABLED:false}
+    frontend-base-url: ${BREWDECK_MAIL_FRONTEND_BASE_URL:http://localhost:3000}
