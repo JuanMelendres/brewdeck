@@ -1,6 +1,7 @@
 package com.brewdeck.brewdeck_api.integration;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -67,5 +68,68 @@ class AuthSecurityIntegrationTest extends PostgresIntegrationTest {
   @Test
   void me_withoutToken_returns401() throws Exception {
     mockMvc.perform(get("/api/auth/me")).andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  void updateProfileThenChangePassword_persistsAndRelogsIn() throws Exception {
+    String email = "profile-" + System.nanoTime() + "@example.com";
+    String register = "{\"email\":\"" + email + "\",\"password\":\"password1\"}";
+    String token =
+        com.jayway.jsonpath.JsonPath.read(
+            mockMvc
+                .perform(
+                    post("/api/auth/register").contentType("application/json").content(register))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString(),
+            "$.token");
+
+    mockMvc
+        .perform(
+            patch("/api/auth/me")
+                .header("Authorization", "Bearer " + token)
+                .contentType("application/json")
+                .content("{\"displayName\":\"Barista Bob\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.displayName").value("Barista Bob"));
+
+    // Persisted: a fresh /me read reflects the new name.
+    mockMvc
+        .perform(get("/api/auth/me").header("Authorization", "Bearer " + token))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.displayName").value("Barista Bob"));
+
+    // Wrong current password is rejected.
+    mockMvc
+        .perform(
+            post("/api/auth/change-password")
+                .header("Authorization", "Bearer " + token)
+                .contentType("application/json")
+                .content("{\"currentPassword\":\"wrong\",\"newPassword\":\"newpassword1\"}"))
+        .andExpect(status().isBadRequest());
+
+    // Correct current password succeeds.
+    mockMvc
+        .perform(
+            post("/api/auth/change-password")
+                .header("Authorization", "Bearer " + token)
+                .contentType("application/json")
+                .content("{\"currentPassword\":\"password1\",\"newPassword\":\"newpassword1\"}"))
+        .andExpect(status().isNoContent());
+
+    // New password logs in; old one no longer does.
+    mockMvc
+        .perform(
+            post("/api/auth/login")
+                .contentType("application/json")
+                .content("{\"email\":\"" + email + "\",\"password\":\"newpassword1\"}"))
+        .andExpect(status().isOk());
+    mockMvc
+        .perform(
+            post("/api/auth/login")
+                .contentType("application/json")
+                .content("{\"email\":\"" + email + "\",\"password\":\"password1\"}"))
+        .andExpect(status().isUnauthorized());
   }
 }

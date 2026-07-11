@@ -62,6 +62,32 @@ public class AuthService {
         .orElseThrow(() -> new EntityNotFoundException("User not found"));
   }
 
+  @Transactional
+  public UserResponse updateProfile(String email, UpdateProfileRequest request) {
+    User user = requireByEmail(email);
+    user.setDisplayName(request.displayName());
+    User saved = userRepository.save(user);
+    log.info("Updated profile for user id={}", saved.getId());
+    return UserResponse.fromEntity(saved);
+  }
+
+  @Transactional
+  public void changePassword(String email, ChangePasswordRequest request) {
+    User user = requireByEmail(email);
+    if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
+      throw new InvalidCurrentPasswordException("Current password is incorrect");
+    }
+    user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+    userRepository.save(user);
+    log.info("Changed password for user id={}", user.getId());
+  }
+
+  private User requireByEmail(String email) {
+    return userRepository
+        .findByEmail(email)
+        .orElseThrow(() -> new EntityNotFoundException("User not found"));
+  }
+
   private AuthResponse tokenResponse(User user) {
     String token = jwtService.generateToken(user);
     return new AuthResponse(token, jwtService.expiryFor(Instant.now()), user.getEmail());

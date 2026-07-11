@@ -23,6 +23,7 @@ const NAV = [
   { label: 'Favorites', href: '/recipes/favorites', enabled: true },
   { label: 'Brew Methods', href: '/brew-methods', enabled: true },
   { label: 'Brew Sessions', href: '/brew-sessions', enabled: true },
+  { label: 'Account', href: '/account', enabled: true },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -45,8 +46,14 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             {user ? (
-              <Typography variant="body2" noWrap>
-                {user.email}
+              <Typography
+                variant="body2"
+                noWrap
+                component={Link}
+                href="/account"
+                sx={{ color: 'inherit', textDecoration: 'none' }}
+              >
+                {user.displayName ?? user.email}
               </Typography>
             ) : null}
             <Button color="inherit" onClick={onLogout}>

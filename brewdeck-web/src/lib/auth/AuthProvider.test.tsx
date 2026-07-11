@@ -44,6 +44,7 @@ describe('AuthProvider', () => {
     vi.spyOn(authApi, 'getMe').mockResolvedValue({
       id: 1,
       email: 'brewer@example.com',
+      displayName: null,
       createdAt: '2026-07-01T00:00:00Z',
     });
     render(<Probe />, { wrapper });
@@ -60,6 +61,7 @@ describe('AuthProvider', () => {
     vi.spyOn(authApi, 'getMe').mockResolvedValue({
       id: 2,
       email: 'a@b.com',
+      displayName: null,
       createdAt: '2026-07-01T00:00:00Z',
     });
     render(<Probe />, { wrapper });
@@ -72,6 +74,7 @@ describe('AuthProvider', () => {
     vi.spyOn(authApi, 'getMe').mockResolvedValue({
       id: 3,
       email: 'brewer@example.com',
+      displayName: null,
       createdAt: '2026-07-01T00:00:00Z',
     });
     render(<Probe />, { wrapper });

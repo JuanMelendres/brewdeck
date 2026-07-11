@@ -141,5 +141,6 @@ export type AuthResponse = {
 export type UserResponse = {
   id: number;
   email: string;
+  displayName: string | null;
   createdAt: string;
 };

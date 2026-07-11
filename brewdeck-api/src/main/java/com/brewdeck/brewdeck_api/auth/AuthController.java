@@ -35,4 +35,19 @@ public class AuthController {
   public ResponseEntity<UserResponse> me(Principal principal) {
     return ResponseEntity.ok(authService.me(principal.getName()));
   }
+
+  @PatchMapping("/me")
+  @Operation(summary = "Update the authenticated user's profile")
+  public ResponseEntity<UserResponse> updateProfile(
+      Principal principal, @Valid @RequestBody UpdateProfileRequest request) {
+    return ResponseEntity.ok(authService.updateProfile(principal.getName(), request));
+  }
+
+  @PostMapping("/change-password")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(summary = "Change the authenticated user's password")
+  public void changePassword(
+      Principal principal, @Valid @RequestBody ChangePasswordRequest request) {
+    authService.changePassword(principal.getName(), request);
+  }
 }

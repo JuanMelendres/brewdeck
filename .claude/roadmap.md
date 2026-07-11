@@ -91,4 +91,8 @@ Status: In progress
 - Per-user ownership (Slice B) — Done
   - B.1 (write path) — owner_id FK (Flyway V6) on coffees/recipes/sessions, backfill, CurrentUserProvider, stamp owner on create — Done
   - B.2 (read path) — per-user filtering on all reads (CRUD, favorites, session-by-recipe, analytics, dashboard, AI improve; share/unshare owner-scoped, public token read stays global) + owner_id NOT NULL (Flyway V7) — Done
-- Account UX (Slice C) — email verification, password reset, refresh tokens, profile — Pending
+- Account UX (Slice C) — split into sub-slices — In progress
+  - C.1 (profile + password change) — display_name (Flyway V8), PATCH /api/auth/me, POST /api/auth/change-password, /account page (ProfileForm + ChangePasswordForm) — Done
+  - C.2 (password reset) — mail port + reset-token table — Pending
+  - C.3 (email verification) — shares mail infra with C.2 — Pending
+  - C.4 (refresh tokens) — refresh-token store + rotation — Pending

@@ -18,3 +18,20 @@ export function login(body: { email: string; password: string }): Promise<AuthRe
 export function getMe(): Promise<UserResponse> {
   return apiFetch<UserResponse>('/api/auth/me');
 }
+
+export function updateProfile(body: { displayName: string | null }): Promise<UserResponse> {
+  return apiFetch<UserResponse>('/api/auth/me', {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+}
+
+export function changePassword(body: {
+  currentPassword: string;
+  newPassword: string;
+}): Promise<void> {
+  return apiFetch<void>('/api/auth/change-password', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}

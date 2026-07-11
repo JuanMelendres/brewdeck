@@ -1,7 +1,12 @@
 'use client';
 
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { getMe, login as loginApi, register as registerApi } from '@/lib/api/auth';
+import {
+  getMe,
+  login as loginApi,
+  register as registerApi,
+  updateProfile as updateProfileApi,
+} from '@/lib/api/auth';
 import type { UserResponse } from '@/lib/api/types';
 import { clearToken, getToken, setToken } from './tokenStore';
 
@@ -14,6 +19,7 @@ type AuthContextValue = {
   status: AuthStatus;
   login: (body: Credentials) => Promise<void>;
   register: (body: Credentials) => Promise<void>;
+  updateProfile: (body: { displayName: string | null }) => Promise<void>;
   logout: () => void;
 };
 
@@ -60,6 +66,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const me = await getMe();
         setUser(me);
         setStatus('authenticated');
+      },
+      updateProfile: async (body) => {
+        const updated = await updateProfileApi(body);
+        setUser(updated);
       },
       logout: () => {
         clearToken();
