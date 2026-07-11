@@ -4,6 +4,7 @@ import com.brewdeck.brewdeck_api.ai.AiUnavailableException;
 import com.brewdeck.brewdeck_api.ai.InsufficientBrewHistoryException;
 import com.brewdeck.brewdeck_api.auth.EmailAlreadyUsedException;
 import com.brewdeck.brewdeck_api.auth.InvalidCurrentPasswordException;
+import com.brewdeck.brewdeck_api.auth.reset.InvalidResetTokenException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
@@ -110,6 +111,19 @@ public class GlobalExceptionHandler {
             null);
 
     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+  }
+
+  @ExceptionHandler(InvalidResetTokenException.class)
+  public ResponseEntity<ErrorResponse> handleInvalidResetToken(
+      InvalidResetTokenException exception, HttpServletRequest request) {
+    ErrorResponse errorResponse =
+        buildErrorResponse(
+            HttpStatus.BAD_REQUEST,
+            "Reset token is invalid or has expired",
+            sanitize(request.getRequestURI()),
+            null);
+
+    return ResponseEntity.badRequest().body(errorResponse);
   }
 
   @ExceptionHandler(InvalidCurrentPasswordException.class)
