@@ -93,6 +93,6 @@ Status: In progress
   - B.2 (read path) — per-user filtering on all reads (CRUD, favorites, session-by-recipe, analytics, dashboard, AI improve; share/unshare owner-scoped, public token read stays global) + owner_id NOT NULL (Flyway V7) — Done
 - Account UX (Slice C) — split into sub-slices — In progress
   - C.1 (profile + password change) — display_name (Flyway V8), PATCH /api/auth/me, POST /api/auth/change-password, /account page (ProfileForm + ChangePasswordForm) — Done
-  - C.2 (password reset) — mail port + reset-token table — Pending
+  - C.2 (password reset) — hashed single-use tokens (Flyway V9), PasswordResetMailPort (logging default, SMTP stub behind brewdeck.mail.enabled), public POST /api/auth/forgot-password (always 200, no enumeration) + POST /api/auth/reset-password (204), /forgot-password + /reset-password pages — Done
   - C.3 (email verification) — shares mail infra with C.2 — Pending
   - C.4 (refresh tokens) — refresh-token store + rotation — Pending
