@@ -94,5 +94,5 @@ Status: In progress
 - Account UX (Slice C) — split into sub-slices — In progress
   - C.1 (profile + password change) — display_name (Flyway V8), PATCH /api/auth/me, POST /api/auth/change-password, /account page (ProfileForm + ChangePasswordForm) — Done
   - C.2 (password reset) — hashed single-use tokens (Flyway V9), PasswordResetMailPort (logging default, SMTP stub behind brewdeck.mail.enabled), public POST /api/auth/forgot-password (always 200, no enumeration) + POST /api/auth/reset-password (204), /forgot-password + /reset-password pages — Done
-  - C.3 (email verification) — shares mail infra with C.2 — Pending
+  - C.3 (email verification) — email_verified flag (Flyway V10, existing backfilled verified), hashed single-use 24h tokens (email_verification_tokens), EmailVerificationMailPort reusing the C.2 mail toggle, register-time issue hook, public POST /api/auth/verify-email (204) + authenticated POST /api/auth/resend-verification (200), soft gate (login unaffected; /me exposes emailVerified), frontend banner + /verify-email page — Done
   - C.4 (refresh tokens) — refresh-token store + rotation — Pending
