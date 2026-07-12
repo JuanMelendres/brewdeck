@@ -12,7 +12,9 @@ export function VerifyEmailView() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token') ?? '';
   const { refreshUser } = useAuth();
-  const [state, setState] = useState<'verifying' | 'success' | 'error'>('verifying');
+  const [state, setState] = useState<'verifying' | 'success' | 'error'>(() =>
+    token ? 'verifying' : 'error',
+  );
   const started = useRef(false);
 
   useEffect(() => {
@@ -21,7 +23,6 @@ export function VerifyEmailView() {
     }
     started.current = true;
     if (!token) {
-      setState('error');
       return;
     }
     verifyEmail(token)
