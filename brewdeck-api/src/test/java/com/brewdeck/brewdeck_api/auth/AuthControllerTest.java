@@ -106,7 +106,11 @@ class AuthControllerTest {
     when(authService.updateProfile(eq("brewer@example.com"), any()))
         .thenReturn(
             new UserResponse(
-                1L, "brewer@example.com", "Barista Bob", LocalDateTime.parse("2026-07-09T00:00")));
+                1L,
+                "brewer@example.com",
+                "Barista Bob",
+                true,
+                LocalDateTime.parse("2026-07-09T00:00")));
 
     mockMvc
         .perform(
