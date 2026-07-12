@@ -12,13 +12,15 @@ in [`architecture/api-design.md`](../architecture/api-design.md).
 
 ## Auth (`/api/auth`)
 ```
-POST  /api/auth/register          201
-POST  /api/auth/login             200
-GET   /api/auth/me                200 (401 without token)
-PATCH /api/auth/me                200 (update display name)
-POST  /api/auth/change-password   204 (400 if current password wrong)
-POST  /api/auth/forgot-password   200 (always; no user enumeration)
-POST  /api/auth/reset-password    204 (400 if token invalid/expired/used)
+POST  /api/auth/register            201
+POST  /api/auth/login               200
+GET   /api/auth/me                  200 (401 without token; includes emailVerified)
+PATCH /api/auth/me                  200 (update display name)
+POST  /api/auth/change-password     204 (400 if current password wrong)
+POST  /api/auth/forgot-password     200 (always; no user enumeration)
+POST  /api/auth/reset-password      204 (400 if token invalid/expired/used)
+POST  /api/auth/verify-email        204 (400 if token invalid/expired/used)
+POST  /api/auth/resend-verification 200 (authenticated; no-op if already verified)
 ```
 
 ## Coffees (`/api/coffees`)
