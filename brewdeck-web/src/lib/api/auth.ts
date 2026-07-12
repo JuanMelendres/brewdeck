@@ -49,3 +49,16 @@ export function resetPassword(body: { token: string; newPassword: string }): Pro
     body: JSON.stringify(body),
   });
 }
+
+export function verifyEmail(token: string): Promise<void> {
+  return apiFetch<void>('/api/auth/verify-email', {
+    method: 'POST',
+    body: JSON.stringify({ token }),
+  });
+}
+
+export function resendVerification(): Promise<{ message: string }> {
+  return apiFetch<{ message: string }>('/api/auth/resend-verification', {
+    method: 'POST',
+  });
+}
