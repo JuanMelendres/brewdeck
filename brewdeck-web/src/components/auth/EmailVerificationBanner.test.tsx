@@ -48,12 +48,10 @@ describe('EmailVerificationBanner', () => {
   it('hides when dismissed', async () => {
     mockUser = unverified;
     render(<EmailVerificationBanner />);
-    const buttons = screen.getAllByRole('button');
-    // The close button is typically the last button (after "Resend link")
-    const closeButton = buttons[buttons.length - 1];
-    await userEvent.click(closeButton);
+    await userEvent.click(screen.getByRole('button', { name: /dismiss/i }));
     await waitFor(() => {
       expect(screen.queryByText(/email is not verified/i)).not.toBeInTheDocument();
     });
+    expect(resendMock).not.toHaveBeenCalled();
   });
 });

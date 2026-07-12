@@ -28,13 +28,17 @@ export function EmailVerificationBanner() {
   return (
     <Alert
       severity="warning"
-      onClose={() => setDismissed(true)}
       action={
-        status === 'sent' ? undefined : (
-          <Button color="inherit" size="small" onClick={onResend} disabled={status === 'sending'}>
-            Resend link
+        <>
+          {status !== 'sent' && (
+            <Button color="inherit" size="small" onClick={onResend} disabled={status === 'sending'}>
+              Resend link
+            </Button>
+          )}
+          <Button color="inherit" size="small" onClick={() => setDismissed(true)}>
+            Dismiss
           </Button>
-        )
+        </>
       }
       sx={{ mb: 2 }}
     >
