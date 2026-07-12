@@ -35,3 +35,17 @@ export function changePassword(body: {
     body: JSON.stringify(body),
   });
 }
+
+export function forgotPassword(body: { email: string }): Promise<{ message: string }> {
+  return apiFetch<{ message: string }>('/api/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export function resetPassword(body: { token: string; newPassword: string }): Promise<void> {
+  return apiFetch<void>('/api/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}

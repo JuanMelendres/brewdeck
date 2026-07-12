@@ -33,7 +33,12 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
     clearToken();
     if (typeof window !== 'undefined') {
       const p = window.location.pathname;
-      const onPublic = p === '/login' || p === '/register' || p.startsWith('/share');
+      const onPublic =
+        p === '/login' ||
+        p === '/register' ||
+        p === '/forgot-password' ||
+        p === '/reset-password' ||
+        p.startsWith('/share');
       if (!onPublic) {
         window.location.assign('/login');
       }

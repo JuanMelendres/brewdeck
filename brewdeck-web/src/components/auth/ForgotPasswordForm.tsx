@@ -7,39 +7,42 @@ import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useAuth } from '@/lib/auth/AuthProvider';
-import { loginSchema, type LoginFormValues } from '@/lib/validation/authSchema';
+import { forgotPassword } from '@/lib/api/auth';
+import { forgotPasswordSchema, type ForgotPasswordFormValues } from '@/lib/validation/authSchema';
 
-export function LoginForm() {
-  const { login } = useAuth();
-  const router = useRouter();
+export function ForgotPasswordForm() {
+  const [submitted, setSubmitted] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<LoginFormValues>({ resolver: zodResolver(loginSchema) });
+  } = useForm<ForgotPasswordFormValues>({ resolver: zodResolver(forgotPasswordSchema) });
 
   const onSubmit = handleSubmit(async (values) => {
     setFormError(null);
     try {
-      await login(values);
-      router.push('/dashboard');
+      await forgotPassword(values);
+      setSubmitted(true);
     } catch {
-      setFormError('Could not log in. Check your email and password.');
+      setFormError('Could not send the reset link. Please try again.');
     }
   });
 
   return (
     <Box component="form" onSubmit={onSubmit} sx={{ maxWidth: 400, mx: 'auto', mt: 8 }}>
       <Typography variant="h5" component="h1" gutterBottom>
-        Log in
+        Reset your password
       </Typography>
       <Stack spacing={2}>
         {formError ? <Alert severity="error">{formError}</Alert> : null}
+        {submitted ? (
+          <Alert severity="success">
+            If that email exists, a reset link has been sent. Check your inbox.
+          </Alert>
+        ) : null}
         <TextField
           label="Email"
           type="email"
@@ -47,21 +50,11 @@ export function LoginForm() {
           error={!!errors.email}
           helperText={errors.email?.message}
         />
-        <TextField
-          label="Password"
-          type="password"
-          {...register('password')}
-          error={!!errors.password}
-          helperText={errors.password?.message}
-        />
         <Button type="submit" variant="contained" disabled={isSubmitting}>
-          Log in
+          Send reset link
         </Button>
         <Typography variant="body2">
-          No account? <a href="/register">Register</a>
-        </Typography>
-        <Typography variant="body2">
-          <a href="/forgot-password">Forgot password?</a>
+          Remembered it? <a href="/login">Log in</a>
         </Typography>
       </Stack>
     </Box>

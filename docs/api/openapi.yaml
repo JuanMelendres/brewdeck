@@ -101,6 +101,22 @@ paths:
         "204": { description: Password changed }
         "400": { description: Wrong current password or validation error, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
         "401": { description: Unauthenticated }
+  /api/auth/forgot-password:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Request a password reset link (always 200, no user enumeration)
+      responses:
+        "200": { description: OK }
+        "400": { description: Validation error, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+  /api/auth/reset-password:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Reset password using a reset token
+      responses:
+        "204": { description: Password reset }
+        "400": { description: Invalid/expired/used token or validation error, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
   /api/coffees:
     get:
       tags: [Coffees]
