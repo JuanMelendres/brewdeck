@@ -12,6 +12,7 @@ import Typography from '@mui/material/Typography';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { ReactNode } from 'react';
+import { EmailVerificationBanner } from '@/components/auth/EmailVerificationBanner';
 import { useAuth } from '@/lib/auth/AuthProvider';
 
 const DRAWER_WIDTH = 220;
@@ -87,6 +88,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </Drawer>
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
         <Toolbar />
+        <EmailVerificationBanner />
         {children}
       </Box>
     </Box>
