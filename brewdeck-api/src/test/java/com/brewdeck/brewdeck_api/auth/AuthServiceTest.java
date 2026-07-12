@@ -22,12 +22,16 @@ class AuthServiceTest {
   @Mock private UserRepository userRepository;
   @Mock private JwtService jwtService;
 
+  @Mock
+  private com.brewdeck.brewdeck_api.auth.verification.EmailVerificationService
+      emailVerificationService;
+
   private AuthService authService;
 
   @BeforeEach
   void setUp() {
     PasswordEncoder encoder = new BCryptPasswordEncoder();
-    authService = new AuthService(userRepository, jwtService, encoder);
+    authService = new AuthService(userRepository, jwtService, encoder, emailVerificationService);
   }
 
   private User stored(String email, String rawPassword) {
@@ -50,6 +54,8 @@ class AuthServiceTest {
 
     assertThat(response.token()).isEqualTo("jwt-token");
     assertThat(response.email()).isEqualTo("new@example.com");
+    org.mockito.Mockito.verify(emailVerificationService)
+        .issueFor(org.mockito.ArgumentMatchers.any(User.class));
   }
 
   @Test
@@ -59,6 +65,22 @@ class AuthServiceTest {
     assertThatThrownBy(
             () -> authService.register(new RegisterRequest("taken@example.com", "password1")))
         .isInstanceOf(EmailAlreadyUsedException.class);
+  }
+
+  @Test
+  void register_succeedsEvenWhenVerificationIssueThrows() {
+    when(userRepository.existsByEmail("new@example.com")).thenReturn(false);
+    when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+    when(jwtService.generateToken(any(User.class))).thenReturn("jwt-token");
+    org.mockito.Mockito.doThrow(new RuntimeException("verification down"))
+        .when(emailVerificationService)
+        .issueFor(any(User.class));
+
+    // The account is created and a token returned even if verification issuance fails.
+    AuthResponse response =
+        authService.register(new RegisterRequest("new@example.com", "password1"));
+
+    assertThat(response.token()).isEqualTo("jwt-token");
   }
 
   @Test
