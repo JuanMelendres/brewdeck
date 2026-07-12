@@ -76,6 +76,26 @@ class EmailVerificationServiceTest {
   }
 
   @Test
+  void issueFor_invalidatesPriorUnusedTokens() {
+    EmailVerificationToken prior =
+        EmailVerificationToken.builder()
+            .id(3L)
+            .userId(1L)
+            .tokenHash("prior-hash")
+            .expiresAt(LocalDateTime.now().plusHours(1))
+            .usedAt(null)
+            .createdAt(LocalDateTime.now())
+            .build();
+    when(tokenRepository.findByUserIdAndUsedAtIsNull(1L))
+        .thenReturn(new java.util.ArrayList<>(java.util.List.of(prior)));
+
+    service.issueFor(user(false));
+
+    assertThat(prior.getUsedAt()).isNotNull();
+    verify(tokenRepository).saveAll(any());
+  }
+
+  @Test
   void verify_validToken_setsEmailVerifiedAndStampsUsed() {
     EmailVerificationToken token =
         EmailVerificationToken.builder()
@@ -93,6 +113,26 @@ class EmailVerificationServiceTest {
 
     assertThat(user.isEmailVerified()).isTrue();
     assertThat(token.getUsedAt()).isNotNull();
+  }
+
+  @Test
+  void verify_persistsUserAndToken() {
+    EmailVerificationToken token =
+        EmailVerificationToken.builder()
+            .id(8L)
+            .userId(1L)
+            .tokenHash("hash")
+            .expiresAt(LocalDateTime.now().plusHours(1))
+            .createdAt(LocalDateTime.now())
+            .build();
+    when(tokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(token));
+    User user = user(false);
+    when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+    service.verify("any-raw-token");
+
+    verify(userRepository).save(user);
+    verify(tokenRepository).save(token);
   }
 
   @Test
