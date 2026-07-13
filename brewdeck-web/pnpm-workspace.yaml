@@ -1,0 +1,8 @@
+# pnpm build-script allowlist (pnpm 11 reads this from here, not package.json).
+# Blocked by default under pnpm's supply-chain protection; only trusted native
+# packages are allowed to run install/build scripts. core-js only prints a
+# postinstall banner, so it stays blocked.
+allowBuilds:
+  core-js: false
+  sharp: true
+  unrs-resolver: true

@@ -132,13 +132,15 @@ Run before considering a task done.
 - Windows: `.\mvnw.cmd spotless:apply` then `.\mvnw.cmd clean verify`
 - Focused: `./mvnw -Dtest=ClassName test` (or `.\mvnw.cmd -Dtest=ClassName test`)
 
-### Frontend (npm, in `brewdeck-web/`)
-- `npm run dev` — local dev server
-- `npm run test` — Vitest suite (`vitest run`)
-- `npm run type-check` — strict TypeScript (`tsc --noEmit`), no emit
-- `npm run lint` — ESLint (whole project, read-only)
-- `npm run lint:fix` — ESLint autofix. **Scope it to the files you changed** — never fix the whole repo: `npm run lint:fix -- src/path/to/file.tsx`
-- `npm run build` — production build (also type-checks)
+### Frontend (pnpm, in `brewdeck-web/`)
+Package manager is **pnpm** (pinned via `packageManager` in `package.json`). Do not use npm/yarn — it would create a conflicting lockfile.
+- `pnpm install` — install deps (`--frozen-lockfile` in CI)
+- `pnpm dev` — local dev server
+- `pnpm test` — Vitest suite (`vitest run`)
+- `pnpm type-check` — strict TypeScript (`tsc --noEmit`), no emit
+- `pnpm lint` — ESLint (whole project, read-only)
+- `pnpm lint:fix` — ESLint autofix. **Scope it to the files you changed** — never fix the whole repo: `pnpm lint:fix -- src/path/to/file.tsx`
+- `pnpm build` — production build (also type-checks)
 
 ## Git Rules
 
@@ -177,7 +179,7 @@ Never hardcode secrets — use environment variables; commit `.env.example`, not
 4. **Don't ban default exports for Next.js pages.** `page.tsx`/`layout.tsx` require `export default`; use named exports everywhere else.
 5. **Don't assert `$[0]` on paginated bodies.** Use `$.content[0]`.
 6. **Don't put special symbols in validation messages** (`°C` → write `degrees Celsius`).
-7. **Don't run `lint:fix` on the whole repo.** Scope it to changed files (`npm run lint:fix -- <path>`) so it doesn't silently rewrite unrelated files.
+7. **Don't run `lint:fix` on the whole repo.** Scope it to changed files (`pnpm lint:fix -- <path>`) so it doesn't silently rewrite unrelated files.
 8. **Don't hardcode secrets.** Use env vars and `.env.example`.
 
 ## Important Instruction
