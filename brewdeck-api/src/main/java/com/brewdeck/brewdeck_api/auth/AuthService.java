@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.auth;
 
+import com.brewdeck.brewdeck_api.auth.verification.EmailVerificationService;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -18,12 +19,17 @@ public class AuthService {
   private final UserRepository userRepository;
   private final JwtService jwtService;
   private final PasswordEncoder passwordEncoder;
+  private final EmailVerificationService emailVerificationService;
 
   public AuthService(
-      UserRepository userRepository, JwtService jwtService, PasswordEncoder passwordEncoder) {
+      UserRepository userRepository,
+      JwtService jwtService,
+      PasswordEncoder passwordEncoder,
+      EmailVerificationService emailVerificationService) {
     this.userRepository = userRepository;
     this.jwtService = jwtService;
     this.passwordEncoder = passwordEncoder;
+    this.emailVerificationService = emailVerificationService;
   }
 
   @Transactional
@@ -39,6 +45,12 @@ public class AuthService {
             .build();
     User saved = userRepository.save(user);
     log.info("Registered user id={}", saved.getId());
+    try {
+      emailVerificationService.issueFor(saved);
+    } catch (RuntimeException e) {
+      log.warn(
+          "Failed to issue verification token for user id={}: {}", saved.getId(), e.toString());
+    }
     return tokenResponse(saved);
   }
 

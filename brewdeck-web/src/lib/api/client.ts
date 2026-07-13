@@ -38,6 +38,7 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
         p === '/register' ||
         p === '/forgot-password' ||
         p === '/reset-password' ||
+        p === '/verify-email' ||
         p.startsWith('/share');
       if (!onPublic) {
         window.location.assign('/login');

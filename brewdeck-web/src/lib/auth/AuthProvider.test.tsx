@@ -45,6 +45,7 @@ describe('AuthProvider', () => {
       id: 1,
       email: 'brewer@example.com',
       displayName: null,
+      emailVerified: true,
       createdAt: '2026-07-01T00:00:00Z',
     });
     render(<Probe />, { wrapper });
@@ -62,6 +63,7 @@ describe('AuthProvider', () => {
       id: 2,
       email: 'a@b.com',
       displayName: null,
+      emailVerified: true,
       createdAt: '2026-07-01T00:00:00Z',
     });
     render(<Probe />, { wrapper });
@@ -75,6 +77,7 @@ describe('AuthProvider', () => {
       id: 3,
       email: 'brewer@example.com',
       displayName: null,
+      emailVerified: true,
       createdAt: '2026-07-01T00:00:00Z',
     });
     render(<Probe />, { wrapper });

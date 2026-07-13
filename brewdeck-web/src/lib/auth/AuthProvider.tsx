@@ -20,6 +20,7 @@ type AuthContextValue = {
   login: (body: Credentials) => Promise<void>;
   register: (body: Credentials) => Promise<void>;
   updateProfile: (body: { displayName: string | null }) => Promise<void>;
+  refreshUser: () => Promise<void>;
   logout: () => void;
 };
 
@@ -70,6 +71,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       updateProfile: async (body) => {
         const updated = await updateProfileApi(body);
         setUser(updated);
+      },
+      refreshUser: async () => {
+        if (!getToken()) {
+          return;
+        }
+        try {
+          const me = await getMe();
+          setUser(me);
+        } catch {
+          // Ignore: a failed refresh leaves the existing user state untouched.
+        }
       },
       logout: () => {
         clearToken();
