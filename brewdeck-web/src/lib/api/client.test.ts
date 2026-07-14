@@ -208,6 +208,37 @@ describe('apiFetch', () => {
     expect(refreshCalls).toHaveLength(1);
   });
 
+  it('propagates the retried request error (400) without a forced logout when refresh succeeds', async () => {
+    setToken('stale-access');
+    setRefreshToken('r-1');
+    const assignMock = vi.fn();
+    vi.stubGlobal('location', { pathname: '/', assign: assignMock });
+    let coffeesCalls = 0;
+    vi.stubGlobal(
+      'fetch',
+      routedFetch({
+        '/api/auth/refresh': () => ({
+          ok: true,
+          status: 200,
+          body: { token: 'fresh-access', refreshToken: 'r-2', email: 'u@e.com', expiresAt: 'x' },
+        }),
+        '/api/coffees': () => {
+          coffeesCalls += 1;
+          return coffeesCalls === 1
+            ? { ok: false, status: 401, body: { message: 'expired' } }
+            : { ok: false, status: 400, body: { message: 'Validation failed' } };
+        },
+      }),
+    );
+
+    await expect(apiFetch('/api/coffees')).rejects.toMatchObject({
+      name: 'ApiError',
+      status: 400,
+      message: 'Validation failed',
+    });
+    expect(assignMock).not.toHaveBeenCalled();
+  });
+
   it('clears tokens and redirects when the refresh itself fails', async () => {
     setToken('stale-access');
     setRefreshToken('r-1');

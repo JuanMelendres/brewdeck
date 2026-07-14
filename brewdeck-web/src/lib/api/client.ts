@@ -88,11 +88,15 @@ export async function apiFetch<T>(
         const auth = await attemptRefresh(refreshToken as string);
         setToken(auth.token);
         setRefreshToken(auth.refreshToken);
-        // Retry the original request once; disallow a further refresh to avoid loops.
-        return await apiFetch<T>(path, init, false);
       } catch {
-        // Refresh failed — fall through to clear + redirect below.
+        clearTokens();
+        if (typeof window !== 'undefined' && !isOnPublicPath()) {
+          window.location.assign('/login');
+        }
+        throw new ApiError(401, 'Session expired');
       }
+      // Retry OUTSIDE the try so the retried request's real errors propagate to the caller.
+      return await apiFetch<T>(path, init, false);
     }
 
     clearTokens();
