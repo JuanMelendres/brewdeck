@@ -3,12 +3,15 @@ package com.brewdeck.brewdeck_api.auth;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.brewdeck.brewdeck_api.auth.refresh.InvalidRefreshTokenException;
+import com.brewdeck.brewdeck_api.auth.refresh.RefreshRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.security.Principal;
 import java.time.Instant;
@@ -45,7 +48,8 @@ class AuthControllerTest {
   void register_returns201WithToken() throws Exception {
     when(authService.register(any()))
         .thenReturn(
-            new AuthResponse("jwt", Instant.parse("2026-07-09T00:00:00Z"), "new@example.com"));
+            new AuthResponse(
+                "jwt", Instant.parse("2026-07-09T00:00:00Z"), "new@example.com", "refresh-token"));
 
     mockMvc
         .perform(
@@ -168,5 +172,60 @@ class AuthControllerTest {
                     objectMapper.writeValueAsString(
                         new ChangePasswordRequest("password1", "short"))))
         .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void refreshReturns200WithNewPair() throws Exception {
+    when(authService.refresh(any(RefreshRequest.class)))
+        .thenReturn(
+            new AuthResponse(
+                "new-jwt", Instant.parse("2026-07-14T00:15:00Z"), "u@example.com", "new-refresh"));
+
+    mockMvc
+        .perform(
+            post("/api/auth/refresh")
+                .contentType("application/json")
+                .content("{\"refreshToken\":\"old-refresh\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.token").value("new-jwt"))
+        .andExpect(jsonPath("$.refreshToken").value("new-refresh"))
+        .andExpect(jsonPath("$.email").value("u@example.com"));
+  }
+
+  @Test
+  void refreshReturns401OnInvalidToken() throws Exception {
+    when(authService.refresh(any(RefreshRequest.class)))
+        .thenThrow(new InvalidRefreshTokenException("bad"));
+
+    mockMvc
+        .perform(
+            post("/api/auth/refresh")
+                .contentType("application/json")
+                .content("{\"refreshToken\":\"bad\"}"))
+        .andExpect(status().isUnauthorized())
+        .andExpect(jsonPath("$.message").value("Refresh token is invalid or has expired"));
+  }
+
+  @Test
+  void refreshReturns400OnBlankToken() throws Exception {
+    mockMvc
+        .perform(
+            post("/api/auth/refresh")
+                .contentType("application/json")
+                .content("{\"refreshToken\":\"\"}"))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void logoutReturns204() throws Exception {
+    mockMvc
+        .perform(
+            post("/api/auth/logout")
+                .principal(() -> "u@example.com")
+                .contentType("application/json")
+                .content("{\"refreshToken\":\"some-refresh\"}"))
+        .andExpect(status().isNoContent());
+
+    verify(authService).logout(eq("u@example.com"), any(RefreshRequest.class));
   }
 }

@@ -4,6 +4,7 @@ import com.brewdeck.brewdeck_api.ai.AiUnavailableException;
 import com.brewdeck.brewdeck_api.ai.InsufficientBrewHistoryException;
 import com.brewdeck.brewdeck_api.auth.EmailAlreadyUsedException;
 import com.brewdeck.brewdeck_api.auth.InvalidCurrentPasswordException;
+import com.brewdeck.brewdeck_api.auth.refresh.InvalidRefreshTokenException;
 import com.brewdeck.brewdeck_api.auth.reset.InvalidResetTokenException;
 import com.brewdeck.brewdeck_api.auth.verification.InvalidVerificationTokenException;
 import jakarta.persistence.EntityNotFoundException;
@@ -108,6 +109,19 @@ public class GlobalExceptionHandler {
         buildErrorResponse(
             HttpStatus.UNAUTHORIZED,
             "Invalid email or password",
+            sanitize(request.getRequestURI()),
+            null);
+
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+  }
+
+  @ExceptionHandler(InvalidRefreshTokenException.class)
+  public ResponseEntity<ErrorResponse> handleInvalidRefreshToken(
+      InvalidRefreshTokenException exception, HttpServletRequest request) {
+    ErrorResponse errorResponse =
+        buildErrorResponse(
+            HttpStatus.UNAUTHORIZED,
+            "Refresh token is invalid or has expired",
             sanitize(request.getRequestURI()),
             null);
 
