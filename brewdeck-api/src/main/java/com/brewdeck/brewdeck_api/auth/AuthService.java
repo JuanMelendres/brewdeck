@@ -99,7 +99,11 @@ public class AuthService {
     log.info("Changed password for user id={}", user.getId());
   }
 
-  @Transactional
+  // No @Transactional here on purpose: rotate() must be the outermost transaction boundary so its
+  // noRollbackFor governs the reuse-path revocation. A plain @Transactional here would join
+  // rotate()'s transaction and roll it back on InvalidRefreshTokenException, undoing the
+  // revocation.
+  // refresh() has no other DB write of its own (it only rotates, then generates a JWT).
   public AuthResponse refresh(RefreshRequest request) {
     RefreshTokenService.RotationResult result = refreshTokenService.rotate(request.refreshToken());
     return tokenResponse(result.user(), result.rawToken());

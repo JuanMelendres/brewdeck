@@ -39,6 +39,10 @@ public class RefreshTokenService {
    *
    * <p>{@code noRollbackFor} is essential: the reuse path revokes the user's active tokens and then
    * throws. Without it the throw would roll back the very revocation we rely on for containment.
+   * This method must remain the OUTERMOST transaction boundary for that revocation to persist — no
+   * caller may wrap it in a plain {@code @Transactional}, or that outer boundary's default
+   * rollback-on-RuntimeException rule would join and roll back this transaction, undoing the
+   * revocation (see {@code AuthService.refresh()}, deliberately non-transactional for this reason).
    */
   @Transactional(noRollbackFor = InvalidRefreshTokenException.class)
   public RotationResult rotate(String rawToken) {
