@@ -62,3 +62,17 @@ export function resendVerification(): Promise<{ message: string }> {
     method: 'POST',
   });
 }
+
+export function refresh(refreshToken: string): Promise<AuthResponse> {
+  return apiFetch<AuthResponse>('/api/auth/refresh', {
+    method: 'POST',
+    body: JSON.stringify({ refreshToken }),
+  });
+}
+
+export function logout(refreshToken: string): Promise<void> {
+  return apiFetch<void>('/api/auth/logout', {
+    method: 'POST',
+    body: JSON.stringify({ refreshToken }),
+  });
+}

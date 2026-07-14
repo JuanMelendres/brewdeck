@@ -58,6 +58,7 @@ describe('AuthProvider', () => {
       token: 'jwt',
       expiresAt: '2026-07-09T00:00:00Z',
       email: 'a@b.com',
+      refreshToken: 'refresh-jwt',
     });
     vi.spyOn(authApi, 'getMe').mockResolvedValue({
       id: 2,
