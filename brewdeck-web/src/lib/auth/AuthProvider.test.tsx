@@ -160,6 +160,7 @@ describe('AuthProvider', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'logout' }));
 
+    expect(authApi.logout).toHaveBeenCalledWith('refresh-jwt');
     await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('anonymous'));
     expect(getToken()).toBeNull();
     expect(getRefreshToken()).toBeNull();

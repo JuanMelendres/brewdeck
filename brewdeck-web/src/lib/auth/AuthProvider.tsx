@@ -88,16 +88,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
       logout: async () => {
         const refreshToken = getRefreshToken();
+        clearTokens();
+        setUser(null);
+        setStatus('anonymous');
         if (refreshToken) {
           try {
             await logoutApi(refreshToken);
           } catch {
-            // Best-effort: proceed to local sign-out even if the revoke call fails.
+            // Best-effort: local sign-out already completed; nothing to roll back.
           }
         }
-        clearTokens();
-        setUser(null);
-        setStatus('anonymous');
       },
     }),
     [user, status],
