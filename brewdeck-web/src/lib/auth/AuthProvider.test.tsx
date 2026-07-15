@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AuthProvider, useAuth } from './AuthProvider';
-import { clearToken, getToken, setToken } from './tokenStore';
+import { clearTokens, getRefreshToken, getToken, setToken } from './tokenStore';
 import * as authApi from '@/lib/api/auth';
 
 function wrapper({ children }: { children: ReactNode }) {
@@ -30,7 +30,7 @@ function Probe() {
 
 describe('AuthProvider', () => {
   afterEach(() => {
-    clearToken();
+    clearTokens();
     vi.restoreAllMocks();
   });
 
@@ -72,6 +72,26 @@ describe('AuthProvider', () => {
     await waitFor(() => expect(screen.getByTestId('email')).toHaveTextContent('a@b.com'));
   });
 
+  it('persists the refresh token after login', async () => {
+    vi.spyOn(authApi, 'login').mockResolvedValue({
+      token: 'jwt',
+      expiresAt: '2026-07-09T00:00:00Z',
+      email: 'a@b.com',
+      refreshToken: 'refresh-jwt',
+    });
+    vi.spyOn(authApi, 'getMe').mockResolvedValue({
+      id: 2,
+      email: 'a@b.com',
+      displayName: null,
+      emailVerified: true,
+      createdAt: '2026-07-01T00:00:00Z',
+    });
+    render(<Probe />, { wrapper });
+    await userEvent.click(screen.getByRole('button', { name: 'login' }));
+    await waitFor(() => expect(screen.getByTestId('email')).toHaveTextContent('a@b.com'));
+    expect(getRefreshToken()).toBe('refresh-jwt');
+  });
+
   it('resets to anonymous and clears the user on logout', async () => {
     setToken('jwt');
     vi.spyOn(authApi, 'getMe').mockResolvedValue({
@@ -88,6 +108,61 @@ describe('AuthProvider', () => {
 
     await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('anonymous'));
     expect(screen.getByTestId('email')).toHaveTextContent('none');
+  });
+
+  it('calls the logout API with the stored refresh token and clears both tokens', async () => {
+    vi.spyOn(authApi, 'login').mockResolvedValue({
+      token: 'jwt',
+      expiresAt: '2026-07-09T00:00:00Z',
+      email: 'a@b.com',
+      refreshToken: 'refresh-jwt',
+    });
+    vi.spyOn(authApi, 'getMe').mockResolvedValue({
+      id: 2,
+      email: 'a@b.com',
+      displayName: null,
+      emailVerified: true,
+      createdAt: '2026-07-01T00:00:00Z',
+    });
+    const logoutSpy = vi.spyOn(authApi, 'logout').mockResolvedValue(undefined);
+
+    render(<Probe />, { wrapper });
+    await userEvent.click(screen.getByRole('button', { name: 'login' }));
+    await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('authenticated'));
+
+    await userEvent.click(screen.getByRole('button', { name: 'logout' }));
+
+    expect(logoutSpy).toHaveBeenCalledWith('refresh-jwt');
+    await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('anonymous'));
+    expect(getToken()).toBeNull();
+    expect(getRefreshToken()).toBeNull();
+  });
+
+  it('still clears tokens locally when the logout API call rejects', async () => {
+    vi.spyOn(authApi, 'login').mockResolvedValue({
+      token: 'jwt',
+      expiresAt: '2026-07-09T00:00:00Z',
+      email: 'a@b.com',
+      refreshToken: 'refresh-jwt',
+    });
+    vi.spyOn(authApi, 'getMe').mockResolvedValue({
+      id: 2,
+      email: 'a@b.com',
+      displayName: null,
+      emailVerified: true,
+      createdAt: '2026-07-01T00:00:00Z',
+    });
+    vi.spyOn(authApi, 'logout').mockRejectedValue(new Error('Network error'));
+
+    render(<Probe />, { wrapper });
+    await userEvent.click(screen.getByRole('button', { name: 'login' }));
+    await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('authenticated'));
+
+    await userEvent.click(screen.getByRole('button', { name: 'logout' }));
+
+    await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('anonymous'));
+    expect(getToken()).toBeNull();
+    expect(getRefreshToken()).toBeNull();
   });
 
   it('falls back to anonymous when getMe rejects during hydration', async () => {
