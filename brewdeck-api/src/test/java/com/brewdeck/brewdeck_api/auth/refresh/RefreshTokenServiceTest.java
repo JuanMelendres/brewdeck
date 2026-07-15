@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -75,7 +76,7 @@ class RefreshTokenServiceTest {
     assertThat(result.user()).isEqualTo(user);
     assertThat(result.rawToken()).isNotBlank().isNotEqualTo(raw);
     // saved twice: the rotated (used) token + the new one.
-    verify(tokenRepository, org.mockito.Mockito.times(2)).save(any(RefreshToken.class));
+    verify(tokenRepository, times(2)).save(any(RefreshToken.class));
   }
 
   @Test
@@ -143,6 +144,19 @@ class RefreshTokenServiceTest {
     when(tokenRepository.findByTokenHash(any())).thenReturn(Optional.empty());
 
     service.revoke("missing", 7L);
+
+    verify(tokenRepository, never()).save(any());
+  }
+
+  @Test
+  void revokeIsNoOpWhenTokenAlreadyRevoked() {
+    String raw = "raw-already-revoked";
+    RefreshToken stored = activeToken(raw);
+    stored.setRevokedAt(LocalDateTime.now().minusMinutes(1));
+    when(tokenRepository.findByTokenHash(SecureTokens.sha256Hex(raw)))
+        .thenReturn(Optional.of(stored));
+
+    service.revoke(raw, 7L);
 
     verify(tokenRepository, never()).save(any());
   }

@@ -77,6 +77,26 @@ class PasswordResetServiceTest {
   }
 
   @Test
+  void requestReset_invalidatesOutstandingUnusedTokens() {
+    when(userRepository.findByEmail("brewer@example.com")).thenReturn(Optional.of(user()));
+    PasswordResetToken outstanding =
+        PasswordResetToken.builder()
+            .id(9L)
+            .userId(1L)
+            .tokenHash("prior-hash")
+            .expiresAt(LocalDateTime.now().plusMinutes(10))
+            .createdAt(LocalDateTime.now())
+            .build();
+    when(tokenRepository.findByUserIdAndUsedAtIsNull(1L)).thenReturn(List.of(outstanding));
+
+    service.requestReset(new ForgotPasswordRequest("brewer@example.com"));
+
+    // The prior unused token is stamped used and persisted before a new one is issued.
+    assertThat(outstanding.getUsedAt()).isNotNull();
+    verify(tokenRepository).saveAll(List.of(outstanding));
+  }
+
+  @Test
   void resetPassword_validToken_reencodesAndStampsUsed() {
     PasswordResetToken token =
         PasswordResetToken.builder()

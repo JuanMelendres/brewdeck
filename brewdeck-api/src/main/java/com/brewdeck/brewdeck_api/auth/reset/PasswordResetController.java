@@ -1,9 +1,9 @@
 package com.brewdeck.brewdeck_api.auth.reset;
 
+import com.brewdeck.brewdeck_api.common.web.MessageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -20,9 +20,9 @@ public class PasswordResetController {
 
   @PostMapping("/forgot-password")
   @Operation(summary = "Request a password reset link")
-  public Map<String, String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+  public MessageResponse forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
     passwordResetService.requestReset(request);
-    return Map.of("message", GENERIC_MESSAGE);
+    return new MessageResponse(GENERIC_MESSAGE);
   }
 
   @PostMapping("/reset-password")
