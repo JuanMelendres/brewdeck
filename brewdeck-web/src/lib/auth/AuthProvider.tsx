@@ -4,11 +4,12 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import {
   getMe,
   login as loginApi,
+  logout as logoutApi,
   register as registerApi,
   updateProfile as updateProfileApi,
 } from '@/lib/api/auth';
 import type { UserResponse } from '@/lib/api/types';
-import { clearToken, getToken, setToken } from './tokenStore';
+import { clearTokens, getRefreshToken, getToken, setRefreshToken, setToken } from './tokenStore';
 
 type AuthStatus = 'loading' | 'authenticated' | 'anonymous';
 
@@ -21,7 +22,7 @@ type AuthContextValue = {
   register: (body: Credentials) => Promise<void>;
   updateProfile: (body: { displayName: string | null }) => Promise<void>;
   refreshUser: () => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -44,7 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setStatus('authenticated');
       })
       .catch(() => {
-        clearToken();
+        clearTokens();
         setUser(null);
         setStatus('anonymous');
       });
@@ -57,6 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login: async (body) => {
         const response = await loginApi(body);
         setToken(response.token);
+        setRefreshToken(response.refreshToken);
         const me = await getMe();
         setUser(me);
         setStatus('authenticated');
@@ -64,6 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       register: async (body) => {
         const response = await registerApi(body);
         setToken(response.token);
+        setRefreshToken(response.refreshToken);
         const me = await getMe();
         setUser(me);
         setStatus('authenticated');
@@ -83,10 +86,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Ignore: a failed refresh leaves the existing user state untouched.
         }
       },
-      logout: () => {
-        clearToken();
+      logout: async () => {
+        const refreshToken = getRefreshToken();
         setUser(null);
         setStatus('anonymous');
+        try {
+          if (refreshToken) {
+            await logoutApi(refreshToken);
+          }
+        } catch {
+          // Best-effort server revoke; local sign-out already done.
+        } finally {
+          clearTokens();
+        }
       },
     }),
     [user, status],

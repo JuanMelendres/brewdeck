@@ -1,6 +1,12 @@
 import { API_BASE_URL } from '@/config/env';
-import { clearToken, getToken } from '@/lib/auth/tokenStore';
-import type { ErrorResponse } from './types';
+import {
+  clearTokens,
+  getRefreshToken,
+  getToken,
+  setRefreshToken,
+  setToken,
+} from '@/lib/auth/tokenStore';
+import type { AuthResponse, ErrorResponse } from './types';
 
 export class ApiError extends Error {
   status: number;
@@ -21,7 +27,51 @@ export class ApiError extends Error {
   }
 }
 
-export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+let refreshInFlight: Promise<AuthResponse> | null = null;
+
+function isOnPublicPath(): boolean {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+  const p = window.location.pathname;
+  return (
+    p === '/login' ||
+    p === '/register' ||
+    p === '/forgot-password' ||
+    p === '/reset-password' ||
+    p === '/verify-email' ||
+    p.startsWith('/share')
+  );
+}
+
+async function runRefresh(refreshToken: string): Promise<AuthResponse> {
+  const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refreshToken }),
+  });
+  if (!response.ok) {
+    throw new ApiError(response.status, 'Refresh failed');
+  }
+  return (await response.json()) as AuthResponse;
+}
+
+// Collapses concurrent 401s into a single rotation so we never double-fire /refresh
+// (a second rotation would present an already-used token and trip reuse detection).
+function attemptRefresh(refreshToken: string): Promise<AuthResponse> {
+  if (!refreshInFlight) {
+    refreshInFlight = runRefresh(refreshToken).finally(() => {
+      refreshInFlight = null;
+    });
+  }
+  return refreshInFlight;
+}
+
+export async function apiFetch<T>(
+  path: string,
+  init?: RequestInit,
+  allowRefresh = true,
+): Promise<T> {
   const token = getToken();
   const authHeader: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -30,19 +80,28 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   });
 
   if (response.status === 401) {
-    clearToken();
-    if (typeof window !== 'undefined') {
-      const p = window.location.pathname;
-      const onPublic =
-        p === '/login' ||
-        p === '/register' ||
-        p === '/forgot-password' ||
-        p === '/reset-password' ||
-        p === '/verify-email' ||
-        p.startsWith('/share');
-      if (!onPublic) {
-        window.location.assign('/login');
+    const refreshToken = getRefreshToken();
+    const canRefresh = allowRefresh && path !== '/api/auth/refresh' && refreshToken !== null;
+
+    if (canRefresh) {
+      try {
+        const auth = await attemptRefresh(refreshToken as string);
+        setToken(auth.token);
+        setRefreshToken(auth.refreshToken);
+      } catch {
+        clearTokens();
+        if (typeof window !== 'undefined' && !isOnPublicPath()) {
+          window.location.assign('/login');
+        }
+        throw new ApiError(401, 'Session expired');
       }
+      // Retry OUTSIDE the try so the retried request's real errors propagate to the caller.
+      return await apiFetch<T>(path, init, false);
+    }
+
+    clearTokens();
+    if (typeof window !== 'undefined' && !isOnPublicPath()) {
+      window.location.assign('/login');
     }
   }
 

@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.integration;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -131,5 +132,79 @@ class AuthSecurityIntegrationTest extends PostgresIntegrationTest {
                 .contentType("application/json")
                 .content("{\"email\":\"" + email + "\",\"password\":\"password1\"}"))
         .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  void refreshRotatesAndReuseOfOldTokenRevokesTheChain() throws Exception {
+    // register a fresh user and capture both tokens from the response body
+    String email = "refresh-flow-" + System.nanoTime() + "@example.com";
+    String registered = registerAndRead(email, "password123");
+    String refresh1 = com.jayway.jsonpath.JsonPath.read(registered, "$.refreshToken");
+
+    // 1) rotate: refresh1 -> (access2, refresh2)
+    String rotated = refreshAndRead(refresh1);
+    String refresh2 = com.jayway.jsonpath.JsonPath.read(rotated, "$.refreshToken");
+    assertThat(refresh2).isNotEqualTo(refresh1);
+
+    // 2) the OLD refresh (refresh1) is now used -> presenting it again is 401 (reuse)
+    mockMvc
+        .perform(
+            post("/api/auth/refresh")
+                .contentType("application/json")
+                .content("{\"refreshToken\":\"" + refresh1 + "\"}"))
+        .andExpect(status().isUnauthorized());
+
+    // 3) reuse revoked the whole active set, so refresh2 (issued during the rotation) is dead too
+    mockMvc
+        .perform(
+            post("/api/auth/refresh")
+                .contentType("application/json")
+                .content("{\"refreshToken\":\"" + refresh2 + "\"}"))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  void logoutRevokesThePresentedRefreshToken() throws Exception {
+    String email = "logout-flow-" + System.nanoTime() + "@example.com";
+    String registered = registerAndRead(email, "password123");
+    String access = com.jayway.jsonpath.JsonPath.read(registered, "$.token");
+    String refresh = com.jayway.jsonpath.JsonPath.read(registered, "$.refreshToken");
+
+    // logout requires a valid access token (authenticated endpoint)
+    mockMvc
+        .perform(
+            post("/api/auth/logout")
+                .header("Authorization", "Bearer " + access)
+                .contentType("application/json")
+                .content("{\"refreshToken\":\"" + refresh + "\"}"))
+        .andExpect(status().isNoContent());
+
+    // the logged-out refresh token can no longer be rotated
+    mockMvc
+        .perform(
+            post("/api/auth/refresh")
+                .contentType("application/json")
+                .content("{\"refreshToken\":\"" + refresh + "\"}"))
+        .andExpect(status().isUnauthorized());
+  }
+
+  private String registerAndRead(String email, String password) throws Exception {
+    String body = "{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}";
+    return mockMvc
+        .perform(post("/api/auth/register").contentType("application/json").content(body))
+        .andExpect(status().isCreated())
+        .andReturn()
+        .getResponse()
+        .getContentAsString();
+  }
+
+  private String refreshAndRead(String refreshToken) throws Exception {
+    String body = "{\"refreshToken\":\"" + refreshToken + "\"}";
+    return mockMvc
+        .perform(post("/api/auth/refresh").contentType("application/json").content(body))
+        .andExpect(status().isOk())
+        .andReturn()
+        .getResponse()
+        .getContentAsString();
   }
 }

@@ -1,6 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ApiError, apiFetch } from './client';
-import { clearToken, getToken, setToken } from '@/lib/auth/tokenStore';
+import {
+  clearRefreshToken,
+  clearToken,
+  getRefreshToken,
+  getToken,
+  setRefreshToken,
+  setToken,
+} from '@/lib/auth/tokenStore';
 
 function mockFetchOnce(body: unknown, init: { ok: boolean; status: number }) {
   vi.stubGlobal(
@@ -14,9 +21,25 @@ function mockFetchOnce(body: unknown, init: { ok: boolean; status: number }) {
   );
 }
 
+function routedFetch(
+  handlers: Record<string, () => { ok: boolean; status: number; body: unknown }>,
+) {
+  return vi.fn((url: string) => {
+    const key = Object.keys(handlers).find((k) => String(url).includes(k));
+    const res = key ? handlers[key]() : { ok: false, status: 404, body: {} };
+    return Promise.resolve({
+      ok: res.ok,
+      status: res.status,
+      statusText: 'Status',
+      json: () => Promise.resolve(res.body),
+    });
+  });
+}
+
 afterEach(() => {
   vi.unstubAllGlobals();
   clearToken();
+  clearRefreshToken();
 });
 
 describe('apiFetch', () => {
@@ -125,5 +148,113 @@ describe('apiFetch', () => {
     await expect(apiFetch('/api/coffees')).rejects.toThrow();
     expect(getToken()).toBeNull();
     expect(assignMock).not.toHaveBeenCalled();
+  });
+
+  it('refreshes once and retries the original request on 401', async () => {
+    setToken('stale-access');
+    setRefreshToken('r-1');
+    let coffeesCalls = 0;
+    const fetchMock = routedFetch({
+      '/api/auth/refresh': () => ({
+        ok: true,
+        status: 200,
+        body: { token: 'fresh-access', refreshToken: 'r-2', email: 'u@e.com', expiresAt: 'x' },
+      }),
+      '/api/coffees': () => {
+        coffeesCalls += 1;
+        return coffeesCalls === 1
+          ? { ok: false, status: 401, body: { message: 'expired' } }
+          : { ok: true, status: 200, body: { value: 1 } };
+      },
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await apiFetch<{ value: number }>('/api/coffees');
+
+    expect(result).toEqual({ value: 1 });
+    expect(getToken()).toBe('fresh-access');
+    const refreshCalls = fetchMock.mock.calls.filter((c) => String(c[0]).includes('/api/auth/refresh'));
+    expect(refreshCalls).toHaveLength(1);
+  });
+
+  it('shares a single refresh across concurrent 401s', async () => {
+    setToken('stale-access');
+    setRefreshToken('r-1');
+    const okAfterRefresh: Record<string, number> = {};
+    const fetchMock = routedFetch({
+      '/api/auth/refresh': () => ({
+        ok: true,
+        status: 200,
+        body: { token: 'fresh-access', refreshToken: 'r-2', email: 'u@e.com', expiresAt: 'x' },
+      }),
+      '/api/a': () => {
+        okAfterRefresh.a = (okAfterRefresh.a ?? 0) + 1;
+        return okAfterRefresh.a === 1
+          ? { ok: false, status: 401, body: {} }
+          : { ok: true, status: 200, body: { ok: 'a' } };
+      },
+      '/api/b': () => {
+        okAfterRefresh.b = (okAfterRefresh.b ?? 0) + 1;
+        return okAfterRefresh.b === 1
+          ? { ok: false, status: 401, body: {} }
+          : { ok: true, status: 200, body: { ok: 'b' } };
+      },
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await Promise.all([apiFetch('/api/a'), apiFetch('/api/b')]);
+
+    const refreshCalls = fetchMock.mock.calls.filter((c) => String(c[0]).includes('/api/auth/refresh'));
+    expect(refreshCalls).toHaveLength(1);
+  });
+
+  it('propagates the retried request error (400) without a forced logout when refresh succeeds', async () => {
+    setToken('stale-access');
+    setRefreshToken('r-1');
+    const assignMock = vi.fn();
+    vi.stubGlobal('location', { pathname: '/', assign: assignMock });
+    let coffeesCalls = 0;
+    vi.stubGlobal(
+      'fetch',
+      routedFetch({
+        '/api/auth/refresh': () => ({
+          ok: true,
+          status: 200,
+          body: { token: 'fresh-access', refreshToken: 'r-2', email: 'u@e.com', expiresAt: 'x' },
+        }),
+        '/api/coffees': () => {
+          coffeesCalls += 1;
+          return coffeesCalls === 1
+            ? { ok: false, status: 401, body: { message: 'expired' } }
+            : { ok: false, status: 400, body: { message: 'Validation failed' } };
+        },
+      }),
+    );
+
+    await expect(apiFetch('/api/coffees')).rejects.toMatchObject({
+      name: 'ApiError',
+      status: 400,
+      message: 'Validation failed',
+    });
+    expect(assignMock).not.toHaveBeenCalled();
+  });
+
+  it('clears tokens and redirects when the refresh itself fails', async () => {
+    setToken('stale-access');
+    setRefreshToken('r-1');
+    const assignMock = vi.fn();
+    vi.stubGlobal('location', { pathname: '/', assign: assignMock });
+    vi.stubGlobal(
+      'fetch',
+      routedFetch({
+        '/api/auth/refresh': () => ({ ok: false, status: 401, body: {} }),
+        '/api/coffees': () => ({ ok: false, status: 401, body: { message: 'expired' } }),
+      }),
+    );
+
+    await expect(apiFetch('/api/coffees')).rejects.toThrow();
+    expect(getToken()).toBeNull();
+    expect(getRefreshToken()).toBeNull();
+    expect(assignMock).toHaveBeenCalledWith('/login');
   });
 });

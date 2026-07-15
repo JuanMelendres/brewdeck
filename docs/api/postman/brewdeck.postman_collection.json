@@ -40,6 +40,11 @@
       "key": "authToken",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
     }
   ],
   "auth": {
@@ -55,7 +60,7 @@
   "item": [
     {
       "name": "Auth",
-      "description": "Self-registration, JWT login, and current-user endpoints. Register/login are unauthenticated; login and register save the returned token into the authToken collection variable so protected requests inherit it via collection-level Bearer auth.",
+      "description": "Self-registration, JWT login, current-user, and refresh/logout endpoints. Register/login are unauthenticated; login and register save the returned access token into authToken and the returned refresh token into refreshToken (collection variables) so protected requests inherit the bearer token via collection-level Bearer auth and Refresh/Logout can reuse the refresh token.",
       "item": [
         {
           "name": "POST - Register",
@@ -96,7 +101,8 @@
                   "pm.test('Status code is 201', function () {",
                   "  pm.response.to.have.status(201);",
                   "});",
-                  "pm.collectionVariables.set('authToken', pm.response.json().token);"
+                  "pm.collectionVariables.set('authToken', pm.response.json().token);",
+                  "pm.collectionVariables.set('refreshToken', pm.response.json().refreshToken);"
                 ]
               }
             }
@@ -141,7 +147,8 @@
                   "pm.test('Status code is 200', function () {",
                   "  pm.response.to.have.status(200);",
                   "});",
-                  "pm.collectionVariables.set('authToken', pm.response.json().token);"
+                  "pm.collectionVariables.set('authToken', pm.response.json().token);",
+                  "pm.collectionVariables.set('refreshToken', pm.response.json().refreshToken);"
                 ]
               }
             }
@@ -437,6 +444,97 @@
                 "exec": [
                   "pm.test('Status code is 200', function () {",
                   "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST - Refresh token",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/auth/refresh",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "refresh"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.collectionVariables.set('authToken', pm.response.json().token);",
+                  "pm.collectionVariables.set('refreshToken', pm.response.json().refreshToken);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST - Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/auth/logout",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 204', function () {",
+                  "  pm.response.to.have.status(204);",
                   "});"
                 ]
               }

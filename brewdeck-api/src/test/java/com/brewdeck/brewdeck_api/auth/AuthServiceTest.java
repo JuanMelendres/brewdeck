@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import com.brewdeck.brewdeck_api.auth.refresh.RefreshTokenService;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -26,12 +27,16 @@ class AuthServiceTest {
   private com.brewdeck.brewdeck_api.auth.verification.EmailVerificationService
       emailVerificationService;
 
+  @Mock private RefreshTokenService refreshTokenService;
+
   private AuthService authService;
 
   @BeforeEach
   void setUp() {
     PasswordEncoder encoder = new BCryptPasswordEncoder();
-    authService = new AuthService(userRepository, jwtService, encoder, emailVerificationService);
+    authService =
+        new AuthService(
+            userRepository, jwtService, encoder, emailVerificationService, refreshTokenService);
   }
 
   private User stored(String email, String rawPassword) {

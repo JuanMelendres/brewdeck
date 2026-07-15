@@ -85,14 +85,14 @@ Status: Completed
 
 ## Phase 6 — Auth & Multi-User
 
-Status: In progress
+Status: Completed
 
 - Auth foundation (Slice A) — self-registration, JWT login, gate all /api/** (public share + auth endpoints open) — Done
 - Per-user ownership (Slice B) — Done
   - B.1 (write path) — owner_id FK (Flyway V6) on coffees/recipes/sessions, backfill, CurrentUserProvider, stamp owner on create — Done
   - B.2 (read path) — per-user filtering on all reads (CRUD, favorites, session-by-recipe, analytics, dashboard, AI improve; share/unshare owner-scoped, public token read stays global) + owner_id NOT NULL (Flyway V7) — Done
-- Account UX (Slice C) — split into sub-slices — In progress
+- Account UX (Slice C) — split into sub-slices — Done
   - C.1 (profile + password change) — display_name (Flyway V8), PATCH /api/auth/me, POST /api/auth/change-password, /account page (ProfileForm + ChangePasswordForm) — Done
   - C.2 (password reset) — hashed single-use tokens (Flyway V9), PasswordResetMailPort (logging default, SMTP stub behind brewdeck.mail.enabled), public POST /api/auth/forgot-password (always 200, no enumeration) + POST /api/auth/reset-password (204), /forgot-password + /reset-password pages — Done
   - C.3 (email verification) — email_verified flag (Flyway V10, existing backfilled verified), hashed single-use 24h tokens (email_verification_tokens), EmailVerificationMailPort reusing the C.2 mail toggle, register-time issue hook, public POST /api/auth/verify-email (204) + authenticated POST /api/auth/resend-verification (200), soft gate (login unaffected; /me exposes emailVerified), frontend banner + /verify-email page — Done
-  - C.4 (refresh tokens) — refresh-token store + rotation — Pending
+  - C.4 (refresh tokens) — hashed single-use refresh tokens (Flyway V11), rotation with reuse-detection (revokes all active tokens for the user), `POST /api/auth/refresh` (200) + `POST /api/auth/logout` (204), access-token TTL shortened to 15m, frontend silent single-flight refresh + server-revoking logout — Done

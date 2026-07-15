@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.auth;
 
+import com.brewdeck.brewdeck_api.auth.refresh.RefreshRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -49,5 +50,18 @@ public class AuthController {
   public void changePassword(
       Principal principal, @Valid @RequestBody ChangePasswordRequest request) {
     authService.changePassword(principal.getName(), request);
+  }
+
+  @PostMapping("/refresh")
+  @Operation(summary = "Exchange a refresh token for a new access + refresh token pair")
+  public AuthResponse refresh(@Valid @RequestBody RefreshRequest request) {
+    return authService.refresh(request);
+  }
+
+  @PostMapping("/logout")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(summary = "Revoke the presented refresh token")
+  public void logout(Principal principal, @Valid @RequestBody RefreshRequest request) {
+    authService.logout(principal.getName(), request);
   }
 }

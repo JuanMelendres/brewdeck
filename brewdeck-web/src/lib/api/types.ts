@@ -136,6 +136,7 @@ export type AuthResponse = {
   token: string;
   expiresAt: string;
   email: string;
+  refreshToken: string;
 };
 
 export type UserResponse = {
