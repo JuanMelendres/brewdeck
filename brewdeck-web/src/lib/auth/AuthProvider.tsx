@@ -88,15 +88,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
       logout: async () => {
         const refreshToken = getRefreshToken();
-        clearTokens();
         setUser(null);
         setStatus('anonymous');
-        if (refreshToken) {
-          try {
+        try {
+          if (refreshToken) {
             await logoutApi(refreshToken);
-          } catch {
-            // Best-effort: local sign-out already completed; nothing to roll back.
           }
+        } catch {
+          // Best-effort server revoke; local sign-out already done.
+        } finally {
+          clearTokens();
         }
       },
     }),
