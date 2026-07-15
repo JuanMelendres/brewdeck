@@ -1,5 +1,8 @@
 package com.brewdeck.brewdeck_api.auth;
 
+import com.brewdeck.brewdeck_api.auth.refresh.RefreshRequest;
+import com.brewdeck.brewdeck_api.auth.refresh.RefreshTokenService;
+import com.brewdeck.brewdeck_api.auth.verification.EmailVerificationService;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -18,12 +21,20 @@ public class AuthService {
   private final UserRepository userRepository;
   private final JwtService jwtService;
   private final PasswordEncoder passwordEncoder;
+  private final EmailVerificationService emailVerificationService;
+  private final RefreshTokenService refreshTokenService;
 
   public AuthService(
-      UserRepository userRepository, JwtService jwtService, PasswordEncoder passwordEncoder) {
+      UserRepository userRepository,
+      JwtService jwtService,
+      PasswordEncoder passwordEncoder,
+      EmailVerificationService emailVerificationService,
+      RefreshTokenService refreshTokenService) {
     this.userRepository = userRepository;
     this.jwtService = jwtService;
     this.passwordEncoder = passwordEncoder;
+    this.emailVerificationService = emailVerificationService;
+    this.refreshTokenService = refreshTokenService;
   }
 
   @Transactional
@@ -39,10 +50,16 @@ public class AuthService {
             .build();
     User saved = userRepository.save(user);
     log.info("Registered user id={}", saved.getId());
-    return tokenResponse(saved);
+    try {
+      emailVerificationService.issueFor(saved);
+    } catch (RuntimeException e) {
+      log.warn(
+          "Failed to issue verification token for user id={}: {}", saved.getId(), e.toString());
+    }
+    return tokenResponse(saved, refreshTokenService.issue(saved));
   }
 
-  @Transactional(readOnly = true)
+  @Transactional
   public AuthResponse login(LoginRequest request) {
     User user =
         userRepository
@@ -51,7 +68,7 @@ public class AuthService {
     if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
       throw new BadCredentialsException(INVALID_CREDENTIALS);
     }
-    return tokenResponse(user);
+    return tokenResponse(user, refreshTokenService.issue(user));
   }
 
   @Transactional(readOnly = true)
@@ -62,8 +79,51 @@ public class AuthService {
         .orElseThrow(() -> new EntityNotFoundException("User not found"));
   }
 
-  private AuthResponse tokenResponse(User user) {
+  @Transactional
+  public UserResponse updateProfile(String email, UpdateProfileRequest request) {
+    User user = requireByEmail(email);
+    user.setDisplayName(request.displayName());
+    User saved = userRepository.save(user);
+    log.info("Updated profile for user id={}", saved.getId());
+    return UserResponse.fromEntity(saved);
+  }
+
+  @Transactional
+  public void changePassword(String email, ChangePasswordRequest request) {
+    User user = requireByEmail(email);
+    if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
+      throw new InvalidCurrentPasswordException("Current password is incorrect");
+    }
+    user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+    userRepository.save(user);
+    log.info("Changed password for user id={}", user.getId());
+  }
+
+  // No @Transactional here on purpose: rotate() must be the outermost transaction boundary so its
+  // noRollbackFor governs the reuse-path revocation. A plain @Transactional here would join
+  // rotate()'s transaction and roll it back on InvalidRefreshTokenException, undoing the
+  // revocation.
+  // refresh() has no other DB write of its own (it only rotates, then generates a JWT).
+  public AuthResponse refresh(RefreshRequest request) {
+    RefreshTokenService.RotationResult result = refreshTokenService.rotate(request.refreshToken());
+    return tokenResponse(result.user(), result.rawToken());
+  }
+
+  @Transactional
+  public void logout(String email, RefreshRequest request) {
+    User user = requireByEmail(email);
+    refreshTokenService.revoke(request.refreshToken(), user.getId());
+  }
+
+  private User requireByEmail(String email) {
+    return userRepository
+        .findByEmail(email)
+        .orElseThrow(() -> new EntityNotFoundException("User not found"));
+  }
+
+  private AuthResponse tokenResponse(User user, String refreshToken) {
     String token = jwtService.generateToken(user);
-    return new AuthResponse(token, jwtService.expiryFor(Instant.now()), user.getEmail());
+    return new AuthResponse(
+        token, jwtService.expiryFor(Instant.now()), user.getEmail(), refreshToken);
   }
 }

@@ -19,4 +19,11 @@ public final class BrewSessionSpecification {
             ? criteriaBuilder.conjunction()
             : criteriaBuilder.equal(root.get("rating"), rating);
   }
+
+  public static Specification<BrewSession> hasOwner(Long ownerId) {
+    return (root, query, criteriaBuilder) ->
+        ownerId == null
+            ? criteriaBuilder.disjunction()
+            : criteriaBuilder.equal(root.get("owner").get("id"), ownerId);
+  }
 }

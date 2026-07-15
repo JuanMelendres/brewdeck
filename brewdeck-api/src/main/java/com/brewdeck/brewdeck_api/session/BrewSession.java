@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.session;
 
+import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.recipe.Recipe;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -17,6 +18,10 @@ public class BrewSession {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "owner_id", nullable = false)
+  private User owner;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "recipe_id", nullable = false)

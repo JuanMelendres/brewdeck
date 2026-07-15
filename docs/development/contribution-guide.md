@@ -31,7 +31,7 @@ Examples:
 cd brewdeck-api && ./mvnw spotless:apply && ./mvnw clean verify && ./mvnw pmd:check
 
 # frontend
-cd brewdeck-web && npm run test && npm run type-check
+cd brewdeck-web && pnpm test && pnpm type-check
 ```
 
 ## Documentation

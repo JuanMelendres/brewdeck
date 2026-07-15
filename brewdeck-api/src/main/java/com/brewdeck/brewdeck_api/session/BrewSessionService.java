@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.session;
 
+import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
 import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
 import com.brewdeck.brewdeck_api.recipe.Recipe;
 import com.brewdeck.brewdeck_api.recipe.RecipeRepository;
@@ -18,13 +19,15 @@ public class BrewSessionService {
 
   private final BrewSessionRepository brewSessionRepository;
   private final RecipeRepository recipeRepository;
+  private final CurrentUserProvider currentUserProvider;
 
   public PageResponse<BrewSessionResponse> search(BrewSessionFilter filter, Pageable pageable) {
     return PageResponse.fromPage(
         brewSessionRepository
             .findAll(
                 BrewSessionSpecification.hasRecipeId(filter.recipeId())
-                    .and(BrewSessionSpecification.hasRating(filter.rating())),
+                    .and(BrewSessionSpecification.hasRating(filter.rating()))
+                    .and(BrewSessionSpecification.hasOwner(currentOwnerId())),
                 pageable)
             .map(BrewSessionResponse::fromEntity));
   }
@@ -32,7 +35,7 @@ public class BrewSessionService {
   public BrewSessionResponse findById(Long id) {
     BrewSession session =
         brewSessionRepository
-            .findById(id)
+            .findByIdAndOwnerId(id, currentOwnerId())
             .orElseThrow(() -> new EntityNotFoundException("Brew session not found"));
 
     return BrewSessionResponse.fromEntity(session);
@@ -41,18 +44,20 @@ public class BrewSessionService {
   public PageResponse<BrewSessionResponse> findByRecipeId(Long recipeId, Pageable pageable) {
     return PageResponse.fromPage(
         brewSessionRepository
-            .findByRecipeIdOrderByBrewedAtDesc(recipeId, pageable)
+            .findByRecipeIdAndOwnerIdOrderByBrewedAtDesc(recipeId, currentOwnerId(), pageable)
             .map(BrewSessionResponse::fromEntity));
   }
 
   @Transactional
   public BrewSessionResponse create(BrewSessionRequest request) {
+    Long ownerId = currentOwnerId();
     Recipe recipe =
         recipeRepository
-            .findById(request.recipeId())
+            .findByIdAndOwnerId(request.recipeId(), ownerId)
             .orElseThrow(() -> new EntityNotFoundException("Recipe not found"));
 
     BrewSession session = new BrewSession();
+    session.setOwner(currentUserProvider.require());
     applyRequest(session, request, recipe);
 
     BrewSession saved = brewSessionRepository.save(session);
@@ -63,14 +68,15 @@ public class BrewSessionService {
 
   @Transactional
   public BrewSessionResponse update(Long id, BrewSessionRequest request) {
+    Long ownerId = currentOwnerId();
     BrewSession session =
         brewSessionRepository
-            .findById(id)
+            .findByIdAndOwnerId(id, ownerId)
             .orElseThrow(() -> new EntityNotFoundException("Brew session not found"));
 
     Recipe recipe =
         recipeRepository
-            .findById(request.recipeId())
+            .findByIdAndOwnerId(request.recipeId(), ownerId)
             .orElseThrow(() -> new EntityNotFoundException("Recipe not found"));
 
     applyRequest(session, request, recipe);
@@ -83,12 +89,16 @@ public class BrewSessionService {
 
   @Transactional
   public void delete(Long id) {
-    if (!brewSessionRepository.existsById(id)) {
+    if (!brewSessionRepository.existsByIdAndOwnerId(id, currentOwnerId())) {
       throw new EntityNotFoundException("Brew session not found");
     }
 
     brewSessionRepository.deleteById(id);
     log.info("Deleted brew session id={}", id);
+  }
+
+  private Long currentOwnerId() {
+    return currentUserProvider.require().getId();
   }
 
   private void applyRequest(BrewSession session, BrewSessionRequest request, Recipe recipe) {

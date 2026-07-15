@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
+import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
+import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
 import com.brewdeck.brewdeck_api.recipe.RecipeRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -28,11 +30,14 @@ class CoffeeServiceTest {
 
   @Mock private RecipeRepository recipeRepository;
 
+  @Mock private CurrentUserProvider currentUserProvider;
+
   @InjectMocks private CoffeeService coffeeService;
 
   @Test
   void getMostUsed_shouldMapRowsPreservingOrder() {
-    when(recipeRepository.findMostUsedCoffees(any(Pageable.class)))
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findMostUsedCoffees(eq(42L), any(Pageable.class)))
         .thenReturn(List.of(mostUsed(2L, "Popular", 7L), mostUsed(1L, "Rare", 1L)));
 
     List<MostUsedCoffeeResponse> result = coffeeService.getMostUsed(5);
@@ -42,17 +47,20 @@ class CoffeeServiceTest {
     assertThat(result.get(0).coffeeName()).isEqualTo("Popular");
     assertThat(result.get(0).recipeCount()).isEqualTo(7L);
     assertThat(result.get(1).coffeeId()).isEqualTo(1L);
+
+    verify(recipeRepository).findMostUsedCoffees(eq(42L), any(Pageable.class));
   }
 
   @Test
   void getMostUsed_shouldClampLimitToRange() {
-    when(recipeRepository.findMostUsedCoffees(any(Pageable.class))).thenReturn(List.of());
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findMostUsedCoffees(eq(42L), any(Pageable.class))).thenReturn(List.of());
     ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
 
     coffeeService.getMostUsed(0);
     coffeeService.getMostUsed(999);
 
-    verify(recipeRepository, times(2)).findMostUsedCoffees(captor.capture());
+    verify(recipeRepository, times(2)).findMostUsedCoffees(eq(42L), captor.capture());
     assertThat(captor.getAllValues().get(0)).isEqualTo(PageRequest.of(0, 1));
     assertThat(captor.getAllValues().get(1).getPageSize()).isEqualTo(20);
   }
@@ -90,6 +98,7 @@ class CoffeeServiceTest {
 
     Pageable pageable = PageRequest.of(0, 10);
 
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
     when(coffeeRepository.findAll(anyCoffeeSpecification(), eq(pageable)))
         .thenReturn(new PageImpl<>(List.of(coffee), pageable, 1));
 
@@ -131,6 +140,7 @@ class CoffeeServiceTest {
     CoffeeFilter filter = new CoffeeFilter("Veracruz", "Veracruz", "Medio", "Lavado");
     Pageable pageable = PageRequest.of(0, 5);
 
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
     when(coffeeRepository.findAll(anyCoffeeSpecification(), eq(pageable)))
         .thenReturn(new PageImpl<>(List.of(coffee), pageable, 1));
 
@@ -154,25 +164,37 @@ class CoffeeServiceTest {
     Coffee coffee =
         Coffee.builder().id(1L).name("Mezcla Veracruz").createdAt(LocalDateTime.now()).build();
 
-    when(coffeeRepository.findById(1L)).thenReturn(Optional.of(coffee));
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(coffeeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(coffee));
 
     CoffeeResponse result = coffeeService.findById(1L);
 
     assertThat(result.id()).isEqualTo(1L);
     assertThat(result.name()).isEqualTo("Mezcla Veracruz");
 
-    verify(coffeeRepository).findById(1L);
+    verify(coffeeRepository).findByIdAndOwnerId(1L, 42L);
   }
 
   @Test
   void findById_shouldThrowException_whenCoffeeDoesNotExist() {
-    when(coffeeRepository.findById(99L)).thenReturn(Optional.empty());
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(coffeeRepository.findByIdAndOwnerId(99L, 42L)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> coffeeService.findById(99L))
         .isInstanceOf(EntityNotFoundException.class)
         .hasMessage("Coffee not found");
 
-    verify(coffeeRepository).findById(99L);
+    verify(coffeeRepository).findByIdAndOwnerId(99L, 42L);
+  }
+
+  @Test
+  void findById_shouldThrow_whenCoffeeOwnedByAnotherUser() {
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(coffeeRepository.findByIdAndOwnerId(99L, 42L)).thenReturn(Optional.empty());
+
+    assertThatThrownBy(() -> coffeeService.findById(99L))
+        .isInstanceOf(EntityNotFoundException.class)
+        .hasMessage("Coffee not found");
   }
 
   @Test
@@ -230,24 +252,59 @@ class CoffeeServiceTest {
   }
 
   @Test
+  void create_shouldStampOwnerFromCurrentUser() {
+    User owner = User.builder().id(42L).email("owner@brewdeck.test").build();
+    when(currentUserProvider.require()).thenReturn(owner);
+    when(coffeeRepository.save(any(Coffee.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    CoffeeRequest request =
+        new CoffeeRequest(
+            "Owned Coffee",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null);
+
+    coffeeService.create(request);
+
+    ArgumentCaptor<Coffee> captor = ArgumentCaptor.forClass(Coffee.class);
+    verify(coffeeRepository).save(captor.capture());
+    assertThat(captor.getValue().getOwner()).isSameAs(owner);
+  }
+
+  @Test
   void delete_shouldDeleteCoffee_whenCoffeeExists() {
-    when(coffeeRepository.existsById(1L)).thenReturn(true);
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(coffeeRepository.existsByIdAndOwnerId(1L, 42L)).thenReturn(true);
 
     coffeeService.delete(1L);
 
-    verify(coffeeRepository).existsById(1L);
+    verify(coffeeRepository).existsByIdAndOwnerId(1L, 42L);
     verify(coffeeRepository).deleteById(1L);
   }
 
   @Test
   void delete_shouldThrowException_whenCoffeeDoesNotExist() {
-    when(coffeeRepository.existsById(99L)).thenReturn(false);
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(coffeeRepository.existsByIdAndOwnerId(99L, 42L)).thenReturn(false);
 
     assertThatThrownBy(() -> coffeeService.delete(99L))
         .isInstanceOf(EntityNotFoundException.class)
         .hasMessage("Coffee not found");
 
-    verify(coffeeRepository).existsById(99L);
+    verify(coffeeRepository).existsByIdAndOwnerId(99L, 42L);
     verify(coffeeRepository, never()).deleteById(anyLong());
   }
 
@@ -281,7 +338,8 @@ class CoffeeServiceTest {
             2,
             "Updated description");
 
-    when(coffeeRepository.findById(1L)).thenReturn(Optional.of(existingCoffee));
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(coffeeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(existingCoffee));
     when(coffeeRepository.save(existingCoffee)).thenReturn(existingCoffee);
 
     CoffeeResponse result = coffeeService.update(1L, request);
@@ -304,7 +362,7 @@ class CoffeeServiceTest {
     assertThat(result.bitternessScore()).isEqualTo(2);
     assertThat(result.description()).isEqualTo("Updated description");
 
-    verify(coffeeRepository).findById(1L);
+    verify(coffeeRepository).findByIdAndOwnerId(1L, 42L);
     verify(coffeeRepository).save(existingCoffee);
   }
 
@@ -329,13 +387,14 @@ class CoffeeServiceTest {
             2,
             "Updated description");
 
-    when(coffeeRepository.findById(99L)).thenReturn(Optional.empty());
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(coffeeRepository.findByIdAndOwnerId(99L, 42L)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> coffeeService.update(99L, request))
         .isInstanceOf(EntityNotFoundException.class)
         .hasMessage("Coffee not found");
 
-    verify(coffeeRepository).findById(99L);
+    verify(coffeeRepository).findByIdAndOwnerId(99L, 42L);
     verify(coffeeRepository, never()).save(any());
   }
 }

@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
+import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.coffee.CoffeeRepository;
 import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
@@ -17,6 +19,7 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -31,6 +34,7 @@ class RecipeServiceTest {
   @Mock private RecipeRepository recipeRepository;
   @Mock private CoffeeRepository coffeeRepository;
   @Mock private BrewMethodRepository brewMethodRepository;
+  @Mock private CurrentUserProvider currentUserProvider;
 
   @InjectMocks private RecipeService recipeService;
 
@@ -51,6 +55,7 @@ class RecipeServiceTest {
 
     Pageable pageable = PageRequest.of(0, 10);
 
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
     when(recipeRepository.findAll(anyRecipeSpecification(), eq(pageable)))
         .thenReturn(new PageImpl<>(List.of(recipe), pageable, 1));
 
@@ -86,6 +91,7 @@ class RecipeServiceTest {
     RecipeFilter filter = new RecipeFilter(1L, 1L, true, "AeroPress");
     Pageable pageable = PageRequest.of(0, 5);
 
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
     when(recipeRepository.findAll(anyRecipeSpecification(), eq(pageable)))
         .thenReturn(new PageImpl<>(List.of(recipe), pageable, 1));
 
@@ -118,25 +124,37 @@ class RecipeServiceTest {
             .createdAt(LocalDateTime.now())
             .build();
 
-    when(recipeRepository.findById(1L)).thenReturn(Optional.of(recipe));
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(recipe));
 
     RecipeResponse result = recipeService.findById(1L);
 
     assertThat(result.id()).isEqualTo(1L);
     assertThat(result.name()).isEqualTo("Veracruz AeroPress");
 
-    verify(recipeRepository).findById(1L);
+    verify(recipeRepository).findByIdAndOwnerId(1L, 42L);
   }
 
   @Test
   void findById_shouldThrowException_whenRecipeDoesNotExist() {
-    when(recipeRepository.findById(99L)).thenReturn(Optional.empty());
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findByIdAndOwnerId(99L, 42L)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> recipeService.findById(99L))
         .isInstanceOf(EntityNotFoundException.class)
         .hasMessage("Recipe not found");
 
-    verify(recipeRepository).findById(99L);
+    verify(recipeRepository).findByIdAndOwnerId(99L, 42L);
+  }
+
+  @Test
+  void findById_shouldThrow_whenRecipeOwnedByAnotherUser() {
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findByIdAndOwnerId(99L, 42L)).thenReturn(Optional.empty());
+
+    assertThatThrownBy(() -> recipeService.findById(99L))
+        .isInstanceOf(EntityNotFoundException.class)
+        .hasMessage("Recipe not found");
   }
 
   @Test
@@ -177,7 +195,8 @@ class RecipeServiceTest {
             .createdAt(LocalDateTime.now())
             .build();
 
-    when(coffeeRepository.findById(1L)).thenReturn(Optional.of(coffee));
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(coffeeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(coffee));
     when(brewMethodRepository.findById(1L)).thenReturn(Optional.of(method));
     when(recipeRepository.save(any(Recipe.class))).thenReturn(savedRecipe);
 
@@ -187,9 +206,30 @@ class RecipeServiceTest {
     assertThat(result.name()).isEqualTo("Veracruz AeroPress");
     assertThat(result.favorite()).isTrue();
 
-    verify(coffeeRepository).findById(1L);
+    verify(coffeeRepository).findByIdAndOwnerId(1L, 42L);
     verify(brewMethodRepository).findById(1L);
     verify(recipeRepository).save(any(Recipe.class));
+  }
+
+  @Test
+  void create_shouldStampOwnerFromCurrentUser() {
+    Coffee coffee = Coffee.builder().id(1L).name("Mezcla Veracruz").build();
+    BrewMethod method = BrewMethod.builder().id(1L).name("AeroPress").build();
+    User owner = User.builder().id(42L).email("owner@brewdeck.test").build();
+
+    when(currentUserProvider.require()).thenReturn(owner);
+    when(coffeeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(coffee));
+    when(brewMethodRepository.findById(1L)).thenReturn(Optional.of(method));
+    when(recipeRepository.save(any(Recipe.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    recipeService.create(
+        new RecipeRequest(
+            1L, 1L, "Owned Recipe", null, null, null, null, null, null, null, null, false));
+
+    ArgumentCaptor<Recipe> captor = ArgumentCaptor.forClass(Recipe.class);
+    verify(recipeRepository).save(captor.capture());
+    assertThat(captor.getValue().getOwner()).isSameAs(owner);
   }
 
   @Test
@@ -197,13 +237,14 @@ class RecipeServiceTest {
     RecipeRequest request =
         new RecipeRequest(99L, 1L, "Recipe", null, null, null, null, null, null, null, null, false);
 
-    when(coffeeRepository.findById(99L)).thenReturn(Optional.empty());
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(coffeeRepository.findByIdAndOwnerId(99L, 42L)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> recipeService.create(request))
         .isInstanceOf(EntityNotFoundException.class)
         .hasMessage("Coffee not found");
 
-    verify(coffeeRepository).findById(99L);
+    verify(coffeeRepository).findByIdAndOwnerId(99L, 42L);
     verify(brewMethodRepository, never()).findById(anyLong());
     verify(recipeRepository, never()).save(any());
   }
@@ -225,7 +266,8 @@ class RecipeServiceTest {
 
     Pageable pageable = PageRequest.of(0, 10);
 
-    when(recipeRepository.findByFavoriteTrue(pageable))
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findByFavoriteTrueAndOwnerId(42L, pageable))
         .thenReturn(new PageImpl<>(List.of(recipe), pageable, 1));
 
     PageResponse<RecipeResponse> result = recipeService.findFavorites(pageable);
@@ -234,7 +276,7 @@ class RecipeServiceTest {
     assertThat(result.content().getFirst().favorite()).isTrue();
     assertThat(result.totalElements()).isEqualTo(1);
 
-    verify(recipeRepository).findByFavoriteTrue(pageable);
+    verify(recipeRepository).findByFavoriteTrueAndOwnerId(42L, pageable);
   }
 
   @Test
@@ -254,7 +296,8 @@ class RecipeServiceTest {
 
     Pageable pageable = PageRequest.of(0, 10);
 
-    when(recipeRepository.findByCoffeeId(1L, pageable))
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findByCoffeeIdAndOwnerId(1L, 42L, pageable))
         .thenReturn(new PageImpl<>(List.of(recipe), pageable, 1));
 
     PageResponse<RecipeResponse> result = recipeService.findByCoffeeId(1L, pageable);
@@ -263,7 +306,7 @@ class RecipeServiceTest {
     assertThat(result.content().getFirst().coffeeId()).isEqualTo(1L);
     assertThat(result.content().getFirst().coffeeName()).isEqualTo("Mezcla Veracruz");
 
-    verify(recipeRepository).findByCoffeeId(1L, pageable);
+    verify(recipeRepository).findByCoffeeIdAndOwnerId(1L, 42L, pageable);
   }
 
   @Test
@@ -283,7 +326,8 @@ class RecipeServiceTest {
 
     Pageable pageable = PageRequest.of(0, 10);
 
-    when(recipeRepository.findByMethodId(1L, pageable))
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findByMethodIdAndOwnerId(1L, 42L, pageable))
         .thenReturn(new PageImpl<>(List.of(recipe), pageable, 1));
 
     PageResponse<RecipeResponse> result = recipeService.findByMethodId(1L, pageable);
@@ -292,7 +336,7 @@ class RecipeServiceTest {
     assertThat(result.content().getFirst().methodId()).isEqualTo(1L);
     assertThat(result.content().getFirst().methodName()).isEqualTo("AeroPress");
 
-    verify(recipeRepository).findByMethodId(1L, pageable);
+    verify(recipeRepository).findByMethodIdAndOwnerId(1L, 42L, pageable);
   }
 
   @Test
@@ -328,8 +372,9 @@ class RecipeServiceTest {
             "Updated expected taste.",
             true);
 
-    when(recipeRepository.findById(1L)).thenReturn(Optional.of(existingRecipe));
-    when(coffeeRepository.findById(2L)).thenReturn(Optional.of(newCoffee));
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(existingRecipe));
+    when(coffeeRepository.findByIdAndOwnerId(2L, 42L)).thenReturn(Optional.of(newCoffee));
     when(brewMethodRepository.findById(2L)).thenReturn(Optional.of(newMethod));
     when(recipeRepository.save(existingRecipe)).thenReturn(existingRecipe);
 
@@ -342,8 +387,8 @@ class RecipeServiceTest {
     assertThat(result.favorite()).isTrue();
     assertThat(result.grindSetting()).isEqualTo("Timemore S3 - 5.8");
 
-    verify(recipeRepository).findById(1L);
-    verify(coffeeRepository).findById(2L);
+    verify(recipeRepository).findByIdAndOwnerId(1L, 42L);
+    verify(coffeeRepository).findByIdAndOwnerId(2L, 42L);
     verify(brewMethodRepository).findById(2L);
     verify(recipeRepository).save(existingRecipe);
   }
@@ -353,14 +398,15 @@ class RecipeServiceTest {
     RecipeRequest request =
         new RecipeRequest(1L, 1L, "Recipe", null, null, null, null, null, null, null, null, false);
 
-    when(recipeRepository.findById(99L)).thenReturn(Optional.empty());
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findByIdAndOwnerId(99L, 42L)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> recipeService.update(99L, request))
         .isInstanceOf(EntityNotFoundException.class)
         .hasMessage("Recipe not found");
 
-    verify(recipeRepository).findById(99L);
-    verify(coffeeRepository, never()).findById(anyLong());
+    verify(recipeRepository).findByIdAndOwnerId(99L, 42L);
+    verify(coffeeRepository, never()).findByIdAndOwnerId(anyLong(), anyLong());
     verify(brewMethodRepository, never()).findById(anyLong());
     verify(recipeRepository, never()).save(any());
   }
@@ -381,15 +427,16 @@ class RecipeServiceTest {
     RecipeRequest request =
         new RecipeRequest(99L, 1L, "Recipe", null, null, null, null, null, null, null, null, false);
 
-    when(recipeRepository.findById(1L)).thenReturn(Optional.of(existingRecipe));
-    when(coffeeRepository.findById(99L)).thenReturn(Optional.empty());
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(existingRecipe));
+    when(coffeeRepository.findByIdAndOwnerId(99L, 42L)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> recipeService.update(1L, request))
         .isInstanceOf(EntityNotFoundException.class)
         .hasMessage("Coffee not found");
 
-    verify(recipeRepository).findById(1L);
-    verify(coffeeRepository).findById(99L);
+    verify(recipeRepository).findByIdAndOwnerId(1L, 42L);
+    verify(coffeeRepository).findByIdAndOwnerId(99L, 42L);
     verify(brewMethodRepository, never()).findById(anyLong());
     verify(recipeRepository, never()).save(any());
   }
@@ -412,39 +459,42 @@ class RecipeServiceTest {
     RecipeRequest request =
         new RecipeRequest(1L, 99L, "Recipe", null, null, null, null, null, null, null, null, false);
 
-    when(recipeRepository.findById(1L)).thenReturn(Optional.of(existingRecipe));
-    when(coffeeRepository.findById(1L)).thenReturn(Optional.of(coffee));
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(existingRecipe));
+    when(coffeeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(coffee));
     when(brewMethodRepository.findById(99L)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> recipeService.update(1L, request))
         .isInstanceOf(EntityNotFoundException.class)
         .hasMessage("Brew method not found");
 
-    verify(recipeRepository).findById(1L);
-    verify(coffeeRepository).findById(1L);
+    verify(recipeRepository).findByIdAndOwnerId(1L, 42L);
+    verify(coffeeRepository).findByIdAndOwnerId(1L, 42L);
     verify(brewMethodRepository).findById(99L);
     verify(recipeRepository, never()).save(any());
   }
 
   @Test
   void delete_shouldDeleteRecipe_whenRecipeExists() {
-    when(recipeRepository.existsById(1L)).thenReturn(true);
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.existsByIdAndOwnerId(1L, 42L)).thenReturn(true);
 
     recipeService.delete(1L);
 
-    verify(recipeRepository).existsById(1L);
+    verify(recipeRepository).existsByIdAndOwnerId(1L, 42L);
     verify(recipeRepository).deleteById(1L);
   }
 
   @Test
   void delete_shouldThrowException_whenRecipeDoesNotExist() {
-    when(recipeRepository.existsById(99L)).thenReturn(false);
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.existsByIdAndOwnerId(99L, 42L)).thenReturn(false);
 
     assertThatThrownBy(() -> recipeService.delete(99L))
         .isInstanceOf(EntityNotFoundException.class)
         .hasMessage("Recipe not found");
 
-    verify(recipeRepository).existsById(99L);
+    verify(recipeRepository).existsByIdAndOwnerId(99L, 42L);
     verify(recipeRepository, never()).deleteById(anyLong());
   }
 
@@ -463,26 +513,28 @@ class RecipeServiceTest {
             .createdAt(LocalDateTime.now())
             .build();
 
-    when(recipeRepository.findById(1L)).thenReturn(Optional.of(recipe));
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(recipe));
     when(recipeRepository.save(recipe)).thenReturn(recipe);
 
     RecipeResponse result = recipeService.markAsFavorite(1L);
 
     assertThat(result.favorite()).isTrue();
 
-    verify(recipeRepository).findById(1L);
+    verify(recipeRepository).findByIdAndOwnerId(1L, 42L);
     verify(recipeRepository).save(recipe);
   }
 
   @Test
   void markAsFavorite_shouldThrowException_whenRecipeDoesNotExist() {
-    when(recipeRepository.findById(99L)).thenReturn(Optional.empty());
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findByIdAndOwnerId(99L, 42L)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> recipeService.markAsFavorite(99L))
         .isInstanceOf(EntityNotFoundException.class)
         .hasMessage("Recipe not found");
 
-    verify(recipeRepository).findById(99L);
+    verify(recipeRepository).findByIdAndOwnerId(99L, 42L);
     verify(recipeRepository, never()).save(any());
   }
 
@@ -501,26 +553,28 @@ class RecipeServiceTest {
             .createdAt(LocalDateTime.now())
             .build();
 
-    when(recipeRepository.findById(1L)).thenReturn(Optional.of(recipe));
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(recipe));
     when(recipeRepository.save(recipe)).thenReturn(recipe);
 
     RecipeResponse result = recipeService.removeFromFavorites(1L);
 
     assertThat(result.favorite()).isFalse();
 
-    verify(recipeRepository).findById(1L);
+    verify(recipeRepository).findByIdAndOwnerId(1L, 42L);
     verify(recipeRepository).save(recipe);
   }
 
   @Test
   void removeFromFavorites_shouldThrowException_whenRecipeDoesNotExist() {
-    when(recipeRepository.findById(99L)).thenReturn(Optional.empty());
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findByIdAndOwnerId(99L, 42L)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> recipeService.removeFromFavorites(99L))
         .isInstanceOf(EntityNotFoundException.class)
         .hasMessage("Recipe not found");
 
-    verify(recipeRepository).findById(99L);
+    verify(recipeRepository).findByIdAndOwnerId(99L, 42L);
     verify(recipeRepository, never()).save(any());
   }
 
@@ -540,7 +594,8 @@ class RecipeServiceTest {
             .createdAt(LocalDateTime.now())
             .build();
 
-    when(recipeRepository.findById(1L)).thenReturn(Optional.of(recipe));
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(recipe));
     when(recipeRepository.save(any(Recipe.class))).thenAnswer(inv -> inv.getArgument(0));
 
     RecipeResponse response = recipeService.share(1L);
@@ -566,7 +621,8 @@ class RecipeServiceTest {
             .createdAt(LocalDateTime.now())
             .build();
 
-    when(recipeRepository.findById(1L)).thenReturn(Optional.of(recipe));
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(recipe));
 
     RecipeResponse response = recipeService.share(1L);
 
@@ -576,7 +632,16 @@ class RecipeServiceTest {
 
   @Test
   void share_throwsWhenRecipeMissing() {
-    when(recipeRepository.findById(99L)).thenReturn(Optional.empty());
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findByIdAndOwnerId(99L, 42L)).thenReturn(Optional.empty());
+
+    assertThatThrownBy(() -> recipeService.share(99L)).isInstanceOf(EntityNotFoundException.class);
+  }
+
+  @Test
+  void share_shouldThrow_whenRecipeOwnedByAnotherUser() {
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findByIdAndOwnerId(99L, 42L)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> recipeService.share(99L)).isInstanceOf(EntityNotFoundException.class);
   }
@@ -597,7 +662,8 @@ class RecipeServiceTest {
             .createdAt(LocalDateTime.now())
             .build();
 
-    when(recipeRepository.findById(1L)).thenReturn(Optional.of(recipe));
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(recipe));
     when(recipeRepository.save(any(Recipe.class))).thenAnswer(inv -> inv.getArgument(0));
 
     RecipeResponse response = recipeService.unshare(1L);

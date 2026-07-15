@@ -2,11 +2,14 @@ package com.brewdeck.brewdeck_api.coffee;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.common.PostgresRepositoryTest;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -16,8 +19,11 @@ class CoffeeSpecificationRepositoryTest extends PostgresRepositoryTest {
 
   @Autowired private CoffeeRepository coffeeRepository;
 
+  @Autowired private TestEntityManager entityManager;
+
   @Test
   void search_shouldFilterByNameOriginRoastLevelAndProcess() {
+    User owner = persistUser("search-filter-owner@brewdeck.test");
     Coffee veracruz =
         Coffee.builder()
             .name("Mezcla Veracruz")
@@ -26,6 +32,7 @@ class CoffeeSpecificationRepositoryTest extends PostgresRepositoryTest {
             .roastLevel("Medio")
             .process("Lavado")
             .notesPrimary("Cardamomo")
+            .owner(owner)
             .build();
 
     Coffee chiapas =
@@ -36,6 +43,7 @@ class CoffeeSpecificationRepositoryTest extends PostgresRepositoryTest {
             .roastLevel("Oscuro")
             .process("Natural")
             .notesPrimary("Chocolate")
+            .owner(owner)
             .build();
 
     coffeeRepository.saveAll(List.of(veracruz, chiapas));
@@ -57,6 +65,7 @@ class CoffeeSpecificationRepositoryTest extends PostgresRepositoryTest {
 
   @Test
   void search_shouldReturnAllCoffees_whenFiltersAreNullOrBlank() {
+    User owner = persistUser("search-all-owner@brewdeck.test");
     Coffee veracruz =
         Coffee.builder()
             .name("Mezcla Veracruz")
@@ -64,6 +73,7 @@ class CoffeeSpecificationRepositoryTest extends PostgresRepositoryTest {
             .origin("Veracruz")
             .roastLevel("Medio")
             .process("Lavado")
+            .owner(owner)
             .build();
 
     Coffee chiapas =
@@ -73,6 +83,7 @@ class CoffeeSpecificationRepositoryTest extends PostgresRepositoryTest {
             .origin("Chiapas")
             .roastLevel("Oscuro")
             .process("Natural")
+            .owner(owner)
             .build();
 
     coffeeRepository.saveAll(List.of(veracruz, chiapas));
@@ -86,5 +97,34 @@ class CoffeeSpecificationRepositoryTest extends PostgresRepositoryTest {
     List<Coffee> result = coffeeRepository.findAll(specification);
 
     assertThat(result).extracting(Coffee::getName).contains("Mezcla Veracruz", "Chiapas Blend");
+  }
+
+  @Test
+  void hasOwner_shouldReturnOnlyOwnedCoffees() {
+    User owner = persistUser("owner@brewdeck.test");
+    User other = persistUser("other@brewdeck.test");
+    persistCoffee("Owned", owner);
+    persistCoffee("Foreign", other);
+
+    List<Coffee> result = coffeeRepository.findAll(CoffeeSpecification.hasOwner(owner.getId()));
+
+    assertThat(result).extracting(Coffee::getName).containsExactly("Owned");
+  }
+
+  private User persistUser(String email) {
+    User user =
+        User.builder()
+            .email(email)
+            .passwordHash("hashed-password")
+            .createdAt(LocalDateTime.now())
+            .build();
+
+    return entityManager.persistAndFlush(user);
+  }
+
+  private Coffee persistCoffee(String name, User owner) {
+    Coffee coffee = Coffee.builder().name(name).owner(owner).build();
+
+    return entityManager.persistAndFlush(coffee);
   }
 }

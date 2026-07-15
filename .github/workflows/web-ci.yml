@@ -1,0 +1,64 @@
+name: BrewDeck Web CI
+
+on:
+  push:
+    branches: [master, develop]
+    paths:
+      - "brewdeck-web/**"
+      - ".github/workflows/web-ci.yml"
+  pull_request:
+    branches: [master, develop]
+    paths:
+      - "brewdeck-web/**"
+      - ".github/workflows/web-ci.yml"
+  workflow_dispatch:
+
+jobs:
+  web-quality-checks:
+    name: Web Quality Checks
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: brewdeck-web
+
+    env:
+      # Build-time public base URL; matches brewdeck-web/.env.example.
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8080
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up pnpm
+        # Pinned to v4: v6's self-installer crashes when switching to the
+        # packageManager-pinned pnpm version ("Cannot use 'in' operator to
+        # search for 'integrity' in undefined"). v4 still emits a Node 20
+        # deprecation warning but installs correctly.
+        uses: pnpm/action-setup@v4
+        with:
+          # packageManager pin lives in brewdeck-web/package.json, not repo root;
+          # working-directory defaults don't apply to action inputs.
+          package_json_file: brewdeck-web/package.json
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: pnpm
+          cache-dependency-path: brewdeck-web/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Type check
+        run: pnpm run type-check
+
+      - name: Unit tests
+        run: pnpm run test
+
+      - name: Build
+        run: pnpm run build

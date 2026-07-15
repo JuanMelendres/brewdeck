@@ -136,10 +136,13 @@ export type AuthResponse = {
   token: string;
   expiresAt: string;
   email: string;
+  refreshToken: string;
 };
 
 export type UserResponse = {
   id: number;
   email: string;
+  displayName: string | null;
+  emailVerified: boolean;
   createdAt: string;
 };

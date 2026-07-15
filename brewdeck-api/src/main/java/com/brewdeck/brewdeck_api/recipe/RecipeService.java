@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.recipe;
 
+import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
 import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.coffee.CoffeeRepository;
 import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
@@ -26,6 +27,7 @@ public class RecipeService {
   private final RecipeRepository recipeRepository;
   private final CoffeeRepository coffeeRepository;
   private final BrewMethodRepository brewMethodRepository;
+  private final CurrentUserProvider currentUserProvider;
 
   public PageResponse<RecipeResponse> search(RecipeFilter filter, Pageable pageable) {
     return PageResponse.fromPage(
@@ -34,7 +36,8 @@ public class RecipeService {
                 RecipeSpecification.hasCoffeeId(filter.coffeeId())
                     .and(RecipeSpecification.hasMethodId(filter.methodId()))
                     .and(RecipeSpecification.isFavorite(filter.favorite()))
-                    .and(RecipeSpecification.nameContains(filter.name())),
+                    .and(RecipeSpecification.nameContains(filter.name()))
+                    .and(RecipeSpecification.hasOwner(currentOwnerId())),
                 pageable)
             .map(RecipeResponse::fromEntity));
   }
@@ -45,17 +48,23 @@ public class RecipeService {
 
   public PageResponse<RecipeResponse> findFavorites(Pageable pageable) {
     return PageResponse.fromPage(
-        recipeRepository.findByFavoriteTrue(pageable).map(RecipeResponse::fromEntity));
+        recipeRepository
+            .findByFavoriteTrueAndOwnerId(currentOwnerId(), pageable)
+            .map(RecipeResponse::fromEntity));
   }
 
   public PageResponse<RecipeResponse> findByCoffeeId(Long coffeeId, Pageable pageable) {
     return PageResponse.fromPage(
-        recipeRepository.findByCoffeeId(coffeeId, pageable).map(RecipeResponse::fromEntity));
+        recipeRepository
+            .findByCoffeeIdAndOwnerId(coffeeId, currentOwnerId(), pageable)
+            .map(RecipeResponse::fromEntity));
   }
 
   public PageResponse<RecipeResponse> findByMethodId(Long methodId, Pageable pageable) {
     return PageResponse.fromPage(
-        recipeRepository.findByMethodId(methodId, pageable).map(RecipeResponse::fromEntity));
+        recipeRepository
+            .findByMethodIdAndOwnerId(methodId, currentOwnerId(), pageable)
+            .map(RecipeResponse::fromEntity));
   }
 
   @Transactional
@@ -64,6 +73,7 @@ public class RecipeService {
     BrewMethod method = findBrewMethodById(request.methodId());
 
     Recipe recipe = new Recipe();
+    recipe.setOwner(currentUserProvider.require());
     applyRequest(recipe, request, coffee, method);
 
     Recipe saved = recipeRepository.save(recipe);
@@ -88,7 +98,7 @@ public class RecipeService {
 
   @Transactional
   public void delete(Long id) {
-    if (!recipeRepository.existsById(id)) {
+    if (!recipeRepository.existsByIdAndOwnerId(id, currentOwnerId())) {
       throw new EntityNotFoundException(RECIPE_NOT_FOUND);
     }
 
@@ -120,15 +130,19 @@ public class RecipeService {
     return RecipeResponse.fromEntity(saved);
   }
 
+  private Long currentOwnerId() {
+    return currentUserProvider.require().getId();
+  }
+
   private Recipe findRecipeById(Long id) {
     return recipeRepository
-        .findById(id)
+        .findByIdAndOwnerId(id, currentOwnerId())
         .orElseThrow(() -> new EntityNotFoundException(RECIPE_NOT_FOUND));
   }
 
   private Coffee findCoffeeById(Long id) {
     return coffeeRepository
-        .findById(id)
+        .findByIdAndOwnerId(id, currentOwnerId())
         .orElseThrow(() -> new EntityNotFoundException(COFFEE_NOT_FOUND));
   }
 

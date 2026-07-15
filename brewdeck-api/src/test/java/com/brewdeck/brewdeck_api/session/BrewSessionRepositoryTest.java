@@ -2,6 +2,7 @@ package com.brewdeck.brewdeck_api.session;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.common.PostgresRepositoryTest;
 import com.brewdeck.brewdeck_api.method.BrewMethod;
@@ -27,11 +28,13 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
 
   @Test
   void findByRecipeIdOrderByBrewedAtDesc_shouldReturnPagedSessionsOrderedByNewestFirst() {
-    Recipe recipe = persistRecipe("Mezcla Veracruz AeroPress");
+    User owner = persistUser("newest-first-owner@brewdeck.test");
+    Recipe recipe = persistRecipe("Mezcla Veracruz AeroPress", owner);
 
     BrewSession olderSession =
         BrewSession.builder()
             .recipe(recipe)
+            .owner(owner)
             .brewedAt(LocalDateTime.of(2026, 4, 20, 10, 0))
             .actualGrind("Timemore S3 - 5.5")
             .actualTemp(90)
@@ -44,6 +47,7 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
     BrewSession newerSession =
         BrewSession.builder()
             .recipe(recipe)
+            .owner(owner)
             .brewedAt(LocalDateTime.of(2026, 4, 21, 10, 0))
             .actualGrind("Timemore S3 - 5.5")
             .actualTemp(91)
@@ -73,12 +77,14 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
 
   @Test
   void findByRecipeIdOrderByBrewedAtDesc_shouldReturnPagedSessionsForSpecificRecipe() {
-    Recipe aeroPressRecipe = persistRecipe("Mezcla Veracruz AeroPress");
-    Recipe espressoRecipe = persistRecipe("Mezcla Veracruz Espresso");
+    User owner = persistUser("specific-recipe-owner@brewdeck.test");
+    Recipe aeroPressRecipe = persistRecipe("Mezcla Veracruz AeroPress", owner);
+    Recipe espressoRecipe = persistRecipe("Mezcla Veracruz Espresso", owner);
 
     BrewSession aeroPressSession =
         BrewSession.builder()
             .recipe(aeroPressRecipe)
+            .owner(owner)
             .brewedAt(LocalDateTime.of(2026, 4, 21, 10, 0))
             .actualGrind("Timemore S3 - 5.5")
             .actualTemp(90)
@@ -91,6 +97,7 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
     BrewSession espressoSession =
         BrewSession.builder()
             .recipe(espressoRecipe)
+            .owner(owner)
             .brewedAt(LocalDateTime.of(2026, 4, 21, 11, 0))
             .actualGrind("Fine")
             .actualTemp(93)
@@ -119,11 +126,13 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
 
   @Test
   void findByRecipeIdOrderByBrewedAtDesc_shouldRespectPaginationSize() {
-    Recipe recipe = persistRecipe("Mezcla Veracruz AeroPress");
+    User owner = persistUser("pagination-size-owner@brewdeck.test");
+    Recipe recipe = persistRecipe("Mezcla Veracruz AeroPress", owner);
 
     BrewSession sessionOne =
         BrewSession.builder()
             .recipe(recipe)
+            .owner(owner)
             .brewedAt(LocalDateTime.of(2026, 4, 21, 10, 0))
             .rating(9)
             .build();
@@ -131,6 +140,7 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
     BrewSession sessionTwo =
         BrewSession.builder()
             .recipe(recipe)
+            .owner(owner)
             .brewedAt(LocalDateTime.of(2026, 4, 22, 10, 0))
             .rating(10)
             .build();
@@ -154,12 +164,14 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
 
   @Test
   void findTop10ByRecipeIdAndRatingIsNotNull_shouldReturnOnlyRatedNewestFirstCappedAt10() {
-    Recipe recipe = persistRecipe("Mezcla Veracruz AeroPress");
+    User owner = persistUser("top10-owner@brewdeck.test");
+    Recipe recipe = persistRecipe("Mezcla Veracruz AeroPress", owner);
 
     // Unrated session (rating null) must be excluded.
     entityManager.persist(
         BrewSession.builder()
             .recipe(recipe)
+            .owner(owner)
             .brewedAt(LocalDateTime.of(2026, 5, 1, 10, 0))
             .actualTemp(90)
             .build());
@@ -169,6 +181,7 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
       entityManager.persist(
           BrewSession.builder()
               .recipe(recipe)
+              .owner(owner)
               .brewedAt(LocalDateTime.of(2026, 4, i, 10, 0))
               .actualTemp(88 + i)
               .actualTime("2:30")
@@ -190,7 +203,64 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
     assertThat(result.get(0).getBrewedAt()).isAfter(result.get(1).getBrewedAt());
   }
 
-  private Recipe persistRecipe(String recipeName) {
+  @Test
+  void findTopRated_shouldReturnOnlyOwnersRecipe() {
+    User owner = persistUser("owner@brewdeck.test");
+    User other = persistUser("other@brewdeck.test");
+
+    Recipe ownedRecipe = persistRecipe("Owned Recipe", owner);
+    Recipe foreignRecipe = persistRecipe("Foreign Recipe", other);
+
+    persistRatedSession(ownedRecipe, owner, 9);
+    persistRatedSession(foreignRecipe, other, 5);
+
+    List<TopRatedRecipe> result =
+        brewSessionRepository.findTopRated(owner.getId(), PageRequest.of(0, 10));
+
+    assertThat(result).hasSize(1);
+    assertThat(result.getFirst().getRecipeName()).isEqualTo("Owned Recipe");
+  }
+
+  @Test
+  void findAverageRating_shouldOnlyAverageOwnersSessions() {
+    User owner = persistUser("owner-avg@brewdeck.test");
+    User other = persistUser("other-avg@brewdeck.test");
+
+    Recipe ownedRecipe = persistRecipe("Owned Avg Recipe", owner);
+    Recipe foreignRecipe = persistRecipe("Foreign Avg Recipe", other);
+
+    persistRatedSession(ownedRecipe, owner, 8);
+    persistRatedSession(foreignRecipe, other, 2);
+
+    Double result = brewSessionRepository.findAverageRating(owner.getId());
+
+    assertThat(result).isEqualTo(8.0);
+  }
+
+  private User persistUser(String email) {
+    User user =
+        User.builder()
+            .email(email)
+            .passwordHash("hashed-password")
+            .createdAt(LocalDateTime.now())
+            .build();
+
+    return entityManager.persistAndFlush(user);
+  }
+
+  private BrewSession persistRatedSession(Recipe recipe, User owner, int rating) {
+    BrewSession session =
+        BrewSession.builder()
+            .recipe(recipe)
+            .owner(owner)
+            .brewedAt(LocalDateTime.now())
+            .rating(rating)
+            .build();
+
+    return entityManager.persistAndFlush(session);
+  }
+
+  private Recipe persistRecipe(String recipeName, User owner) {
     Coffee coffee =
         Coffee.builder()
             .name("Mezcla Veracruz " + System.nanoTime())
@@ -206,6 +276,7 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
             .sweetnessScore(3)
             .bitternessScore(2)
             .description("Coffee created for repository tests.")
+            .owner(owner)
             .build();
 
     BrewMethod method =
@@ -229,6 +300,7 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
             .steps("Bloom 30s, stir gently, press slowly.")
             .expectedTaste("Clean and aromatic.")
             .favorite(false)
+            .owner(owner)
             .build();
 
     return entityManager.persistAndFlush(recipe);

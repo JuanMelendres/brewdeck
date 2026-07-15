@@ -24,10 +24,10 @@ How to run the suites and what each guards. Commands assume the repo root unless
 ## Frontend (`brewdeck-web/`)
 
 ```bash
-npm run test          # Vitest suite (vitest run)
-npm run type-check    # strict tsc --noEmit
-npm run lint          # ESLint (read-only)
-npm run build         # production build (also type-checks)
+pnpm test          # Vitest suite (vitest run)
+pnpm type-check    # strict tsc --noEmit
+pnpm lint          # ESLint (read-only)
+pnpm build         # production build (also type-checks)
 ```
 
 ## CI
@@ -45,6 +45,6 @@ A PR should not be merged while any of these are failing.
 
 - [ ] `./mvnw spotless:apply` then `./mvnw clean verify` green
 - [ ] `./mvnw pmd:check` green (not covered by `clean verify`)
-- [ ] Frontend `npm run test` + `npm run type-check` green
+- [ ] Frontend `pnpm test` + `pnpm type-check` green
 - [ ] New/changed behavior has tests
 - [ ] CI checks green on the PR

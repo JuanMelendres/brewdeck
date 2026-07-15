@@ -4,7 +4,7 @@
 
 - Java 21
 - Docker + Docker Compose (for PostgreSQL and Testcontainers)
-- Node.js (for `brewdeck-web`; see its `package.json` engines) and npm
+- Node.js 22+ (for `brewdeck-web`; see its `package.json` engines) and pnpm (`corepack enable`)
 - Maven Wrapper is bundled (`./mvnw`) — no separate Maven install needed
 
 ## 1. Clone
@@ -38,8 +38,8 @@ cd brewdeck-api
 ```bash
 cd brewdeck-web
 cp .env.example .env.local   # sets NEXT_PUBLIC_API_BASE_URL
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 - Web app: `http://localhost:3000`

@@ -21,6 +21,13 @@ public interface BrewSessionRepository
   @EntityGraph(attributePaths = "recipe")
   Page<BrewSession> findAll(Specification<BrewSession> spec, Pageable pageable);
 
+  @EntityGraph(attributePaths = "recipe")
+  Optional<BrewSession> findByIdAndOwnerId(Long id, Long ownerId);
+
+  boolean existsByIdAndOwnerId(Long id, Long ownerId);
+
+  long countByOwnerId(Long ownerId);
+
   List<BrewSession> findByRecipeIdOrderByBrewedAtDesc(Long recipeId);
 
   List<BrewSession> findTop10ByRecipeIdAndRatingIsNotNullOrderByBrewedAtDesc(Long recipeId);
@@ -28,8 +35,13 @@ public interface BrewSessionRepository
   @EntityGraph(attributePaths = "recipe")
   Page<BrewSession> findByRecipeIdOrderByBrewedAtDesc(Long recipeId, Pageable pageable);
 
-  @Query("select avg(s.rating) from BrewSession s where s.rating is not null")
-  Double findAverageRating();
+  @EntityGraph(attributePaths = "recipe")
+  Page<BrewSession> findByRecipeIdAndOwnerIdOrderByBrewedAtDesc(
+      Long recipeId, Long ownerId, Pageable pageable);
+
+  @Query(
+      "select avg(s.rating) from BrewSession s where s.rating is not null and s.owner.id = :ownerId")
+  Double findAverageRating(Long ownerId);
 
   @Query(
       """
@@ -37,9 +49,9 @@ public interface BrewSessionRepository
              avg(s.rating) as averageRating,
              max(s.brewedAt) as lastBrewedAt
       from BrewSession s
-      where s.recipe.id = :recipeId
+      where s.recipe.id = :recipeId and s.owner.id = :ownerId
       """)
-  RecipeSessionStats findStatsByRecipeId(Long recipeId);
+  RecipeSessionStats findStatsByRecipeId(Long recipeId, Long ownerId);
 
   @Query(
       """
@@ -48,11 +60,11 @@ public interface BrewSessionRepository
              avg(s.rating) as averageRating,
              count(s) as totalSessions
       from BrewSession s
-      where s.rating is not null
+      where s.rating is not null and s.owner.id = :ownerId
       group by s.recipe.id, s.recipe.name
       order by avg(s.rating) desc
       """)
-  List<TopRatedRecipe> findTopRated(Pageable pageable);
+  List<TopRatedRecipe> findTopRated(Long ownerId, Pageable pageable);
 
   @Query(
       """
@@ -60,8 +72,9 @@ public interface BrewSessionRepository
              s.recipe.name as recipeName,
              count(s) as totalSessions
       from BrewSession s
+      where s.owner.id = :ownerId
       group by s.recipe.id, s.recipe.name
       order by count(s) desc
       """)
-  List<MostBrewedRecipe> findMostBrewed(Pageable pageable);
+  List<MostBrewedRecipe> findMostBrewed(Long ownerId, Pageable pageable);
 }

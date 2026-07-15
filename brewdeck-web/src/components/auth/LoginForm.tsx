@@ -60,6 +60,9 @@ export function LoginForm() {
         <Typography variant="body2">
           No account? <a href="/register">Register</a>
         </Typography>
+        <Typography variant="body2">
+          <a href="/forgot-password">Forgot password?</a>
+        </Typography>
       </Stack>
     </Box>
   );

@@ -3,6 +3,10 @@ package com.brewdeck.brewdeck_api.common.error;
 import com.brewdeck.brewdeck_api.ai.AiUnavailableException;
 import com.brewdeck.brewdeck_api.ai.InsufficientBrewHistoryException;
 import com.brewdeck.brewdeck_api.auth.EmailAlreadyUsedException;
+import com.brewdeck.brewdeck_api.auth.InvalidCurrentPasswordException;
+import com.brewdeck.brewdeck_api.auth.refresh.InvalidRefreshTokenException;
+import com.brewdeck.brewdeck_api.auth.reset.InvalidResetTokenException;
+import com.brewdeck.brewdeck_api.auth.verification.InvalidVerificationTokenException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
@@ -109,6 +113,58 @@ public class GlobalExceptionHandler {
             null);
 
     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+  }
+
+  @ExceptionHandler(InvalidRefreshTokenException.class)
+  public ResponseEntity<ErrorResponse> handleInvalidRefreshToken(
+      InvalidRefreshTokenException exception, HttpServletRequest request) {
+    ErrorResponse errorResponse =
+        buildErrorResponse(
+            HttpStatus.UNAUTHORIZED,
+            "Refresh token is invalid or has expired",
+            sanitize(request.getRequestURI()),
+            null);
+
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+  }
+
+  @ExceptionHandler(InvalidVerificationTokenException.class)
+  public ResponseEntity<ErrorResponse> handleInvalidVerificationToken(
+      InvalidVerificationTokenException exception, HttpServletRequest request) {
+    ErrorResponse errorResponse =
+        buildErrorResponse(
+            HttpStatus.BAD_REQUEST,
+            "Verification token is invalid or has expired",
+            sanitize(request.getRequestURI()),
+            null);
+
+    return ResponseEntity.badRequest().body(errorResponse);
+  }
+
+  @ExceptionHandler(InvalidResetTokenException.class)
+  public ResponseEntity<ErrorResponse> handleInvalidResetToken(
+      InvalidResetTokenException exception, HttpServletRequest request) {
+    ErrorResponse errorResponse =
+        buildErrorResponse(
+            HttpStatus.BAD_REQUEST,
+            "Reset token is invalid or has expired",
+            sanitize(request.getRequestURI()),
+            null);
+
+    return ResponseEntity.badRequest().body(errorResponse);
+  }
+
+  @ExceptionHandler(InvalidCurrentPasswordException.class)
+  public ResponseEntity<ErrorResponse> handleInvalidCurrentPassword(
+      InvalidCurrentPasswordException exception, HttpServletRequest request) {
+    ErrorResponse errorResponse =
+        buildErrorResponse(
+            HttpStatus.BAD_REQUEST,
+            "Current password is incorrect",
+            sanitize(request.getRequestURI()),
+            null);
+
+    return ResponseEntity.badRequest().body(errorResponse);
   }
 
   @ExceptionHandler(EmailAlreadyUsedException.class)

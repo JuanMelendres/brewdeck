@@ -48,7 +48,7 @@ docker compose up -d
 cd brewdeck-api && ./mvnw spring-boot:run
 
 # 3. Frontend →  http://localhost:3000
-cd ../brewdeck-web && cp .env.example .env.local && npm install && npm run dev
+cd ../brewdeck-web && cp .env.example .env.local && pnpm install && pnpm dev
 ```
 
 Full instructions: [`docs/development/setup.md`](docs/development/setup.md).
@@ -61,8 +61,8 @@ Full instructions: [`docs/development/setup.md`](docs/development/setup.md).
 ./mvnw pmd:check                               # static analysis
 ./mvnw dependency-check:check                  # security scan
 
-# frontend (in brewdeck-web/)
-npm run test && npm run type-check && npm run build
+# frontend (in brewdeck-web/, uses pnpm)
+pnpm test && pnpm type-check && pnpm build
 ```
 
 ## 📚 Documentation

@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import com.brewdeck.brewdeck_api.auth.refresh.RefreshTokenService;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -22,12 +23,20 @@ class AuthServiceTest {
   @Mock private UserRepository userRepository;
   @Mock private JwtService jwtService;
 
+  @Mock
+  private com.brewdeck.brewdeck_api.auth.verification.EmailVerificationService
+      emailVerificationService;
+
+  @Mock private RefreshTokenService refreshTokenService;
+
   private AuthService authService;
 
   @BeforeEach
   void setUp() {
     PasswordEncoder encoder = new BCryptPasswordEncoder();
-    authService = new AuthService(userRepository, jwtService, encoder);
+    authService =
+        new AuthService(
+            userRepository, jwtService, encoder, emailVerificationService, refreshTokenService);
   }
 
   private User stored(String email, String rawPassword) {
@@ -50,6 +59,8 @@ class AuthServiceTest {
 
     assertThat(response.token()).isEqualTo("jwt-token");
     assertThat(response.email()).isEqualTo("new@example.com");
+    org.mockito.Mockito.verify(emailVerificationService)
+        .issueFor(org.mockito.ArgumentMatchers.any(User.class));
   }
 
   @Test
@@ -59,6 +70,22 @@ class AuthServiceTest {
     assertThatThrownBy(
             () -> authService.register(new RegisterRequest("taken@example.com", "password1")))
         .isInstanceOf(EmailAlreadyUsedException.class);
+  }
+
+  @Test
+  void register_succeedsEvenWhenVerificationIssueThrows() {
+    when(userRepository.existsByEmail("new@example.com")).thenReturn(false);
+    when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+    when(jwtService.generateToken(any(User.class))).thenReturn("jwt-token");
+    org.mockito.Mockito.doThrow(new RuntimeException("verification down"))
+        .when(emailVerificationService)
+        .issueFor(any(User.class));
+
+    // The account is created and a token returned even if verification issuance fails.
+    AuthResponse response =
+        authService.register(new RegisterRequest("new@example.com", "password1"));
+
+    assertThat(response.token()).isEqualTo("jwt-token");
   }
 
   @Test
@@ -105,5 +132,53 @@ class AuthServiceTest {
 
     assertThatThrownBy(() -> authService.me("ghost@example.com"))
         .isInstanceOf(EntityNotFoundException.class);
+  }
+
+  @Test
+  void updateProfile_setsDisplayNameAndReturnsUser() {
+    when(userRepository.findByEmail("brewer@example.com"))
+        .thenReturn(Optional.of(stored("brewer@example.com", "password1")));
+    when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+    UserResponse response =
+        authService.updateProfile("brewer@example.com", new UpdateProfileRequest("Barista Bob"));
+
+    assertThat(response.displayName()).isEqualTo("Barista Bob");
+  }
+
+  @Test
+  void updateProfile_throwsWhenUserMissing() {
+    when(userRepository.findByEmail("ghost@example.com")).thenReturn(Optional.empty());
+
+    assertThatThrownBy(
+            () -> authService.updateProfile("ghost@example.com", new UpdateProfileRequest("X")))
+        .isInstanceOf(EntityNotFoundException.class);
+  }
+
+  @Test
+  void changePassword_reencodesWhenCurrentMatches() {
+    User user = stored("brewer@example.com", "password1");
+    String originalHash = user.getPasswordHash();
+    when(userRepository.findByEmail("brewer@example.com")).thenReturn(Optional.of(user));
+    when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+    authService.changePassword(
+        "brewer@example.com", new ChangePasswordRequest("password1", "newpassword1"));
+
+    assertThat(user.getPasswordHash()).isNotEqualTo(originalHash);
+    assertThat(new BCryptPasswordEncoder().matches("newpassword1", user.getPasswordHash()))
+        .isTrue();
+  }
+
+  @Test
+  void changePassword_throwsWhenCurrentWrong() {
+    when(userRepository.findByEmail("brewer@example.com"))
+        .thenReturn(Optional.of(stored("brewer@example.com", "password1")));
+
+    assertThatThrownBy(
+            () ->
+                authService.changePassword(
+                    "brewer@example.com", new ChangePasswordRequest("wrong", "newpassword1")))
+        .isInstanceOf(InvalidCurrentPasswordException.class);
   }
 }

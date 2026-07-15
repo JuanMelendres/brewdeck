@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.recipe;
 
+import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.method.BrewMethod;
 import jakarta.persistence.*;
@@ -19,6 +20,10 @@ public class Recipe {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "owner_id", nullable = false)
+  private User owner;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "coffee_id", nullable = false)

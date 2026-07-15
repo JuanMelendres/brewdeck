@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.coffee;
 
+import com.brewdeck.brewdeck_api.auth.User;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.*;
@@ -16,6 +17,10 @@ public class Coffee {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "owner_id", nullable = false)
+  private User owner;
 
   @Column(nullable = false, length = 120)
   private String name;

@@ -44,7 +44,13 @@ public class SecurityConfig {
             auth ->
                 auth.requestMatchers(HttpMethod.OPTIONS, "/**")
                     .permitAll()
-                    .requestMatchers("/api/auth/register", "/api/auth/login")
+                    .requestMatchers(
+                        "/api/auth/register",
+                        "/api/auth/login",
+                        "/api/auth/refresh",
+                        "/api/auth/forgot-password",
+                        "/api/auth/reset-password",
+                        "/api/auth/verify-email")
                     .permitAll()
                     .requestMatchers("/api/public/**")
                     .permitAll()
