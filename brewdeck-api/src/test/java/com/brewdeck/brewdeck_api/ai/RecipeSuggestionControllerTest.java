@@ -96,4 +96,21 @@ class RecipeSuggestionControllerTest {
                 .content("{\"coffeeId\":9,\"methodId\":2}"))
         .andExpect(status().isNotFound());
   }
+
+  @Test
+  void suggest_shouldReturnNotFound_whenFeatureFlagDisabled() throws Exception {
+    when(service.suggest(any()))
+        .thenThrow(
+            new com.brewdeck.brewdeck_api.featureflag.FeatureDisabledException(
+                com.brewdeck.brewdeck_api.featureflag.FeatureKeys.AI_RECIPE_ASSISTANT,
+                org.springframework.http.HttpStatus.NOT_FOUND));
+
+    mockMvc
+        .perform(
+            post("/api/recipes/suggest")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"coffeeId\":1,\"methodId\":2}"))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.status").value(404));
+  }
 }

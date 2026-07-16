@@ -27,6 +27,16 @@ POST  /api/auth/logout              204 (authenticated; revokes only the present
 
 > `register` and `login` responses now also include a `refreshToken` field alongside `token`, `expiresAt`, and `email`.
 
+## Feature flags (`/api/feature-flags`)
+```
+GET /api/feature-flags   200 (authenticated) → { "features": { "aiRecipeAssistant": false } }
+```
+
+> Returns only client-exposed flags as an `{alias: boolean}` map — no owner/environment/rollout or
+> other admin metadata. The backend is the source of truth: a disabled flag-protected operation
+> returns `404` (RELEASE/EXPERIMENT/PERMISSION) or `503` (OPERATIONAL/KILL_SWITCH), never `500`.
+> See [`development/feature-flags.md`](../development/feature-flags.md).
+
 ## Coffees (`/api/coffees`)
 ```
 GET    /api/coffees

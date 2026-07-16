@@ -18,6 +18,7 @@ tags:
   - name: Brew Sessions
   - name: Public
   - name: Dashboard
+  - name: Feature Flags
 components:
   securitySchemes:
     bearerAuth:
@@ -72,6 +73,13 @@ components:
       required: [refreshToken]
       properties:
         refreshToken: { type: string }
+    FeatureFlagsResponse:
+      type: object
+      properties:
+        features:
+          type: object
+          additionalProperties: { type: boolean }
+          example: { aiRecipeAssistant: false }
 security:
   - bearerAuth: []
 paths:
@@ -171,6 +179,20 @@ paths:
         "204": { description: Refresh token revoked }
         "400": { description: Validation error (blank refresh token), content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
         "401": { description: Unauthenticated (missing/invalid access token) }
+  /api/feature-flags:
+    get:
+      tags: [Feature Flags]
+      summary: Client-exposed feature availability for the current user
+      description: >
+        Returns an {alias: boolean} map of frontend-exposed flags. No admin metadata. The backend is
+        the source of truth; a disabled flag-protected operation returns 404 or 503, never 500.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FeatureFlagsResponse" }
+        "401": { description: Unauthenticated }
   /api/coffees:
     get:
       tags: [Coffees]

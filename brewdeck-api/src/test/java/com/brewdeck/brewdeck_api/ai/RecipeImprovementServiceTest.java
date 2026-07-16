@@ -3,6 +3,7 @@ package com.brewdeck.brewdeck_api.ai;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -10,6 +11,9 @@ import static org.mockito.Mockito.when;
 import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
 import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.coffee.Coffee;
+import com.brewdeck.brewdeck_api.featureflag.FeatureDisabledException;
+import com.brewdeck.brewdeck_api.featureflag.FeatureFlagService;
+import com.brewdeck.brewdeck_api.featureflag.FeatureKeys;
 import com.brewdeck.brewdeck_api.method.BrewMethod;
 import com.brewdeck.brewdeck_api.recipe.Recipe;
 import com.brewdeck.brewdeck_api.recipe.RecipeRepository;
@@ -25,6 +29,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 
 @ExtendWith(MockitoExtension.class)
 class RecipeImprovementServiceTest {
@@ -33,14 +38,17 @@ class RecipeImprovementServiceTest {
   @Mock private BrewSessionRepository brewSessionRepository;
   @Mock private RecipeSuggestionPort port;
   @Mock private CurrentUserProvider currentUserProvider;
+  @Mock private FeatureFlagService featureFlagService;
 
+  // A plain Mockito mock leaves the void requireEnabled as a no-op, i.e. the flag is enabled.
   private RecipeImprovementService serviceEnabled() {
     return new RecipeImprovementService(
         recipeRepository,
         brewSessionRepository,
         port,
         new AiProperties(true, "claude-haiku-4-5", 20, 1024),
-        currentUserProvider);
+        currentUserProvider,
+        featureFlagService);
   }
 
   private Recipe sampleRecipe() {
@@ -75,16 +83,14 @@ class RecipeImprovementServiceTest {
   }
 
   @Test
-  void improve_shouldThrowAiUnavailable_whenDisabled() {
-    RecipeImprovementService service =
-        new RecipeImprovementService(
-            recipeRepository,
-            brewSessionRepository,
-            port,
-            new AiProperties(false, "claude-haiku-4-5", 20, 1024),
-            currentUserProvider);
+  void improve_shouldThrowFeatureDisabled_whenFlagOff() {
+    doThrow(new FeatureDisabledException(FeatureKeys.AI_RECIPE_ASSISTANT, HttpStatus.NOT_FOUND))
+        .when(featureFlagService)
+        .requireEnabled(FeatureKeys.AI_RECIPE_ASSISTANT);
 
-    assertThatThrownBy(() -> service.improve(5L)).isInstanceOf(AiUnavailableException.class);
+    RecipeImprovementService service = serviceEnabled();
+
+    assertThatThrownBy(() -> service.improve(5L)).isInstanceOf(FeatureDisabledException.class);
     verify(port, never()).improve(any());
   }
 

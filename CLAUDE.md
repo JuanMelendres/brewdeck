@@ -171,6 +171,33 @@ Conventions:
 
 Never hardcode secrets — use environment variables; commit `.env.example`, not `.env`. Keep OWASP Dependency Check and SonarCloud passing unless working on a known false positive.
 
+## Feature Flag Policy
+
+For every complex frontend or backend feature, evaluate whether the functionality can be completed, tested, polished, and safely released within the current task.
+
+Use a PostgreSQL-backed feature flag when the feature is incomplete, experimental, risky, dependent on unfinished integrations, requires multiple pull requests, or should not yet be exposed in production.
+
+The backend must always be the source of truth. Hiding frontend elements is not sufficient. Protected endpoints and business operations must validate the feature flag before executing side effects.
+
+Production must default incomplete features to disabled.
+
+Feature flags must not be used to hide broken builds, security vulnerabilities, missing authorization, invalid database migrations, or code that does not meet minimum quality standards.
+
+Every temporary flag must define:
+
+* Key
+* Type
+* Owner
+* Enabled environments
+* Expiration date
+* Removal condition
+* Tests for enabled and disabled states
+* Follow-up cleanup task
+
+When a feature is stable and enabled for all users, remove the flag, disabled code path, obsolete tests, database record, and documentation references.
+
+Mechanics, the active flag registry, and removal steps live in [`docs/development/feature-flags.md`](docs/development/feature-flags.md) (rationale: [ADR-007](docs/decisions/ADR-007-postgres-feature-flags.md)). Backend: `requireEnabled(FeatureKeys.X)` at the service layer before side effects; keys come from `FeatureKeys`. Frontend: `<FeatureFlag>` / `useFeatureFlag` / `<FeatureRouteGuard>`, aliases in `FrontendFeatureFlag` ↔ `src/lib/api/featureFlags.ts`.
+
 ## Critical Anti-Patterns (what NOT to do)
 
 1. **Don't leak entities.** Never return Hibernate/JPA entities from controllers — map to explicit DTOs/records.

@@ -7,6 +7,7 @@ import com.brewdeck.brewdeck_api.auth.InvalidCurrentPasswordException;
 import com.brewdeck.brewdeck_api.auth.refresh.InvalidRefreshTokenException;
 import com.brewdeck.brewdeck_api.auth.reset.InvalidResetTokenException;
 import com.brewdeck.brewdeck_api.auth.verification.InvalidVerificationTokenException;
+import com.brewdeck.brewdeck_api.featureflag.FeatureDisabledException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
@@ -217,6 +218,23 @@ public class GlobalExceptionHandler {
             null);
 
     return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(errorResponse);
+  }
+
+  @ExceptionHandler(FeatureDisabledException.class)
+  public ResponseEntity<ErrorResponse> handleFeatureDisabled(
+      FeatureDisabledException exception, HttpServletRequest request) {
+    // Status is chosen by flag type (404 for release/experiment/permission, 503 for
+    // operational/kill-switch). The message is deliberately generic so a disabled feature is not
+    // discoverable from the response body.
+    HttpStatus status = exception.getStatus();
+    String message =
+        status == HttpStatus.SERVICE_UNAVAILABLE
+            ? "This feature is temporarily unavailable"
+            : "This feature is not available";
+    ErrorResponse errorResponse =
+        buildErrorResponse(status, message, sanitize(request.getRequestURI()), null);
+
+    return ResponseEntity.status(status).body(errorResponse);
   }
 
   @ExceptionHandler(Exception.class)
