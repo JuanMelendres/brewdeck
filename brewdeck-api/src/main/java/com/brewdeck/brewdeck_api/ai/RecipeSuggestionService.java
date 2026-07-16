@@ -2,6 +2,8 @@ package com.brewdeck.brewdeck_api.ai;
 
 import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.coffee.CoffeeRepository;
+import com.brewdeck.brewdeck_api.featureflag.FeatureFlagService;
+import com.brewdeck.brewdeck_api.featureflag.FeatureKeys;
 import com.brewdeck.brewdeck_api.method.BrewMethod;
 import com.brewdeck.brewdeck_api.method.BrewMethodRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -21,11 +23,15 @@ public class RecipeSuggestionService {
   private final BrewMethodRepository brewMethodRepository;
   private final RecipeSuggestionPort suggestionPort;
   private final AiProperties aiProperties;
+  private final FeatureFlagService featureFlagService;
 
   public SuggestedRecipeResponse suggest(SuggestRecipeRequest request) {
-    if (!aiProperties.enabled()) {
-      throw new AiUnavailableException("AI suggestions are disabled");
-    }
+    // Release gate: the AI assistant is the source of truth here, not the frontend hiding buttons.
+    // Checked before loading any data or calling the external provider. This RELEASE flag runs at
+    // 0/100 rollout, so an empty (user-less) context is sufficient. A disabled flag yields 404.
+    // (The provider-availability concern — is a real model wired — remains the port's job: the
+    // disabled adapter still throws AiUnavailable -> 503 when the flag is on but AI is not.)
+    featureFlagService.requireEnabled(FeatureKeys.AI_RECIPE_ASSISTANT);
 
     Coffee coffee =
         coffeeRepository
