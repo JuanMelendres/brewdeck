@@ -12,6 +12,7 @@ Docs-as-code for BrewDeck. Everything here lives in the repo and evolves with th
 | [api/](api/) | Endpoint overview, conventions, OpenAPI, Postman pointer |
 | [testing/](testing/) | Testing strategy, plan, unit & integration guides |
 | [development/](development/) | Local setup, env vars, coding standards, contribution guide |
+| [security/](security/) | Vulnerability audit reports and remediation tracking |
 
 ## Related sources (not duplicated here)
 
