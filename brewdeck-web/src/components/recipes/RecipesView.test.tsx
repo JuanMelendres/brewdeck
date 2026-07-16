@@ -5,6 +5,11 @@ import { RecipesView } from './RecipesView';
 import * as recipesHook from '@/hooks/useRecipes';
 import type { PageResponse, Recipe } from '@/lib/api/types';
 
+// The create dialog renders the flag-gated AI button; enable it so the dialog mounts in tests.
+vi.mock('@/lib/featureFlags/FeatureFlagProvider', () => ({
+  useFeatureFlag: () => true,
+  useFeatureFlags: () => ({ flags: { aiRecipeAssistant: true }, status: 'ready' }),
+}));
 vi.mock('@/hooks/useRecipeMutations', () => ({
   useCreateRecipe: () => ({ mutate: vi.fn(), isPending: false }),
   useUpdateRecipe: () => ({ mutate: vi.fn(), isPending: false }),

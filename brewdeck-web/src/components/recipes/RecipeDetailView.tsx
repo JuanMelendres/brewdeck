@@ -19,6 +19,7 @@ import { useImproveRecipe } from '@/hooks/useImproveRecipe';
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { FeatureFlag } from '@/components/ui/FeatureFlag';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { BrewSessionsTable } from '@/components/brew-sessions/BrewSessionsTable';
 import { RecipeRatingTrend } from './RecipeRatingTrend';
@@ -165,19 +166,21 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-        <Tooltip title={hasRatedHistory ? '' : 'Log a rated brew to enable AI improvements'}>
-          <span>
-            <Button
-              variant="outlined"
-              size="small"
-              disabled={!hasRatedHistory || improve.isPending}
-              onClick={onImprove}
-              startIcon={improve.isPending ? <CircularProgress size={16} /> : undefined}
-            >
-              Improve with AI
-            </Button>
-          </span>
-        </Tooltip>
+        <FeatureFlag name="aiRecipeAssistant">
+          <Tooltip title={hasRatedHistory ? '' : 'Log a rated brew to enable AI improvements'}>
+            <span>
+              <Button
+                variant="outlined"
+                size="small"
+                disabled={!hasRatedHistory || improve.isPending}
+                onClick={onImprove}
+                startIcon={improve.isPending ? <CircularProgress size={16} /> : undefined}
+              >
+                Improve with AI
+              </Button>
+            </span>
+          </Tooltip>
+        </FeatureFlag>
         <Button variant="outlined" size="small" onClick={onExport}>
           Export PDF
         </Button>

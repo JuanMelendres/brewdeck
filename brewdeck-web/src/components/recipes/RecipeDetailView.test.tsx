@@ -15,6 +15,11 @@ type HistoryReturn = ReturnType<typeof historyHook.useRecipeBrewSessions>;
 const { improveMutate } = vi.hoisted(() => ({ improveMutate: vi.fn() }));
 const { downloadRecipePdfMock } = vi.hoisted(() => ({ downloadRecipePdfMock: vi.fn() }));
 
+// AI assistant flag on: these tests cover the enabled-feature behaviour of the AI button.
+vi.mock('@/lib/featureFlags/FeatureFlagProvider', () => ({
+  useFeatureFlag: () => true,
+  useFeatureFlags: () => ({ flags: { aiRecipeAssistant: true }, status: 'ready' }),
+}));
 vi.mock('@/hooks/useImproveRecipe', () => ({
   useImproveRecipe: () => ({ mutate: improveMutate, isPending: false }),
 }));

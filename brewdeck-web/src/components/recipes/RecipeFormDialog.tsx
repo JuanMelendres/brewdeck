@@ -20,6 +20,7 @@ import { recipeSchema, type RecipeFormValues } from '@/lib/validation/recipeSche
 import { useCreateRecipe, useUpdateRecipe } from '@/hooks/useRecipeMutations';
 import { useCoffeeOptions, useMethodOptions } from '@/hooks/useResourceOptions';
 import { useSuggestRecipe } from '@/hooks/useSuggestRecipe';
+import { FeatureFlag } from '@/components/ui/FeatureFlag';
 import type { Recipe } from '@/lib/api/types';
 
 type RecipeFormInput = z.input<typeof recipeSchema>;
@@ -205,16 +206,18 @@ export function RecipeFormDialog({
                 </TextField>
               )}
             />
-            <Button
-              variant="outlined"
-              onClick={onSuggest}
-              disabled={!canSuggest}
-              startIcon={suggestion.isPending ? <CircularProgress size={16} /> : undefined}
-            >
-              Suggest with AI
-            </Button>
-            {suggestError ? <Alert severity="error">{suggestError}</Alert> : null}
-            {rationale ? <Alert severity="info">{rationale}</Alert> : null}
+            <FeatureFlag name="aiRecipeAssistant">
+              <Button
+                variant="outlined"
+                onClick={onSuggest}
+                disabled={!canSuggest}
+                startIcon={suggestion.isPending ? <CircularProgress size={16} /> : undefined}
+              >
+                Suggest with AI
+              </Button>
+              {suggestError ? <Alert severity="error">{suggestError}</Alert> : null}
+              {rationale ? <Alert severity="info">{rationale}</Alert> : null}
+            </FeatureFlag>
             {TEXT_FIELDS.map((f) => (
               <TextField
                 key={f.name}
