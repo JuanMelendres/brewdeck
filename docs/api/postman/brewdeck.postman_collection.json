@@ -1,2714 +1,2755 @@
 {
-  "info": {
-    "_postman_id": "0ffd1187-7622-418a-b0fa-b62f56060983",
-    "name": "BrewDeck API",
-    "description": "Postman collection for the BrewDeck Spring Boot REST API. Uses Long ID variables and paginated endpoints aligned with the current backend.",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+ "info": {
+  "_postman_id": "0ffd1187-7622-418a-b0fa-b62f56060983",
+  "name": "BrewDeck API",
+  "description": "Postman collection for the BrewDeck Spring Boot REST API. Uses Long ID variables and paginated endpoints aligned with the current backend.",
+  "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+ },
+ "variable": [
+  {
+   "key": "baseURL",
+   "value": "http://localhost:8080",
+   "type": "string"
   },
-  "variable": [
-    {
-      "key": "baseURL",
-      "value": "http://localhost:8080",
-      "type": "string"
-    },
-    {
-      "key": "coffeeId",
-      "value": "1",
-      "type": "string"
-    },
-    {
-      "key": "methodId",
-      "value": "1",
-      "type": "string"
-    },
-    {
-      "key": "recipeId",
-      "value": "1",
-      "type": "string"
-    },
-    {
-      "key": "sessionId",
-      "value": "1",
-      "type": "string"
-    },
-    {
-      "key": "shareToken",
-      "value": "",
-      "type": "string"
-    },
-    {
-      "key": "authToken",
-      "value": "",
-      "type": "string"
-    },
-    {
-      "key": "refreshToken",
-      "value": "",
-      "type": "string"
-    }
-  ],
-  "auth": {
-    "type": "bearer",
-    "bearer": [
-      {
-        "key": "token",
-        "value": "{{authToken}}",
-        "type": "string"
-      }
-    ]
+  {
+   "key": "coffeeId",
+   "value": "1",
+   "type": "string"
   },
-  "item": [
-    {
-      "name": "Auth",
-      "description": "Self-registration, JWT login, current-user, and refresh/logout endpoints. Register/login are unauthenticated; login and register save the returned access token into authToken and the returned refresh token into refreshToken (collection variables) so protected requests inherit the bearer token via collection-level Bearer auth and Refresh/Logout can reuse the refresh token.",
-      "item": [
-        {
-          "name": "POST - Register",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"brewer@example.com\",\n  \"password\": \"password1\"\n}"
-            },
-            "url": {
-              "raw": "{{baseURL}}/api/auth/register",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "register"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 201', function () {",
-                  "  pm.response.to.have.status(201);",
-                  "});",
-                  "pm.collectionVariables.set('authToken', pm.response.json().token);",
-                  "pm.collectionVariables.set('refreshToken', pm.response.json().refreshToken);"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "POST - Login",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"brewer@example.com\",\n  \"password\": \"password1\"\n}"
-            },
-            "url": {
-              "raw": "{{baseURL}}/api/auth/login",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "login"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 200', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});",
-                  "pm.collectionVariables.set('authToken', pm.response.json().token);",
-                  "pm.collectionVariables.set('refreshToken', pm.response.json().refreshToken);"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "GET - Current user (me)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseURL}}/api/auth/me",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "me"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 200', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "PATCH - Update profile (me)",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"displayName\": \"Barista Bob\"\n}"
-            },
-            "url": {
-              "raw": "{{baseURL}}/api/auth/me",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "me"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 200', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "POST - Change password",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"currentPassword\": \"password1\",\n  \"newPassword\": \"newpassword1\"\n}"
-            },
-            "url": {
-              "raw": "{{baseURL}}/api/auth/change-password",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "change-password"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 204', function () {",
-                  "  pm.response.to.have.status(204);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "POST - Forgot password",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"brewer@example.com\"\n}"
-            },
-            "url": {
-              "raw": "{{baseURL}}/api/auth/forgot-password",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "forgot-password"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 200', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "POST - Reset password",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"token\": \"paste-token-from-logs\",\n  \"newPassword\": \"newpassword1\"\n}"
-            },
-            "url": {
-              "raw": "{{baseURL}}/api/auth/reset-password",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "reset-password"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 204', function () {",
-                  "  pm.response.to.have.status(204);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "POST - Verify email",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"token\": \"paste-token-from-logs\"\n}"
-            },
-            "url": {
-              "raw": "{{baseURL}}/api/auth/verify-email",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "verify-email"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 204', function () {",
-                  "  pm.response.to.have.status(204);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "POST - Resend verification",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseURL}}/api/auth/resend-verification",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "resend-verification"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 200', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "POST - Refresh token",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
-            },
-            "url": {
-              "raw": "{{baseURL}}/api/auth/refresh",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "refresh"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 200', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});",
-                  "pm.collectionVariables.set('authToken', pm.response.json().token);",
-                  "pm.collectionVariables.set('refreshToken', pm.response.json().refreshToken);"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "POST - Logout",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
-            },
-            "url": {
-              "raw": "{{baseURL}}/api/auth/logout",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "logout"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 204', function () {",
-                  "  pm.response.to.have.status(204);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "Coffee",
-      "description": "Coffee CRUD and search endpoints.",
-      "item": [
-        {
-          "name": "GET - List coffees",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/api/coffees?page=0&size=10&sort=id,asc",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "coffees"
-              ],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "0",
-                  "description": "Page number"
-                },
-                {
-                  "key": "size",
-                  "value": "10",
-                  "description": "Page size"
-                },
-                {
-                  "key": "sort",
-                  "value": "id,asc",
-                  "description": "Sort field and direction"
-                }
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Response is paginated', function () {",
-                  "  const json = pm.response.json();",
-                  "  pm.expect(json).to.have.property('content');",
-                  "  pm.expect(json.content).to.be.an('array');",
-                  "  pm.expect(json).to.have.property('page');",
-                  "  pm.expect(json).to.have.property('size');",
-                  "  pm.expect(json).to.have.property('totalElements');",
-                  "  pm.expect(json).to.have.property('totalPages');",
-                  "  pm.expect(json).to.have.property('first');",
-                  "  pm.expect(json).to.have.property('last');",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "GET - Search coffees",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/api/coffees?name=Veracruz&origin=Veracruz&roastLevel=Medio&process=Lavado&page=0&size=10&sort=id,asc",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "coffees"
-              ],
-              "query": [
-                {
-                  "key": "name",
-                  "value": "Veracruz",
-                  "description": "Filter by coffee name"
-                },
-                {
-                  "key": "origin",
-                  "value": "Veracruz",
-                  "description": "Filter by origin"
-                },
-                {
-                  "key": "roastLevel",
-                  "value": "Medio",
-                  "description": "Filter by roast level"
-                },
-                {
-                  "key": "process",
-                  "value": "Lavado",
-                  "description": "Filter by process"
-                },
-                {
-                  "key": "page",
-                  "value": "0",
-                  "description": "Page number"
-                },
-                {
-                  "key": "size",
-                  "value": "10",
-                  "description": "Page size"
-                },
-                {
-                  "key": "sort",
-                  "value": "id,asc",
-                  "description": "Sort field and direction"
-                }
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Response is paginated', function () {",
-                  "  const json = pm.response.json();",
-                  "  pm.expect(json).to.have.property('content');",
-                  "  pm.expect(json.content).to.be.an('array');",
-                  "  pm.expect(json).to.have.property('page');",
-                  "  pm.expect(json).to.have.property('size');",
-                  "  pm.expect(json).to.have.property('totalElements');",
-                  "  pm.expect(json).to.have.property('totalPages');",
-                  "  pm.expect(json).to.have.property('first');",
-                  "  pm.expect(json).to.have.property('last');",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "GET - Coffee by ID",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/api/coffees/{{coffeeId}}",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "coffees",
-                "{{coffeeId}}"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 200, 404', function () {",
-                  "  pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "GET - Most-used coffees",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/api/coffees/most-used?limit=5",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "coffees",
-                "most-used"
-              ],
-              "query": [
-                {
-                  "key": "limit",
-                  "value": "5",
-                  "description": "Max rows (1-20, default 5)"
-                }
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Response is an array', function () {",
-                  "  pm.expect(pm.response.json()).to.be.an('array');",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "POST - Create coffee",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseURL}}/api/coffees",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "coffees"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Mezcla Veracruz\",\n  \"brand\": \"Caf\u00e9 local\",\n  \"origin\": \"Veracruz\",\n  \"region\": \"Coatepec\",\n  \"farm\": null,\n  \"producer\": null,\n  \"variety\": \"Blend\",\n  \"process\": \"Lavado\",\n  \"roastLevel\": \"Medio\",\n  \"notesPrimary\": \"Cardamomo\",\n  \"notesSecondary\": \"Canela, clavo, limpio, arom\u00e1tico\",\n  \"acidityScore\": 4,\n  \"bodyScore\": 3,\n  \"sweetnessScore\": 5,\n  \"bitternessScore\": 2,\n  \"description\": \"Caf\u00e9 especiado, limpio y arom\u00e1tico, ideal para AeroPress.\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is successful', function () {",
-                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
-                  "});",
-                  "",
-                  "const json = pm.response.json();",
-                  "if (json.id) {",
-                  "  pm.environment.set('coffeeId', json.id);",
-                  "  pm.collectionVariables.set('coffeeId', json.id);",
-                  "}"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "PUT - Update coffee",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseURL}}/api/coffees/{{coffeeId}}",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "coffees",
-                "{{coffeeId}}"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Mezcla Veracruz\",\n  \"brand\": \"Caf\u00e9 local\",\n  \"origin\": \"Veracruz\",\n  \"region\": \"Coatepec\",\n  \"farm\": null,\n  \"producer\": null,\n  \"variety\": \"Blend\",\n  \"process\": \"Lavado\",\n  \"roastLevel\": \"Medio\",\n  \"notesPrimary\": \"Cardamomo\",\n  \"notesSecondary\": \"Canela, clavo, limpio, arom\u00e1tico\",\n  \"acidityScore\": 4,\n  \"bodyScore\": 3,\n  \"sweetnessScore\": 5,\n  \"bitternessScore\": 2,\n  \"description\": \"Updated coffee description.\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 200', function () {",
-                  "  pm.expect(pm.response.code).to.be.oneOf([200]);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "DELETE - Delete coffee",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/api/coffees/{{coffeeId}}",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "coffees",
-                "{{coffeeId}}"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 204, 404', function () {",
-                  "  pm.expect(pm.response.code).to.be.oneOf([204, 404]);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "Brew Method",
-      "description": "Brew method CRUD endpoints. The database is also seeded with common methods through Flyway.",
-      "item": [
-        {
-          "name": "GET - List brew methods",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/api/brew-methods?page=0&size=10&sort=id,asc",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "brew-methods"
-              ],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "0",
-                  "description": "Page number"
-                },
-                {
-                  "key": "size",
-                  "value": "10",
-                  "description": "Page size"
-                },
-                {
-                  "key": "sort",
-                  "value": "id,asc",
-                  "description": "Sort field and direction"
-                }
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Response is paginated', function () {",
-                  "  const json = pm.response.json();",
-                  "  pm.expect(json).to.have.property('content');",
-                  "  pm.expect(json.content).to.be.an('array');",
-                  "  pm.expect(json).to.have.property('page');",
-                  "  pm.expect(json).to.have.property('size');",
-                  "  pm.expect(json).to.have.property('totalElements');",
-                  "  pm.expect(json).to.have.property('totalPages');",
-                  "  pm.expect(json).to.have.property('first');",
-                  "  pm.expect(json).to.have.property('last');",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "GET - Brew method by ID",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/api/brew-methods/{{methodId}}",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "brew-methods",
-                "{{methodId}}"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 200, 404', function () {",
-                  "  pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "GET - Method usage",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/api/brew-methods/usage",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "brew-methods",
-                "usage"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Response is an array', function () {",
-                  "  pm.expect(pm.response.json()).to.be.an('array');",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "POST - Create brew method",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseURL}}/api/brew-methods",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "brew-methods"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"AeroPress {{$timestamp}}\",\n  \"description\": \"Immersion and pressure-based brewing method.\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is successful', function () {",
-                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
-                  "});",
-                  "",
-                  "const json = pm.response.json();",
-                  "if (json.id) {",
-                  "  pm.environment.set('methodId', json.id);",
-                  "  pm.collectionVariables.set('methodId', json.id);",
-                  "}"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "PUT - Update brew method",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseURL}}/api/brew-methods/{{methodId}}",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "brew-methods",
-                "{{methodId}}"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"AeroPress Updated {{$timestamp}}\",\n  \"description\": \"Updated brew method description.\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 200', function () {",
-                  "  pm.expect(pm.response.code).to.be.oneOf([200]);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "DELETE - Delete brew method",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/api/brew-methods/{{methodId}}",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "brew-methods",
-                "{{methodId}}"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 204, 404', function () {",
-                  "  pm.expect(pm.response.code).to.be.oneOf([204, 404]);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "Recipe",
-      "description": "Recipe CRUD, filters, favorites, and lookup endpoints.",
-      "item": [
-        {
-          "name": "GET - List recipes",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/api/recipes?page=0&size=10&sort=id,asc",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "recipes"
-              ],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "0",
-                  "description": "Page number"
-                },
-                {
-                  "key": "size",
-                  "value": "10",
-                  "description": "Page size"
-                },
-                {
-                  "key": "sort",
-                  "value": "id,asc",
-                  "description": "Sort field and direction"
-                }
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Response is paginated', function () {",
-                  "  const json = pm.response.json();",
-                  "  pm.expect(json).to.have.property('content');",
-                  "  pm.expect(json.content).to.be.an('array');",
-                  "  pm.expect(json).to.have.property('page');",
-                  "  pm.expect(json).to.have.property('size');",
-                  "  pm.expect(json).to.have.property('totalElements');",
-                  "  pm.expect(json).to.have.property('totalPages');",
-                  "  pm.expect(json).to.have.property('first');",
-                  "  pm.expect(json).to.have.property('last');",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "GET - Search recipes",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/api/recipes?coffeeId={{coffeeId}}&methodId={{methodId}}&favorite=true&name=AeroPress&page=0&size=10&sort=id,asc",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "recipes"
-              ],
-              "query": [
-                {
-                  "key": "coffeeId",
-                  "value": "{{coffeeId}}",
-                  "description": "Filter by coffee ID"
-                },
-                {
-                  "key": "methodId",
-                  "value": "{{methodId}}",
-                  "description": "Filter by brew method ID"
-                },
-                {
-                  "key": "favorite",
-                  "value": "true",
-                  "description": "Filter by favorite flag"
-                },
-                {
-                  "key": "name",
-                  "value": "AeroPress",
-                  "description": "Filter by recipe name"
-                },
-                {
-                  "key": "page",
-                  "value": "0",
-                  "description": "Page number"
-                },
-                {
-                  "key": "size",
-                  "value": "10",
-                  "description": "Page size"
-                },
-                {
-                  "key": "sort",
-                  "value": "id,asc",
-                  "description": "Sort field and direction"
-                }
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Response is paginated', function () {",
-                  "  const json = pm.response.json();",
-                  "  pm.expect(json).to.have.property('content');",
-                  "  pm.expect(json.content).to.be.an('array');",
-                  "  pm.expect(json).to.have.property('page');",
-                  "  pm.expect(json).to.have.property('size');",
-                  "  pm.expect(json).to.have.property('totalElements');",
-                  "  pm.expect(json).to.have.property('totalPages');",
-                  "  pm.expect(json).to.have.property('first');",
-                  "  pm.expect(json).to.have.property('last');",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "GET - Recipe by ID",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/api/recipes/{{recipeId}}",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "recipes",
-                "{{recipeId}}"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 200, 404', function () {",
-                  "  pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "GET - Favorite recipes",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/api/recipes/favorites?page=0&size=10&sort=id,asc",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "recipes",
-                "favorites"
-              ],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "0",
-                  "description": "Page number"
-                },
-                {
-                  "key": "size",
-                  "value": "10",
-                  "description": "Page size"
-                },
-                {
-                  "key": "sort",
-                  "value": "id,asc",
-                  "description": "Sort field and direction"
-                }
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Response is paginated', function () {",
-                  "  const json = pm.response.json();",
-                  "  pm.expect(json).to.have.property('content');",
-                  "  pm.expect(json.content).to.be.an('array');",
-                  "  pm.expect(json).to.have.property('page');",
-                  "  pm.expect(json).to.have.property('size');",
-                  "  pm.expect(json).to.have.property('totalElements');",
-                  "  pm.expect(json).to.have.property('totalPages');",
-                  "  pm.expect(json).to.have.property('first');",
-                  "  pm.expect(json).to.have.property('last');",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "GET - Recipes by coffee ID",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/api/recipes/coffee/{{coffeeId}}?page=0&size=10&sort=id,asc",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "recipes",
-                "coffee",
-                "{{coffeeId}}"
-              ],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "0",
-                  "description": "Page number"
-                },
-                {
-                  "key": "size",
-                  "value": "10",
-                  "description": "Page size"
-                },
-                {
-                  "key": "sort",
-                  "value": "id,asc",
-                  "description": "Sort field and direction"
-                }
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Response is paginated', function () {",
-                  "  const json = pm.response.json();",
-                  "  pm.expect(json).to.have.property('content');",
-                  "  pm.expect(json.content).to.be.an('array');",
-                  "  pm.expect(json).to.have.property('page');",
-                  "  pm.expect(json).to.have.property('size');",
-                  "  pm.expect(json).to.have.property('totalElements');",
-                  "  pm.expect(json).to.have.property('totalPages');",
-                  "  pm.expect(json).to.have.property('first');",
-                  "  pm.expect(json).to.have.property('last');",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "GET - Recipes by method ID",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/api/recipes/method/{{methodId}}?page=0&size=10&sort=id,asc",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "recipes",
-                "method",
-                "{{methodId}}"
-              ],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "0",
-                  "description": "Page number"
-                },
-                {
-                  "key": "size",
-                  "value": "10",
-                  "description": "Page size"
-                },
-                {
-                  "key": "sort",
-                  "value": "id,asc",
-                  "description": "Sort field and direction"
-                }
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Response is paginated', function () {",
-                  "  const json = pm.response.json();",
-                  "  pm.expect(json).to.have.property('content');",
-                  "  pm.expect(json.content).to.be.an('array');",
-                  "  pm.expect(json).to.have.property('page');",
-                  "  pm.expect(json).to.have.property('size');",
-                  "  pm.expect(json).to.have.property('totalElements');",
-                  "  pm.expect(json).to.have.property('totalPages');",
-                  "  pm.expect(json).to.have.property('first');",
-                  "  pm.expect(json).to.have.property('last');",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "GET - Recipe stats",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/api/recipes/{{recipeId}}/stats",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "recipes",
-                "{{recipeId}}",
-                "stats"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Has recipe stats fields', function () {",
-                  "  const json = pm.response.json();",
-                  "  pm.expect(json).to.have.property('recipeId');",
-                  "  pm.expect(json).to.have.property('totalSessions');",
-                  "  pm.expect(json).to.have.property('averageRating');",
-                  "  pm.expect(json).to.have.property('lastBrewedAt');",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "GET - Top-rated recipes",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/api/recipes/top-rated?limit=5",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "recipes",
-                "top-rated"
-              ],
-              "query": [
-                {
-                  "key": "limit",
-                  "value": "5",
-                  "description": "Max rows (1-20, default 5)"
-                }
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Response is an array', function () {",
-                  "  pm.expect(pm.response.json()).to.be.an('array');",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "GET - Most-brewed recipes",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/api/recipes/most-brewed?limit=5",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "recipes",
-                "most-brewed"
-              ],
-              "query": [
-                {
-                  "key": "limit",
-                  "value": "5",
-                  "description": "Max rows (1-20, default 5)"
-                }
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Response is an array', function () {",
-                  "  pm.expect(pm.response.json()).to.be.an('array');",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "POST - Create recipe",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseURL}}/api/recipes",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "recipes"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"coffeeId\": \"{{coffeeId}}\",\n  \"methodId\": \"{{methodId}}\",\n  \"name\": \"Mezcla Veracruz AeroPress\",\n  \"coffeeGrams\": 15,\n  \"waterGrams\": 230,\n  \"ratio\": \"1:15\",\n  \"grindSetting\": \"Timemore S3 - 5.5\",\n  \"waterTemp\": 90,\n  \"brewTime\": \"2:30\",\n  \"steps\": \"Bloom 30s, stir gently, press slowly.\",\n  \"expectedTaste\": \"Clean, aromatic, spicy, balanced.\",\n  \"favorite\": false\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is successful', function () {",
-                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
-                  "});",
-                  "",
-                  "const json = pm.response.json();",
-                  "if (json.id) {",
-                  "  pm.environment.set('recipeId', json.id);",
-                  "  pm.collectionVariables.set('recipeId', json.id);",
-                  "}"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "POST - Suggest recipe (AI)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseURL}}/api/recipes/suggest",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "recipes",
-                "suggest"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"coffeeId\": \"{{coffeeId}}\",\n  \"methodId\": \"{{methodId}}\",\n  \"notes\": \"fruity and bright\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 200 (AI enabled) or 503 (AI disabled)', function () {",
-                  "  pm.expect(pm.response.code).to.be.oneOf([200, 503]);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Improve recipe from history",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/api/recipes/{{recipeId}}/improve",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "recipes",
-                "{{recipeId}}",
-                "improve"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "PUT - Update recipe",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseURL}}/api/recipes/{{recipeId}}",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "recipes",
-                "{{recipeId}}"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"coffeeId\": \"{{coffeeId}}\",\n  \"methodId\": \"{{methodId}}\",\n  \"name\": \"Mezcla Veracruz AeroPress Updated\",\n  \"coffeeGrams\": 15,\n  \"waterGrams\": 230,\n  \"ratio\": \"1:15\",\n  \"grindSetting\": \"Timemore S3 - 5.5\",\n  \"waterTemp\": 90,\n  \"brewTime\": \"2:30\",\n  \"steps\": \"Bloom 30s, stir gently, press slowly.\",\n  \"expectedTaste\": \"Clean, aromatic, spicy, balanced.\",\n  \"favorite\": true\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 200', function () {",
-                  "  pm.expect(pm.response.code).to.be.oneOf([200]);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "PATCH - Mark recipe as favorite",
-          "request": {
-            "method": "PATCH",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/api/recipes/{{recipeId}}/favorite",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "recipes",
-                "{{recipeId}}",
-                "favorite"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 200', function () {",
-                  "  pm.expect(pm.response.code).to.be.oneOf([200]);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "PATCH - Remove recipe from favorites",
-          "request": {
-            "method": "PATCH",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/api/recipes/{{recipeId}}/unfavorite",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "recipes",
-                "{{recipeId}}",
-                "unfavorite"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 200', function () {",
-                  "  pm.expect(pm.response.code).to.be.oneOf([200]);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "PATCH - Share recipe",
-          "request": {
-            "method": "PATCH",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/api/recipes/{{recipeId}}/share",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "recipes",
-                "{{recipeId}}",
-                "share"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 200', function () {",
-                  "  pm.expect(pm.response.code).to.be.oneOf([200]);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "PATCH - Unshare recipe",
-          "request": {
-            "method": "PATCH",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/api/recipes/{{recipeId}}/unshare",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "recipes",
-                "{{recipeId}}",
-                "unshare"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 200', function () {",
-                  "  pm.expect(pm.response.code).to.be.oneOf([200]);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "GET - Get public recipe by token",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/api/public/recipes/{{shareToken}}",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "public",
-                "recipes",
-                "{{shareToken}}"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 200, 404', function () {",
-                  "  pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "DELETE - Delete recipe",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/api/recipes/{{recipeId}}",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "recipes",
-                "{{recipeId}}"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 204, 404', function () {",
-                  "  pm.expect(pm.response.code).to.be.oneOf([204, 404]);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "Brew Session",
-      "description": "Brew session CRUD, filters, and recipe history endpoints.",
-      "item": [
-        {
-          "name": "GET - List brew sessions",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/api/brew-sessions?page=0&size=10&sort=id,asc",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "brew-sessions"
-              ],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "0",
-                  "description": "Page number"
-                },
-                {
-                  "key": "size",
-                  "value": "10",
-                  "description": "Page size"
-                },
-                {
-                  "key": "sort",
-                  "value": "id,asc",
-                  "description": "Sort field and direction"
-                }
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Response is paginated', function () {",
-                  "  const json = pm.response.json();",
-                  "  pm.expect(json).to.have.property('content');",
-                  "  pm.expect(json.content).to.be.an('array');",
-                  "  pm.expect(json).to.have.property('page');",
-                  "  pm.expect(json).to.have.property('size');",
-                  "  pm.expect(json).to.have.property('totalElements');",
-                  "  pm.expect(json).to.have.property('totalPages');",
-                  "  pm.expect(json).to.have.property('first');",
-                  "  pm.expect(json).to.have.property('last');",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "GET - Search brew sessions",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/api/brew-sessions?recipeId={{recipeId}}&rating=9&page=0&size=10&sort=id,asc",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "brew-sessions"
-              ],
-              "query": [
-                {
-                  "key": "recipeId",
-                  "value": "{{recipeId}}",
-                  "description": "Filter by recipe ID"
-                },
-                {
-                  "key": "rating",
-                  "value": "9",
-                  "description": "Filter by rating"
-                },
-                {
-                  "key": "page",
-                  "value": "0",
-                  "description": "Page number"
-                },
-                {
-                  "key": "size",
-                  "value": "10",
-                  "description": "Page size"
-                },
-                {
-                  "key": "sort",
-                  "value": "id,asc",
-                  "description": "Sort field and direction"
-                }
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Response is paginated', function () {",
-                  "  const json = pm.response.json();",
-                  "  pm.expect(json).to.have.property('content');",
-                  "  pm.expect(json.content).to.be.an('array');",
-                  "  pm.expect(json).to.have.property('page');",
-                  "  pm.expect(json).to.have.property('size');",
-                  "  pm.expect(json).to.have.property('totalElements');",
-                  "  pm.expect(json).to.have.property('totalPages');",
-                  "  pm.expect(json).to.have.property('first');",
-                  "  pm.expect(json).to.have.property('last');",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "GET - Brew session by ID",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/api/brew-sessions/{{sessionId}}",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "brew-sessions",
-                "{{sessionId}}"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 200, 404', function () {",
-                  "  pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "GET - Brew sessions by recipe ID",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/api/brew-sessions/recipe/{{recipeId}}?page=0&size=10&sort=id,asc",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "brew-sessions",
-                "recipe",
-                "{{recipeId}}"
-              ],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "0",
-                  "description": "Page number"
-                },
-                {
-                  "key": "size",
-                  "value": "10",
-                  "description": "Page size"
-                },
-                {
-                  "key": "sort",
-                  "value": "id,asc",
-                  "description": "Sort field and direction"
-                }
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Response is paginated', function () {",
-                  "  const json = pm.response.json();",
-                  "  pm.expect(json).to.have.property('content');",
-                  "  pm.expect(json.content).to.be.an('array');",
-                  "  pm.expect(json).to.have.property('page');",
-                  "  pm.expect(json).to.have.property('size');",
-                  "  pm.expect(json).to.have.property('totalElements');",
-                  "  pm.expect(json).to.have.property('totalPages');",
-                  "  pm.expect(json).to.have.property('first');",
-                  "  pm.expect(json).to.have.property('last');",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "POST - Create brew session",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseURL}}/api/brew-sessions",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "brew-sessions"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"recipeId\": \"{{recipeId}}\",\n  \"actualGrind\": \"Timemore S3 - 5.5\",\n  \"actualTemp\": 90,\n  \"actualTime\": \"2:30\",\n  \"tasteResult\": \"Balanced, clean and aromatic. Cardamom and cinnamon notes were noticeable.\",\n  \"rating\": 9,\n  \"adjustmentNotes\": \"Repeat same recipe next time.\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is successful', function () {",
-                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
-                  "});",
-                  "",
-                  "const json = pm.response.json();",
-                  "if (json.id) {",
-                  "  pm.environment.set('sessionId', json.id);",
-                  "  pm.collectionVariables.set('sessionId', json.id);",
-                  "}"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "PUT - Update brew session",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseURL}}/api/brew-sessions/{{sessionId}}",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "brew-sessions",
-                "{{sessionId}}"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"recipeId\": \"{{recipeId}}\",\n  \"actualGrind\": \"Timemore S3 - 5.5\",\n  \"actualTemp\": 90,\n  \"actualTime\": \"2:30\",\n  \"tasteResult\": \"Balanced, clean and aromatic. Cardamom and cinnamon notes were noticeable.\",\n  \"rating\": 10,\n  \"adjustmentNotes\": \"Updated notes.\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 200', function () {",
-                  "  pm.expect(pm.response.code).to.be.oneOf([200]);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "DELETE - Delete brew session",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/api/brew-sessions/{{sessionId}}",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "brew-sessions",
-                "{{sessionId}}"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 204, 404', function () {",
-                  "  pm.expect(pm.response.code).to.be.oneOf([204, 404]);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "Dashboard",
-      "item": [
-        {
-          "name": "GET - Dashboard summary",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/api/dashboard/summary",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "dashboard",
-                "summary"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 200', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});",
-                  "pm.test('Has aggregate counters', function () {",
-                  "  const json = pm.response.json();",
-                  "  pm.expect(json).to.have.property('totalCoffees');",
-                  "  pm.expect(json).to.have.property('totalRecipes');",
-                  "  pm.expect(json).to.have.property('totalBrewSessions');",
-                  "});"
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "System",
-      "item": [
-        {
-          "name": "GET - Health",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseURL}}/actuator/health",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "actuator",
-                "health"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 200', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});",
-                  "pm.test('Status is UP', function () {",
-                  "  pm.expect(pm.response.json().status).to.eql('UP');",
-                  "});"
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "Validation Examples",
-      "description": "Invalid request examples for checking GlobalExceptionHandler validation responses.",
-      "item": [
-        {
-          "name": "POST - Coffee invalid blank name",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseURL}}/api/coffees",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "coffees"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"\",\n  \"brand\": \"Caf\u00e9 local\",\n  \"origin\": \"Veracruz\",\n  \"region\": \"Coatepec\",\n  \"farm\": null,\n  \"producer\": null,\n  \"variety\": \"Blend\",\n  \"process\": \"Lavado\",\n  \"roastLevel\": \"Medio\",\n  \"notesPrimary\": \"Cardamomo\",\n  \"notesSecondary\": \"Canela, clavo, limpio, arom\u00e1tico\",\n  \"acidityScore\": 4,\n  \"bodyScore\": 3,\n  \"sweetnessScore\": 5,\n  \"bitternessScore\": 2,\n  \"description\": \"Caf\u00e9 especiado, limpio y arom\u00e1tico, ideal para AeroPress.\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 400', function () {",
-                  "  pm.expect(pm.response.code).to.equal(400);",
-                  "});",
-                  "pm.test('Validation error body is returned', function () {",
-                  "  const json = pm.response.json();",
-                  "  pm.expect(json.status).to.equal(400);",
-                  "  pm.expect(json.error).to.equal('Bad Request');",
-                  "  pm.expect(json.message).to.equal('Validation failed');",
-                  "  pm.expect(json).to.have.property('validationErrors');",
-                  "  pm.expect(json.validationErrors).to.have.property('name');",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "POST - Brew method invalid blank name",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseURL}}/api/brew-methods",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "brew-methods"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"\",\n  \"description\": \"Invalid method.\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 400', function () {",
-                  "  pm.expect(pm.response.code).to.equal(400);",
-                  "});",
-                  "pm.test('Validation error body is returned', function () {",
-                  "  const json = pm.response.json();",
-                  "  pm.expect(json.status).to.equal(400);",
-                  "  pm.expect(json.error).to.equal('Bad Request');",
-                  "  pm.expect(json.message).to.equal('Validation failed');",
-                  "  pm.expect(json).to.have.property('validationErrors');",
-                  "  pm.expect(json.validationErrors).to.have.property('name');",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "POST - Recipe invalid required fields",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseURL}}/api/recipes",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "recipes"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"coffeeId\": null,\n  \"methodId\": null,\n  \"name\": \"\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 400', function () {",
-                  "  pm.expect(pm.response.code).to.equal(400);",
-                  "});",
-                  "pm.test('Validation error body is returned', function () {",
-                  "  const json = pm.response.json();",
-                  "  pm.expect(json.status).to.equal(400);",
-                  "  pm.expect(json.error).to.equal('Bad Request');",
-                  "  pm.expect(json.message).to.equal('Validation failed');",
-                  "  pm.expect(json).to.have.property('validationErrors');",
-                  "  pm.expect(json.validationErrors).to.have.property('coffeeId');",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "POST - Recipe invalid water temperature",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseURL}}/api/recipes",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "recipes"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"coffeeId\": \"{{coffeeId}}\",\n  \"methodId\": \"{{methodId}}\",\n  \"name\": \"Mezcla Veracruz AeroPress\",\n  \"coffeeGrams\": 15,\n  \"waterGrams\": 230,\n  \"ratio\": \"1:15\",\n  \"grindSetting\": \"Timemore S3 - 5.5\",\n  \"waterTemp\": 101,\n  \"brewTime\": \"2:30\",\n  \"steps\": \"Bloom 30s, stir gently, press slowly.\",\n  \"expectedTaste\": \"Clean, aromatic, spicy, balanced.\",\n  \"favorite\": false\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 400', function () {",
-                  "  pm.expect(pm.response.code).to.equal(400);",
-                  "});",
-                  "pm.test('Validation error body is returned', function () {",
-                  "  const json = pm.response.json();",
-                  "  pm.expect(json.status).to.equal(400);",
-                  "  pm.expect(json.error).to.equal('Bad Request');",
-                  "  pm.expect(json.message).to.equal('Validation failed');",
-                  "  pm.expect(json).to.have.property('validationErrors');",
-                  "  pm.expect(json.validationErrors).to.have.property('waterTemp');",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "POST - Brew session invalid rating",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseURL}}/api/brew-sessions",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "brew-sessions"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"recipeId\": \"{{recipeId}}\",\n  \"actualGrind\": \"Timemore S3 - 5.5\",\n  \"actualTemp\": 90,\n  \"actualTime\": \"2:30\",\n  \"tasteResult\": \"Balanced, clean and aromatic. Cardamom and cinnamon notes were noticeable.\",\n  \"rating\": 11,\n  \"adjustmentNotes\": \"Repeat same recipe next time.\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 400', function () {",
-                  "  pm.expect(pm.response.code).to.equal(400);",
-                  "});",
-                  "pm.test('Validation error body is returned', function () {",
-                  "  const json = pm.response.json();",
-                  "  pm.expect(json.status).to.equal(400);",
-                  "  pm.expect(json.error).to.equal('Bad Request');",
-                  "  pm.expect(json.message).to.equal('Validation failed');",
-                  "  pm.expect(json).to.have.property('validationErrors');",
-                  "  pm.expect(json.validationErrors).to.have.property('rating');",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "POST - Brew session invalid temperature",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseURL}}/api/brew-sessions",
-              "host": [
-                "{{baseURL}}"
-              ],
-              "path": [
-                "api",
-                "brew-sessions"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"recipeId\": \"{{recipeId}}\",\n  \"actualGrind\": \"Timemore S3 - 5.5\",\n  \"actualTemp\": 101,\n  \"actualTime\": \"2:30\",\n  \"tasteResult\": \"Balanced, clean and aromatic. Cardamom and cinnamon notes were noticeable.\",\n  \"rating\": 9,\n  \"adjustmentNotes\": \"Repeat same recipe next time.\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 400', function () {",
-                  "  pm.expect(pm.response.code).to.equal(400);",
-                  "});",
-                  "pm.test('Validation error body is returned', function () {",
-                  "  const json = pm.response.json();",
-                  "  pm.expect(json.status).to.equal(400);",
-                  "  pm.expect(json.error).to.equal('Bad Request');",
-                  "  pm.expect(json.message).to.equal('Validation failed');",
-                  "  pm.expect(json).to.have.property('validationErrors');",
-                  "  pm.expect(json.validationErrors).to.have.property('actualTemp');",
-                  "});"
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    }
+  {
+   "key": "methodId",
+   "value": "1",
+   "type": "string"
+  },
+  {
+   "key": "recipeId",
+   "value": "1",
+   "type": "string"
+  },
+  {
+   "key": "sessionId",
+   "value": "1",
+   "type": "string"
+  },
+  {
+   "key": "shareToken",
+   "value": "",
+   "type": "string"
+  },
+  {
+   "key": "authToken",
+   "value": "",
+   "type": "string"
+  },
+  {
+   "key": "refreshToken",
+   "value": "",
+   "type": "string"
+  }
+ ],
+ "auth": {
+  "type": "bearer",
+  "bearer": [
+   {
+    "key": "token",
+    "value": "{{authToken}}",
+    "type": "string"
+   }
   ]
+ },
+ "item": [
+  {
+   "name": "Auth",
+   "description": "Self-registration, JWT login, current-user, and refresh/logout endpoints. Register/login are unauthenticated; login and register save the returned access token into authToken and the returned refresh token into refreshToken (collection variables) so protected requests inherit the bearer token via collection-level Bearer auth and Refresh/Logout can reuse the refresh token.",
+   "item": [
+    {
+     "name": "POST - Register",
+     "request": {
+      "auth": {
+       "type": "noauth"
+      },
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"email\": \"brewer@example.com\",\n  \"password\": \"password1\"\n}"
+      },
+      "url": {
+       "raw": "{{baseURL}}/api/auth/register",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "auth",
+        "register"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 201', function () {",
+         "  pm.response.to.have.status(201);",
+         "});",
+         "pm.collectionVariables.set('authToken', pm.response.json().token);",
+         "pm.collectionVariables.set('refreshToken', pm.response.json().refreshToken);"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "POST - Login",
+     "request": {
+      "auth": {
+       "type": "noauth"
+      },
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"email\": \"brewer@example.com\",\n  \"password\": \"password1\"\n}"
+      },
+      "url": {
+       "raw": "{{baseURL}}/api/auth/login",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "auth",
+        "login"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 200', function () {",
+         "  pm.response.to.have.status(200);",
+         "});",
+         "pm.collectionVariables.set('authToken', pm.response.json().token);",
+         "pm.collectionVariables.set('refreshToken', pm.response.json().refreshToken);"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "GET - Current user (me)",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Authorization",
+        "value": "Bearer {{authToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseURL}}/api/auth/me",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "auth",
+        "me"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 200', function () {",
+         "  pm.response.to.have.status(200);",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "PATCH - Update profile (me)",
+     "request": {
+      "method": "PATCH",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{authToken}}"
+       }
+      ],
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"displayName\": \"Barista Bob\"\n}"
+      },
+      "url": {
+       "raw": "{{baseURL}}/api/auth/me",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "auth",
+        "me"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 200', function () {",
+         "  pm.response.to.have.status(200);",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "POST - Change password",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{authToken}}"
+       }
+      ],
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"currentPassword\": \"password1\",\n  \"newPassword\": \"newpassword1\"\n}"
+      },
+      "url": {
+       "raw": "{{baseURL}}/api/auth/change-password",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "auth",
+        "change-password"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 204', function () {",
+         "  pm.response.to.have.status(204);",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "POST - Forgot password",
+     "request": {
+      "auth": {
+       "type": "noauth"
+      },
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"email\": \"brewer@example.com\"\n}"
+      },
+      "url": {
+       "raw": "{{baseURL}}/api/auth/forgot-password",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "auth",
+        "forgot-password"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 200', function () {",
+         "  pm.response.to.have.status(200);",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "POST - Reset password",
+     "request": {
+      "auth": {
+       "type": "noauth"
+      },
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"token\": \"paste-token-from-logs\",\n  \"newPassword\": \"newpassword1\"\n}"
+      },
+      "url": {
+       "raw": "{{baseURL}}/api/auth/reset-password",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "auth",
+        "reset-password"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 204', function () {",
+         "  pm.response.to.have.status(204);",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "POST - Verify email",
+     "request": {
+      "auth": {
+       "type": "noauth"
+      },
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"token\": \"paste-token-from-logs\"\n}"
+      },
+      "url": {
+       "raw": "{{baseURL}}/api/auth/verify-email",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "auth",
+        "verify-email"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 204', function () {",
+         "  pm.response.to.have.status(204);",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "POST - Resend verification",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Authorization",
+        "value": "Bearer {{authToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseURL}}/api/auth/resend-verification",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "auth",
+        "resend-verification"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 200', function () {",
+         "  pm.response.to.have.status(200);",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "POST - Refresh token",
+     "request": {
+      "auth": {
+       "type": "noauth"
+      },
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+      },
+      "url": {
+       "raw": "{{baseURL}}/api/auth/refresh",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "auth",
+        "refresh"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 200', function () {",
+         "  pm.response.to.have.status(200);",
+         "});",
+         "pm.collectionVariables.set('authToken', pm.response.json().token);",
+         "pm.collectionVariables.set('refreshToken', pm.response.json().refreshToken);"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "POST - Logout",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{authToken}}"
+       }
+      ],
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+      },
+      "url": {
+       "raw": "{{baseURL}}/api/auth/logout",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "auth",
+        "logout"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 204', function () {",
+         "  pm.response.to.have.status(204);",
+         "});"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Coffee",
+   "description": "Coffee CRUD and search endpoints.",
+   "item": [
+    {
+     "name": "GET - List coffees",
+     "request": {
+      "method": "GET",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/coffees?page=0&size=10&sort=id,asc",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "coffees"
+       ],
+       "query": [
+        {
+         "key": "page",
+         "value": "0",
+         "description": "Page number"
+        },
+        {
+         "key": "size",
+         "value": "10",
+         "description": "Page size"
+        },
+        {
+         "key": "sort",
+         "value": "id,asc",
+         "description": "Sort field and direction"
+        }
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Response is paginated', function () {",
+         "  const json = pm.response.json();",
+         "  pm.expect(json).to.have.property('content');",
+         "  pm.expect(json.content).to.be.an('array');",
+         "  pm.expect(json).to.have.property('page');",
+         "  pm.expect(json).to.have.property('size');",
+         "  pm.expect(json).to.have.property('totalElements');",
+         "  pm.expect(json).to.have.property('totalPages');",
+         "  pm.expect(json).to.have.property('first');",
+         "  pm.expect(json).to.have.property('last');",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "GET - Search coffees",
+     "request": {
+      "method": "GET",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/coffees?name=Veracruz&origin=Veracruz&roastLevel=Medio&process=Lavado&page=0&size=10&sort=id,asc",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "coffees"
+       ],
+       "query": [
+        {
+         "key": "name",
+         "value": "Veracruz",
+         "description": "Filter by coffee name"
+        },
+        {
+         "key": "origin",
+         "value": "Veracruz",
+         "description": "Filter by origin"
+        },
+        {
+         "key": "roastLevel",
+         "value": "Medio",
+         "description": "Filter by roast level"
+        },
+        {
+         "key": "process",
+         "value": "Lavado",
+         "description": "Filter by process"
+        },
+        {
+         "key": "page",
+         "value": "0",
+         "description": "Page number"
+        },
+        {
+         "key": "size",
+         "value": "10",
+         "description": "Page size"
+        },
+        {
+         "key": "sort",
+         "value": "id,asc",
+         "description": "Sort field and direction"
+        }
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Response is paginated', function () {",
+         "  const json = pm.response.json();",
+         "  pm.expect(json).to.have.property('content');",
+         "  pm.expect(json.content).to.be.an('array');",
+         "  pm.expect(json).to.have.property('page');",
+         "  pm.expect(json).to.have.property('size');",
+         "  pm.expect(json).to.have.property('totalElements');",
+         "  pm.expect(json).to.have.property('totalPages');",
+         "  pm.expect(json).to.have.property('first');",
+         "  pm.expect(json).to.have.property('last');",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "GET - Coffee by ID",
+     "request": {
+      "method": "GET",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/coffees/{{coffeeId}}",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "coffees",
+        "{{coffeeId}}"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 200, 404', function () {",
+         "  pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "GET - Most-used coffees",
+     "request": {
+      "method": "GET",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/coffees/most-used?limit=5",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "coffees",
+        "most-used"
+       ],
+       "query": [
+        {
+         "key": "limit",
+         "value": "5",
+         "description": "Max rows (1-20, default 5)"
+        }
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Response is an array', function () {",
+         "  pm.expect(pm.response.json()).to.be.an('array');",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "POST - Create coffee",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "{{baseURL}}/api/coffees",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "coffees"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"name\": \"Mezcla Veracruz\",\n  \"brand\": \"Caf\u00e9 local\",\n  \"origin\": \"Veracruz\",\n  \"region\": \"Coatepec\",\n  \"farm\": null,\n  \"producer\": null,\n  \"variety\": \"Blend\",\n  \"process\": \"Lavado\",\n  \"roastLevel\": \"Medio\",\n  \"notesPrimary\": \"Cardamomo\",\n  \"notesSecondary\": \"Canela, clavo, limpio, arom\u00e1tico\",\n  \"acidityScore\": 4,\n  \"bodyScore\": 3,\n  \"sweetnessScore\": 5,\n  \"bitternessScore\": 2,\n  \"description\": \"Caf\u00e9 especiado, limpio y arom\u00e1tico, ideal para AeroPress.\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is successful', function () {",
+         "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+         "});",
+         "",
+         "const json = pm.response.json();",
+         "if (json.id) {",
+         "  pm.environment.set('coffeeId', json.id);",
+         "  pm.collectionVariables.set('coffeeId', json.id);",
+         "}"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "PUT - Update coffee",
+     "request": {
+      "method": "PUT",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "{{baseURL}}/api/coffees/{{coffeeId}}",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "coffees",
+        "{{coffeeId}}"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"name\": \"Mezcla Veracruz\",\n  \"brand\": \"Caf\u00e9 local\",\n  \"origin\": \"Veracruz\",\n  \"region\": \"Coatepec\",\n  \"farm\": null,\n  \"producer\": null,\n  \"variety\": \"Blend\",\n  \"process\": \"Lavado\",\n  \"roastLevel\": \"Medio\",\n  \"notesPrimary\": \"Cardamomo\",\n  \"notesSecondary\": \"Canela, clavo, limpio, arom\u00e1tico\",\n  \"acidityScore\": 4,\n  \"bodyScore\": 3,\n  \"sweetnessScore\": 5,\n  \"bitternessScore\": 2,\n  \"description\": \"Updated coffee description.\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 200', function () {",
+         "  pm.expect(pm.response.code).to.be.oneOf([200]);",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "DELETE - Delete coffee",
+     "request": {
+      "method": "DELETE",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/coffees/{{coffeeId}}",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "coffees",
+        "{{coffeeId}}"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 204, 404', function () {",
+         "  pm.expect(pm.response.code).to.be.oneOf([204, 404]);",
+         "});"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Brew Method",
+   "description": "Brew method CRUD endpoints. The database is also seeded with common methods through Flyway.",
+   "item": [
+    {
+     "name": "GET - List brew methods",
+     "request": {
+      "method": "GET",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/brew-methods?page=0&size=10&sort=id,asc",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "brew-methods"
+       ],
+       "query": [
+        {
+         "key": "page",
+         "value": "0",
+         "description": "Page number"
+        },
+        {
+         "key": "size",
+         "value": "10",
+         "description": "Page size"
+        },
+        {
+         "key": "sort",
+         "value": "id,asc",
+         "description": "Sort field and direction"
+        }
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Response is paginated', function () {",
+         "  const json = pm.response.json();",
+         "  pm.expect(json).to.have.property('content');",
+         "  pm.expect(json.content).to.be.an('array');",
+         "  pm.expect(json).to.have.property('page');",
+         "  pm.expect(json).to.have.property('size');",
+         "  pm.expect(json).to.have.property('totalElements');",
+         "  pm.expect(json).to.have.property('totalPages');",
+         "  pm.expect(json).to.have.property('first');",
+         "  pm.expect(json).to.have.property('last');",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "GET - Brew method by ID",
+     "request": {
+      "method": "GET",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/brew-methods/{{methodId}}",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "brew-methods",
+        "{{methodId}}"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 200, 404', function () {",
+         "  pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "GET - Method usage",
+     "request": {
+      "method": "GET",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/brew-methods/usage",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "brew-methods",
+        "usage"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Response is an array', function () {",
+         "  pm.expect(pm.response.json()).to.be.an('array');",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "POST - Create brew method",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "{{baseURL}}/api/brew-methods",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "brew-methods"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"name\": \"AeroPress {{$timestamp}}\",\n  \"description\": \"Immersion and pressure-based brewing method.\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is successful', function () {",
+         "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+         "});",
+         "",
+         "const json = pm.response.json();",
+         "if (json.id) {",
+         "  pm.environment.set('methodId', json.id);",
+         "  pm.collectionVariables.set('methodId', json.id);",
+         "}"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "PUT - Update brew method",
+     "request": {
+      "method": "PUT",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "{{baseURL}}/api/brew-methods/{{methodId}}",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "brew-methods",
+        "{{methodId}}"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"name\": \"AeroPress Updated {{$timestamp}}\",\n  \"description\": \"Updated brew method description.\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 200', function () {",
+         "  pm.expect(pm.response.code).to.be.oneOf([200]);",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "DELETE - Delete brew method",
+     "request": {
+      "method": "DELETE",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/brew-methods/{{methodId}}",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "brew-methods",
+        "{{methodId}}"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 204, 404', function () {",
+         "  pm.expect(pm.response.code).to.be.oneOf([204, 404]);",
+         "});"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Recipe",
+   "description": "Recipe CRUD, filters, favorites, and lookup endpoints.",
+   "item": [
+    {
+     "name": "GET - List recipes",
+     "request": {
+      "method": "GET",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/recipes?page=0&size=10&sort=id,asc",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "recipes"
+       ],
+       "query": [
+        {
+         "key": "page",
+         "value": "0",
+         "description": "Page number"
+        },
+        {
+         "key": "size",
+         "value": "10",
+         "description": "Page size"
+        },
+        {
+         "key": "sort",
+         "value": "id,asc",
+         "description": "Sort field and direction"
+        }
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Response is paginated', function () {",
+         "  const json = pm.response.json();",
+         "  pm.expect(json).to.have.property('content');",
+         "  pm.expect(json.content).to.be.an('array');",
+         "  pm.expect(json).to.have.property('page');",
+         "  pm.expect(json).to.have.property('size');",
+         "  pm.expect(json).to.have.property('totalElements');",
+         "  pm.expect(json).to.have.property('totalPages');",
+         "  pm.expect(json).to.have.property('first');",
+         "  pm.expect(json).to.have.property('last');",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "GET - Search recipes",
+     "request": {
+      "method": "GET",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/recipes?coffeeId={{coffeeId}}&methodId={{methodId}}&favorite=true&name=AeroPress&page=0&size=10&sort=id,asc",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "recipes"
+       ],
+       "query": [
+        {
+         "key": "coffeeId",
+         "value": "{{coffeeId}}",
+         "description": "Filter by coffee ID"
+        },
+        {
+         "key": "methodId",
+         "value": "{{methodId}}",
+         "description": "Filter by brew method ID"
+        },
+        {
+         "key": "favorite",
+         "value": "true",
+         "description": "Filter by favorite flag"
+        },
+        {
+         "key": "name",
+         "value": "AeroPress",
+         "description": "Filter by recipe name"
+        },
+        {
+         "key": "page",
+         "value": "0",
+         "description": "Page number"
+        },
+        {
+         "key": "size",
+         "value": "10",
+         "description": "Page size"
+        },
+        {
+         "key": "sort",
+         "value": "id,asc",
+         "description": "Sort field and direction"
+        }
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Response is paginated', function () {",
+         "  const json = pm.response.json();",
+         "  pm.expect(json).to.have.property('content');",
+         "  pm.expect(json.content).to.be.an('array');",
+         "  pm.expect(json).to.have.property('page');",
+         "  pm.expect(json).to.have.property('size');",
+         "  pm.expect(json).to.have.property('totalElements');",
+         "  pm.expect(json).to.have.property('totalPages');",
+         "  pm.expect(json).to.have.property('first');",
+         "  pm.expect(json).to.have.property('last');",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "GET - Recipe by ID",
+     "request": {
+      "method": "GET",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/recipes/{{recipeId}}",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "recipes",
+        "{{recipeId}}"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 200, 404', function () {",
+         "  pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "GET - Favorite recipes",
+     "request": {
+      "method": "GET",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/recipes/favorites?page=0&size=10&sort=id,asc",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "recipes",
+        "favorites"
+       ],
+       "query": [
+        {
+         "key": "page",
+         "value": "0",
+         "description": "Page number"
+        },
+        {
+         "key": "size",
+         "value": "10",
+         "description": "Page size"
+        },
+        {
+         "key": "sort",
+         "value": "id,asc",
+         "description": "Sort field and direction"
+        }
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Response is paginated', function () {",
+         "  const json = pm.response.json();",
+         "  pm.expect(json).to.have.property('content');",
+         "  pm.expect(json.content).to.be.an('array');",
+         "  pm.expect(json).to.have.property('page');",
+         "  pm.expect(json).to.have.property('size');",
+         "  pm.expect(json).to.have.property('totalElements');",
+         "  pm.expect(json).to.have.property('totalPages');",
+         "  pm.expect(json).to.have.property('first');",
+         "  pm.expect(json).to.have.property('last');",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "GET - Recipes by coffee ID",
+     "request": {
+      "method": "GET",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/recipes/coffee/{{coffeeId}}?page=0&size=10&sort=id,asc",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "recipes",
+        "coffee",
+        "{{coffeeId}}"
+       ],
+       "query": [
+        {
+         "key": "page",
+         "value": "0",
+         "description": "Page number"
+        },
+        {
+         "key": "size",
+         "value": "10",
+         "description": "Page size"
+        },
+        {
+         "key": "sort",
+         "value": "id,asc",
+         "description": "Sort field and direction"
+        }
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Response is paginated', function () {",
+         "  const json = pm.response.json();",
+         "  pm.expect(json).to.have.property('content');",
+         "  pm.expect(json.content).to.be.an('array');",
+         "  pm.expect(json).to.have.property('page');",
+         "  pm.expect(json).to.have.property('size');",
+         "  pm.expect(json).to.have.property('totalElements');",
+         "  pm.expect(json).to.have.property('totalPages');",
+         "  pm.expect(json).to.have.property('first');",
+         "  pm.expect(json).to.have.property('last');",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "GET - Recipes by method ID",
+     "request": {
+      "method": "GET",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/recipes/method/{{methodId}}?page=0&size=10&sort=id,asc",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "recipes",
+        "method",
+        "{{methodId}}"
+       ],
+       "query": [
+        {
+         "key": "page",
+         "value": "0",
+         "description": "Page number"
+        },
+        {
+         "key": "size",
+         "value": "10",
+         "description": "Page size"
+        },
+        {
+         "key": "sort",
+         "value": "id,asc",
+         "description": "Sort field and direction"
+        }
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Response is paginated', function () {",
+         "  const json = pm.response.json();",
+         "  pm.expect(json).to.have.property('content');",
+         "  pm.expect(json.content).to.be.an('array');",
+         "  pm.expect(json).to.have.property('page');",
+         "  pm.expect(json).to.have.property('size');",
+         "  pm.expect(json).to.have.property('totalElements');",
+         "  pm.expect(json).to.have.property('totalPages');",
+         "  pm.expect(json).to.have.property('first');",
+         "  pm.expect(json).to.have.property('last');",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "GET - Recipe stats",
+     "request": {
+      "method": "GET",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/recipes/{{recipeId}}/stats",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "recipes",
+        "{{recipeId}}",
+        "stats"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Has recipe stats fields', function () {",
+         "  const json = pm.response.json();",
+         "  pm.expect(json).to.have.property('recipeId');",
+         "  pm.expect(json).to.have.property('totalSessions');",
+         "  pm.expect(json).to.have.property('averageRating');",
+         "  pm.expect(json).to.have.property('lastBrewedAt');",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "GET - Top-rated recipes",
+     "request": {
+      "method": "GET",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/recipes/top-rated?limit=5",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "recipes",
+        "top-rated"
+       ],
+       "query": [
+        {
+         "key": "limit",
+         "value": "5",
+         "description": "Max rows (1-20, default 5)"
+        }
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Response is an array', function () {",
+         "  pm.expect(pm.response.json()).to.be.an('array');",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "GET - Most-brewed recipes",
+     "request": {
+      "method": "GET",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/recipes/most-brewed?limit=5",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "recipes",
+        "most-brewed"
+       ],
+       "query": [
+        {
+         "key": "limit",
+         "value": "5",
+         "description": "Max rows (1-20, default 5)"
+        }
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Response is an array', function () {",
+         "  pm.expect(pm.response.json()).to.be.an('array');",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "POST - Create recipe",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "{{baseURL}}/api/recipes",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "recipes"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"coffeeId\": \"{{coffeeId}}\",\n  \"methodId\": \"{{methodId}}\",\n  \"name\": \"Mezcla Veracruz AeroPress\",\n  \"coffeeGrams\": 15,\n  \"waterGrams\": 230,\n  \"ratio\": \"1:15\",\n  \"grindSetting\": \"Timemore S3 - 5.5\",\n  \"waterTemp\": 90,\n  \"brewTime\": \"2:30\",\n  \"steps\": \"Bloom 30s, stir gently, press slowly.\",\n  \"expectedTaste\": \"Clean, aromatic, spicy, balanced.\",\n  \"favorite\": false\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is successful', function () {",
+         "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+         "});",
+         "",
+         "const json = pm.response.json();",
+         "if (json.id) {",
+         "  pm.environment.set('recipeId', json.id);",
+         "  pm.collectionVariables.set('recipeId', json.id);",
+         "}"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "POST - Suggest recipe (AI)",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "{{baseURL}}/api/recipes/suggest",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "recipes",
+        "suggest"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"coffeeId\": \"{{coffeeId}}\",\n  \"methodId\": \"{{methodId}}\",\n  \"notes\": \"fruity and bright\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status is 200 (AI enabled) or 503 (AI disabled)', function () {",
+         "  pm.expect(pm.response.code).to.be.oneOf([200, 503]);",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Improve recipe from history",
+     "request": {
+      "method": "POST",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/recipes/{{recipeId}}/improve",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "recipes",
+        "{{recipeId}}",
+        "improve"
+       ]
+      }
+     },
+     "response": []
+    },
+    {
+     "name": "PUT - Update recipe",
+     "request": {
+      "method": "PUT",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "{{baseURL}}/api/recipes/{{recipeId}}",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "recipes",
+        "{{recipeId}}"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"coffeeId\": \"{{coffeeId}}\",\n  \"methodId\": \"{{methodId}}\",\n  \"name\": \"Mezcla Veracruz AeroPress Updated\",\n  \"coffeeGrams\": 15,\n  \"waterGrams\": 230,\n  \"ratio\": \"1:15\",\n  \"grindSetting\": \"Timemore S3 - 5.5\",\n  \"waterTemp\": 90,\n  \"brewTime\": \"2:30\",\n  \"steps\": \"Bloom 30s, stir gently, press slowly.\",\n  \"expectedTaste\": \"Clean, aromatic, spicy, balanced.\",\n  \"favorite\": true\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 200', function () {",
+         "  pm.expect(pm.response.code).to.be.oneOf([200]);",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "PATCH - Mark recipe as favorite",
+     "request": {
+      "method": "PATCH",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/recipes/{{recipeId}}/favorite",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "recipes",
+        "{{recipeId}}",
+        "favorite"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 200', function () {",
+         "  pm.expect(pm.response.code).to.be.oneOf([200]);",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "PATCH - Remove recipe from favorites",
+     "request": {
+      "method": "PATCH",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/recipes/{{recipeId}}/unfavorite",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "recipes",
+        "{{recipeId}}",
+        "unfavorite"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 200', function () {",
+         "  pm.expect(pm.response.code).to.be.oneOf([200]);",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "PATCH - Share recipe",
+     "request": {
+      "method": "PATCH",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/recipes/{{recipeId}}/share",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "recipes",
+        "{{recipeId}}",
+        "share"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 200', function () {",
+         "  pm.expect(pm.response.code).to.be.oneOf([200]);",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "PATCH - Unshare recipe",
+     "request": {
+      "method": "PATCH",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/recipes/{{recipeId}}/unshare",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "recipes",
+        "{{recipeId}}",
+        "unshare"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 200', function () {",
+         "  pm.expect(pm.response.code).to.be.oneOf([200]);",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "GET - Get public recipe by token",
+     "request": {
+      "auth": {
+       "type": "noauth"
+      },
+      "method": "GET",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/public/recipes/{{shareToken}}",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "public",
+        "recipes",
+        "{{shareToken}}"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 200, 404', function () {",
+         "  pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "DELETE - Delete recipe",
+     "request": {
+      "method": "DELETE",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/recipes/{{recipeId}}",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "recipes",
+        "{{recipeId}}"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 204, 404', function () {",
+         "  pm.expect(pm.response.code).to.be.oneOf([204, 404]);",
+         "});"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Brew Session",
+   "description": "Brew session CRUD, filters, and recipe history endpoints.",
+   "item": [
+    {
+     "name": "GET - List brew sessions",
+     "request": {
+      "method": "GET",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/brew-sessions?page=0&size=10&sort=id,asc",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "brew-sessions"
+       ],
+       "query": [
+        {
+         "key": "page",
+         "value": "0",
+         "description": "Page number"
+        },
+        {
+         "key": "size",
+         "value": "10",
+         "description": "Page size"
+        },
+        {
+         "key": "sort",
+         "value": "id,asc",
+         "description": "Sort field and direction"
+        }
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Response is paginated', function () {",
+         "  const json = pm.response.json();",
+         "  pm.expect(json).to.have.property('content');",
+         "  pm.expect(json.content).to.be.an('array');",
+         "  pm.expect(json).to.have.property('page');",
+         "  pm.expect(json).to.have.property('size');",
+         "  pm.expect(json).to.have.property('totalElements');",
+         "  pm.expect(json).to.have.property('totalPages');",
+         "  pm.expect(json).to.have.property('first');",
+         "  pm.expect(json).to.have.property('last');",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "GET - Search brew sessions",
+     "request": {
+      "method": "GET",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/brew-sessions?recipeId={{recipeId}}&rating=9&page=0&size=10&sort=id,asc",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "brew-sessions"
+       ],
+       "query": [
+        {
+         "key": "recipeId",
+         "value": "{{recipeId}}",
+         "description": "Filter by recipe ID"
+        },
+        {
+         "key": "rating",
+         "value": "9",
+         "description": "Filter by rating"
+        },
+        {
+         "key": "page",
+         "value": "0",
+         "description": "Page number"
+        },
+        {
+         "key": "size",
+         "value": "10",
+         "description": "Page size"
+        },
+        {
+         "key": "sort",
+         "value": "id,asc",
+         "description": "Sort field and direction"
+        }
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Response is paginated', function () {",
+         "  const json = pm.response.json();",
+         "  pm.expect(json).to.have.property('content');",
+         "  pm.expect(json.content).to.be.an('array');",
+         "  pm.expect(json).to.have.property('page');",
+         "  pm.expect(json).to.have.property('size');",
+         "  pm.expect(json).to.have.property('totalElements');",
+         "  pm.expect(json).to.have.property('totalPages');",
+         "  pm.expect(json).to.have.property('first');",
+         "  pm.expect(json).to.have.property('last');",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "GET - Brew session by ID",
+     "request": {
+      "method": "GET",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/brew-sessions/{{sessionId}}",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "brew-sessions",
+        "{{sessionId}}"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 200, 404', function () {",
+         "  pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "GET - Brew sessions by recipe ID",
+     "request": {
+      "method": "GET",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/brew-sessions/recipe/{{recipeId}}?page=0&size=10&sort=id,asc",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "brew-sessions",
+        "recipe",
+        "{{recipeId}}"
+       ],
+       "query": [
+        {
+         "key": "page",
+         "value": "0",
+         "description": "Page number"
+        },
+        {
+         "key": "size",
+         "value": "10",
+         "description": "Page size"
+        },
+        {
+         "key": "sort",
+         "value": "id,asc",
+         "description": "Sort field and direction"
+        }
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Response is paginated', function () {",
+         "  const json = pm.response.json();",
+         "  pm.expect(json).to.have.property('content');",
+         "  pm.expect(json.content).to.be.an('array');",
+         "  pm.expect(json).to.have.property('page');",
+         "  pm.expect(json).to.have.property('size');",
+         "  pm.expect(json).to.have.property('totalElements');",
+         "  pm.expect(json).to.have.property('totalPages');",
+         "  pm.expect(json).to.have.property('first');",
+         "  pm.expect(json).to.have.property('last');",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "POST - Create brew session",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "{{baseURL}}/api/brew-sessions",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "brew-sessions"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"recipeId\": \"{{recipeId}}\",\n  \"actualGrind\": \"Timemore S3 - 5.5\",\n  \"actualTemp\": 90,\n  \"actualTime\": \"2:30\",\n  \"tasteResult\": \"Balanced, clean and aromatic. Cardamom and cinnamon notes were noticeable.\",\n  \"rating\": 9,\n  \"adjustmentNotes\": \"Repeat same recipe next time.\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is successful', function () {",
+         "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+         "});",
+         "",
+         "const json = pm.response.json();",
+         "if (json.id) {",
+         "  pm.environment.set('sessionId', json.id);",
+         "  pm.collectionVariables.set('sessionId', json.id);",
+         "}"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "PUT - Update brew session",
+     "request": {
+      "method": "PUT",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "{{baseURL}}/api/brew-sessions/{{sessionId}}",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "brew-sessions",
+        "{{sessionId}}"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"recipeId\": \"{{recipeId}}\",\n  \"actualGrind\": \"Timemore S3 - 5.5\",\n  \"actualTemp\": 90,\n  \"actualTime\": \"2:30\",\n  \"tasteResult\": \"Balanced, clean and aromatic. Cardamom and cinnamon notes were noticeable.\",\n  \"rating\": 10,\n  \"adjustmentNotes\": \"Updated notes.\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 200', function () {",
+         "  pm.expect(pm.response.code).to.be.oneOf([200]);",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "DELETE - Delete brew session",
+     "request": {
+      "method": "DELETE",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/brew-sessions/{{sessionId}}",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "brew-sessions",
+        "{{sessionId}}"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 204, 404', function () {",
+         "  pm.expect(pm.response.code).to.be.oneOf([204, 404]);",
+         "});"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Dashboard",
+   "item": [
+    {
+     "name": "GET - Dashboard summary",
+     "request": {
+      "method": "GET",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/dashboard/summary",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "dashboard",
+        "summary"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 200', function () {",
+         "  pm.response.to.have.status(200);",
+         "});",
+         "pm.test('Has aggregate counters', function () {",
+         "  const json = pm.response.json();",
+         "  pm.expect(json).to.have.property('totalCoffees');",
+         "  pm.expect(json).to.have.property('totalRecipes');",
+         "  pm.expect(json).to.have.property('totalBrewSessions');",
+         "});"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Feature Flags",
+   "item": [
+    {
+     "name": "GET - Feature flags (current user)",
+     "request": {
+      "method": "GET",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/feature-flags",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "feature-flags"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 200', function () {",
+         "  pm.response.to.have.status(200);",
+         "});",
+         "pm.test('Has features map', function () {",
+         "  const json = pm.response.json();",
+         "  pm.expect(json).to.have.property('features');",
+         "  pm.expect(json.features).to.have.property('aiRecipeAssistant');",
+         "});"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "System",
+   "item": [
+    {
+     "name": "GET - Health",
+     "request": {
+      "method": "GET",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/actuator/health",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "actuator",
+        "health"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 200', function () {",
+         "  pm.response.to.have.status(200);",
+         "});",
+         "pm.test('Status is UP', function () {",
+         "  pm.expect(pm.response.json().status).to.eql('UP');",
+         "});"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Validation Examples",
+   "description": "Invalid request examples for checking GlobalExceptionHandler validation responses.",
+   "item": [
+    {
+     "name": "POST - Coffee invalid blank name",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "{{baseURL}}/api/coffees",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "coffees"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"name\": \"\",\n  \"brand\": \"Caf\u00e9 local\",\n  \"origin\": \"Veracruz\",\n  \"region\": \"Coatepec\",\n  \"farm\": null,\n  \"producer\": null,\n  \"variety\": \"Blend\",\n  \"process\": \"Lavado\",\n  \"roastLevel\": \"Medio\",\n  \"notesPrimary\": \"Cardamomo\",\n  \"notesSecondary\": \"Canela, clavo, limpio, arom\u00e1tico\",\n  \"acidityScore\": 4,\n  \"bodyScore\": 3,\n  \"sweetnessScore\": 5,\n  \"bitternessScore\": 2,\n  \"description\": \"Caf\u00e9 especiado, limpio y arom\u00e1tico, ideal para AeroPress.\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 400', function () {",
+         "  pm.expect(pm.response.code).to.equal(400);",
+         "});",
+         "pm.test('Validation error body is returned', function () {",
+         "  const json = pm.response.json();",
+         "  pm.expect(json.status).to.equal(400);",
+         "  pm.expect(json.error).to.equal('Bad Request');",
+         "  pm.expect(json.message).to.equal('Validation failed');",
+         "  pm.expect(json).to.have.property('validationErrors');",
+         "  pm.expect(json.validationErrors).to.have.property('name');",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "POST - Brew method invalid blank name",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "{{baseURL}}/api/brew-methods",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "brew-methods"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"name\": \"\",\n  \"description\": \"Invalid method.\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 400', function () {",
+         "  pm.expect(pm.response.code).to.equal(400);",
+         "});",
+         "pm.test('Validation error body is returned', function () {",
+         "  const json = pm.response.json();",
+         "  pm.expect(json.status).to.equal(400);",
+         "  pm.expect(json.error).to.equal('Bad Request');",
+         "  pm.expect(json.message).to.equal('Validation failed');",
+         "  pm.expect(json).to.have.property('validationErrors');",
+         "  pm.expect(json.validationErrors).to.have.property('name');",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "POST - Recipe invalid required fields",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "{{baseURL}}/api/recipes",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "recipes"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"coffeeId\": null,\n  \"methodId\": null,\n  \"name\": \"\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 400', function () {",
+         "  pm.expect(pm.response.code).to.equal(400);",
+         "});",
+         "pm.test('Validation error body is returned', function () {",
+         "  const json = pm.response.json();",
+         "  pm.expect(json.status).to.equal(400);",
+         "  pm.expect(json.error).to.equal('Bad Request');",
+         "  pm.expect(json.message).to.equal('Validation failed');",
+         "  pm.expect(json).to.have.property('validationErrors');",
+         "  pm.expect(json.validationErrors).to.have.property('coffeeId');",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "POST - Recipe invalid water temperature",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "{{baseURL}}/api/recipes",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "recipes"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"coffeeId\": \"{{coffeeId}}\",\n  \"methodId\": \"{{methodId}}\",\n  \"name\": \"Mezcla Veracruz AeroPress\",\n  \"coffeeGrams\": 15,\n  \"waterGrams\": 230,\n  \"ratio\": \"1:15\",\n  \"grindSetting\": \"Timemore S3 - 5.5\",\n  \"waterTemp\": 101,\n  \"brewTime\": \"2:30\",\n  \"steps\": \"Bloom 30s, stir gently, press slowly.\",\n  \"expectedTaste\": \"Clean, aromatic, spicy, balanced.\",\n  \"favorite\": false\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 400', function () {",
+         "  pm.expect(pm.response.code).to.equal(400);",
+         "});",
+         "pm.test('Validation error body is returned', function () {",
+         "  const json = pm.response.json();",
+         "  pm.expect(json.status).to.equal(400);",
+         "  pm.expect(json.error).to.equal('Bad Request');",
+         "  pm.expect(json.message).to.equal('Validation failed');",
+         "  pm.expect(json).to.have.property('validationErrors');",
+         "  pm.expect(json.validationErrors).to.have.property('waterTemp');",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "POST - Brew session invalid rating",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "{{baseURL}}/api/brew-sessions",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "brew-sessions"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"recipeId\": \"{{recipeId}}\",\n  \"actualGrind\": \"Timemore S3 - 5.5\",\n  \"actualTemp\": 90,\n  \"actualTime\": \"2:30\",\n  \"tasteResult\": \"Balanced, clean and aromatic. Cardamom and cinnamon notes were noticeable.\",\n  \"rating\": 11,\n  \"adjustmentNotes\": \"Repeat same recipe next time.\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 400', function () {",
+         "  pm.expect(pm.response.code).to.equal(400);",
+         "});",
+         "pm.test('Validation error body is returned', function () {",
+         "  const json = pm.response.json();",
+         "  pm.expect(json.status).to.equal(400);",
+         "  pm.expect(json.error).to.equal('Bad Request');",
+         "  pm.expect(json.message).to.equal('Validation failed');",
+         "  pm.expect(json).to.have.property('validationErrors');",
+         "  pm.expect(json.validationErrors).to.have.property('rating');",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "POST - Brew session invalid temperature",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "{{baseURL}}/api/brew-sessions",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "brew-sessions"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"recipeId\": \"{{recipeId}}\",\n  \"actualGrind\": \"Timemore S3 - 5.5\",\n  \"actualTemp\": 101,\n  \"actualTime\": \"2:30\",\n  \"tasteResult\": \"Balanced, clean and aromatic. Cardamom and cinnamon notes were noticeable.\",\n  \"rating\": 9,\n  \"adjustmentNotes\": \"Repeat same recipe next time.\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 400', function () {",
+         "  pm.expect(pm.response.code).to.equal(400);",
+         "});",
+         "pm.test('Validation error body is returned', function () {",
+         "  const json = pm.response.json();",
+         "  pm.expect(json.status).to.equal(400);",
+         "  pm.expect(json.error).to.equal('Bad Request');",
+         "  pm.expect(json.message).to.equal('Validation failed');",
+         "  pm.expect(json).to.have.property('validationErrors');",
+         "  pm.expect(json.validationErrors).to.have.property('actualTemp');",
+         "});"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
 }
