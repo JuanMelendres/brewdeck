@@ -1,0 +1,24 @@
+Claude Code Next.js Frontend Engineer Agent - Package
+Generated: 2026-07-20
+
+Agent:
+  name: nextjs-frontend-engineer
+  path: .claude/agents/frontend/nextjs-frontend-engineer.md
+  tools: Read, Grep, Glob, Edit, Write, Bash (frontend only)
+  permission mode: session default (not set in frontmatter)
+
+Files and SHA-256:
+495bd84f23d126f0b8e8f23fccd93628743759cd31cfda50c29f7ac9a66957a5  .claude/agents/frontend/nextjs-frontend-engineer.md
+dfb2a2d3589f04906598540ebef52ae657b344270e3574c14428dfd535a90f57  .claude/agents/frontend/examples/settings.permissions.example.json
+e9ff25be8288d677f2e019ef5b4ea2a61cdc250f769c9e2c5ddbed95f8625fbb  .claude/agents/frontend/docs/README.md
+76b09d8e0ebd564b4ca56e222cfd06f916c8fab6e566e474574fd324a989717c  .claude/agents/frontend/docs/INSTALLATION.md
+5d7dc1d4b4c54043c7fed47df18530e4865747332d610f7d24ebc7a311a02299  .claude/agents/frontend/docs/EXAMPLE-PROMPTS.md
+ad64539df8405c1d5846152c82970dc54b75c350e947c506a1cfb5b96d49725f  .claude/agents/frontend/docs/PERMISSIONS-GUIDE.md
+fa151c301c0a7967684e4ef8622367df34a9c7ff1b3562a63449bde809e81d36  .claude/agents/frontend/docs/templates/FRONTEND-ACCEPTANCE-CHECKLIST.md
+4e8031923aa19eb1ea3f4708dbf833b635cf7ea2c337c7d7786189ca4bddf6d2  .claude/agents/frontend/docs/templates/FRONTEND-IMPLEMENTATION-REPORT.md
+
+Validation:
+  - UTF-8 text files
+  - Permissions JSON parsed successfully
+  - Implementation report and acceptance checklist present
+  - Single agent definition (no duplicate nextjs-frontend-engineer under .claude/agents/)
