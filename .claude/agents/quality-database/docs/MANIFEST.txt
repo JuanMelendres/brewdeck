@@ -1,0 +1,20 @@
+Claude Code Database Migration Reviewer Agent
+Package: claude-database-migration-reviewer-agent
+Generated: 2026-07-20
+
+Files:
+4ce259f66700e4d78b7e255715c9eb005b42bbbd97f91628d5efb471932cc170  .claude/agents/quality-database/database-migration-reviewer.md
+c893502df11cb9418b008e50ad6cc2ecf9c4fcaa60a870c822e68ac71cbf59c7  .claude/agents/quality-database/examples/settings.permissions.example.json
+7a7a7ed52c3af6ebe4395dcaec1a6d1e947da01716525c95645a958ad4e25364  .claude/agents/quality-database/docs/EXAMPLE-PROMPTS.md
+d9eff03451b9a61ab72d465a221266ba8e09d4292abe8ddf73134076f3c3621d  .claude/agents/quality-database/docs/PERMISSIONS-GUIDE.md
+6a1f1d3d3ae0aad8b967b1ad1ee013d84745d6e133b85097248c5e39732f12ca  .claude/agents/quality-database/docs/README.md
+
+Agent:
+  name: database-migration-reviewer
+  path: .claude/agents/quality-database/database-migration-reviewer.md
+  source editing: disabled by tool allowlist (no Edit/Write)
+  permission mode: session default (not set in frontmatter)
+
+Validation:
+  - UTF-8 text files
+  - JSON permissions example parsed successfully
