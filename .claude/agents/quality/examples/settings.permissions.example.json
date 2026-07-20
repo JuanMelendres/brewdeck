@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./**/.env)",
+      "Read(./**/.env.*)",
+      "Read(./secrets/**)",
+      "Read(./**/secrets/**)",
+      "Read(./**/*.pem)",
+      "Read(./**/*.key)",
+      "Read(./.git/**)",
+      "Edit(./.git/**)",
+      "Edit(./.claude/settings.json)",
+      "Edit(./.claude/settings.local.json)",
+      "Bash(git push *)",
+      "Bash(git commit *)",
+      "Bash(git merge *)",
+      "Bash(git rebase *)",
+      "Bash(git reset *)",
+      "Bash(git clean *)",
+      "Bash(git tag *)",
+      "Bash(rm -rf *)",
+      "Bash(docker system prune *)",
+      "Bash(docker volume rm *)",
+      "Bash(docker compose down -v*)",
+      "Bash(docker-compose down -v*)",
+      "Bash(kubectl delete *)",
+      "Bash(helm uninstall *)",
+      "Bash(psql *DROP*)",
+      "Bash(psql *TRUNCATE*)",
+      "Bash(psql *DELETE*)"
+    ],
+    "ask": [
+      "Bash(./gradlew *)",
+      "Bash(./mvnw *)",
+      "Bash(docker compose *)",
+      "Bash(docker-compose *)",
+      "Bash(docker ps *)"
+    ]
+  }
+}

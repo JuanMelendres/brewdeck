@@ -3,7 +3,7 @@
 The agent prompt defines behavioral limits, but enforceable permission rules belong in Claude Code settings. This package includes an example file at:
 
 ```text
-.claude/examples/settings.permissions.example.json
+.claude/agents/backend/examples/settings.permissions.example.json
 ```
 
 It is deliberately not named `.claude/settings.json`, so installing the ZIP does not silently change repository permissions.

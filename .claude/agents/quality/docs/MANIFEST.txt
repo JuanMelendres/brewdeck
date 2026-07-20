@@ -1,0 +1,16 @@
+Claude Code Test Quality Engineer Agent package
+
+Files:
+- .claude/agents/quality/test-quality-engineer.md
+- .claude/agents/quality/docs/README.md
+- .claude/agents/quality/docs/EXAMPLE-PROMPTS.md
+- .claude/agents/quality/docs/PERMISSIONS-GUIDE.md
+- .claude/agents/quality/docs/MANIFEST.txt
+- .claude/agents/quality/examples/settings.permissions.example.json
+
+SHA-256 checksums:
+37fcf3fbb28d9e2e051e50631a3ff05a1db77cf51605410a23634564579f7b9b  .claude/agents/quality/test-quality-engineer.md
+5fcfe8dd905da85319faf99db260e2f08781a2604e256d1bec24b94975a2da56  .claude/agents/quality/examples/settings.permissions.example.json
+1e5905711af4dbdb55ee32824e595a1e2a08af002cdaaafea19c6bb455a057b7  .claude/agents/quality/docs/README.md
+d8569b47ac66631676b39d9781b887c77f78c55949741cbd2f8198bee668b3c8  .claude/agents/quality/docs/EXAMPLE-PROMPTS.md
+ea7f135945b1cb80053362189ea988eacccaa47ff9fb6443b7d8ae5a3f23d91d  .claude/agents/quality/docs/PERMISSIONS-GUIDE.md

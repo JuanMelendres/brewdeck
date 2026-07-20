@@ -10,7 +10,7 @@ Reusable implementation subagent for Java and Spring Boot repositories such as B
 .claude/agents/backend/docs/EXAMPLE-PROMPTS.md
 .claude/agents/backend/docs/PERMISSIONS-GUIDE.md
 .claude/agents/backend/docs/MANIFEST.txt
-.claude/examples/settings.permissions.example.json
+.claude/agents/backend/examples/settings.permissions.example.json
 ```
 
 Claude Code scans `.claude/agents/` recursively for agent definitions. Only `spring-backend-engineer.md` carries agent frontmatter; the `docs/` subfolder holds human-facing package documentation and is ignored by the agent scanner. The agent is invoked as `spring-backend-engineer`.
@@ -80,7 +80,7 @@ The review agents can be added later; the backend agent already creates explicit
 
 The agent frontmatter declares only supported subagent fields (`name`, `description`, `tools`, `model`, `color`). It does not set `permissionMode`, `maxTurns`, or `effort`: those are not honored in subagent frontmatter and would give a false sense of enforcement. The agent therefore runs under whatever permission mode the session already uses (`default` unless you change it), which asks for approval before the first file modification or non-read-only shell command.
 
-Enforceable guardrails belong in Claude Code settings, not the agent file. The package includes an optional permission-rules example at `.claude/examples/settings.permissions.example.json`. Review and merge only the rules that fit your operating system and repository. See `PERMISSIONS-GUIDE.md`.
+Enforceable guardrails belong in Claude Code settings, not the agent file. The package includes an optional permission-rules example at `.claude/agents/backend/examples/settings.permissions.example.json`. Review and merge only the rules that fit your operating system and repository. See `PERMISSIONS-GUIDE.md`.
 
 ## Verify the installation
 
