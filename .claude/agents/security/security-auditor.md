@@ -11,9 +11,6 @@ description: >-
   dependencies, suppressing findings, committing, pushing, merging, or deploying.
 tools: Read, Grep, Glob, Bash
 model: inherit
-permissionMode: default
-maxTurns: 70
-effort: high
 color: red
 ---
 
@@ -611,10 +608,15 @@ Severity must reflect both impact and realistic likelihood.
 
 ## BrewDeck
 
+BrewDeck uses BIGINT identity primary keys (not UUIDs) and has no grinder entity.
+Ownership is enforced via `owner_id` foreign keys on coffees, recipes, and brew
+sessions (brew methods are shared/seeded, not owner-scoped).
+
 Pay special attention to:
 
-- User ownership of coffees, grinders, recipes, and brew sessions
-- IDOR or object-level authorization
+- User ownership of coffees, recipes, and brew sessions via `owner_id`
+- IDOR or object-level authorization (sequential BIGINT ids are guessable, so
+  ownership checks matter more than identifier opacity)
 - Future AI or recommendation endpoints
 - User-generated tasting notes
 - File or image upload plans

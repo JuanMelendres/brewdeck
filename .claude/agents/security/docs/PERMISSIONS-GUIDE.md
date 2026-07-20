@@ -5,29 +5,26 @@ The `security-auditor` is an independent reviewer and intentionally has no
 
 ```yaml
 tools: Read, Grep, Glob, Bash
-permissionMode: default
 ```
 
 It may request approval to run local scanners or builds, but it cannot directly
 change dependencies, source code, Dockerfiles, workflows, tests, or
-configuration.
+configuration. The frontmatter declares only supported subagent fields (`name`,
+`description`, `tools`, `model`, `color`); it does not set `permissionMode`,
+`maxTurns`, or `effort`, which are not honored in subagent frontmatter. The agent
+runs under the session's permission mode (`default` unless you change it).
 
 ## Optional settings
 
 This package includes:
 
 ```text
-CONFIGURATION/settings.permissions.example.json
-```
-
-and the ready-to-copy equivalent:
-
-```text
-INSTALL-IN-PROJECT/.claude/examples/settings.permissions.example.json
+.claude/agents/security/examples/settings.permissions.example.json
 ```
 
 Review and merge rules into your existing settings. Do not replace project
-settings blindly.
+settings blindly. The example additionally denies `Edit(./**)` and `Write(./**)`,
+enforcing the read-only reviewer boundary at the settings layer.
 
 ## Recommended approvals
 

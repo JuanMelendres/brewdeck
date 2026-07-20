@@ -1,0 +1,22 @@
+Claude Code Security Auditor Agent - Package
+Generated: 2026-07-20
+
+Agent:
+  name: security-auditor
+  path: .claude/agents/security/security-auditor.md
+  source editing: disabled by tool allowlist (no Edit/Write)
+  permission mode: session default (not set in frontmatter)
+
+Files and SHA-256:
+0deafe2d50dd3a436a96aa9f4fd3d37ee23b3571bed9ff9282749367d3d974c6  .claude/agents/security/security-auditor.md
+01f7790803ac984a0e3dc7a167a6f443d7fe0663282a55902357a1f88d11227b  .claude/agents/security/examples/settings.permissions.example.json
+720c9a724ed33c8c432e7be09b52b1f85cc6c62960544ac593ab3e6a9f135a33  .claude/agents/security/docs/README.md
+9c06d0d8f36cb91e48518e0a21f4bfb8834a06e4c016ad5855157416b1cfceb3  .claude/agents/security/docs/INSTALLATION.md
+c7a7abd020ce03528825473bc43d00efd21e2c3f76a9fe0648b6dc2ad6ec4e97  .claude/agents/security/docs/EXAMPLE-PROMPTS.md
+39ae9175d9e018432514377226a5c393ed82abaa3e3a10454c813925584e8979  .claude/agents/security/docs/PERMISSIONS-GUIDE.md
+7fe2252238978b06fa62617f51ff1b546359b5192d96a256817a572c216ac0b9  .claude/agents/security/docs/SECURITY-AUDIT-REPORT.md
+
+Validation:
+  - UTF-8 text files
+  - Permissions JSON parsed successfully
+  - Single agent definition (no duplicate security-auditor under .claude/agents/)

@@ -77,9 +77,9 @@ Do not modify files.
 ```text
 @security-auditor Review BrewDeck's authorization model.
 
-Trace access to coffees, grinders, brew methods, recipes, and brew sessions.
+Trace access to coffees, brew methods, recipes, and brew sessions.
 Verify that one authenticated user cannot read, update, delete, or reference
-another user's resources by changing UUIDs.
+another user's resources by changing the sequential BIGINT identifiers.
 
 Inspect controllers, services, repositories, queries, and tests.
 Do not modify files.

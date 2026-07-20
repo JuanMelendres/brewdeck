@@ -7,34 +7,30 @@ The agent reviews application security, authorization, dependencies,
 containers, CI/CD, configuration, secrets, logging, and supply-chain risk. It
 produces remediation guidance but does not modify files.
 
-## Visible contents
+## Package contents
 
 ```text
-AGENT/security-auditor.md
-EXAMPLES/ALL-EXAMPLE-PROMPTS.md
-EXAMPLES/GENERIC.md
-EXAMPLES/BREWDECK.md
-EXAMPLES/BRICKDECK.md
-EXAMPLES/RELEASE-AND-CI.md
-CONFIGURATION/PERMISSIONS-GUIDE.md
-CONFIGURATION/settings.permissions.example.json
-TEMPLATES/SECURITY-AUDIT-REPORT.md
-INSTALL-IN-PROJECT/.claude/agents/quality/security-auditor.md
-INSTALL-IN-PROJECT/.claude/examples/settings.permissions.example.json
-INSTALLATION.md
-MANIFEST.txt
+.claude/agents/security/security-auditor.md
+.claude/agents/security/docs/README.md
+.claude/agents/security/docs/INSTALLATION.md
+.claude/agents/security/docs/EXAMPLE-PROMPTS.md
+.claude/agents/security/docs/PERMISSIONS-GUIDE.md
+.claude/agents/security/docs/SECURITY-AUDIT-REPORT.md
+.claude/agents/security/docs/MANIFEST.txt
+.claude/agents/security/examples/settings.permissions.example.json
 ```
 
-## Why there are visible and hidden copies
+## Layout
 
-Claude Code expects project agents inside `.claude/agents/`, but folders whose
-names begin with a dot may be hidden by Finder or some ZIP preview tools.
+Claude Code scans `.claude/agents/` recursively for agent definitions. Only
+`security-auditor.md` carries agent frontmatter; the `docs/` and `examples/`
+subfolders hold human-facing package material and are ignored by the agent
+scanner. Invoke the agent as `security-auditor`.
 
-Therefore:
-
-- `AGENT/` contains a visible copy.
-- `EXAMPLES/` contains visible prompts.
-- `INSTALL-IN-PROJECT/` contains the exact `.claude` structure to copy.
+The original distributable duplicated the agent under an `INSTALL-IN-PROJECT/`
+skeleton for out-of-tree installation. That copy was removed here: keeping two
+`security-auditor.md` files under `.claude/agents/` would register the agent
+name twice.
 
 ## Recommended workflow
 
