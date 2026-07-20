@@ -1,9 +1,0 @@
-Claude Code Spring Backend Engineer Agent package
-
-Files:
-- .claude/agents/backend/spring-backend-engineer.md
-- .claude/agents/backend/docs/README.md
-- .claude/agents/backend/docs/EXAMPLE-PROMPTS.md
-- .claude/agents/backend/docs/PERMISSIONS-GUIDE.md
-- .claude/agents/backend/docs/MANIFEST.txt
-- .claude/agents/backend/examples/settings.permissions.example.json

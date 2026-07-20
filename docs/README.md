@@ -11,7 +11,7 @@ Docs-as-code for BrewDeck. Everything here lives in the repo and evolves with th
 | [decisions/](decisions/) | Architecture Decision Records (ADRs) |
 | [api/](api/) | Endpoint overview, conventions, OpenAPI, Postman pointer |
 | [testing/](testing/) | Testing strategy, plan, unit & integration guides |
-| [development/](development/) | Local setup, env vars, coding standards, contribution guide |
+| [development/](development/) | Local setup, env vars, coding standards, contribution guide, [Claude Code agents](development/agents.md) |
 | [security/](security/) | Vulnerability audit reports and remediation tracking |
 
 ## Related sources (not duplicated here)
