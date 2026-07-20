@@ -1,0 +1,29 @@
+Claude Code Documentation Writer Agent - Package
+Generated: 2026-07-20
+
+Agent:
+  name: documentation-writer
+  path: .claude/agents/documentation/documentation-writer.md
+  tools: Read, Grep, Glob, Edit, Write, Bash (documentation only)
+  permission mode: session default (not set in frontmatter)
+
+Files and SHA-256:
+c5d56972974050c27124e251a958248860d7615addf0f2fe51859a110fd2845d  .claude/agents/documentation/documentation-writer.md
+3d4839fd80b979166323a97b63d98ea4a5e84efde941b74a2a8f0cc77e435f1a  .claude/agents/documentation/examples/settings.permissions.example.json
+f8de75e10a9d995dd413a4e178faf33a7ae8f8dd841ba14fc0f35741bb9b1f3c  .claude/agents/documentation/docs/README.md
+5fe116bf0fe83f97e0cc53bf2b73bd4c64f7c136101c5b20165048d74702c3a5  .claude/agents/documentation/docs/INSTALLATION.md
+957e9be983c3da1085e4fc5dac8e492b7db2f763995bdd4fae977efd9b78caec  .claude/agents/documentation/docs/EXAMPLE-PROMPTS.md
+aa34ead18bbf754df3efbe4bd624791d7046525d305fbfcf06821524135ce6fc  .claude/agents/documentation/docs/PERMISSIONS-GUIDE.md
+c90c02bfc1b41932c49f9f91f5211bd5fe5b0581d2832c49c366bc597468affa  .claude/agents/documentation/docs/templates/ADR.md
+f5de68e977e59bbe9d1fbea1e409b92381f74ab52ae7be81e03240ba686f66b9  .claude/agents/documentation/docs/templates/FDD.md
+97b20ad9a72aac662c05680a8294dafc7624b26c4ade1ef57a8f50b7705e564c  .claude/agents/documentation/docs/templates/TDD.md
+61f74860232de056cbf36e15f0a0a219424d58da6f900881aa0d90fdd87f87d0  .claude/agents/documentation/docs/templates/SPIKE.md
+04734c3ae0f4b7e2e6e2ae2a100be384ff2f38d0ea6f3cb855d9118823f226fd  .claude/agents/documentation/docs/templates/API-DOCUMENTATION.md
+8fff9854f8943aa6bcadf696629773078d561f08b5b12aa7e867d8b7e67ef09a  .claude/agents/documentation/docs/templates/RUNBOOK.md
+95265c371d941c1d64843d0100e27d2826d05b3c1915eb70f1584df8e8d0d3fb  .claude/agents/documentation/docs/templates/DOCUMENTATION-REVIEW-CHECKLIST.md
+
+Validation:
+  - UTF-8 text files
+  - Permissions JSON parsed successfully
+  - Seven documentation templates present
+  - Single agent definition (no duplicate documentation-writer under .claude/agents/)
