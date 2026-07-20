@@ -2,6 +2,8 @@ package com.brewdeck.brewdeck_api.ai;
 
 import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
 import com.brewdeck.brewdeck_api.coffee.Coffee;
+import com.brewdeck.brewdeck_api.featureflag.FeatureFlagService;
+import com.brewdeck.brewdeck_api.featureflag.FeatureKeys;
 import com.brewdeck.brewdeck_api.method.BrewMethod;
 import com.brewdeck.brewdeck_api.recipe.Recipe;
 import com.brewdeck.brewdeck_api.recipe.RecipeRepository;
@@ -26,11 +28,11 @@ public class RecipeImprovementService {
   private final RecipeSuggestionPort suggestionPort;
   private final AiProperties aiProperties;
   private final CurrentUserProvider currentUserProvider;
+  private final FeatureFlagService featureFlagService;
 
   public SuggestedRecipeResponse improve(Long recipeId) {
-    if (!aiProperties.enabled()) {
-      throw new AiUnavailableException("AI suggestions are disabled");
-    }
+    // Release gate before any work: see RecipeSuggestionService for the flag-vs-provider rationale.
+    featureFlagService.requireEnabled(FeatureKeys.AI_RECIPE_ASSISTANT);
 
     Recipe recipe =
         recipeRepository

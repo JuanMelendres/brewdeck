@@ -4,6 +4,10 @@ import type { ListCoffeesParams } from '@/lib/api/coffees';
 import type { ListFavoriteRecipesParams, ListRecipesParams } from '@/lib/api/recipes';
 
 export const keys = {
+  featureFlags: {
+    // Scoped by user id so a different signed-in user re-fetches (rollout can differ per user).
+    forUser: (userId: number | null) => ['feature-flags', userId] as const,
+  },
   dashboard: {
     summary: ['dashboard', 'summary'],
   },

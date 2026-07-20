@@ -7,6 +7,12 @@ import * as options from '@/hooks/useResourceOptions';
 import * as suggest from '@/hooks/useSuggestRecipe';
 import { ApiError } from '@/lib/api/client';
 
+// AI assistant flag on: these tests cover the enabled-feature behaviour of the Suggest button.
+vi.mock('@/lib/featureFlags/FeatureFlagProvider', () => ({
+  useFeatureFlag: () => true,
+  useFeatureFlags: () => ({ flags: { aiRecipeAssistant: true }, status: 'ready' }),
+}));
+
 const createMutate = vi.fn();
 const updateMutate = vi.fn();
 const suggestMutate = vi.fn();

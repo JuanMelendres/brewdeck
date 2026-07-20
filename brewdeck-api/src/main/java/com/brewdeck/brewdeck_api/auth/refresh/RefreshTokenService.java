@@ -5,6 +5,7 @@ import com.brewdeck.brewdeck_api.auth.UserRepository;
 import com.brewdeck.brewdeck_api.common.security.SecureTokens;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -83,7 +84,10 @@ public class RefreshTokenService {
     tokenRepository
         .findByTokenHash(SecureTokens.sha256Hex(rawToken))
         .filter(
-            t -> t.getUserId().equals(userId) && t.getUsedAt() == null && t.getRevokedAt() == null)
+            t ->
+                Objects.equals(t.getUserId(), userId)
+                    && t.getUsedAt() == null
+                    && t.getRevokedAt() == null)
         .ifPresent(
             t -> {
               t.setRevokedAt(LocalDateTime.now());

@@ -21,7 +21,9 @@ This is a stable, high-level summary. The living, detailed roadmap is
   - C.1 — Profile management (display name) + password change (`PATCH /api/auth/me`, `POST /api/auth/change-password`). — Done
   - C.2 — Password reset via hashed single-use tokens + mail port (`POST /api/auth/forgot-password`, `POST /api/auth/reset-password`). — Done
   - C.3 — Email verification (soft gate): `email_verified` flag, hashed 24h tokens, register-time issue, banner + `/verify-email` (`POST /api/auth/verify-email`, `POST /api/auth/resend-verification`). — Done
-  - C.4 — Refresh tokens (store + rotation): hashed single-use tokens (Flyway V11), reuse-detection revokes all active tokens, `POST /api/auth/refresh` + `POST /api/auth/logout`, 15m access-token TTL, frontend silent refresh + server-revoking logout. — Done
+  - C.4 — Refresh tokens (store + rotation): hashed single-use tokens (Flyway V11), reuse-detection revokes all active tokens, `POST /api/auth/refresh` + `POST /api/auth/logout`, 15m access-token TTL, frontend silent refresh + server-revoking logout. — Done (PR #76)
+
+**Released:** Phase 6 shipped to `master` via PR #77 (develop→master), bundling Slices C.1–C.4 plus the pnpm migration and CI overhaul. All CI green; develop remains the default branch.
 
 ## Vision (post-roadmap)
 
