@@ -451,15 +451,15 @@ Escalate a security concern to `security-auditor`; do not redesign security sile
 
 High-value scenarios may include:
 
-- Coffee, grinder, brew method, recipe, and brew-session relationships
-- Positive and realistic dose, water, temperature, duration, and grind values
+- Coffee, brew method, recipe, and brew-session relationships (there is no grinder entity)
+- Positive and realistic dose, water, temperature, duration, and grind-setting values
 - Planned recipe versus actual session measurements
 - Sensory evaluation boundaries
-- Ownership isolation when user accounts are introduced
+- Ownership isolation via owner_id foreign keys
 - Duplicate or repeated session submission
 - Deletion behavior for referenced domain records
 - History ordering and filtering
-- UUID consistency across API, JPA, and PostgreSQL
+- BIGINT identity consistency across API, JPA, and PostgreSQL (BrewDeck uses BIGINT identity keys, not UUIDs)
 - Flyway migration compatibility from a clean database
 
 ## BrickDeck

@@ -29,7 +29,7 @@ Inspect the closest existing feature and follow its package, API, error, persist
 ```text
 @spring-backend-engineer Implement the approved BrewMethod CRUD backend for BrewDeck.
 
-Use the existing Coffee feature as the primary convention reference. Preserve UUID identifiers, Java 21, Spring Boot, PostgreSQL, Flyway, validation, and the current error-response format. Add controller, service, repository, persistence, and integration tests appropriate to the repository. Do not implement frontend work. Do not commit or push.
+Use the existing Coffee feature as the primary convention reference. Preserve BIGINT identity keys, Java 21, Spring Boot, PostgreSQL, Flyway, validation, and the current error-response format. Add controller, service, repository, persistence, and integration tests appropriate to the repository. Do not implement frontend work. Do not commit or push.
 ```
 
 ## BrewDeck: BrewSession slice

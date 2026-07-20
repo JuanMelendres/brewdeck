@@ -1,0 +1,29 @@
+Claude Code Security Auditor Agent - Complete Package
+Generated: 2026-07-20
+
+Primary agent:
+  AGENT/security-auditor.md
+
+Ready-to-install agent:
+  INSTALL-IN-PROJECT/.claude/agents/quality/security-auditor.md
+
+Files and SHA-256:
+b96b798519f85697f3b78c876682f583039505967595c58baa7008a5abbbb08a     21152 bytes  AGENT/security-auditor.md
+b7829f299de1977b139f68ecdea4731731a34ca854e09600960d7a5c1dd95389      2314 bytes  CONFIGURATION/PERMISSIONS-GUIDE.md
+01f7790803ac984a0e3dc7a167a6f443d7fe0663282a55902357a1f88d11227b      1539 bytes  CONFIGURATION/settings.permissions.example.json
+d523778b9e6fd772f6c1bc6265d728a1423a588f089873a686801bd2d05f585b      5217 bytes  EXAMPLES/ALL-EXAMPLE-PROMPTS.md
+a1dfaeef11384bb515ba4f7ca560221672b26643cf0bf330ae6089975d721267      1242 bytes  EXAMPLES/BREWDECK.md
+846767c531c078bdd835cd3cf2ecba993dc2b088c77d109f0b4696b4af14ac93      1153 bytes  EXAMPLES/BRICKDECK.md
+4abbbf649577edd9b0484283417f6be8b3ce290728852545e6c96a174d102f95      1659 bytes  EXAMPLES/GENERIC.md
+c0cdbbae5c818b039ef3c27064844379f48a29ea24cc609fcac7a796ade9c7a4      1160 bytes  EXAMPLES/RELEASE-AND-CI.md
+b96b798519f85697f3b78c876682f583039505967595c58baa7008a5abbbb08a     21152 bytes  INSTALL-IN-PROJECT/.claude/agents/quality/security-auditor.md
+01f7790803ac984a0e3dc7a167a6f443d7fe0663282a55902357a1f88d11227b      1539 bytes  INSTALL-IN-PROJECT/.claude/examples/settings.permissions.example.json
+822e91aff218f94bc8539f8fd698a798eb77c441cc712a7e2a3ffee6365e2dae      1133 bytes  INSTALLATION.md
+d4a3bc0c35dac1e257f3585429d0ab1cf2053e91edb3624dadaa1e0c756e5ddd      2100 bytes  README.md
+7fe2252238978b06fa62617f51ff1b546359b5192d96a256817a572c216ac0b9      1399 bytes  TEMPLATES/SECURITY-AUDIT-REPORT.md
+
+Validation:
+  - Visible and installable agent copies are identical
+  - Permissions JSON parsed successfully
+  - Required examples and report template are present
+  - ZIP integrity tested successfully

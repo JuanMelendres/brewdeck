@@ -37,7 +37,7 @@ Do not fix production code. Run the focused test, capture the failure evidence, 
 ```text
 @test-quality-engineer Review the BrewMethod backend implementation.
 
-Verify successful creation and retrieval, validation errors, duplicate names when applicable, missing resources, UUID handling, HTTP status codes, error response shape, PostgreSQL persistence, and Flyway startup from a clean database.
+Verify successful creation and retrieval, validation errors, duplicate names when applicable, missing resources, BIGINT identity handling, HTTP status codes, error response shape, PostgreSQL persistence, and Flyway startup from a clean database.
 
 Follow existing BrewDeck testing conventions. Add only high-value tests and do not change production behavior.
 ```
@@ -49,7 +49,7 @@ Follow existing BrewDeck testing conventions. Add only high-value tests and do n
 
 Cover:
 - Successful session creation
-- Missing Coffee, Recipe, BrewMethod, or Grinder references
+- Missing Coffee, Recipe, or BrewMethod references
 - Invalid or negative coffee dose and water values
 - Temperature and duration boundaries defined by the domain
 - Planned values versus actual session values
@@ -57,7 +57,7 @@ Cover:
 - Transaction rollback after persistence failure
 - History ordering and filtering
 - Duplicate or repeated submission behavior
-- UUID consistency across API, JPA, Flyway, and PostgreSQL
+- BIGINT identity consistency across API, JPA, Flyway, and PostgreSQL
 
 Use unit, MockMvc, repository, and Testcontainers tests only where each level adds value. Do not modify production behavior. Run relevant Gradle or Maven validation and report evidence.
 ```
