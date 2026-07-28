@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+   <!--
+     CVE-2026-53914 (NVD-rescored CVSS 9.8; original JetBrains vector is CVSS 6.7,
+     AV:L/AC:H/PR:H/UI:N) - "In JetBrains Kotlin before 2.4.20 code execution was
+     possible via unsafe deserialization in the build cache metadata."
+
+     This flags every org.jetbrains.kotlin:kotlin-stdlib* / kotlin-reflect jar on
+     our classpath (currently resolved at 1.9.25, transitively pulled in by the
+     com.anthropic:anthropic-java SDK's OkHttp/Jackson-Kotlin integration).
+
+     Why this does not apply to BrewDeck:
+       - The vulnerable code path is Kotlin's INCREMENTAL COMPILATION BUILD CACHE
+         (deserialization of cached build metadata written by the Kotlin compiler /
+         Kotlin Gradle plugin during a Kotlin build). BrewDeck is built with Maven
+         and never invokes the Kotlin compiler, the Kotlin Gradle plugin, or any
+         Kotlin build-cache feature - Kotlin appears here purely as a transitive
+         *runtime* library (kotlin-stdlib/-jdk7/-jdk8/-reflect) consumed by
+         precompiled classes inside the Anthropic Java SDK. The attack surface
+         described by the advisory (a local, high-privilege actor tampering with
+         build-cache metadata on a Kotlin build machine) does not exist in
+         BrewDeck's build or runtime environment.
+
+     Why this is suppressed instead of fixed:
+       - The fixed line, Kotlin 2.4.20, has not reached a stable (GA) release as
+         of this review (only 2.4.20-Beta1/-Beta2 exist on Maven Central); BrewDeck
+         policy disallows adopting beta/RC dependencies. There is no stable
+         kotlin-stdlib release >= 2.4.20 to upgrade to yet.
+
+     Owner: dependency-upgrade-engineer (via security.yml scheduled scan)
+     Follow-up: remove this suppression and upgrade kotlin-stdlib/kotlin-reflect
+     (directly, or by tracking a future com.anthropic:anthropic-java release that
+     manages a fixed Kotlin version) once Kotlin 2.4.20 (or later) reaches GA.
+     Re-verify at that time whether anthropic-java still pulls a vulnerable
+     Kotlin runtime.
+   -->
+   <suppress>
+      <notes><![CDATA[
+         No stable (GA) fixed Kotlin release exists yet (2.4.20 is Beta-only).
+         The vulnerable code path (Kotlin incremental-compilation build-cache
+         deserialization) is never exercised by BrewDeck's Maven build or by
+         the Anthropic Java SDK's runtime use of kotlin-stdlib/-reflect.
+         See notes above. Re-evaluate once Kotlin >= 2.4.20 ships as GA.
+      ]]></notes>
+      <packageUrl regex="true">^pkg:maven/org\.jetbrains\.kotlin/kotlin\-(stdlib|stdlib\-jdk7|stdlib\-jdk8|stdlib\-common|reflect)@.*$</packageUrl>
+      <cve>CVE-2026-53914</cve>
+   </suppress>
+</suppressions>
