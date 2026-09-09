@@ -2,7 +2,7 @@
 
 ## Last Updated
 
-2026-07-28 (round 2 tomcat/jackson/log4j CVE fix confirmed green via security.yml run 30384024021)
+2026-09-08 (AI recipe assistant integration suspended — see "AI Integration — Suspended" section below)
 
 ## Current Phase
 
@@ -89,3 +89,14 @@ Phase 6 (auth & multi-user) complete: Slice A (auth foundation), Slice B (per-us
 1. Revisit the `kotlin-stdlib` CVE-2026-53914 suppression (`brewdeck-api/dependency-check-suppressions.xml`) once Kotlin ≥2.4.20 reaches GA — checked 2026-08-05, still only 2.4.20-Beta2, latest stable is 2.4.0; no action yet, re-check next time a Kotlin release lands.
 2. `kotlin-stdlib` CVE-2020-29582 — checked 2026-08-05 and confirmed non-issue: fixed upstream in Kotlin 1.4.21, BrewDeck resolves kotlin-stdlib 1.9.25 (well past fix), and it's CVSS 5.3 (below the 7.0 gate) anyway. No suppression needed; closed, no further action.
 3. Review JaCoCo and SonarCloud.
+
+## AI Integration — Suspended (2026-09-08)
+
+Owner has paused the AI recipe assistant integration indefinitely: no intent to pay for an LLM
+API subscription right now. Nothing was removed — `RecipeSuggestionPort`, the Claude adapter,
+`POST /api/recipes/suggest` + `/api/recipes/{id}/improve`, and the "Suggest/Improve with AI"
+frontend buttons all stay in the codebase as-is. New migration `V14__suspend_ai_recipe_assistant_flag.sql`
+flips the `brew-recipe-ai-assistant` flag to disabled in `local`/`dev` too (previously the only
+environments where it defaulted on), so the flow can't be exercised or incur API cost anywhere
+until the decision is revisited. Re-enabling later needs only a flag flip, no code changes. Treat
+this as paused, not cancelled, when prioritizing future work.
