@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface BrewSessionRepository
     extends JpaRepository<BrewSession, Long>, JpaSpecificationExecutor<BrewSession> {
@@ -41,7 +42,7 @@ public interface BrewSessionRepository
 
   @Query(
       "select avg(s.rating) from BrewSession s where s.rating is not null and s.owner.id = :ownerId")
-  Double findAverageRating(Long ownerId);
+  Double findAverageRating(@Param("ownerId") Long ownerId);
 
   @Query(
       """
@@ -51,7 +52,8 @@ public interface BrewSessionRepository
       from BrewSession s
       where s.recipe.id = :recipeId and s.owner.id = :ownerId
       """)
-  RecipeSessionStats findStatsByRecipeId(Long recipeId, Long ownerId);
+  RecipeSessionStats findStatsByRecipeId(
+      @Param("recipeId") Long recipeId, @Param("ownerId") Long ownerId);
 
   @Query(
       """
@@ -64,7 +66,7 @@ public interface BrewSessionRepository
       group by s.recipe.id, s.recipe.name
       order by avg(s.rating) desc
       """)
-  List<TopRatedRecipe> findTopRated(Long ownerId, Pageable pageable);
+  List<TopRatedRecipe> findTopRated(@Param("ownerId") Long ownerId, Pageable pageable);
 
   @Query(
       """
@@ -76,5 +78,5 @@ public interface BrewSessionRepository
       group by s.recipe.id, s.recipe.name
       order by count(s) desc
       """)
-  List<MostBrewedRecipe> findMostBrewed(Long ownerId, Pageable pageable);
+  List<MostBrewedRecipe> findMostBrewed(@Param("ownerId") Long ownerId, Pageable pageable);
 }

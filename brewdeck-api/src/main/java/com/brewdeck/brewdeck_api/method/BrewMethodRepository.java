@@ -3,6 +3,7 @@ package com.brewdeck.brewdeck_api.method;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface BrewMethodRepository extends JpaRepository<BrewMethod, Long> {
 
@@ -14,5 +15,5 @@ public interface BrewMethodRepository extends JpaRepository<BrewMethod, Long> {
       group by m.id, m.name
       order by count(r) desc, m.name asc
       """)
-  List<MethodUsage> findUsage(Long ownerId);
+  List<MethodUsage> findUsage(@Param("ownerId") Long ownerId);
 }

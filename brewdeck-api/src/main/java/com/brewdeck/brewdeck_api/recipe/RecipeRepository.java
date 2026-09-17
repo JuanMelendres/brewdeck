@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface RecipeRepository
     extends JpaRepository<Recipe, Long>, JpaSpecificationExecutor<Recipe> {
@@ -65,7 +66,7 @@ public interface RecipeRepository
       group by r.coffee.id, r.coffee.name
       order by count(r) desc, r.coffee.name asc
       """)
-  List<MostUsedCoffee> findMostUsedCoffees(Long ownerId, Pageable pageable);
+  List<MostUsedCoffee> findMostUsedCoffees(@Param("ownerId") Long ownerId, Pageable pageable);
 
   @EntityGraph(attributePaths = {"coffee", "method"})
   Optional<Recipe> findByShareToken(String shareToken);
