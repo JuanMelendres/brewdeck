@@ -25,6 +25,10 @@ This is a stable, high-level summary. The living, detailed roadmap is
 
 **Released:** Phase 6 shipped to `master` via PR #77 (develop→master), bundling Slices C.1–C.4 plus the pnpm migration and CI overhaul. All CI green; develop remains the default branch.
 
+## Status
+
+All 6 phases above are Completed — 100% of the current roadmap. Ongoing work past this point is maintenance (CVE/dependency remediation) and follow-ups tracked in [`.claude/project-state.md`](../../.claude/project-state.md) "Immediate Next Steps" (e.g. moving auth tokens off `localStorage` to `httpOnly` cookies). The AI recipe assistant (Phase 5) remains built but feature-flagged off (paused, not removed). "Vision" below is unscheduled future scope, not counted toward this roadmap.
+
 ## Vision (post-roadmap)
 
 - Hardware integration (e-paper device), offline sync, advanced analytics.

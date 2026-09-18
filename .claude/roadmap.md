@@ -98,3 +98,7 @@ Status: Completed
   - C.4 (refresh tokens) — hashed single-use refresh tokens (Flyway V11), rotation with reuse-detection (revokes all active tokens for the user), `POST /api/auth/refresh` (200) + `POST /api/auth/logout` (204), access-token TTL shortened to 15m, frontend silent single-flight refresh + server-revoking logout — Done (PR #76)
 
 Released to master: Phase 6 shipped develop→master via PR #77 (Slices C.1 #73, C.2 #74, C.3 #75, C.4 #76 + pnpm migration + CI overhaul); all CI green, develop kept as the default working branch.
+
+## Status Summary
+
+All 6 planned phases are Completed — 100% of the current roadmap shipped. AI recipe assistant (Phase 5) is built full-stack but feature-flagged off (paused, not cancelled — see `.claude/project-state.md` "AI Integration — Suspended"). Ongoing work beyond this roadmap is maintenance (dependency/CVE remediation) and open follow-ups tracked in `.claude/project-state.md` "Immediate Next Steps" (e.g. migrating auth tokens from `localStorage` to `httpOnly` cookies). "Vision (post-roadmap)" below is unscheduled future scope, not part of this roadmap's completion percentage.

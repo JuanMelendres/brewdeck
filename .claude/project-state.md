@@ -89,6 +89,7 @@ Phase 6 (auth & multi-user) complete: Slice A (auth foundation), Slice B (per-us
 1. Revisit the `kotlin-stdlib` CVE-2026-53914 suppression (`brewdeck-api/dependency-check-suppressions.xml`) once Kotlin ≥2.4.20 reaches GA — checked 2026-08-05, still only 2.4.20-Beta2, latest stable is 2.4.0; no action yet, re-check next time a Kotlin release lands.
 2. `kotlin-stdlib` CVE-2020-29582 — checked 2026-08-05 and confirmed non-issue: fixed upstream in Kotlin 1.4.21, BrewDeck resolves kotlin-stdlib 1.9.25 (well past fix), and it's CVSS 5.3 (below the 7.0 gate) anyway. No suppression needed; closed, no further action.
 3. Review JaCoCo and SonarCloud.
+4. Security follow-up (flagged during a repository/service/frontend security pass, 2026-09-17): access + refresh tokens are stored in `localStorage` (`brewdeck-web/src/lib/auth/tokenStore.ts`), exposing both to theft via any future XSS instead of being invisible to JS via `httpOnly` cookies. No known exploit today; not urgent. Migrating would touch `AuthService`/token issuance (set-cookie), CORS (`credentials`), and CSRF protection on the backend, plus the frontend `apiFetch`/refresh flow — needs its own design pass before implementation.
 
 ## AI Integration — Suspended (2026-09-08)
 
