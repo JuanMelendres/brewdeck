@@ -33,6 +33,15 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+		<!-- Post-migration OWASP finding (PR #117's own security.yml run): Boot 4.1.1's
+		     default-managed Tomcat, 11.0.24, is itself vulnerable to nine CVEs disclosed after
+		     that release shipped (CVE-2026-65905/65637 CVSS 9.8, CVE-2026-68525/65182 CVSS 9.1,
+		     CVE-2026-65183/66422/68569 CVSS 8.1, CVE-2026-65927/68763 CVSS 7.5 - the same set
+		     round 3 fixed on the 10.1.x line by pinning to 10.1.60). Fixed upstream in 11.0.25;
+		     override Boot's managed `tomcat.version` property to 11.0.26, the latest 11.0.x
+		     patch release on Maven Central, which supersedes the fix. Patch-only within the
+		     line Boot already ships, no API changes. -->
+		<tomcat.version>11.0.26</tomcat.version>
 		<!-- Trivial same-line patch bump: log4j-api 2.25.4 emits non-RFC-8259-compliant
 		     JSON for non-finite floating-point values in MapMessage.asJson()
 		     (CVE-2026-49844, CVSS 5.9); fixed in 2.25.5. BrewDeck does not use
