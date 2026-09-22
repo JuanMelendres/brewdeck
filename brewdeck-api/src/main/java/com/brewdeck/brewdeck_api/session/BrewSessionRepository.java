@@ -10,17 +10,21 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 
 public interface BrewSessionRepository
     extends JpaRepository<BrewSession, Long>, JpaSpecificationExecutor<BrewSession> {
 
   @Override
+  @NonNull
   @EntityGraph(attributePaths = "recipe")
-  Optional<BrewSession> findById(Long id);
+  Optional<BrewSession> findById(@NonNull Long id);
 
   @Override
+  @NonNull
   @EntityGraph(attributePaths = "recipe")
-  Page<BrewSession> findAll(Specification<BrewSession> spec, Pageable pageable);
+  Page<BrewSession> findAll(@Nullable Specification<BrewSession> spec, @NonNull Pageable pageable);
 
   @EntityGraph(attributePaths = "recipe")
   Optional<BrewSession> findByIdAndOwnerId(Long id, Long ownerId);
