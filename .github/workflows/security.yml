@@ -4,6 +4,11 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "0 12 * * 1"
+  pull_request:
+    branches: [master, develop]
+    paths:
+      - "brewdeck-api/pom.xml"
+      - ".github/workflows/security.yml"
 
 jobs:
   dependency-check:

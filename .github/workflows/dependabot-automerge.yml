@@ -1,0 +1,87 @@
+name: Dependabot Auto-Merge
+
+# Scope: only Dependabot PRs against develop. Patch/minor bumps auto-merge once the
+# checks relevant to their ecosystem report success; major bumps are left for manual
+# review (commented, never merged automatically).
+on:
+  pull_request:
+    branches: [develop]
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+
+jobs:
+  automerge:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    # Generous ceiling: the OWASP scan step this waits on has run anywhere from a few
+    # minutes to several hours depending on NVD cache state.
+    timeout-minutes: 300
+    steps:
+      - name: Fetch dependency metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Wait for relevant checks, then merge patch/minor updates
+        if: steps.metadata.outputs.update-type != 'version-update:semver-major'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const ecosystem = "${{ steps.metadata.outputs.package-ecosystem }}";
+            const requiredByEcosystem = {
+              maven: ["API Quality Checks & SonarCloud", "OWASP Dependency Check"],
+              npm_and_yarn: ["Web Quality Checks"],
+              github_actions: [],
+            };
+            // "qodana" (the workflow job) has no path filter, so it runs on every PR
+            // regardless of ecosystem — always wait for it too.
+            const required = ["qodana", ...(requiredByEcosystem[ecosystem] ?? [])];
+
+            const { owner, repo } = context.repo;
+            const ref = context.payload.pull_request.head.sha;
+            const pull_number = context.payload.pull_request.number;
+            const deadline = Date.now() + 1000 * 60 * 280; // stay under the job timeout
+            const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+            core.info(`Waiting for: ${required.join(", ") || "(nothing ecosystem-specific)"}`);
+
+            while (true) {
+              const { data } = await github.rest.checks.listForRef({ owner, repo, ref, per_page: 100 });
+              const byName = new Map(data.check_runs.map((c) => [c.name, c]));
+
+              const failed = required.filter((n) => {
+                const c = byName.get(n);
+                return c && c.status === "completed" && c.conclusion !== "success";
+              });
+              if (failed.length > 0) {
+                core.setFailed(`Required check(s) failed, not merging: ${failed.join(", ")}`);
+                return;
+              }
+
+              const pending = required.filter((n) => {
+                const c = byName.get(n);
+                return !c || c.status !== "completed";
+              });
+              if (pending.length === 0) break;
+
+              if (Date.now() > deadline) {
+                core.setFailed(`Timed out waiting for: ${pending.join(", ")}`);
+                return;
+              }
+              await sleep(30000);
+            }
+
+            core.info("All required checks green — merging.");
+            await github.rest.pulls.merge({ owner, repo, pull_number, merge_method: "merge" });
+
+      - name: Flag major bump for manual review
+        if: steps.metadata.outputs.update-type == 'version-update:semver-major'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment "${{ github.event.pull_request.html_url }}" \
+            --body "Major version bump — needs manual review, not auto-merged."
