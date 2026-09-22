@@ -34,15 +34,196 @@
      Re-verify at that time whether anthropic-java still pulls a vulnerable
      Kotlin runtime.
    -->
+   <!--
+     Round 3 (2026-09-22) update: Kotlin 2.4.20 reached a stable GA release (previously
+     only Beta/RC), so kotlin-stdlib, kotlin-stdlib-jdk7, kotlin-stdlib-jdk8, and
+     kotlin-reflect are now pinned to 2.4.20 via a dependencyManagement override in
+     pom.xml and are no longer affected by this CVE (validated by a full
+     Testcontainers-backed `./mvnw clean verify`). kotlin-stdlib-common could NOT be
+     bumped: as of 2.4.20 it publishes packaging=pom only, with no jar artifact
+     (confirmed: 404 on its jar coordinate, 200 on its .pom, on Maven Central) -
+     forcing the override broke dependency resolution entirely, since okio-jvm expects
+     an actual jar. kotlin-stdlib-common therefore stays unmanaged and remains resolved
+     at the original transitive version (1.9.25), so this suppression is narrowed to
+     that single artifact rather than removed.
+   -->
    <suppress>
       <notes><![CDATA[
-         No stable (GA) fixed Kotlin release exists yet (2.4.20 is Beta-only).
-         The vulnerable code path (Kotlin incremental-compilation build-cache
-         deserialization) is never exercised by BrewDeck's Maven build or by
-         the Anthropic Java SDK's runtime use of kotlin-stdlib/-reflect.
-         See notes above. Re-evaluate once Kotlin >= 2.4.20 ships as GA.
+         kotlin-stdlib-common cannot be bumped past 1.9.25: as of 2.4.20 it is a
+         packaging=pom artifact with no published jar (confirmed via Maven Central),
+         so no fixed jar exists for it to resolve to. The underlying reachability
+         argument from the original suppression above still applies unchanged: the
+         vulnerable code path is Kotlin's incremental-compilation build-cache
+         deserialization, never exercised by BrewDeck's Maven build.
       ]]></notes>
-      <packageUrl regex="true">^pkg:maven/org\.jetbrains\.kotlin/kotlin\-(stdlib|stdlib\-jdk7|stdlib\-jdk8|stdlib\-common|reflect)@.*$</packageUrl>
+      <packageUrl regex="true">^pkg:maven/org\.jetbrains\.kotlin/kotlin\-stdlib\-common@.*$</packageUrl>
       <cve>CVE-2026-53914</cve>
+   </suppress>
+
+   <!--
+     Round 3 (2026-09-22): Spring Framework 6.2.19 / Spring Security 6.5.11, managed by
+     spring-boot-starter-parent 3.5.16 (the latest 3.5.x GA - no newer 3.5.x or 6.2.x/
+     6.5.x patch exists on Maven Central), are affected by a batch of newly-disclosed
+     CVEs. Cross-checked against live NVD data (services.nvd.nist.gov) on 2026-09-22.
+     For every CVE below, the NVD-published affected range for Spring Framework runs
+     6.2.0-6.2.19 (or for Spring Security, 6.5.0-6.5.11) with the fix landing only in
+     Spring Framework 7.0.9+/7.1.1+ or Spring Security 7.0.7+/7.1.2+ - i.e. Spring
+     Framework/Security 7, which ships exclusively under Spring Boot 4.0.x. There is no
+     6.x patch release to bump to. Each suppression below is scoped to a specific CVE
+     whose vulnerable feature/module is verified ABSENT from BrewDeck (confirmed via
+     `mvn dependency:tree`, which shows no spring-webflux, reactor-core/-netty,
+     spring-messaging, io.rsocket, Eclipse Jetty, or Aalto XML anywhere in the resolved
+     graph, and via a full source grep of src/main/java finding no WebFlux/RSocket/
+     WebSocket/XsltView/SpEL-expression-evaluation/method-security/WebAuthn/embedded-LDAP
+     usage). BrewDeck is a Spring MVC REST API on the default embedded Tomcat servlet
+     stack, using only @RestController/@RequestMapping annotation-based endpoints (no
+     RouterFunction-style functional endpoints, no server-side view rendering/Thymeleaf,
+     no SSE, no WebSocket, no RSocket) and JWT-based auth (no WebAuthn, no LDAP).
+
+     One related CVE, CVE-2026-59282 (Spring data-binding "user-supplied property paths"
+     DoS, spring-core, CVSS 7.5), is deliberately NOT suppressed here: BrewDeck's
+     RecipeController/CoffeeController/BrewSessionController do bind query parameters via
+     @ModelAttribute onto RecipeFilter/CoffeeFilter/BrewSessionFilter, a real, reachable
+     use of Spring's data-binding infrastructure, and no fixed 6.x release exists either.
+     This is left as a genuine unresolved, gate-blocking finding - see
+     .claude/project-state.md and the PR description for this round.
+
+     Owner: dependency-upgrade-engineer (via security.yml scheduled scan)
+     Follow-up: remove every suppress block in this section once BrewDeck completes a
+     staged Spring Boot 3.5.x -> 4.0.x migration (Spring Framework/Security 7), which is
+     the only real fix. Re-verify each CVE's affected-range/reachability at that time.
+   -->
+   <suppress>
+      <notes><![CDATA[
+         WebFlux-only (PartEventHttpMessageReader / multipart handling). BrewDeck has no
+         spring-webflux on the classpath (Spring MVC + Tomcat only, confirmed via
+         `mvn dependency:tree`); this code path does not exist in the application.
+      ]]></notes>
+      <packageUrl regex="true">^pkg:maven/org\.springframework/spring\-core@.*$</packageUrl>
+      <cve>CVE-2026-47885</cve>
+   </suppress>
+   <suppress>
+      <notes><![CDATA[
+         Requires an application-defined org.springframework.web.servlet.view.xslt.XsltView
+         (or XsltViewResolver) plus a "/**" catch-all mapping that renders a view without an
+         explicit view name. BrewDeck has no template engine (no Thymeleaf/FreeMarker/
+         Mustache dependency), no ViewResolver configuration, and every endpoint is a
+         @RestController returning JSON directly - XsltView is never constructed.
+      ]]></notes>
+      <packageUrl regex="true">^pkg:maven/org\.springframework/spring\-core@.*$</packageUrl>
+      <cve>CVE-2026-47884</cve>
+   </suppress>
+   <suppress>
+      <notes><![CDATA[
+         WebFlux functional endpoints deployed atop DispatcherServlet. BrewDeck has no
+         spring-webflux on the classpath and defines no RouterFunction-based endpoints -
+         every endpoint is annotation-based (@RestController/@RequestMapping).
+      ]]></notes>
+      <packageUrl regex="true">^pkg:maven/org\.springframework/spring\-core@.*$</packageUrl>
+      <cve>CVE-2026-47892</cve>
+   </suppress>
+   <suppress>
+      <notes><![CDATA[
+         WebFlux applications parsing XML via the Aalto processor. BrewDeck has no
+         spring-webflux and no com.fasterxml:aalto-xml anywhere in the resolved dependency
+         tree (confirmed via `mvn dependency:tree`); this reader is never instantiated.
+      ]]></notes>
+      <packageUrl regex="true">^pkg:maven/org\.springframework/spring\-core@.*$</packageUrl>
+      <cve>CVE-2026-47891</cve>
+   </suppress>
+   <suppress>
+      <notes><![CDATA[
+         WebFlux WebSocket support. BrewDeck has no spring-webflux on the classpath and no
+         WebSocket endpoints in src/main/java (confirmed via source grep); the
+         tomcat-embed-websocket jar present is Tomcat's own servlet-based WebSocket
+         container, bundled by default but never used to open an endpoint, and is unrelated
+         to WebFlux's reactive WebSocket stack targeted by this advisory.
+      ]]></notes>
+      <packageUrl regex="true">^pkg:maven/org\.springframework/spring\-core@.*$</packageUrl>
+      <cve>CVE-2026-47893</cve>
+   </suppress>
+   <suppress>
+      <notes><![CDATA[
+         Spring MVC's "functional web framework" (RouterFunction-based endpoints) combined
+         with Server-Sent Events. BrewDeck defines zero RouterFunction/functional endpoints
+         (confirmed via source grep) and no SseEmitter/text-event-stream usage - every
+         endpoint is annotation-based and returns a plain JSON response body.
+      ]]></notes>
+      <packageUrl regex="true">^pkg:maven/org\.springframework/spring\-core@.*$</packageUrl>
+      <cve>CVE-2026-59313</cve>
+   </suppress>
+   <suppress>
+      <notes><![CDATA[
+         Requires Server-Sent Events combined with server-side "view fragments" (a
+         template-engine rendering feature, e.g. Thymeleaf fragments streamed via SSE).
+         BrewDeck has no template engine dependency, no ViewResolver, and no SSE endpoints
+         anywhere in src/main/java - it is a JSON-only REST API.
+      ]]></notes>
+      <packageUrl regex="true">^pkg:maven/org\.springframework/spring\-core@.*$</packageUrl>
+      <cve>CVE-2026-47890</cve>
+   </suppress>
+   <suppress>
+      <notes><![CDATA[
+         WebFlux running on the Jetty 12 Core reactive server adapter. BrewDeck has no
+         spring-webflux and no Eclipse Jetty dependency anywhere in the resolved tree
+         (confirmed via `mvn dependency:tree`); the application runs on the default
+         embedded Tomcat servlet container via spring-boot-starter-web.
+      ]]></notes>
+      <packageUrl regex="true">^pkg:maven/org\.springframework/spring\-core@.*$</packageUrl>
+      <cve>CVE-2026-47889</cve>
+   </suppress>
+   <suppress>
+      <notes><![CDATA[
+         Spring RSocket support. BrewDeck has no io.rsocket dependency, no
+         spring-boot-starter-rsocket, and no reactor-netty anywhere in the resolved
+         dependency tree (confirmed via `mvn dependency:tree`); no RSocket server or client
+         is configured.
+      ]]></notes>
+      <packageUrl regex="true">^pkg:maven/org\.springframework/spring\-core@.*$</packageUrl>
+      <cve>CVE-2026-47888</cve>
+   </suppress>
+   <suppress>
+      <notes><![CDATA[
+         Requires an application to evaluate user-supplied Spring Expression Language
+         (SpEL) text at runtime (e.g. via ExpressionParser/SpelExpressionParser). A full
+         source grep of src/main/java found zero SpEL evaluation, zero
+         @PreAuthorize/@PostAuthorize/@PreFilter/@PostFilter method-security annotations,
+         and no template engine (Thymeleaf's view layer is the other common SpEL entry
+         point) - BrewDeck never parses or evaluates a SpEL expression, user-supplied or
+         otherwise.
+      ]]></notes>
+      <packageUrl regex="true">^pkg:maven/org\.springframework/spring\-core@.*$</packageUrl>
+      <cve>CVE-2026-47886</cve>
+   </suppress>
+   <suppress>
+      <notes><![CDATA[
+         Same SpEL-evaluation prerequisite as CVE-2026-47886 above (SimpleEvaluationContext
+         is a SpEL API): BrewDeck never constructs an EvaluationContext or evaluates a SpEL
+         expression anywhere in src/main/java (confirmed via source grep). No method
+         security annotations, no template engine, no dynamic expression evaluation.
+      ]]></notes>
+      <packageUrl regex="true">^pkg:maven/org\.springframework/spring\-core@.*$</packageUrl>
+      <cve>CVE-2026-59283</cve>
+   </suppress>
+   <suppress>
+      <notes><![CDATA[
+         Spring Security's embedded WebAuthn support with a distributed HTTP session
+         store. BrewDeck uses stateless JWT authentication (no HTTP session store at all)
+         and has no WebAuthn configuration, dependency, or endpoint anywhere in the
+         codebase (confirmed via source grep).
+      ]]></notes>
+      <packageUrl regex="true">^pkg:maven/org\.springframework\.security/spring\-security\-core@.*$</packageUrl>
+      <cve>CVE-2026-47841</cve>
+   </suppress>
+   <suppress>
+      <notes><![CDATA[
+         Spring Security's embedded UnboundID test LDAP server (UnboundIdContainer).
+         BrewDeck has no org.springframework.security:spring-security-ldap dependency and
+         no UnboundIdContainer bean anywhere in the codebase (confirmed via
+         `mvn dependency:tree` and source grep); authentication is JWT/BCrypt-based against
+         PostgreSQL, not LDAP.
+      ]]></notes>
+      <packageUrl regex="true">^pkg:maven/org\.springframework\.security/spring\-security\-core@.*$</packageUrl>
+      <cve>CVE-2026-59270</cve>
    </suppress>
 </suppressions>

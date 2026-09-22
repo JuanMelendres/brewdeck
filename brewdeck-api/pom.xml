@@ -2,6 +2,21 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+	<!-- Round 3 OWASP remediation note: 3.5.16 is the latest 3.5.x GA on Maven Central
+	     (confirmed via repo1.maven.org/maven2/.../spring-boot-starter-parent/maven-metadata.xml;
+	     the next release after 3.5.16 is 4.0.0-M1). It manages spring-core/spring-webmvc 6.2.19
+	     (also the latest 6.2.x GA) and spring-security-core 6.5.11 (latest 6.5.x GA). Both are
+	     flagged for newly-disclosed CVEs whose NVD-published fixed ranges start at Spring
+	     Framework 7.0.9/7.1.1 and Spring Security 7.0.7/7.1.2 - i.e. Spring Framework/Security 7,
+	     which only ships under Spring Boot 4. There is no patch/minor bump available within the
+	     3.5.x line that fixes these; see dependency-check-suppressions.xml for the per-CVE
+	     reachability analysis of which findings are suppressed as inapplicable to BrewDeck
+	     (BrewDeck runs Spring MVC on Tomcat with no WebFlux/RSocket/WebAuthn/embedded-LDAP/
+	     user-supplied-SpEL surface) versus the one left open as a genuine unresolved,
+	     gate-blocking finding (CVE-2026-59282, data-binding property-path DoS - BrewDeck does
+	     use @ModelAttribute-bound query filters). Closing that finding for real requires a
+	     staged Spring Boot 3.5.x -> 4.0.x major migration, tracked as a follow-up, not a
+	     same-round patch bump. -->
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
@@ -29,13 +44,16 @@
 	<properties>
 		<java.version>21</java.version>
 		<!-- spring-boot-starter-parent 3.5.16 (latest 3.5.x GA as of this review) still
-		     manages Tomcat 10.1.55, which is affected by CVE-2026-55276, CVE-2026-53434,
-		     and CVE-2026-53404 (fixed in 10.1.56) and CVE-2026-59083/CVE-2026-59084
-		     (fixed in 10.1.57) - all CVSS >= 7.3, with four at 9.1 (CRITICAL). Override
-		     Boot's managed `tomcat.version` property directly to pull the latest 10.1.x
-		     patch release independent of Boot's own release cadence; this stays within
-		     the same Tomcat 10.1.x line Boot already ships (patch-only, no API changes). -->
-		<tomcat.version>10.1.57</tomcat.version>
+		     manages Tomcat 10.1.57, which is affected by nine CVEs disclosed after that
+		     release shipped: CVE-2026-65905 (9.8), CVE-2026-65182/CVE-2026-68525 (9.1),
+		     CVE-2026-65183/CVE-2026-66422/CVE-2026-68569 (8.1), and
+		     CVE-2026-65927/CVE-2026-68763/CVE-2026-65637 (7.5) - all fixed in 10.1.58.
+		     10.1.58 itself was never published to Maven Central (pulled/skipped upstream);
+		     override Boot's managed `tomcat.version` property to 10.1.60, the latest
+		     10.1.x patch release, which supersedes the 10.1.58 fix. Same pattern as the
+		     prior round's 10.1.55->10.1.57 bump: patch-only within the line Boot already
+		     ships, no API changes. -->
+		<tomcat.version>10.1.60</tomcat.version>
 		<!-- Trivial same-line patch bump: log4j-api 2.25.4 emits non-RFC-8259-compliant
 		     JSON for non-finite floating-point values in MapMessage.asJson()
 		     (CVE-2026-49844, CVSS 5.9); fixed in 2.25.5. BrewDeck does not use
@@ -48,6 +66,13 @@
 		     (CVE-2026-54515, CVSS 5.3). Fixed in 2.21.5; override Boot's managed
 		     `jackson-bom.version` to pull the coordinated Jackson 2.21.5 BOM release. -->
 		<jackson-bom.version>2.21.5</jackson-bom.version>
+		<!-- spring-data-jpa CVE-2026-47834 (Sort validation bypass via crafted payload,
+		     CVSS 4.8, below the 7.0 gate): affects the entire 3.5.0-3.5.13 line (Boot
+		     3.5.16 manages 3.5.13, the latest 3.5.x GA) plus 4.0.0-4.0.6 and 4.1.0; no
+		     fixed 3.x release exists to override to. Same situation as spring-core/
+		     spring-security-core above - the real fix ships only under Spring Boot 4.
+		     Left unaddressed (below gate, no drop-in fix); revisit with the same Boot 4
+		     migration. -->
 		<commons-lang3.version>3.18.0</commons-lang3.version>
 		<sonar.projectKey>JuanMelendres_brewdeck</sonar.projectKey>
 		<sonar.organization>juanmelendres</sonar.organization>
@@ -78,12 +103,53 @@
 			<!-- Override the swagger-ui webjar pulled in transitively by springdoc-openapi
 			     2.8.17 (5.32.2): that release bundles DOMPurify 3.3.2, vulnerable to
 			     CVE-2026-65898 (CVSS 7.2, fixed in DOMPurify 3.4.11). springdoc-openapi's
-			     2.x line has not published a newer patch; pin the webjar directly to
-			     5.32.11, which bundles DOMPurify 3.4.12. -->
+			     2.x line has not published a newer patch. Previously pinned to 5.32.11
+			     (DOMPurify 3.4.12), which is itself vulnerable to CVE-2026-75838 (CVSS
+			     5.1, IN_PLACE sanitization bypass via detached-subtree element-removal
+			     hooks; fixed in DOMPurify 3.4.13). swagger-ui first bumped its declared
+			     dompurify dependency to ^3.4.13 in 5.32.13 (confirmed via the npm
+			     registry); pin the webjar to 5.32.15, the latest available release, which
+			     bundles the fixed DOMPurify line. -->
 			<dependency>
 				<groupId>org.webjars</groupId>
 				<artifactId>swagger-ui</artifactId>
-				<version>5.32.11</version>
+				<version>5.32.15</version>
+			</dependency>
+			<!-- CVE-2026-53914 (kotlin-stdlib/-reflect, transitive via com.anthropic:anthropic-java's
+			     OkHttp/Jackson-Kotlin integration, resolved at 1.9.25) was suppressed in round 1
+			     because the fixed line, Kotlin 2.4.20, only existed as Beta/RC. Kotlin 2.4.20 has
+			     since reached a stable GA release on Maven Central (confirmed via
+			     repo1.maven.org/maven2/.../kotlin-stdlib/maven-metadata.xml, no -Beta/-RC suffix).
+			     Override the Kotlin artifacts on the classpath that still publish a real jar at
+			     2.4.20 and drop the suppression: Kotlin's stdlib maintains binary backward
+			     compatibility (code/metadata compiled against 1.9.x keeps working against a newer
+			     stdlib/reflect), so this is a drop-in bump for a transitive-only runtime dependency,
+			     not a build-toolchain change (BrewDeck is built with Maven and never invokes the
+			     Kotlin compiler). kotlin-stdlib-common is intentionally NOT overridden here: as of
+			     2.4.20 it is packaging=pom only (no jar published - confirmed by a 404 on its jar
+			     coordinate on Maven Central, vs. 200 on its .pom), so okio-jvm's transitive
+			     dependency on it stays unmanaged and resolves to whatever version is naturally
+			     pulled (1.9.25); forcing 2.4.20 broke dependency resolution entirely. Validated by
+			     the full Testcontainers-backed `./mvnw clean verify` run in this same change. -->
+			<dependency>
+				<groupId>org.jetbrains.kotlin</groupId>
+				<artifactId>kotlin-stdlib</artifactId>
+				<version>2.4.20</version>
+			</dependency>
+			<dependency>
+				<groupId>org.jetbrains.kotlin</groupId>
+				<artifactId>kotlin-stdlib-jdk7</artifactId>
+				<version>2.4.20</version>
+			</dependency>
+			<dependency>
+				<groupId>org.jetbrains.kotlin</groupId>
+				<artifactId>kotlin-stdlib-jdk8</artifactId>
+				<version>2.4.20</version>
+			</dependency>
+			<dependency>
+				<groupId>org.jetbrains.kotlin</groupId>
+				<artifactId>kotlin-reflect</artifactId>
+				<version>2.4.20</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
