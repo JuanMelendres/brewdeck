@@ -31,3 +31,7 @@ Thumbs.db
 
 # Docker
 postgres-data/
+
+# Local-only agent tooling (not used in this repo — .claude/ is the tracked source)
+.agents/
+AGENTS.md
