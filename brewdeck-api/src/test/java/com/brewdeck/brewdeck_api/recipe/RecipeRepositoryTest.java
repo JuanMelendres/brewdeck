@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,7 +24,7 @@ class RecipeRepositoryTest extends PostgresRepositoryTest {
   @Autowired private RecipeRepository recipeRepository;
 
   @Autowired
-  private org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager entityManager;
+  private org.springframework.boot.jpa.test.autoconfigure.TestEntityManager entityManager;
 
   @Test
   void findByFavoriteTrue_shouldReturnOnlyFavoriteRecipes() {
