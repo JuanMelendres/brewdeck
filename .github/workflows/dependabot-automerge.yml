@@ -1,8 +1,9 @@
 name: Dependabot Auto-Merge
 
-# Scope: only Dependabot PRs against develop. Patch/minor bumps auto-merge once the
-# checks relevant to their ecosystem report success; major bumps are left for manual
-# review (commented, never merged automatically).
+# Scope: only Dependabot PRs against develop. Eligible bumps (patch/minor, and NOT a
+# pre-1.0 package's version bump) auto-merge once the checks relevant to their
+# ecosystem report success; everything else (major bumps, any 0.x package bump) is
+# left for manual review (commented, never merged automatically).
 on:
   pull_request:
     branches: [develop]
@@ -26,8 +27,28 @@ jobs:
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
 
-      - name: Wait for relevant checks, then merge patch/minor updates
-        if: steps.metadata.outputs.update-type != 'version-update:semver-major'
+      - name: Determine auto-merge eligibility
+        id: eligibility
+        run: |
+          update_type="${{ steps.metadata.outputs.update-type }}"
+          previous_version="${{ steps.metadata.outputs.previous-version }}"
+          eligible=true
+          reason=""
+          if [ "$update_type" = "version-update:semver-major" ]; then
+            eligible=false
+            reason="major version bump"
+          elif [[ "$previous_version" == 0.* ]]; then
+            # Per semver, a package still on major version 0 may introduce breaking
+            # changes on ANY bump, including what Dependabot labels "minor"/"patch"
+            # (e.g. jjwt 0.12.6 -> 0.13.0 reports as semver-minor). Treat it like major.
+            eligible=false
+            reason="pre-1.0 package (currently $previous_version) — a minor/patch bump can still break, per semver"
+          fi
+          echo "eligible=$eligible" >> "$GITHUB_OUTPUT"
+          echo "reason=$reason" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for relevant checks, then merge eligible updates
+        if: steps.eligibility.outputs.eligible == 'true'
         uses: actions/github-script@v9
         with:
           script: |
@@ -78,10 +99,10 @@ jobs:
             core.info("All required checks green — merging.");
             await github.rest.pulls.merge({ owner, repo, pull_number, merge_method: "merge" });
 
-      - name: Flag major bump for manual review
-        if: steps.metadata.outputs.update-type == 'version-update:semver-major'
+      - name: Flag ineligible bump for manual review
+        if: steps.eligibility.outputs.eligible == 'false'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh pr comment "${{ github.event.pull_request.html_url }}" \
-            --body "Major version bump — needs manual review, not auto-merged."
+            --body "Not auto-merged — needs manual review (${{ steps.eligibility.outputs.reason }})."
