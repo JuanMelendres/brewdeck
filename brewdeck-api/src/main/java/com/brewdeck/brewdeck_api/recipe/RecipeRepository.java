@@ -11,17 +11,21 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 
 public interface RecipeRepository
     extends JpaRepository<Recipe, Long>, JpaSpecificationExecutor<Recipe> {
 
   @Override
+  @NonNull
   @EntityGraph(attributePaths = {"coffee", "method"})
-  Optional<Recipe> findById(Long id);
+  Optional<Recipe> findById(@NonNull Long id);
 
   @Override
+  @NonNull
   @EntityGraph(attributePaths = {"coffee", "method"})
-  Page<Recipe> findAll(Specification<Recipe> spec, Pageable pageable);
+  Page<Recipe> findAll(@Nullable Specification<Recipe> spec, @NonNull Pageable pageable);
 
   List<Recipe> findByFavoriteTrue();
 
