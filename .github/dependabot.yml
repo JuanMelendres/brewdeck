@@ -40,3 +40,11 @@ updates:
     labels:
       - "dependencies"
       - "ci"
+    ignore:
+      # web-ci.yml deliberately pins pnpm/action-setup@v4 (see the inline comment on
+      # that step): v6's self-installer crashes resolving the packageManager-pinned
+      # pnpm version (confirmed again in PR #94 - ERR_PNPM_BROKEN_PNPM_RELEASE against
+      # the currently pinned pnpm release). Revisit manually once that's resolved
+      # upstream; don't let Dependabot re-propose it weekly until then.
+      - dependency-name: "pnpm/action-setup"
+        versions: [">=5"]
