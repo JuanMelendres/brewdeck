@@ -2,7 +2,7 @@
 
 ## Last Updated
 
-2026-09-08 (AI recipe assistant integration suspended — see "AI Integration — Suspended" section below)
+2026-09-22 (Spring Boot 3.5.16 → 4.1.1 migration on `feat/spring-boot-4-migration` — see "Recently Worked On" below)
 
 ## Current Phase
 
@@ -51,6 +51,50 @@ Phase 6 (auth & multi-user) complete: Slice A (auth foundation), Slice B (per-us
 
 ## Recently Worked On
 
+- Spring Boot 3.5.16 -> 4.1.1 migration (backend, branch `feat/spring-boot-4-migration`, ADR-008) —
+  the real fix for the two CVEs round 3 left open with no patch-level fix (CVE-2026-59282
+  spring-core, CVSS 7.5, gate-blocking; CVE-2026-47834 spring-data-jpa, CVSS 4.8). Bumped
+  `spring-boot-starter-parent` to 4.1.1 and applied every coordinated breaking change that came with
+  it: removed the now-obsolete `jackson-bom.version`/`tomcat.version` property overrides (Boot 4.1.1's
+  own defaults already satisfy what they were forcing); renamed the Testcontainers artifacts
+  (`postgresql`/`junit-jupiter` -> `testcontainers-postgresql`/`testcontainers-junit-jupiter`) for
+  Testcontainers 2.0.5; fixed `GlobalExceptionHandler`'s `PropertyReferenceException` import
+  (`org.springframework.data.mapping` -> `org.springframework.data.core`) — directly on the
+  CVE-2026-59282 `@ModelAttribute`-filter surface; scripted a `sed` rewrite of Boot-4-modularized
+  test-slice imports (`@WebMvcTest`/`@AutoConfigureMockMvc`/`@DataJpaTest`/`TestEntityManager`/
+  `@AutoConfigureTestDatabase`) across all 40 affected test files, then let Spotless re-sort the
+  resulting import order; swapped `spring-boot-starter-test` -> `spring-boot-starter-test-classic`.
+  Confirmed the `@MockBean` -> `@MockitoBean` fix in `PublicRecipeControllerTest` had already landed
+  on `develop` via a separate PR before this branch started (`git pull` picked it up; nothing to do).
+  Two decisions made explicit rather than defaulted: (1) added
+  `org.springframework.boot:spring-boot-jackson2` as a deliberate compile-scope compatibility shim
+  because `RestAuthenticationEntryPoint` + 17 test classes depend on classic
+  `com.fasterxml.jackson.databind.ObjectMapper`, and Boot 4's starter-web only autoconfigures Jackson
+  3 by default — a full Jackson 3 port is scoped out as a tracked follow-up, not silently chosen; (2)
+  replaced `org.flywaydb:flyway-core` with `org.springframework.boot:spring-boot-starter-flyway`,
+  because Boot 4 carved Flyway autoconfiguration out behind that starter and a bare `flyway-core`
+  dependency now silently skips migrations with no error — verified this is not a latent risk by
+  reading the Testcontainers logs directly: every context logs
+  `Successfully applied 14 migrations to schema "public", now at version v14`, and the security-profile
+  run's `DbValidate` pass additionally logs `Successfully validated 14 migrations`. Bumped
+  `springdoc-openapi-starter-webmvc-ui` 2.8.17 -> 3.1.1 (mandatory — 2.8.17 compiles but throws
+  `NoClassDefFoundError` at runtime under Boot 4; this supersedes Dependabot PR #97, left untouched);
+  re-validated the `swagger-ui` webjar override and confirmed via
+  `mvn dependency:tree -Dverbose=true -Dincludes=org.webjars:swagger-ui` that springdoc 3.1.1 now
+  transitively manages 5.32.14 (was 5.32.2 under 2.8.17) — still one patch behind the existing 5.32.15
+  pin, so the override stays necessary, no bump needed yet. `./mvnw spotless:apply` then
+  `./mvnw clean verify`: green, 377/377 tests, 0 failures/errors, JaCoCo coverage gate met, real
+  Testcontainers-backed `postgres:16` containers confirmed in the logs (not H2/mocked). Attempted
+  `./mvnw clean verify -Psecurity` per `.github/workflows/security.yml`'s exact invocation to check
+  whether CVE-2026-59282/47834 are actually gone from the report; see the PR description for the
+  outcome as of that attempt — a stale, pre-existing `odc.update.lock` file in the local `~/.m2` NVD
+  cache (dated before this session started) caused two false starts (one orphaned background process,
+  one accidental concurrent double-run against the same `target/` dir) before a clean single attempt
+  ran; documented honestly rather than assumed. New `docs/decisions/ADR-008-spring-boot-4-migration.md`
+  records the full rationale, all five 3.5.16 pre-existing pom.xml CVE-remediation comments that
+  referenced "requires a Boot 4 migration" were updated to point at ADR-008 instead of re-describing
+  the now-resolved blocker. PR not yet opened as of this entry pending final security-scan evidence.
+
 - Dependabot enabled + scoped auto-merge (2026-09-22) — triggered by the recurring OWASP gate failures (round 3 of CVE remediation, `.github/workflows/dependabot-automerge.yml` and `.github/dependabot.yml` added same day). `.github/dependabot.yml`: weekly scans for `maven` (`brewdeck-api`), `npm` (`brewdeck-web`), and `github-actions`, ungrouped (one PR per bump) so each dependency's update-type is unambiguous. `security.yml` gained a `pull_request` trigger scoped to `brewdeck-api/pom.xml` (previously schedule/workflow_dispatch only), so the OWASP CVSS>=7.0 gate now runs pre-merge on any PR touching backend dependencies — closing the exact gap that let round 3's CVEs land undetected until the weekly scan. New `dependabot-automerge.yml` (actor-gated to `dependabot[bot]`, `pull_request` on `develop`): reads `dependabot/fetch-metadata` for `update-type`/`package-ecosystem`; patch/minor bumps poll the Checks API by name (via `actions/github-script`, no third-party wait-action) for `qodana` (always, no path filter) plus the ecosystem-relevant check(s) — `API Quality Checks & SonarCloud` + `OWASP Dependency Check` for maven, `Web Quality Checks` for npm — and only merge once all report `success`; major bumps get a PR comment flagging manual review instead of merging. Deliberately does NOT poll via `gh pr checks --watch` (would include the automerge job's own still-running check and deadlock on itself) and does NOT rely on branch-protection `required_status_checks` (api-ci/web-ci are path-filtered, so marking them required would strand any PR — e.g. docs-only — that never triggers them, reproducing the exact block hit below). Also found and fixed a real merge blocker while wiring this up: `develop` branch protection had `require_code_owner_reviews: true` with no `CODEOWNERS` file in the repo, which silently blocked every non-admin PR merge (surfaced on PR #86); disabled via the API (`required_pull_request_reviews.require_code_owner_reviews -> false`), rest of the protection left intact. Repo-level `allow_auto_merge` also flipped on (was off, which is why `gh pr merge --auto` failed earlier the same day). Round 3 CVE fixes themselves tracked separately (see the dependency-upgrade-engineer PR once merged).
 
 - OWASP Dependency Check CVE remediation round 3 (backend, branch `fix/owasp-cve-remediation-round-3`, commit 03c8985, PR pending) — weekly `security.yml` run 35635143277 (2026-09-21, on `develop`) flagged spring-core 6.2.19, spring-security-core 6.5.11, and tomcat-embed-core 10.1.57 at CVSS>=7.0. Drop-in fixes: `tomcat.version` 10.1.57→10.1.60 (closes nine Tomcat CVEs disclosed after 10.1.57 shipped, all fixed in 10.1.58, which was never published to Maven Central — 10.1.60 is the latest patch that supersedes it — gate-blocking); `swagger-ui` webjar 5.32.11→5.32.15 (5.32.11's bundled DOMPurify 3.4.12 is vulnerable to CVE-2026-75838, CVSS 5.1 below gate; swagger-ui first shipped a fixed DOMPurify ^3.4.13 dependency in 5.32.13 per the npm registry; springdoc-openapi still has no newer 2.x patch); `kotlin-stdlib`/`kotlin-stdlib-jdk7`/`kotlin-stdlib-jdk8`/`kotlin-reflect` 1.9.25→2.4.20 (Kotlin 2.4.20 reached GA — closing out Immediate Next Steps item 1 below — this closes the CVE-2026-53914 suppression for every Kotlin artifact except `kotlin-stdlib-common`, which no longer publishes a jar at 2.4.20, packaging=pom only as of that release; it stays suppressed and unmanaged at 1.9.25). The big finding this round: **spring-core 6.2.19 and spring-security-core 6.5.11 are already the latest GA releases in their 3.5.x-managed lines** (confirmed via Maven Central metadata — the next release after each is Spring Framework/Security 7.x, which ships only under Spring Boot 4.0.x); NVD confirms every flagged CVE's fix starts at Spring Framework 7.0.9/7.1.1 or Spring Security 7.0.7/7.1.2, so there is no patch/minor bump available this round — only a staged Spring Boot 4 major migration actually closes these. Cross-checked every CVE against live NVD (`services.nvd.nist.gov`, no API key, paced ~8s between calls to avoid rate limiting) and reasoned about reachability using `mvn dependency:tree` plus a full `src/main/java` source grep: BrewDeck runs Spring MVC on embedded Tomcat with no WebFlux, RSocket, WebSocket, Jetty, Aalto XML, WebAuthn, embedded LDAP, functional/router endpoints, SSE, server-side view rendering, or user-supplied SpEL evaluation anywhere in the tree or the code. On that evidence, suppressed 11 spring-core CVEs (CVE-2026-47885/47884/47892/47891/47893/59313/47890/47889/47888/47886/59283) and both spring-security-core CVEs (CVE-2026-47841 WebAuthn, CVE-2026-59270 embedded LDAP) as confirmed inapplicable, each with its own documented justification in `dependency-check-suppressions.xml` (a much bigger suppression set than rounds 1-2's single kotlin-stdlib entry — flagged for extra `security-auditor` scrutiny). **CVE-2026-59282** (spring-core, data-binding property-path DoS, CVSS 7.5) was deliberately left unsuppressed and unresolved: BrewDeck's `RecipeFilter`/`CoffeeFilter`/`BrewSessionFilter` are bound via `@ModelAttribute`, a real reachable use of the affected infrastructure, and no fixed 6.x release exists — a genuine, honest, unresolved gate-blocking gap. `spring-data-jpa` CVE-2026-47834 (4.8, below gate) has the identical no-fix-in-3.x situation and is also left unaddressed. Both are tracked as follow-ups for the same eventual Spring Boot 4 migration (recommend a `solution-architect`-led spike). `./mvnw clean verify`: 377/377 tests green (Docker running locally, so the Testcontainers Postgres-16 suite executed for real, including the AI/Anthropic-SDK-backed tests exercising the bumped Kotlin runtime), JaCoCo coverage checks passed; `mvn dependency:tree` confirmed every target version resolved as intended. **Practical outcome: the next scheduled/pre-merge `security.yml` run will very likely still fail** on CVE-2026-59282 — this round substantially reduces noise and gives an accurate picture of the one real remaining gap, but does not fully close the gate. PR not yet opened as of this entry.
@@ -93,8 +137,18 @@ Phase 6 (auth & multi-user) complete: Slice A (auth foundation), Slice B (per-us
 2. `kotlin-stdlib` CVE-2020-29582 — checked 2026-08-05 and confirmed non-issue: fixed upstream in Kotlin 1.4.21, BrewDeck resolves kotlin-stdlib 1.9.25 (well past fix), and it's CVSS 5.3 (below the 7.0 gate) anyway. No suppression needed; closed, no further action.
 3. Review JaCoCo and SonarCloud.
 4. Security follow-up (flagged during a repository/service/frontend security pass, 2026-09-17): access + refresh tokens are stored in `localStorage` (`brewdeck-web/src/lib/auth/tokenStore.ts`), exposing both to theft via any future XSS instead of being invisible to JS via `httpOnly` cookies. No known exploit today; not urgent. Migrating would touch `AuthService`/token issuance (set-cookie), CORS (`credentials`), and CSRF protection on the backend, plus the frontend `apiFetch`/refresh flow — needs its own design pass before implementation.
-5. **New (round 3, 2026-09-22)** — Spring Boot 3.5.x → 4.0.x major migration spike needed: it's the only real fix for CVE-2026-59282 (spring-core data-binding DoS, CVSS 7.5, gate-blocking, unresolved), `spring-data-jpa` CVE-2026-47834 (4.8, below gate), and would let us drop the 13-entry spring-core/spring-security-core suppression block added this round once verified against Spring Framework/Security 7's actual (re-scoped) module boundaries. Needs a `solution-architect`-led spike: Spring Framework 7 / Spring Security 7 / Hibernate compatibility, Jakarta namespace re-check, Testcontainers/Boot-plugin compatibility, config-property renames, before any code changes.
-6. **New (round 3, 2026-09-22)** — the 11 spring-core + 2 spring-security-core suppressions added this round are a much larger set than the prior single kotlin-stdlib entry; flag for `security-auditor` review to confirm the reachability reasoning (no WebFlux/RSocket/WebSocket/Jetty/Aalto/WebAuthn/LDAP/SpEL-evaluation/functional-router/SSE/view-rendering anywhere in BrewDeck) before/shortly after this PR merges.
+5. ~~Spring Boot 3.5.x → 4.0.x major migration spike needed~~ — **implemented 2026-09-22** on
+   `feat/spring-boot-4-migration` (parent bumped to 4.1.1, see ADR-008 and the "Recently Worked On"
+   entry above). `./mvnw clean verify` is fully green with real Testcontainers/Flyway execution
+   confirmed from the logs. Still open: confirm from a completed `./mvnw clean verify -Psecurity` run
+   whether CVE-2026-59282/47834 (and the round-3 suppression block below) are actually gone from the
+   dependency-check report — not yet conclusively confirmed as of this entry; re-run once Docker/NVD
+   cache access is available and attach the result to the PR/this file.
+6. **New (round 3, 2026-09-22)** — the 11 spring-core + 2 spring-security-core suppressions added this round are a much larger set than the prior single kotlin-stdlib entry; flag for `security-auditor` review to confirm the reachability reasoning (no WebFlux/RSocket/WebSocket/Jetty/Aalto/WebAuthn/LDAP/SpEL-evaluation/functional-router/SSE/view-rendering anywhere in BrewDeck) before/shortly after this PR merges. Once CVE-2026-59282/47834 are confirmed closed by the Boot 4 migration (item 5), these suppressions should be re-reviewed for removal since the underlying spring-core/spring-security-core versions will have changed entirely.
+7. **New (2026-09-22)** — the Jackson 2 compatibility shim (`spring-boot-jackson2`) added by the
+   Boot 4 migration is deliberate technical debt, not a final architecture choice (see ADR-008). Plan
+   a follow-up to port `RestAuthenticationEntryPoint` and the ~17 dependent test classes to the
+   Jackson 3 API (`tools.jackson.databind.*`) and drop the shim once that lands.
 
 ## AI Integration — Suspended (2026-09-08)
 

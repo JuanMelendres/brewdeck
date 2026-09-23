@@ -2,25 +2,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<!-- Round 3 OWASP remediation note: 3.5.16 is the latest 3.5.x GA on Maven Central
-	     (confirmed via repo1.maven.org/maven2/.../spring-boot-starter-parent/maven-metadata.xml;
-	     the next release after 3.5.16 is 4.0.0-M1). It manages spring-core/spring-webmvc 6.2.19
-	     (also the latest 6.2.x GA) and spring-security-core 6.5.11 (latest 6.5.x GA). Both are
-	     flagged for newly-disclosed CVEs whose NVD-published fixed ranges start at Spring
-	     Framework 7.0.9/7.1.1 and Spring Security 7.0.7/7.1.2 - i.e. Spring Framework/Security 7,
-	     which only ships under Spring Boot 4. There is no patch/minor bump available within the
-	     3.5.x line that fixes these; see dependency-check-suppressions.xml for the per-CVE
-	     reachability analysis of which findings are suppressed as inapplicable to BrewDeck
-	     (BrewDeck runs Spring MVC on Tomcat with no WebFlux/RSocket/WebAuthn/embedded-LDAP/
-	     user-supplied-SpEL surface) versus the one left open as a genuine unresolved,
-	     gate-blocking finding (CVE-2026-59282, data-binding property-path DoS - BrewDeck does
-	     use @ModelAttribute-bound query filters). Closing that finding for real requires a
-	     staged Spring Boot 3.5.x -> 4.0.x major migration, tracked as a follow-up, not a
-	     same-round patch bump. -->
+	<!-- Migrated from spring-boot-starter-parent 3.5.16 to 4.1.1 (see
+	     docs/decisions/ADR-008-spring-boot-4-migration.md) specifically to close
+	     CVE-2026-59282 (spring-core, CVSS 7.5, data-binding property-path DoS - reachable via
+	     BrewDeck's @ModelAttribute-bound query filters) and CVE-2026-47834 (spring-data-jpa,
+	     CVSS 4.8), neither of which had a fix available in the 3.5.x line. -->
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.16</version>
+		<version>4.1.1</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.brewdeck</groupId>
@@ -43,36 +33,21 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
-		<!-- spring-boot-starter-parent 3.5.16 (latest 3.5.x GA as of this review) still
-		     manages Tomcat 10.1.57, which is affected by nine CVEs disclosed after that
-		     release shipped: CVE-2026-65905 (9.8), CVE-2026-65182/CVE-2026-68525 (9.1),
-		     CVE-2026-65183/CVE-2026-66422/CVE-2026-68569 (8.1), and
-		     CVE-2026-65927/CVE-2026-68763/CVE-2026-65637 (7.5) - all fixed in 10.1.58.
-		     10.1.58 itself was never published to Maven Central (pulled/skipped upstream);
-		     override Boot's managed `tomcat.version` property to 10.1.60, the latest
-		     10.1.x patch release, which supersedes the 10.1.58 fix. Same pattern as the
-		     prior round's 10.1.55->10.1.57 bump: patch-only within the line Boot already
-		     ships, no API changes. -->
-		<tomcat.version>10.1.60</tomcat.version>
+		<!-- Post-migration OWASP finding (PR #117's own security.yml run): Boot 4.1.1's
+		     default-managed Tomcat, 11.0.24, is itself vulnerable to nine CVEs disclosed after
+		     that release shipped (CVE-2026-65905/65637 CVSS 9.8, CVE-2026-68525/65182 CVSS 9.1,
+		     CVE-2026-65183/66422/68569 CVSS 8.1, CVE-2026-65927/68763 CVSS 7.5 - the same set
+		     round 3 fixed on the 10.1.x line by pinning to 10.1.60). Fixed upstream in 11.0.25;
+		     override Boot's managed `tomcat.version` property to 11.0.26, the latest 11.0.x
+		     patch release on Maven Central, which supersedes the fix. Patch-only within the
+		     line Boot already ships, no API changes. -->
+		<tomcat.version>11.0.26</tomcat.version>
 		<!-- Trivial same-line patch bump: log4j-api 2.25.4 emits non-RFC-8259-compliant
 		     JSON for non-finite floating-point values in MapMessage.asJson()
 		     (CVE-2026-49844, CVSS 5.9); fixed in 2.25.5. BrewDeck does not use
 		     JsonTemplateLayout's message resolver, so the defect is not reachable here,
 		     but the bump is free and low risk. -->
 		<log4j2.version>2.25.5</log4j2.version>
-		<!-- Trivial same-line patch bump: jackson-databind 2.21.4 mishandles
-		     @JsonFormat(ACCEPT_CASE_INSENSITIVE_PROPERTIES) combined with
-		     @JsonIgnoreProperties, re-including properties that should stay excluded
-		     (CVE-2026-54515, CVSS 5.3). Fixed in 2.21.5; override Boot's managed
-		     `jackson-bom.version` to pull the coordinated Jackson 2.21.5 BOM release. -->
-		<jackson-bom.version>2.21.5</jackson-bom.version>
-		<!-- spring-data-jpa CVE-2026-47834 (Sort validation bypass via crafted payload,
-		     CVSS 4.8, below the 7.0 gate): affects the entire 3.5.0-3.5.13 line (Boot
-		     3.5.16 manages 3.5.13, the latest 3.5.x GA) plus 4.0.0-4.0.6 and 4.1.0; no
-		     fixed 3.x release exists to override to. Same situation as spring-core/
-		     spring-security-core above - the real fix ships only under Spring Boot 4.
-		     Left unaddressed (below gate, no drop-in fix); revisit with the same Boot 4
-		     migration. -->
 		<commons-lang3.version>3.18.0</commons-lang3.version>
 		<sonar.projectKey>JuanMelendres_brewdeck</sonar.projectKey>
 		<sonar.organization>juanmelendres</sonar.organization>
@@ -100,16 +75,14 @@
 				<artifactId>commons-compress</artifactId>
 				<version>1.26.0</version>
 			</dependency>
-			<!-- Override the swagger-ui webjar pulled in transitively by springdoc-openapi
-			     2.8.17 (5.32.2): that release bundles DOMPurify 3.3.2, vulnerable to
-			     CVE-2026-65898 (CVSS 7.2, fixed in DOMPurify 3.4.11). springdoc-openapi's
-			     2.x line has not published a newer patch. Previously pinned to 5.32.11
-			     (DOMPurify 3.4.12), which is itself vulnerable to CVE-2026-75838 (CVSS
-			     5.1, IN_PLACE sanitization bypass via detached-subtree element-removal
-			     hooks; fixed in DOMPurify 3.4.13). swagger-ui first bumped its declared
-			     dompurify dependency to ^3.4.13 in 5.32.13 (confirmed via the npm
-			     registry); pin the webjar to 5.32.15, the latest available release, which
-			     bundles the fixed DOMPurify line. -->
+			<!-- Override the swagger-ui webjar pulled in transitively by springdoc-openapi:
+			     pinned to 5.32.15 (bundling the DOMPurify >=3.4.13 line that fixes
+			     CVE-2026-75838, CVSS 5.1) because springdoc's own managed version lagged
+			     behind. Re-validated as part of the Spring Boot 4 migration (springdoc bumped
+			     2.8.17 -> 3.1.1, see ADR-008): 3.1.1 transitively manages swagger-ui 5.32.14
+			     (`mvn dependency:tree -Dverbose=true -Dincludes=org.webjars:swagger-ui` shows
+			     "version managed from 5.32.14"), which is still one patch behind this pin, so
+			     the override remains necessary and does not need a further bump yet. -->
 			<dependency>
 				<groupId>org.webjars</groupId>
 				<artifactId>swagger-ui</artifactId>
@@ -208,9 +181,12 @@
 			<groupId>com.github.ben-manes.caffeine</groupId>
 			<artifactId>caffeine</artifactId>
 		</dependency>
+		<!-- Boot 4 carved FlywayAutoConfiguration out into spring-boot-flyway, gated behind this
+		     starter; a bare flyway-core dependency no longer triggers it (silently skips
+		     migrations - see ADR-008 for the full failure mode). -->
 		<dependency>
-			<groupId>org.flywaydb</groupId>
-			<artifactId>flyway-core</artifactId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-flyway</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.flywaydb</groupId>
@@ -219,7 +195,16 @@
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-			<version>2.8.17</version>
+			<version>3.1.1</version>
+		</dependency>
+		<!-- Boot 4's spring-boot-starter-web only autoconfigures the new Jackson 3
+		     (tools.jackson) ObjectMapper. BrewDeck's RestAuthenticationEntryPoint and ~18 test
+		     classes depend on the classic com.fasterxml.jackson.databind.ObjectMapper; this
+		     opts back into Jackson2ObjectMapperBuilder autoconfiguration as a deliberate
+		     compatibility shim rather than porting to the Jackson 3 API (see ADR-008). -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-jackson2</artifactId>
 		</dependency>
 
 		<dependency>
@@ -239,9 +224,12 @@
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
+		<!-- Boot 4 split spring-boot-starter-test into per-technology starters; -classic is
+		     Boot's own backward-compatible aggregate covering the same set BrewDeck relied on
+		     under Boot 3 (JUnit 5, Mockito, AssertJ, MockMvc, JSONassert, etc.). -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
+			<artifactId>spring-boot-starter-test-classic</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -257,14 +245,14 @@
 		<!-- Spins up the PostgreSQL container -->
 		<dependency>
 			<groupId>org.testcontainers</groupId>
-			<artifactId>postgresql</artifactId>
+			<artifactId>testcontainers-postgresql</artifactId>
 			<scope>test</scope>
 		</dependency>
 
 		<!-- Provides @Testcontainers and @Container annotations -->
 		<dependency>
 			<groupId>org.testcontainers</groupId>
-			<artifactId>junit-jupiter</artifactId>
+			<artifactId>testcontainers-junit-jupiter</artifactId>
 			<scope>test</scope>
 		</dependency>
 

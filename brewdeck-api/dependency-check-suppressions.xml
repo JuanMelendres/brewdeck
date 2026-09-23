@@ -226,4 +226,36 @@
       <packageUrl regex="true">^pkg:maven/org\.springframework\.security/spring\-security\-core@.*$</packageUrl>
       <cve>CVE-2026-59270</cve>
    </suppress>
+
+   <!--
+     Post-Spring-Boot-4-migration finding (PR #117's own security.yml run, 2026-09-22):
+     spring-boot-devtools 4.1.1 is flagged for CVE-2022-31691 (CVSS 9.8) via the CPE
+     cpe:2.3:a:vmware:spring_boot_tools:4.1.1:*:*:*:*:*:*:*. This is a CPE false match,
+     not a real finding: CVE-2022-31691's actual advisory (confirmed against public CVE
+     data) targets "Spring Tools 4" for Eclipse (STS4, up to 4.16.0) and its related
+     VSCode extensions (Spring Boot Tools, Concourse Pipeline Editor, Bosh Editor,
+     Cloudfoundry Manifest YML Support) - IDE tooling vulnerable via SnakeYAML-based
+     remote code execution in their YAML editor. It has nothing to do with
+     org.springframework.boot:spring-boot-devtools, the runtime library dependency
+     BrewDeck declares (LiveReload/restart-on-classpath-change support for local dev).
+     The NVD CPE dictionary's "spring_boot_tools" product name collides with this
+     unrelated artifact's coordinates, and dependency-check's CPE analyzer matched on
+     that string alone. Independently, spring-boot-devtools is also declared
+     `scope=runtime, optional=true` in pom.xml, so Spring Boot's repackage plugin
+     excludes it from the executable JAR entirely - it is never present in a deployed
+     BrewDeck artifact regardless.
+
+     Owner: dependency-upgrade-engineer (via security.yml scheduled scan)
+     Follow-up: none required; re-verify only if a future dependency-check CPE
+     dictionary update changes this match (e.g. if NVD splits the conflated CPE).
+   -->
+   <suppress>
+      <notes><![CDATA[
+         CPE false match: CVE-2022-31691 targets Spring Tools 4 (Eclipse/VSCode IDE
+         plugin), not the org.springframework.boot:spring-boot-devtools library. Also
+         scope=runtime,optional=true - never packaged into the deployed JAR.
+      ]]></notes>
+      <packageUrl regex="true">^pkg:maven/org\.springframework\.boot/spring\-boot\-devtools@.*$</packageUrl>
+      <cve>CVE-2022-31691</cve>
+   </suppress>
 </suppressions>
