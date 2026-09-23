@@ -5,7 +5,7 @@ A system-level TDD for the API. Per-feature designs live in
 
 ## Context
 
-Spring Boot 3.5 REST API on Java 21, PostgreSQL 16, Flyway-managed schema. Organized package-by-domain. Consumed by a Next.js web client and (manually) by Postman/Swagger.
+Spring Boot 4.1 REST API on Java 21, PostgreSQL 16, Flyway-managed schema. Organized package-by-domain. Consumed by a Next.js web client and (manually) by Postman/Swagger.
 
 ## Goals
 

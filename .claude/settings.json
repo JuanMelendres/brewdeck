@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{ f=$(jq -r \".tool_input.file_path // .tool_response.filePath // empty\"); case \"$f\" in *brewdeck-api/*.java) root=$(git rev-parse --show-toplevel 2>/dev/null); [ -n \"$root\" ] && (cd \"$root/brewdeck-api\" && ./mvnw -q spotless:apply); ;; esac; } >/dev/null 2>&1 || true",
+            "statusMessage": "Applying Spotless formatting..."
+          }
+        ]
+      }
+    ]
+  }
+}
