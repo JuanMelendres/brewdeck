@@ -21,7 +21,7 @@ Instead of notes scattered across apps and memory, BrewDeck centralizes coffees,
 
 ## 🛠 Tech Stack
 
-**Backend:** Java 21 · Spring Boot 3.5 · Spring Data JPA · PostgreSQL 16 · Flyway · Maven
+**Backend:** Java 21 · Spring Boot 4.1 · Spring Data JPA · PostgreSQL 16 · Flyway · Maven
 **Frontend:** Next.js (App Router) · React 19 · TypeScript · MUI · TanStack Query · React Hook Form + Zod
 **Quality/DevOps:** JUnit 5 · Mockito · Testcontainers · JaCoCo · Spotless · PMD · OWASP Dependency Check · SonarCloud · Qodana · GitHub Actions · Docker Compose
 

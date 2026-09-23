@@ -2,7 +2,7 @@
 
 ## Last Updated
 
-2026-09-22 (Spring Boot 3.5.16 → 4.1.1 migration on `feat/spring-boot-4-migration` — see "Recently Worked On" below)
+2026-09-23 (Spring Boot 3.5.16 → 4.1.1 migration merged to `develop` via PR #117, confirmed by security.yml's own CI run: CVE-2026-59282/CVE-2026-47834 no longer present, though it surfaced two follow-up findings fixed same-day — Tomcat re-pinned to 11.0.26, `spring-boot-devtools` CPE false-positive suppressed. Dependabot enabled with scoped auto-merge same day; see "Recently Worked On" below for both.)
 
 ## Current Phase
 
