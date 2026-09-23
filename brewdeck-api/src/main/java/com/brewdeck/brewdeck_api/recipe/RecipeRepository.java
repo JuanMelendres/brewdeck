@@ -3,6 +3,8 @@ package com.brewdeck.brewdeck_api.recipe;
 import com.brewdeck.brewdeck_api.coffee.MostUsedCoffee;
 import java.util.List;
 import java.util.Optional;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -11,8 +13,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 
 public interface RecipeRepository
     extends JpaRepository<Recipe, Long>, JpaSpecificationExecutor<Recipe> {
