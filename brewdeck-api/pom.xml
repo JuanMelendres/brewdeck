@@ -48,7 +48,7 @@
 		     JsonTemplateLayout's message resolver, so the defect is not reachable here,
 		     but the bump is free and low risk. -->
 		<log4j2.version>2.26.1</log4j2.version>
-		<commons-lang3.version>3.18.0</commons-lang3.version>
+		<commons-lang3.version>3.20.0</commons-lang3.version>
 		<sonar.projectKey>JuanMelendres_brewdeck</sonar.projectKey>
 		<sonar.organization>juanmelendres</sonar.organization>
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
