@@ -20,6 +20,16 @@ updates:
     labels:
       - "dependencies"
       - "frontend"
+    groups:
+      # react and react-dom must stay on the exact same version (React 19 hard-fails
+      # at runtime otherwise, "Incompatible React versions") - group them so
+      # Dependabot always bumps both together instead of one at a time (see PR #113).
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
 
   - package-ecosystem: "github-actions"
     directory: "/"
