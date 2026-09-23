@@ -67,7 +67,15 @@ jobs:
       - name: Make Maven wrapper executable
         run: chmod +x mvnw
 
-      - name: Code Quality, Tests and SonarQube Analysis
+      - name: Code Quality and Tests
+        run: ./mvnw -B clean spotless:check pmd:check verify
+
+      # GitHub does not expose repository secrets to pull_request runs triggered by
+      # Dependabot (by design, so a malicious dependency bump can't exfiltrate them),
+      # so SONAR_TOKEN is unavailable there. Skip analysis rather than fail the whole
+      # job on an auth error unrelated to the actual code/test quality gate above.
+      - name: SonarQube Analysis
+        if: github.actor != 'dependabot[bot]'
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./mvnw -B clean spotless:check pmd:check verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=JuanMelendres_brewdeck -Dsonar.organization=juanmelendres
+        run: ./mvnw -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=JuanMelendres_brewdeck -Dsonar.organization=juanmelendres
