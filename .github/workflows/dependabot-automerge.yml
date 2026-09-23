@@ -71,7 +71,21 @@ jobs:
             core.info(`Waiting for: ${required.join(", ") || "(nothing ecosystem-specific)"}`);
 
             while (true) {
-              const { data } = await github.rest.checks.listForRef({ owner, repo, ref, per_page: 100 });
+              // This loop can run for hours (the OWASP scan alone has taken over an
+              // hour), so a single transient GitHub API hiccup (5xx/network error)
+              // must not kill the whole run - retry a few times before giving up.
+              let data;
+              for (let attempt = 1; ; attempt++) {
+                try {
+                  ({ data } = await github.rest.checks.listForRef({ owner, repo, ref, per_page: 100 }));
+                  break;
+                } catch (err) {
+                  const status = err.status ?? 0;
+                  if (attempt >= 5 || (status && status < 500)) throw err;
+                  core.warning(`checks.listForRef failed (attempt ${attempt}, status ${status}): ${err.message}. Retrying...`);
+                  await sleep(10000);
+                }
+              }
               const byName = new Map(data.check_runs.map((c) => [c.name, c]));
 
               const failed = required.filter((n) => {
