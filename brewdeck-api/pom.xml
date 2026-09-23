@@ -73,7 +73,7 @@
 			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-compress</artifactId>
-				<version>1.26.0</version>
+				<version>1.28.0</version>
 			</dependency>
 			<!-- Override the swagger-ui webjar pulled in transitively by springdoc-openapi:
 			     pinned to 5.32.15 (bundling the DOMPurify >=3.4.13 line that fixes
