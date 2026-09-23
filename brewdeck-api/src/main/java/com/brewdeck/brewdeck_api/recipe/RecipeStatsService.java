@@ -66,7 +66,7 @@ public class RecipeStatsService {
   }
 
   private int clampLimit(int limit) {
-    return Math.min(Math.max(limit, MIN_LIMIT), MAX_LIMIT);
+    return Math.clamp(limit, MIN_LIMIT, MAX_LIMIT);
   }
 
   private Long currentOwnerId() {

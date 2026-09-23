@@ -24,7 +24,7 @@ public class CoffeeService {
   private final CurrentUserProvider currentUserProvider;
 
   public List<MostUsedCoffeeResponse> getMostUsed(int limit) {
-    int safeLimit = Math.min(Math.max(limit, MIN_LIMIT), MAX_LIMIT);
+    int safeLimit = Math.clamp(limit, MIN_LIMIT, MAX_LIMIT);
 
     return recipeRepository
         .findMostUsedCoffees(currentOwnerId(), PageRequest.of(0, safeLimit))
