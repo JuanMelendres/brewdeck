@@ -33,7 +33,7 @@ public class Coffee {
   private String variety;
   private String process;
 
-  @Column(name = "roast_level")
+  @Column(name = "roast_level", length = 80)
   private String roastLevel;
 
   @Column(name = "notes_primary", columnDefinition = "TEXT")
