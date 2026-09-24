@@ -15,6 +15,7 @@ const unverified: UserResponse = {
   email: 'brewer@example.com',
   displayName: null,
   emailVerified: false,
+  role: 'USER',
   createdAt: '',
 };
 

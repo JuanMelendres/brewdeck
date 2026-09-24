@@ -144,5 +144,8 @@ export type UserResponse = {
   email: string;
   displayName: string | null;
   emailVerified: boolean;
+  role: UserRole;
   createdAt: string;
 };
+
+export type UserRole = 'USER' | 'ADMIN';
