@@ -197,7 +197,7 @@ class RecipeServiceTest {
 
     when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
     when(coffeeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(coffee));
-    when(brewMethodRepository.findById(1L)).thenReturn(Optional.of(method));
+    when(brewMethodRepository.findVisibleById(1L, 42L)).thenReturn(Optional.of(method));
     when(recipeRepository.save(any(Recipe.class))).thenReturn(savedRecipe);
 
     RecipeResponse result = recipeService.create(request);
@@ -207,7 +207,7 @@ class RecipeServiceTest {
     assertThat(result.favorite()).isTrue();
 
     verify(coffeeRepository).findByIdAndOwnerId(1L, 42L);
-    verify(brewMethodRepository).findById(1L);
+    verify(brewMethodRepository).findVisibleById(1L, 42L);
     verify(recipeRepository).save(any(Recipe.class));
   }
 
@@ -219,7 +219,7 @@ class RecipeServiceTest {
 
     when(currentUserProvider.require()).thenReturn(owner);
     when(coffeeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(coffee));
-    when(brewMethodRepository.findById(1L)).thenReturn(Optional.of(method));
+    when(brewMethodRepository.findVisibleById(1L, 42L)).thenReturn(Optional.of(method));
     when(recipeRepository.save(any(Recipe.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -245,7 +245,7 @@ class RecipeServiceTest {
         .hasMessage("Coffee not found");
 
     verify(coffeeRepository).findByIdAndOwnerId(99L, 42L);
-    verify(brewMethodRepository, never()).findById(anyLong());
+    verify(brewMethodRepository, never()).findVisibleById(anyLong(), anyLong());
     verify(recipeRepository, never()).save(any());
   }
 
@@ -375,7 +375,7 @@ class RecipeServiceTest {
     when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
     when(recipeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(existingRecipe));
     when(coffeeRepository.findByIdAndOwnerId(2L, 42L)).thenReturn(Optional.of(newCoffee));
-    when(brewMethodRepository.findById(2L)).thenReturn(Optional.of(newMethod));
+    when(brewMethodRepository.findVisibleById(2L, 42L)).thenReturn(Optional.of(newMethod));
     when(recipeRepository.save(existingRecipe)).thenReturn(existingRecipe);
 
     RecipeResponse result = recipeService.update(1L, request);
@@ -389,7 +389,7 @@ class RecipeServiceTest {
 
     verify(recipeRepository).findByIdAndOwnerId(1L, 42L);
     verify(coffeeRepository).findByIdAndOwnerId(2L, 42L);
-    verify(brewMethodRepository).findById(2L);
+    verify(brewMethodRepository).findVisibleById(2L, 42L);
     verify(recipeRepository).save(existingRecipe);
   }
 
@@ -407,7 +407,7 @@ class RecipeServiceTest {
 
     verify(recipeRepository).findByIdAndOwnerId(99L, 42L);
     verify(coffeeRepository, never()).findByIdAndOwnerId(anyLong(), anyLong());
-    verify(brewMethodRepository, never()).findById(anyLong());
+    verify(brewMethodRepository, never()).findVisibleById(anyLong(), anyLong());
     verify(recipeRepository, never()).save(any());
   }
 
@@ -437,7 +437,7 @@ class RecipeServiceTest {
 
     verify(recipeRepository).findByIdAndOwnerId(1L, 42L);
     verify(coffeeRepository).findByIdAndOwnerId(99L, 42L);
-    verify(brewMethodRepository, never()).findById(anyLong());
+    verify(brewMethodRepository, never()).findVisibleById(anyLong(), anyLong());
     verify(recipeRepository, never()).save(any());
   }
 
@@ -462,7 +462,7 @@ class RecipeServiceTest {
     when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
     when(recipeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(existingRecipe));
     when(coffeeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(coffee));
-    when(brewMethodRepository.findById(99L)).thenReturn(Optional.empty());
+    when(brewMethodRepository.findVisibleById(99L, 42L)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> recipeService.update(1L, request))
         .isInstanceOf(EntityNotFoundException.class)
@@ -470,7 +470,7 @@ class RecipeServiceTest {
 
     verify(recipeRepository).findByIdAndOwnerId(1L, 42L);
     verify(coffeeRepository).findByIdAndOwnerId(1L, 42L);
-    verify(brewMethodRepository).findById(99L);
+    verify(brewMethodRepository).findVisibleById(99L, 42L);
     verify(recipeRepository, never()).save(any());
   }
 

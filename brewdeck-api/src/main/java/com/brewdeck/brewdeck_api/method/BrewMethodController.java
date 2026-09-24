@@ -24,7 +24,8 @@ public class BrewMethodController {
   @GetMapping
   @Operation(
       summary = "List brew methods",
-      description = "Returns a paginated list of brew methods.")
+      description =
+          "Returns the shared catalog plus the current user's private methods, paginated.")
   public ResponseEntity<PageResponse<BrewMethodResponse>> findAll(
       @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
     return ResponseEntity.ok(brewMethodService.findAll(pageable));
@@ -47,7 +48,9 @@ public class BrewMethodController {
   }
 
   @PostMapping
-  @Operation(summary = "Create brew method")
+  @Operation(
+      summary = "Create a private brew method",
+      description = "Creates a method owned by and visible only to the current user.")
   public ResponseEntity<BrewMethodResponse> create(@Valid @RequestBody BrewMethodRequest request) {
     BrewMethodResponse response = brewMethodService.create(request);
 
@@ -57,14 +60,18 @@ public class BrewMethodController {
   }
 
   @PutMapping("/{id}")
-  @Operation(summary = "Update brew method")
+  @Operation(
+      summary = "Update one of your private brew methods",
+      description = "403 for a shared-catalog method; 404 for another user's private method.")
   public ResponseEntity<BrewMethodResponse> update(
       @PathVariable Long id, @Valid @RequestBody BrewMethodRequest request) {
     return ResponseEntity.ok(brewMethodService.update(id, request));
   }
 
   @DeleteMapping("/{id}")
-  @Operation(summary = "Delete brew method")
+  @Operation(
+      summary = "Delete one of your private brew methods",
+      description = "403 for a shared-catalog method; 404 for another user's private method.")
   public ResponseEntity<Void> delete(@PathVariable Long id) {
     brewMethodService.delete(id);
 

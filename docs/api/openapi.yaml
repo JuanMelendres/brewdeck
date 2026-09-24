@@ -237,7 +237,7 @@ paths:
   /api/brew-methods:
     get:
       tags: [Brew Methods]
-      summary: List brew methods (paginated)
+      summary: List the shared catalog plus the caller's private brew methods (paginated)
       parameters:
         - $ref: "#/components/parameters/Page"
         - $ref: "#/components/parameters/Size"
@@ -245,12 +245,20 @@ paths:
       responses: { "200": { description: OK } }
     post:
       tags: [Brew Methods]
-      summary: Create a brew method (ADMIN only)
-      responses: { "201": { description: Created }, "403": { description: Not an admin }, "409": { description: Duplicate name } }
+      summary: Create a private brew method owned by the caller
+      responses: { "201": { description: Created (shared=false) }, "400": { description: Validation error }, "409": { description: Duplicate name among the caller's methods } }
   /api/brew-methods/{id}:
-    get: { tags: [Brew Methods], summary: Get a brew method, parameters: [{ name: id, in: path, required: true, schema: { type: integer, format: int64 } }], responses: { "200": { description: OK }, "404": { description: Not found } } }
-    put: { tags: [Brew Methods], summary: Update a brew method (ADMIN only), parameters: [{ name: id, in: path, required: true, schema: { type: integer, format: int64 } }], responses: { "200": { description: OK }, "403": { description: Not an admin } } }
-    delete: { tags: [Brew Methods], summary: Delete a brew method (ADMIN only), parameters: [{ name: id, in: path, required: true, schema: { type: integer, format: int64 } }], responses: { "204": { description: No Content }, "403": { description: Not an admin } } }
+    get: { tags: [Brew Methods], summary: Get a shared or own private brew method, parameters: [{ name: id, in: path, required: true, schema: { type: integer, format: int64 } }], responses: { "200": { description: OK }, "404": { description: Not found or another user's private method } } }
+    put: { tags: [Brew Methods], summary: Update one of the caller's private brew methods, parameters: [{ name: id, in: path, required: true, schema: { type: integer, format: int64 } }], responses: { "200": { description: OK }, "403": { description: Shared-catalog method }, "404": { description: Not found or another user's private method } } }
+    delete: { tags: [Brew Methods], summary: Delete one of the caller's private brew methods, parameters: [{ name: id, in: path, required: true, schema: { type: integer, format: int64 } }], responses: { "204": { description: No Content }, "403": { description: Shared-catalog method }, "404": { description: Not found or another user's private method } } }
+  /api/admin/brew-methods:
+    post:
+      tags: [Admin - Brew Methods]
+      summary: Create a shared-catalog brew method (ADMIN only)
+      responses: { "201": { description: Created (shared=true) }, "400": { description: Validation error }, "403": { description: Not an admin }, "409": { description: Duplicate name in the catalog } }
+  /api/admin/brew-methods/{id}:
+    put: { tags: [Admin - Brew Methods], summary: Update a shared-catalog brew method (ADMIN only), parameters: [{ name: id, in: path, required: true, schema: { type: integer, format: int64 } }], responses: { "200": { description: OK }, "403": { description: Not an admin }, "404": { description: Not in the shared catalog } } }
+    delete: { tags: [Admin - Brew Methods], summary: Delete a shared-catalog brew method (ADMIN only), parameters: [{ name: id, in: path, required: true, schema: { type: integer, format: int64 } }], responses: { "204": { description: No Content }, "403": { description: Not an admin }, "404": { description: Not in the shared catalog } } }
   /api/brew-methods/usage:
     get: { tags: [Brew Methods], summary: Brew-method usage breakdown (list), responses: { "200": { description: OK } } }
   /api/recipes:

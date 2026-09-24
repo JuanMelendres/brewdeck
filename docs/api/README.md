@@ -53,18 +53,28 @@ GET    /api/coffees/most-used            (analytics, List)
 
 ## Brew methods (`/api/brew-methods`)
 ```
-GET    /api/brew-methods                 (any authenticated user)
-GET    /api/brew-methods/{id}            (any authenticated user)
-POST   /api/brew-methods                 (ADMIN only; 403 otherwise)
-PUT    /api/brew-methods/{id}            (ADMIN only; 403 otherwise)
-DELETE /api/brew-methods/{id}            (ADMIN only; 403 otherwise)
-GET    /api/brew-methods/usage           (analytics, List)
+GET    /api/brew-methods                 (shared catalog + the caller's private methods)
+GET    /api/brew-methods/{id}            (404 for another user's private method)
+POST   /api/brew-methods                 201 (creates a PRIVATE method owned by the caller)
+PUT    /api/brew-methods/{id}            200 own private only (403 shared, 404 another user's)
+DELETE /api/brew-methods/{id}            204 own private only (403 shared, 404 another user's)
+GET    /api/brew-methods/usage           (analytics, List; shared + own methods)
 ```
 
-> Brew methods are a shared catalog. Writes need `ROLE_ADMIN`. A regular user gets `403`
-> `{"message":"Insufficient permissions"}`, and an anonymous caller gets `401`. See
-> [ADR-009](../decisions/ADR-009-role-based-authorization.md) for how an admin is bootstrapped
-> (`BREWDECK_ADMIN_EMAIL`).
+## Admin: shared brew-method catalog (`/api/admin/brew-methods`, ADMIN only)
+```
+POST   /api/admin/brew-methods           201 (creates a SHARED method visible to everyone)
+PUT    /api/admin/brew-methods/{id}      200 (404 if not in the shared catalog)
+DELETE /api/admin/brew-methods/{id}      204 (404 if not in the shared catalog)
+```
+
+> Brew methods have two tiers. The **shared catalog** (`"shared": true`) is visible to everyone
+> and only admins change it. **Private methods** (`"shared": false`) belong to the user who
+> created them. Nobody else can see them, and a recipe can only use a shared method or one of
+> the caller's own. Names are unique within the catalog and within each user's methods. A
+> regular user calling `/api/admin/**` gets `403` `{"message":"Insufficient permissions"}`, and
+> an anonymous caller gets `401`. See [ADR-009](../decisions/ADR-009-role-based-authorization.md)
+> and [ADR-010](../decisions/ADR-010-two-tier-brew-methods.md).
 
 ## Recipes (`/api/recipes`)
 ```

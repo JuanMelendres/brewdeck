@@ -8,6 +8,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
+import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.coffee.CoffeeRepository;
 import com.brewdeck.brewdeck_api.featureflag.FeatureDisabledException;
@@ -31,6 +33,7 @@ class RecipeSuggestionServiceTest {
   @Mock private BrewMethodRepository brewMethodRepository;
   @Mock private RecipeSuggestionPort port;
   @Mock private FeatureFlagService featureFlagService;
+  @Mock private CurrentUserProvider currentUserProvider;
 
   // A plain Mockito mock leaves the void requireEnabled as a no-op, i.e. the flag is enabled.
   private RecipeSuggestionService service() {
@@ -39,7 +42,8 @@ class RecipeSuggestionServiceTest {
         brewMethodRepository,
         port,
         new AiProperties(true, "claude-haiku-4-5", 20, 1024),
-        featureFlagService);
+        featureFlagService,
+        currentUserProvider);
   }
 
   @Test
@@ -67,7 +71,8 @@ class RecipeSuggestionServiceTest {
   void suggest_shouldThrowNotFound_whenBrewMethodMissing() {
     Coffee coffee = Coffee.builder().id(1L).name("Mezcla Veracruz").roastLevel("Medio").build();
     when(coffeeRepository.findById(1L)).thenReturn(Optional.of(coffee));
-    when(brewMethodRepository.findById(2L)).thenReturn(Optional.empty());
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(brewMethodRepository.findVisibleById(2L, 42L)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> service().suggest(new SuggestRecipeRequest(1L, 2L, null)))
         .isInstanceOf(EntityNotFoundException.class);
@@ -78,7 +83,8 @@ class RecipeSuggestionServiceTest {
     Coffee coffee = Coffee.builder().id(1L).name("Mezcla Veracruz").roastLevel("Medio").build();
     BrewMethod method = BrewMethod.builder().id(2L).name("AeroPress").build();
     when(coffeeRepository.findById(1L)).thenReturn(Optional.of(coffee));
-    when(brewMethodRepository.findById(2L)).thenReturn(Optional.of(method));
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(brewMethodRepository.findVisibleById(2L, 42L)).thenReturn(Optional.of(method));
     when(port.suggest(any()))
         .thenReturn(
             new SuggestedRecipe(

@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.ai;
 
+import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
 import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.coffee.CoffeeRepository;
 import com.brewdeck.brewdeck_api.featureflag.FeatureFlagService;
@@ -24,6 +25,7 @@ public class RecipeSuggestionService {
   private final RecipeSuggestionPort suggestionPort;
   private final AiProperties aiProperties;
   private final FeatureFlagService featureFlagService;
+  private final CurrentUserProvider currentUserProvider;
 
   public SuggestedRecipeResponse suggest(SuggestRecipeRequest request) {
     // Release gate: the AI assistant is the source of truth here, not the frontend hiding buttons.
@@ -39,7 +41,7 @@ public class RecipeSuggestionService {
             .orElseThrow(() -> new EntityNotFoundException(COFFEE_NOT_FOUND));
     BrewMethod method =
         brewMethodRepository
-            .findById(request.methodId())
+            .findVisibleById(request.methodId(), currentUserProvider.require().getId())
             .orElseThrow(() -> new EntityNotFoundException(BREW_METHOD_NOT_FOUND));
 
     SuggestionContext context =

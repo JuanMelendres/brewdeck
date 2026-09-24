@@ -31,4 +31,4 @@ Introduce a minimal role model:
 - **Admin grant endpoint:** rejected. It needs an existing admin, so it cannot bootstrap the first one, and it adds attack surface.
 
 ## Notes
-Follow-up: user-owned private brew methods alongside the shared catalog (the owner's product intent). This ADR keeps the shared catalog admin-only; private methods will be owner-scoped like coffees and recipes.
+Superseded in part by [ADR-010](ADR-010-two-tier-brew-methods.md): brew-method authorization moved from URL rules on `/api/brew-methods/**` to a two-tier model. `/api/admin/**` is ADMIN-only; private methods are owner-scoped in the service layer.

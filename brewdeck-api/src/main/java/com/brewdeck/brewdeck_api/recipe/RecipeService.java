@@ -148,7 +148,7 @@ public class RecipeService {
 
   private BrewMethod findBrewMethodById(Long id) {
     return brewMethodRepository
-        .findById(id)
+        .findVisibleById(id, currentOwnerId())
         .orElseThrow(() -> new EntityNotFoundException(BREW_METHOD_NOT_FOUND));
   }
 

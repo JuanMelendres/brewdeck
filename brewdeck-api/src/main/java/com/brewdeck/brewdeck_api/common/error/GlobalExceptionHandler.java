@@ -18,6 +18,7 @@ import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -166,6 +167,19 @@ public class GlobalExceptionHandler {
             null);
 
     return ResponseEntity.badRequest().body(errorResponse);
+  }
+
+  @ExceptionHandler(AccessDeniedException.class)
+  public ResponseEntity<ErrorResponse> handleAccessDenied(
+      AccessDeniedException exception, HttpServletRequest request) {
+    ErrorResponse errorResponse =
+        buildErrorResponse(
+            HttpStatus.FORBIDDEN,
+            "Insufficient permissions",
+            sanitize(request.getRequestURI()),
+            null);
+
+    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
   }
 
   @ExceptionHandler(EmailAlreadyUsedException.class)

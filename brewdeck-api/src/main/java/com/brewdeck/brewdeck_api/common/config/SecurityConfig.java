@@ -61,13 +61,8 @@ public class SecurityConfig {
                     .requestMatchers(
                         "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/actuator/health")
                     .permitAll()
-                    // Brew methods are a shared catalog: every user reads them, only admins
-                    // change them.
-                    .requestMatchers(HttpMethod.POST, "/api/brew-methods", "/api/brew-methods/**")
-                    .hasRole(Role.ADMIN.name())
-                    .requestMatchers(HttpMethod.PUT, "/api/brew-methods/**")
-                    .hasRole(Role.ADMIN.name())
-                    .requestMatchers(HttpMethod.DELETE, "/api/brew-methods/**")
+                    // Admin-only management APIs (e.g. the shared brew-method catalog).
+                    .requestMatchers("/api/admin/**")
                     .hasRole(Role.ADMIN.name())
                     .anyRequest()
                     .authenticated())
