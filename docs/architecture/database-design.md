@@ -23,6 +23,7 @@ PostgreSQL 16, schema versioned by Flyway (`brewdeck-api/src/main/resources/db/m
 | V15 | Add `users.role` (`USER`/`ADMIN`, default `USER`) (ADR-009) |
 | V16 | Nullable `brew_methods.owner_id` (NULL = shared catalog); name uniqueness via partial indexes per tier (ADR-010) |
 | V17 | Widen `coffees.roast_level` (80), `recipes.grind_setting` (120), `brew_sessions.actual_grind` (120) to the validated limits |
+| V18 | Normalize `users.email` to trimmed lowercase + `CHECK` so uniqueness is case-insensitive; aborts if accounts differ only by case |
 
 ## Entity relationships
 

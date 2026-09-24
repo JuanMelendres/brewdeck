@@ -35,13 +35,16 @@ public class RecipeSuggestionService {
     // disabled adapter still throws AiUnavailable -> 503 when the flag is on but AI is not.)
     featureFlagService.requireEnabled(FeatureKeys.AI_RECIPE_ASSISTANT);
 
+    // Both lookups are scoped to the caller: another user's coffee or private method is a 404,
+    // so their data can never reach the AI prompt.
+    Long ownerId = currentUserProvider.require().getId();
     Coffee coffee =
         coffeeRepository
-            .findById(request.coffeeId())
+            .findByIdAndOwnerId(request.coffeeId(), ownerId)
             .orElseThrow(() -> new EntityNotFoundException(COFFEE_NOT_FOUND));
     BrewMethod method =
         brewMethodRepository
-            .findVisibleById(request.methodId(), currentUserProvider.require().getId())
+            .findVisibleById(request.methodId(), ownerId)
             .orElseThrow(() -> new EntityNotFoundException(BREW_METHOD_NOT_FOUND));
 
     SuggestionContext context =

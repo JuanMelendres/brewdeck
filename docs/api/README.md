@@ -25,6 +25,10 @@ POST  /api/auth/refresh             200 (public; 401 if refresh token invalid/ex
 POST  /api/auth/logout              204 (authenticated; revokes only the presented refresh token)
 ```
 
+> Emails are case-insensitive. `register`, `login`, and `forgot-password` trim and lowercase the
+> address, and responses return that normalized form. Registering `Juan@x.com` when
+> `juan@x.com` exists is a `409`.
+
 > Changing or resetting a password ends every existing session: all of the user's active refresh
 > tokens are revoked, so other devices must log in again. Already-issued access tokens stay valid
 > until they expire (`AUTH_TOKEN_TTL`, default 15 minutes).

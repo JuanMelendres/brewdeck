@@ -60,17 +60,20 @@ class RecipeSuggestionServiceTest {
   }
 
   @Test
-  void suggest_shouldThrowNotFound_whenCoffeeMissing() {
-    when(coffeeRepository.findById(1L)).thenReturn(Optional.empty());
+  void suggest_shouldThrowNotFound_whenCoffeeMissingOrOwnedByAnotherUser() {
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(coffeeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> service().suggest(new SuggestRecipeRequest(1L, 2L, null)))
         .isInstanceOf(EntityNotFoundException.class);
+    // Another user's coffee must never reach the AI provider.
+    verify(port, never()).suggest(any());
   }
 
   @Test
   void suggest_shouldThrowNotFound_whenBrewMethodMissing() {
     Coffee coffee = Coffee.builder().id(1L).name("Mezcla Veracruz").roastLevel("Medio").build();
-    when(coffeeRepository.findById(1L)).thenReturn(Optional.of(coffee));
+    when(coffeeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(coffee));
     when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
     when(brewMethodRepository.findVisibleById(2L, 42L)).thenReturn(Optional.empty());
 
@@ -82,7 +85,7 @@ class RecipeSuggestionServiceTest {
   void suggest_shouldReturnMappedResponse_whenEnabled() {
     Coffee coffee = Coffee.builder().id(1L).name("Mezcla Veracruz").roastLevel("Medio").build();
     BrewMethod method = BrewMethod.builder().id(2L).name("AeroPress").build();
-    when(coffeeRepository.findById(1L)).thenReturn(Optional.of(coffee));
+    when(coffeeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(coffee));
     when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
     when(brewMethodRepository.findVisibleById(2L, 42L)).thenReturn(Optional.of(method));
     when(port.suggest(any()))

@@ -35,7 +35,7 @@ public class AdminBootstrap implements ApplicationRunner {
       return;
     }
     userRepository
-        .findByEmail(adminEmail.trim())
+        .findByEmail(EmailAddresses.normalize(adminEmail))
         .ifPresentOrElse(
             user -> {
               if (user.getRole() != Role.ADMIN) {
