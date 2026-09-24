@@ -73,4 +73,14 @@ class AdminBootstrapTest {
 
     assertThat(user.getRole()).isEqualTo(Role.USER);
   }
+
+  @Test
+  void run_configuredEmailIsNormalizedBeforeLookup() {
+    User user = user(Role.USER);
+    when(userRepository.findByEmail(ADMIN_EMAIL)).thenReturn(Optional.of(user));
+
+    new AdminBootstrap(userRepository, "  Owner@Example.COM ").run(null);
+
+    assertThat(user.getRole()).isEqualTo(Role.ADMIN);
+  }
 }

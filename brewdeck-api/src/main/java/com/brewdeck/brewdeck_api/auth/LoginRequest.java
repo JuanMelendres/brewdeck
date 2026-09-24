@@ -11,4 +11,9 @@ public record LoginRequest(
             value = 72,
             message =
                 "Password must not exceed 72 bytes (fewer characters if it uses accents or emoji)")
-        String password) {}
+        String password) {
+
+  public LoginRequest {
+    email = EmailAddresses.normalize(email);
+  }
+}
