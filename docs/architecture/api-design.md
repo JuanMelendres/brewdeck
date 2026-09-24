@@ -43,13 +43,20 @@ Collection GETs return `PageResponse<T>` and accept `page`, `size`, `sort`:
 
 | Status | Meaning |
 | ------ | ------- |
-| 400 | Validation / malformed request |
+| 400 | Validation / malformed request / missing or mistyped parameter |
 | 401 | Missing or invalid JWT |
-| 404 | Resource not found |
+| 403 | Authenticated but not allowed (e.g. non-admin on `/api/admin/**`, editing a shared brew method) |
+| 404 | Resource not found, or no such endpoint |
+| 405 | HTTP method not supported on that path (`Allow` header lists the valid ones) |
+| 406 | Requested `Accept` type cannot be produced |
 | 409 | Conflict (e.g. duplicate) |
+| 415 | Unsupported `Content-Type` (send `application/json`) |
 | 422 | Unprocessable (e.g. AI improve with no rated history) |
 | 503 | AI feature disabled or provider unavailable |
-| 500 | Unexpected error |
+| 500 | Unexpected error: the body stays generic, and the full stack trace is logged server-side |
+
+Spring MVC's own client errors (405/404/415/406/400 and `ResponseStatusException`) keep their real
+status and headers in this same error shape. Only a truly unexpected exception becomes a `500`.
 
 ## Auth
 
