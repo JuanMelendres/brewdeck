@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
@@ -27,6 +28,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.util.HtmlUtils;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
   @ExceptionHandler(EntityNotFoundException.class)
@@ -254,6 +256,19 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ErrorResponse> handleGenericException(
       Exception exception, HttpServletRequest request) {
+    // Spring MVC's own client errors (405 method not allowed, 404 no handler/resource, 415/406
+    // media type, 400 missing parameter, ResponseStatusException, ...) all implement Spring's
+    // ErrorResponse contract. Keep their status and headers (e.g. Allow on 405) instead of
+    // flattening them into a 500.
+    if (exception instanceof org.springframework.web.ErrorResponse springError) {
+      return handleSpringWebError(springError, exception, request);
+    }
+
+    log.error(
+        "Unhandled exception on {} {}",
+        request.getMethod(),
+        sanitizeForLog(request.getRequestURI()),
+        exception);
     ErrorResponse errorResponse =
         buildErrorResponse(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -262,6 +277,37 @@ public class GlobalExceptionHandler {
             null);
 
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+  }
+
+  private ResponseEntity<ErrorResponse> handleSpringWebError(
+      org.springframework.web.ErrorResponse springError,
+      Exception exception,
+      HttpServletRequest request) {
+    HttpStatus status = HttpStatus.resolve(springError.getStatusCode().value());
+    if (status == null) {
+      status = HttpStatus.INTERNAL_SERVER_ERROR;
+    }
+    if (status.is5xxServerError()) {
+      log.error(
+          "Server error on {} {}",
+          request.getMethod(),
+          sanitizeForLog(request.getRequestURI()),
+          exception);
+    } else {
+      log.debug(
+          "Client error {} on {} {}: {}",
+          status.value(),
+          request.getMethod(),
+          sanitizeForLog(request.getRequestURI()),
+          exception.getMessage());
+    }
+
+    String detail = springError.getBody().getDetail();
+    String message = detail != null && !detail.isBlank() ? detail : status.getReasonPhrase();
+    ErrorResponse errorResponse =
+        buildErrorResponse(status, sanitize(message), sanitize(request.getRequestURI()), null);
+
+    return ResponseEntity.status(status).headers(springError.getHeaders()).body(errorResponse);
   }
 
   private ErrorResponse buildErrorResponse(
@@ -273,6 +319,11 @@ public class GlobalExceptionHandler {
         message,
         path,
         validationErrors);
+  }
+
+  /** Strips CR/LF so request-controlled values cannot forge log lines. */
+  private String sanitizeForLog(String value) {
+    return value == null ? null : value.replaceAll("[\\r\\n]", "_");
   }
 
   private String sanitize(String value) {
