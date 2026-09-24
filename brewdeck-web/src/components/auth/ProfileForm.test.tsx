@@ -7,7 +7,7 @@ import { ProfileForm } from './ProfileForm';
 const updateProfileMock = vi.fn();
 vi.mock('@/lib/auth/AuthProvider', () => ({
   useAuth: () => ({
-    user: { id: 1, email: 'brewer@example.com', displayName: 'Old Name', emailVerified: true, createdAt: '' },
+    user: { id: 1, email: 'brewer@example.com', displayName: 'Old Name', emailVerified: true, role: 'USER', createdAt: '' },
     updateProfile: updateProfileMock,
   }),
 }));

@@ -47,6 +47,7 @@ describe('AuthProvider', () => {
       email: 'brewer@example.com',
       displayName: null,
       emailVerified: true,
+      role: 'USER',
       createdAt: '2026-07-01T00:00:00Z',
     });
     render(<Probe />, { wrapper });
@@ -66,6 +67,7 @@ describe('AuthProvider', () => {
       email: 'a@b.com',
       displayName: null,
       emailVerified: true,
+      role: 'USER',
       createdAt: '2026-07-01T00:00:00Z',
     });
     render(<Probe />, { wrapper });
@@ -85,6 +87,7 @@ describe('AuthProvider', () => {
       email: 'a@b.com',
       displayName: null,
       emailVerified: true,
+      role: 'USER',
       createdAt: '2026-07-01T00:00:00Z',
     });
     render(<Probe />, { wrapper });
@@ -100,6 +103,7 @@ describe('AuthProvider', () => {
       email: 'brewer@example.com',
       displayName: null,
       emailVerified: true,
+      role: 'USER',
       createdAt: '2026-07-01T00:00:00Z',
     });
     render(<Probe />, { wrapper });
@@ -123,6 +127,7 @@ describe('AuthProvider', () => {
       email: 'a@b.com',
       displayName: null,
       emailVerified: true,
+      role: 'USER',
       createdAt: '2026-07-01T00:00:00Z',
     });
     const logoutSpy = vi.spyOn(authApi, 'logout').mockResolvedValue(undefined);
@@ -151,6 +156,7 @@ describe('AuthProvider', () => {
       email: 'a@b.com',
       displayName: null,
       emailVerified: true,
+      role: 'USER',
       createdAt: '2026-07-01T00:00:00Z',
     });
     vi.spyOn(authApi, 'logout').mockRejectedValue(new Error('Network error'));
@@ -177,6 +183,7 @@ describe('AuthProvider', () => {
       email: 'a@b.com',
       displayName: null,
       emailVerified: true,
+      role: 'USER',
       createdAt: '2026-07-01T00:00:00Z',
     });
     const fetchMock = vi.fn().mockResolvedValue({

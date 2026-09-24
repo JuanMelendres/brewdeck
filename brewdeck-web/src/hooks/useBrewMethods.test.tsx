@@ -15,7 +15,7 @@ afterEach(() => vi.restoreAllMocks());
 describe('useBrewMethods', () => {
   it('fetches brew methods with the given params', async () => {
     const spy = vi.spyOn(brewMethodsApi, 'listBrewMethods').mockResolvedValue({
-      content: [{ id: 1, name: 'AeroPress', description: null, createdAt: '2026-01-01', updatedAt: null }],
+      content: [{ id: 1, name: 'AeroPress', description: null, createdAt: '2026-01-01', shared: true }],
       page: 0, size: 10, totalElements: 1, totalPages: 1, first: true, last: true,
     });
 
