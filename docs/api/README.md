@@ -16,14 +16,18 @@ POST  /api/auth/register            201
 POST  /api/auth/login               200
 GET   /api/auth/me                  200 (401 without token; includes emailVerified)
 PATCH /api/auth/me                  200 (update display name)
-POST  /api/auth/change-password     204 (400 if current password wrong)
+POST  /api/auth/change-password     204 (400 if current password wrong; revokes all refresh tokens)
 POST  /api/auth/forgot-password     200 (always; no user enumeration)
-POST  /api/auth/reset-password      204 (400 if token invalid/expired/used)
+POST  /api/auth/reset-password      204 (400 if token invalid/expired/used; revokes all refresh tokens)
 POST  /api/auth/verify-email        204 (400 if token invalid/expired/used)
 POST  /api/auth/resend-verification 200 (authenticated; no-op if already verified)
 POST  /api/auth/refresh             200 (public; 401 if refresh token invalid/expired/used; 400 if blank)
 POST  /api/auth/logout              204 (authenticated; revokes only the presented refresh token)
 ```
+
+> Changing or resetting a password ends every existing session: all of the user's active refresh
+> tokens are revoked, so other devices must log in again. Already-issued access tokens stay valid
+> until they expire (`AUTH_TOKEN_TTL`, default 15 minutes).
 
 > `register` and `login` responses now also include a `refreshToken` field alongside `token`, `expiresAt`, and `email`.
 

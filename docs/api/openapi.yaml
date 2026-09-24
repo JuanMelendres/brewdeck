@@ -117,6 +117,7 @@ paths:
     post:
       tags: [Auth]
       summary: Change the current user's password
+      description: Revokes every active refresh token for the user, ending all other sessions.
       responses:
         "204": { description: Password changed }
         "400": { description: Wrong current password or validation error, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
@@ -134,6 +135,7 @@ paths:
       tags: [Auth]
       security: []
       summary: Reset password using a reset token
+      description: Revokes every active refresh token for the user, ending all existing sessions.
       responses:
         "204": { description: Password reset }
         "400": { description: Invalid/expired/used token or validation error, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }

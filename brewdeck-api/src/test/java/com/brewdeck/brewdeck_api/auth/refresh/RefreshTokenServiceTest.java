@@ -160,4 +160,11 @@ class RefreshTokenServiceTest {
 
     verify(tokenRepository, never()).save(any());
   }
+
+  @Test
+  void revokeAllForUserRevokesEveryActiveTokenOfThatUser() {
+    service.revokeAllForUser(7L);
+
+    verify(tokenRepository).revokeAllActiveForUser(eq(7L), any(LocalDateTime.class));
+  }
 }

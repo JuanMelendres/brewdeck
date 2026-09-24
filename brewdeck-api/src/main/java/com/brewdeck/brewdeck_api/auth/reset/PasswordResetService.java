@@ -2,6 +2,7 @@ package com.brewdeck.brewdeck_api.auth.reset;
 
 import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.auth.UserRepository;
+import com.brewdeck.brewdeck_api.auth.refresh.RefreshTokenService;
 import com.brewdeck.brewdeck_api.common.security.SecureTokens;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,16 +22,19 @@ public class PasswordResetService {
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
   private final PasswordResetMailPort mailPort;
+  private final RefreshTokenService refreshTokenService;
 
   public PasswordResetService(
       PasswordResetTokenRepository tokenRepository,
       UserRepository userRepository,
       PasswordEncoder passwordEncoder,
-      PasswordResetMailPort mailPort) {
+      PasswordResetMailPort mailPort,
+      RefreshTokenService refreshTokenService) {
     this.tokenRepository = tokenRepository;
     this.userRepository = userRepository;
     this.passwordEncoder = passwordEncoder;
     this.mailPort = mailPort;
+    this.refreshTokenService = refreshTokenService;
   }
 
   @Transactional
@@ -84,6 +88,7 @@ public class PasswordResetService {
 
     token.setUsedAt(LocalDateTime.now());
     tokenRepository.save(token);
+    refreshTokenService.revokeAllForUser(user.getId());
     log.info("Password reset completed for user id={}", user.getId());
   }
 }

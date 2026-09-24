@@ -164,6 +164,38 @@ class AuthSecurityIntegrationTest extends PostgresIntegrationTest {
   }
 
   @Test
+  void changePasswordRevokesEveryExistingRefreshToken() throws Exception {
+    String email = "pw-change-revoke-" + System.nanoTime() + "@example.com";
+    String registered = registerAndRead(email, "password123");
+    String access = com.jayway.jsonpath.JsonPath.read(registered, "$.token");
+    String refreshFromRegister = com.jayway.jsonpath.JsonPath.read(registered, "$.refreshToken");
+    // A second session (e.g. another device) holding its own refresh token.
+    String refreshFromLogin = loginAndReadRefresh(email, "password123");
+
+    mockMvc
+        .perform(
+            post("/api/auth/change-password")
+                .header("Authorization", "Bearer " + access)
+                .contentType("application/json")
+                .content("{\"currentPassword\":\"password123\",\"newPassword\":\"newpassword1\"}"))
+        .andExpect(status().isNoContent());
+
+    // Every session issued under the old password is dead.
+    for (String staleRefresh : new String[] {refreshFromRegister, refreshFromLogin}) {
+      mockMvc
+          .perform(
+              post("/api/auth/refresh")
+                  .contentType("application/json")
+                  .content("{\"refreshToken\":\"" + staleRefresh + "\"}"))
+          .andExpect(status().isUnauthorized());
+    }
+
+    // A fresh login with the new password yields a working refresh token.
+    String freshRefresh = loginAndReadRefresh(email, "newpassword1");
+    refreshAndRead(freshRefresh);
+  }
+
+  @Test
   void logoutRevokesThePresentedRefreshToken() throws Exception {
     String email = "logout-flow-" + System.nanoTime() + "@example.com";
     String registered = registerAndRead(email, "password123");
@@ -186,6 +218,18 @@ class AuthSecurityIntegrationTest extends PostgresIntegrationTest {
                 .contentType("application/json")
                 .content("{\"refreshToken\":\"" + refresh + "\"}"))
         .andExpect(status().isUnauthorized());
+  }
+
+  private String loginAndReadRefresh(String email, String password) throws Exception {
+    String body = "{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}";
+    String response =
+        mockMvc
+            .perform(post("/api/auth/login").contentType("application/json").content(body))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    return com.jayway.jsonpath.JsonPath.read(response, "$.refreshToken");
   }
 
   private String registerAndRead(String email, String password) throws Exception {
