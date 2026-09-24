@@ -88,7 +88,10 @@ class MethodUsageIntegrationTest extends PostgresIntegrationTest {
     String response =
         mockMvc
             .perform(
-                post("/api/brew-methods").contentType(MediaType.APPLICATION_JSON).content(body))
+                post("/api/brew-methods")
+                    .with(asAdmin())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(body))
             .andExpect(status().isCreated())
             .andReturn()
             .getResponse()

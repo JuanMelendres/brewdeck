@@ -26,6 +26,11 @@ public class User {
   @Column(name = "display_name", length = 100)
   private String displayName;
 
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, length = 20)
+  @Builder.Default
+  private Role role = Role.USER;
+
   @Column(name = "email_verified", nullable = false)
   private boolean emailVerified;
 

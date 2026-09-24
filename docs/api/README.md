@@ -14,7 +14,7 @@ in [`architecture/api-design.md`](../architecture/api-design.md).
 ```
 POST  /api/auth/register            201
 POST  /api/auth/login               200
-GET   /api/auth/me                  200 (401 without token; includes emailVerified)
+GET   /api/auth/me                  200 (401 without token; includes emailVerified and role: USER|ADMIN)
 PATCH /api/auth/me                  200 (update display name)
 POST  /api/auth/change-password     204 (400 if current password wrong; revokes all refresh tokens)
 POST  /api/auth/forgot-password     200 (always; no user enumeration)
@@ -53,13 +53,18 @@ GET    /api/coffees/most-used            (analytics, List)
 
 ## Brew methods (`/api/brew-methods`)
 ```
-GET    /api/brew-methods
-GET    /api/brew-methods/{id}
-POST   /api/brew-methods
-PUT    /api/brew-methods/{id}
-DELETE /api/brew-methods/{id}
+GET    /api/brew-methods                 (any authenticated user)
+GET    /api/brew-methods/{id}            (any authenticated user)
+POST   /api/brew-methods                 (ADMIN only; 403 otherwise)
+PUT    /api/brew-methods/{id}            (ADMIN only; 403 otherwise)
+DELETE /api/brew-methods/{id}            (ADMIN only; 403 otherwise)
 GET    /api/brew-methods/usage           (analytics, List)
 ```
+
+> Brew methods are a shared catalog. Writes need `ROLE_ADMIN`. A regular user gets `403`
+> `{"message":"Insufficient permissions"}`, and an anonymous caller gets `401`. See
+> [ADR-009](../decisions/ADR-009-role-based-authorization.md) for how an admin is bootstrapped
+> (`BREWDECK_ADMIN_EMAIL`).
 
 ## Recipes (`/api/recipes`)
 ```

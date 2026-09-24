@@ -51,6 +51,9 @@ Phase 6 (auth & multi-user) complete: Slice A (auth foundation), Slice B (per-us
 
 ## Recently Worked On
 
+- Role-based authorization (backend, branch `feat/admin-role-brew-method-writes`, ADR-009, 2026-09-24) — fixes critical audit finding 1: any user could write the shared brew-method catalog. Flyway V15 adds `users.role` (`USER`/`ADMIN`, default `USER`, CHECK constraint); `JwtAuthenticationFilter` grants `ROLE_<role>` from the DB (not a JWT claim); `SecurityConfig` restricts `POST/PUT/DELETE /api/brew-methods/**` to ADMIN, and a new `RestAccessDeniedHandler` returns a JSON 403; `AdminBootstrap` promotes the existing `BREWDECK_ADMIN_EMAIL` account at startup (no grant endpoint); `/api/auth/me` returns `role`. Tests: `BrewMethodAuthorizationIntegrationTest` (real JWTs: user 403 on writes, admin CRUD, anonymous 401, new account USER), `AdminBootstrapTest`; existing integration helpers create methods via `asAdmin()`. `./mvnw clean verify` 390 tests green. Follow-ups: user-owned private brew methods; frontend `role` type + hide admin-only actions.
+- Security fix: password change/reset now revokes all refresh tokens (PR #142, merged 2026-09-24) — audit finding 2.
+
 - Spring Boot 3.5.16 -> 4.1.1 migration (backend, branch `feat/spring-boot-4-migration`, ADR-008) —
   the real fix for the two CVEs round 3 left open with no patch-level fix (CVE-2026-59282
   spring-core, CVSS 7.5, gate-blocking; CVE-2026-47834 spring-data-jpa, CVSS 4.8). Bumped
@@ -149,6 +152,8 @@ Phase 6 (auth & multi-user) complete: Slice A (auth foundation), Slice B (per-us
    Boot 4 migration is deliberate technical debt, not a final architecture choice (see ADR-008). Plan
    a follow-up to port `RestAuthenticationEntryPoint` and the ~17 dependent test classes to the
    Jackson 3 API (`tools.jackson.databind.*`) and drop the shim once that lands.
+
+8. **New (2026-09-24)** — backend audit backlog, one PR each: (3) `GlobalExceptionHandler` 405/404/415 return 500 and 500s are not logged; (4) validation limits exceed DB columns (`roastLevel`, `grindSetting`, `actualGrind`, grams) and password max must be 72 bytes for BCrypt; (5) case-insensitive email + AI `findByIdAndOwnerId`; (6) auth rate limiting; (7) cross-user write + JWT edge-case integration tests; (8) FK indexes + missing `@Transactional`. Then user-owned private brew methods (ADR-009 follow-up).
 
 ## AI Integration — Suspended (2026-09-08)
 

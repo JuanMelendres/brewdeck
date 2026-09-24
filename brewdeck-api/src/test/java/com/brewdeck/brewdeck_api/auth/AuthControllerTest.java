@@ -114,6 +114,7 @@ class AuthControllerTest {
                 "brewer@example.com",
                 "Barista Bob",
                 true,
+                Role.USER,
                 LocalDateTime.parse("2026-07-09T00:00")));
 
     mockMvc
