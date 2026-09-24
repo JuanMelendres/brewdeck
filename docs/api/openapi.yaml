@@ -245,12 +245,12 @@ paths:
       responses: { "200": { description: OK } }
     post:
       tags: [Brew Methods]
-      summary: Create a brew method
-      responses: { "201": { description: Created }, "409": { description: Duplicate name } }
+      summary: Create a brew method (ADMIN only)
+      responses: { "201": { description: Created }, "403": { description: Not an admin }, "409": { description: Duplicate name } }
   /api/brew-methods/{id}:
     get: { tags: [Brew Methods], summary: Get a brew method, parameters: [{ name: id, in: path, required: true, schema: { type: integer, format: int64 } }], responses: { "200": { description: OK }, "404": { description: Not found } } }
-    put: { tags: [Brew Methods], summary: Update a brew method, parameters: [{ name: id, in: path, required: true, schema: { type: integer, format: int64 } }], responses: { "200": { description: OK } } }
-    delete: { tags: [Brew Methods], summary: Delete a brew method, parameters: [{ name: id, in: path, required: true, schema: { type: integer, format: int64 } }], responses: { "204": { description: No Content } } }
+    put: { tags: [Brew Methods], summary: Update a brew method (ADMIN only), parameters: [{ name: id, in: path, required: true, schema: { type: integer, format: int64 } }], responses: { "200": { description: OK }, "403": { description: Not an admin } } }
+    delete: { tags: [Brew Methods], summary: Delete a brew method (ADMIN only), parameters: [{ name: id, in: path, required: true, schema: { type: integer, format: int64 } }], responses: { "204": { description: No Content }, "403": { description: Not an admin } } }
   /api/brew-methods/usage:
     get: { tags: [Brew Methods], summary: Brew-method usage breakdown (list), responses: { "200": { description: OK } } }
   /api/recipes:

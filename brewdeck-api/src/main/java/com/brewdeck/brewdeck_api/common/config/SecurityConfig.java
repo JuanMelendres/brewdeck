@@ -1,6 +1,7 @@
 package com.brewdeck.brewdeck_api.common.config;
 
 import com.brewdeck.brewdeck_api.auth.JwtAuthenticationFilter;
+import com.brewdeck.brewdeck_api.auth.Role;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -16,14 +17,17 @@ public class SecurityConfig {
 
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
   private final RestAuthenticationEntryPoint authenticationEntryPoint;
+  private final RestAccessDeniedHandler accessDeniedHandler;
   private final CorsConfigurationSource corsConfigurationSource;
 
   public SecurityConfig(
       JwtAuthenticationFilter jwtAuthenticationFilter,
       RestAuthenticationEntryPoint authenticationEntryPoint,
+      RestAccessDeniedHandler accessDeniedHandler,
       CorsConfigurationSource corsConfigurationSource) {
     this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     this.authenticationEntryPoint = authenticationEntryPoint;
+    this.accessDeniedHandler = accessDeniedHandler;
     this.corsConfigurationSource = corsConfigurationSource;
   }
 
@@ -57,9 +61,20 @@ public class SecurityConfig {
                     .requestMatchers(
                         "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/actuator/health")
                     .permitAll()
+                    // Brew methods are a shared catalog: every user reads them, only admins
+                    // change them.
+                    .requestMatchers(HttpMethod.POST, "/api/brew-methods", "/api/brew-methods/**")
+                    .hasRole(Role.ADMIN.name())
+                    .requestMatchers(HttpMethod.PUT, "/api/brew-methods/**")
+                    .hasRole(Role.ADMIN.name())
+                    .requestMatchers(HttpMethod.DELETE, "/api/brew-methods/**")
+                    .hasRole(Role.ADMIN.name())
                     .anyRequest()
                     .authenticated())
-        .exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint))
+        .exceptionHandling(
+            ex ->
+                ex.authenticationEntryPoint(authenticationEntryPoint)
+                    .accessDeniedHandler(accessDeniedHandler))
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
     return http.build();
   }
