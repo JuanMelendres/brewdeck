@@ -41,4 +41,16 @@ describe('recipeSchema', () => {
       expect(r.error.issues[0].message).toBe('Water temperature must be at least 70 degrees Celsius');
     }
   });
+
+  it('rejects grams above the database precision (9999.99)', () => {
+    expect(recipeSchema.safeParse({ ...valid, coffeeGrams: '9999.99' }).success).toBe(true);
+    const r = recipeSchema.safeParse({ ...valid, coffeeGrams: '10000', waterGrams: '10000' });
+    expect(r.success).toBe(false);
+    if (!r.success) {
+      expect(r.error.issues.map((issue) => issue.message)).toEqual([
+        'Coffee grams must not exceed 9999.99',
+        'Water grams must not exceed 9999.99',
+      ]);
+    }
+  });
 });

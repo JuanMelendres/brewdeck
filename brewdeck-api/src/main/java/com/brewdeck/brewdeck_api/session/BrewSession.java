@@ -30,7 +30,7 @@ public class BrewSession {
   @Column(name = "brewed_at", nullable = false)
   private LocalDateTime brewedAt;
 
-  @Column(name = "actual_grind")
+  @Column(name = "actual_grind", length = 120)
   private String actualGrind;
 
   @Column(name = "actual_temp")

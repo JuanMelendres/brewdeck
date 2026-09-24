@@ -44,7 +44,7 @@ public class Recipe {
 
   private String ratio;
 
-  @Column(name = "grind_setting")
+  @Column(name = "grind_setting", length = 120)
   private String grindSetting;
 
   @Column(name = "water_temp")
