@@ -3,6 +3,7 @@ package com.brewdeck.brewdeck_api.auth.reset;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -11,6 +12,7 @@ import static org.mockito.Mockito.when;
 
 import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.auth.UserRepository;
+import com.brewdeck.brewdeck_api.auth.refresh.RefreshTokenService;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -29,13 +31,16 @@ class PasswordResetServiceTest {
   @Mock private PasswordResetTokenRepository tokenRepository;
   @Mock private UserRepository userRepository;
   @Mock private PasswordResetMailPort mailPort;
+  @Mock private RefreshTokenService refreshTokenService;
 
   private PasswordResetService service;
 
   @BeforeEach
   void setUp() {
     PasswordEncoder encoder = new BCryptPasswordEncoder();
-    service = new PasswordResetService(tokenRepository, userRepository, encoder, mailPort);
+    service =
+        new PasswordResetService(
+            tokenRepository, userRepository, encoder, mailPort, refreshTokenService);
   }
 
   private User user() {
@@ -118,6 +123,7 @@ class PasswordResetServiceTest {
     assertThat(new BCryptPasswordEncoder().matches("newpassword1", user.getPasswordHash()))
         .isTrue();
     assertThat(token.getUsedAt()).isNotNull();
+    verify(refreshTokenService).revokeAllForUser(1L);
   }
 
   @Test
@@ -127,6 +133,7 @@ class PasswordResetServiceTest {
     assertThatThrownBy(
             () -> service.resetPassword(new ResetPasswordRequest("nope", "newpassword1")))
         .isInstanceOf(InvalidResetTokenException.class);
+    verify(refreshTokenService, never()).revokeAllForUser(anyLong());
   }
 
   @Test
@@ -143,6 +150,7 @@ class PasswordResetServiceTest {
 
     assertThatThrownBy(() -> service.resetPassword(new ResetPasswordRequest("raw", "newpassword1")))
         .isInstanceOf(InvalidResetTokenException.class);
+    verify(refreshTokenService, never()).revokeAllForUser(anyLong());
   }
 
   @Test
@@ -160,5 +168,6 @@ class PasswordResetServiceTest {
 
     assertThatThrownBy(() -> service.resetPassword(new ResetPasswordRequest("raw", "newpassword1")))
         .isInstanceOf(InvalidResetTokenException.class);
+    verify(refreshTokenService, never()).revokeAllForUser(anyLong());
   }
 }

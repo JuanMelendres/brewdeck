@@ -96,6 +96,16 @@ public class RefreshTokenService {
             });
   }
 
+  /**
+   * Revokes every active refresh token for the user, ending all of their sessions. Called after a
+   * credential change so a stolen refresh token cannot outlive the password it was issued under.
+   */
+  @Transactional
+  public void revokeAllForUser(Long userId) {
+    int revoked = tokenRepository.revokeAllActiveForUser(userId, LocalDateTime.now());
+    log.info("Revoked {} active refresh token(s) for user id={}", revoked, userId);
+  }
+
   private String issueInternal(User user, LocalDateTime now) {
     String rawToken = SecureTokens.newToken();
     tokenRepository.save(

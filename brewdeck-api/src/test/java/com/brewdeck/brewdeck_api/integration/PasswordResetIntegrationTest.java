@@ -86,6 +86,56 @@ class PasswordResetIntegrationTest extends PostgresIntegrationTest {
   }
 
   @Test
+  void resetPassword_revokesRefreshTokensIssuedBeforeTheReset() throws Exception {
+    String email = "reset-revoke-" + System.nanoTime() + "@example.com";
+    userRepository.save(
+        User.builder()
+            .email(email)
+            .passwordHash(passwordEncoder.encode("password1"))
+            .createdAt(LocalDateTime.now())
+            .build());
+
+    // An existing session obtained with the old password.
+    String loginResponse =
+        mockMvc
+            .perform(
+                post("/api/auth/login")
+                    .contentType("application/json")
+                    .content("{\"email\":\"" + email + "\",\"password\":\"password1\"}"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    String staleRefresh = com.jayway.jsonpath.JsonPath.read(loginResponse, "$.refreshToken");
+
+    mockMvc
+        .perform(
+            post("/api/auth/forgot-password")
+                .contentType("application/json")
+                .content("{\"email\":\"" + email + "\"}"))
+        .andExpect(status().isOk());
+    ArgumentCaptor<String> rawToken = ArgumentCaptor.forClass(String.class);
+    org.mockito.Mockito.verify(mailPort)
+        .sendResetLink(org.mockito.ArgumentMatchers.eq(email), rawToken.capture());
+
+    mockMvc
+        .perform(
+            post("/api/auth/reset-password")
+                .contentType("application/json")
+                .content(
+                    "{\"token\":\"" + rawToken.getValue() + "\",\"newPassword\":\"newpassword1\"}"))
+        .andExpect(status().isNoContent());
+
+    // The pre-reset session can no longer be refreshed.
+    mockMvc
+        .perform(
+            post("/api/auth/refresh")
+                .contentType("application/json")
+                .content("{\"refreshToken\":\"" + staleRefresh + "\"}"))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
   void forgotPassword_unknownEmail_returns200AndSendsNothing() throws Exception {
     mockMvc
         .perform(

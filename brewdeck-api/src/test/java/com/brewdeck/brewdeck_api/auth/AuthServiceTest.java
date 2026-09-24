@@ -3,6 +3,9 @@ package com.brewdeck.brewdeck_api.auth;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.brewdeck.brewdeck_api.auth.refresh.RefreshTokenService;
@@ -171,6 +174,18 @@ class AuthServiceTest {
   }
 
   @Test
+  void changePassword_revokesAllRefreshTokensForUser() {
+    User user = stored("brewer@example.com", "password1");
+    when(userRepository.findByEmail("brewer@example.com")).thenReturn(Optional.of(user));
+    when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+    authService.changePassword(
+        "brewer@example.com", new ChangePasswordRequest("password1", "newpassword1"));
+
+    verify(refreshTokenService).revokeAllForUser(1L);
+  }
+
+  @Test
   void changePassword_throwsWhenCurrentWrong() {
     when(userRepository.findByEmail("brewer@example.com"))
         .thenReturn(Optional.of(stored("brewer@example.com", "password1")));
@@ -180,5 +195,6 @@ class AuthServiceTest {
                 authService.changePassword(
                     "brewer@example.com", new ChangePasswordRequest("wrong", "newpassword1")))
         .isInstanceOf(InvalidCurrentPasswordException.class);
+    verify(refreshTokenService, never()).revokeAllForUser(anyLong());
   }
 }
