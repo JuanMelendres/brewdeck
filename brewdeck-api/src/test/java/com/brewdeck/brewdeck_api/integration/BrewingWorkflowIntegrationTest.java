@@ -113,10 +113,7 @@ class BrewingWorkflowIntegrationTest extends PostgresIntegrationTest {
 
     mockMvc
         .perform(
-            post("/api/brew-methods")
-                .with(asAdmin())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestBody))
+            post("/api/brew-methods").contentType(MediaType.APPLICATION_JSON).content(requestBody))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.status").value(400))
         .andExpect(jsonPath("$.error").value("Bad Request"))
@@ -346,7 +343,6 @@ class BrewingWorkflowIntegrationTest extends PostgresIntegrationTest {
         mockMvc
             .perform(
                 post("/api/brew-methods")
-                    .with(asAdmin())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody))
             .andExpect(status().isCreated())

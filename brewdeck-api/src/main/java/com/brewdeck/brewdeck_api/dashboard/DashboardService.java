@@ -23,7 +23,7 @@ public class DashboardService {
 
     return new DashboardSummaryResponse(
         coffeeRepository.countByOwnerId(ownerId),
-        brewMethodRepository.count(),
+        brewMethodRepository.countVisibleTo(ownerId),
         recipeRepository.countByOwnerId(ownerId),
         recipeRepository.countByFavoriteTrueAndOwnerId(ownerId),
         brewSessionRepository.countByOwnerId(ownerId),

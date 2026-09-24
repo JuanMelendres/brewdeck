@@ -146,11 +146,12 @@ class CrossUserIsolationIntegrationTest extends PostgresIntegrationTest {
 
   @Test
   void getMethodUsage_shouldListSharedMethods_withZeroCountForForeignOnlyMethod() throws Exception {
-    // Brew methods are shared/global, so the usage listing must still contain the method used
+    // Shared-catalog methods are visible to everyone, so the usage listing must still contain the
+    // method used
     // by the foreign recipe. But since that method was created fresh in @BeforeEach and used
     // ONLY by the foreign recipe (owned by the other user), its recipeCount for THIS user must
     // be exactly 0 -- proving the findUsage owner JOIN excludes the other user's recipe.
-    long methodCount = brewMethodRepository.count();
+    long methodCount = brewMethodRepository.countVisibleTo(mockUser().getId());
 
     String response =
         mockMvc

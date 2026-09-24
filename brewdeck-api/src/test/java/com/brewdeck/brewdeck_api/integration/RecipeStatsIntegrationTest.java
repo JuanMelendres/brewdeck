@@ -134,7 +134,6 @@ class RecipeStatsIntegrationTest extends PostgresIntegrationTest {
         mockMvc
             .perform(
                 post("/api/brew-methods")
-                    .with(asAdmin())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody))
             .andExpect(status().isCreated())
