@@ -80,4 +80,19 @@ class GlobalExceptionHandlerTest {
 
     assertThat(output).contains("/api/a__FAKE LOG LINE").doesNotContain("\nFAKE LOG LINE");
   }
+
+  @Test
+  void rateLimitExceeded_returns429WithRetryAfter() {
+    ResponseEntity<ErrorResponse> response =
+        handler.handleRateLimitExceeded(
+            new com.brewdeck.brewdeck_api.common.ratelimit.RateLimitExceededException(
+                java.time.Duration.ofSeconds(125)),
+            request("POST", "/api/auth/login"));
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.TOO_MANY_REQUESTS);
+    assertThat(response.getHeaders().getFirst("Retry-After")).isEqualTo("125");
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().message())
+        .isEqualTo("Too many attempts. Try again in 3 minutes.");
+  }
 }

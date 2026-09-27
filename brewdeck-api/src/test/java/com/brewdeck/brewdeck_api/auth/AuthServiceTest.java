@@ -9,7 +9,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.brewdeck.brewdeck_api.auth.refresh.RefreshTokenService;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitExceededException;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
 import jakarta.persistence.EntityNotFoundException;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,7 +43,12 @@ class AuthServiceTest {
     PasswordEncoder encoder = new BCryptPasswordEncoder();
     authService =
         new AuthService(
-            userRepository, jwtService, encoder, emailVerificationService, refreshTokenService);
+            userRepository,
+            jwtService,
+            encoder,
+            emailVerificationService,
+            refreshTokenService,
+            new RateLimiter(false));
   }
 
   private User stored(String email, String rawPassword) {
@@ -196,5 +205,25 @@ class AuthServiceTest {
                     "brewer@example.com", new ChangePasswordRequest("wrong", "newpassword1")))
         .isInstanceOf(InvalidCurrentPasswordException.class);
     verify(refreshTokenService, never()).revokeAllForUser(anyLong());
+  }
+
+  @Test
+  void login_throwsBeforeCheckingThePassword_whenTheAccountIsRateLimited() {
+    RateLimiter limiter = org.mockito.Mockito.mock(RateLimiter.class);
+    org.mockito.Mockito.doThrow(new RateLimitExceededException(Duration.ofMinutes(5)))
+        .when(limiter)
+        .requireAllowed(RateLimitRule.LOGIN_EMAIL, "brewer@example.com");
+    AuthService limited =
+        new AuthService(
+            userRepository,
+            jwtService,
+            new BCryptPasswordEncoder(),
+            emailVerificationService,
+            refreshTokenService,
+            limiter);
+    LoginRequest request = new LoginRequest("brewer@example.com", "password1");
+
+    assertThatThrownBy(() -> limited.login(request)).isInstanceOf(RateLimitExceededException.class);
+    org.mockito.Mockito.verifyNoInteractions(userRepository, refreshTokenService);
   }
 }

@@ -3,6 +3,8 @@ package com.brewdeck.brewdeck_api.auth;
 import com.brewdeck.brewdeck_api.auth.refresh.RefreshRequest;
 import com.brewdeck.brewdeck_api.auth.refresh.RefreshTokenService;
 import com.brewdeck.brewdeck_api.auth.verification.EmailVerificationService;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -23,18 +25,21 @@ public class AuthService {
   private final PasswordEncoder passwordEncoder;
   private final EmailVerificationService emailVerificationService;
   private final RefreshTokenService refreshTokenService;
+  private final RateLimiter rateLimiter;
 
   public AuthService(
       UserRepository userRepository,
       JwtService jwtService,
       PasswordEncoder passwordEncoder,
       EmailVerificationService emailVerificationService,
-      RefreshTokenService refreshTokenService) {
+      RefreshTokenService refreshTokenService,
+      RateLimiter rateLimiter) {
     this.userRepository = userRepository;
     this.jwtService = jwtService;
     this.passwordEncoder = passwordEncoder;
     this.emailVerificationService = emailVerificationService;
     this.refreshTokenService = refreshTokenService;
+    this.rateLimiter = rateLimiter;
   }
 
   @Transactional
@@ -61,6 +66,8 @@ public class AuthService {
 
   @Transactional
   public AuthResponse login(LoginRequest request) {
+    // Per-account limit, checked before the password: rotating IPs does not help an attacker.
+    rateLimiter.requireAllowed(RateLimitRule.LOGIN_EMAIL, request.email());
     User user =
         userRepository
             .findByEmail(request.email())

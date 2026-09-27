@@ -25,6 +25,11 @@ POST  /api/auth/refresh             200 (public; 401 if refresh token invalid/ex
 POST  /api/auth/logout              204 (authenticated; revokes only the presented refresh token)
 ```
 
+> Public auth endpoints are rate limited per client IP, and login and forgot-password also per
+> account. Over the limit you get `429` with `Retry-After` (seconds) and a message such as
+> `"Too many attempts. Try again in 3 minutes."`. See
+> [ADR-011](../decisions/ADR-011-in-memory-auth-rate-limiting.md) for the limits.
+
 > Emails are case-insensitive. `register`, `login`, and `forgot-password` trim and lowercase the
 > address, and responses return that normalized form. Registering `Juan@x.com` when
 > `juan@x.com` exists is a `409`.

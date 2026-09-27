@@ -3,6 +3,8 @@ package com.brewdeck.brewdeck_api.auth.reset;
 import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.auth.UserRepository;
 import com.brewdeck.brewdeck_api.auth.refresh.RefreshTokenService;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
 import com.brewdeck.brewdeck_api.common.security.SecureTokens;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,22 +25,27 @@ public class PasswordResetService {
   private final PasswordEncoder passwordEncoder;
   private final PasswordResetMailPort mailPort;
   private final RefreshTokenService refreshTokenService;
+  private final RateLimiter rateLimiter;
 
   public PasswordResetService(
       PasswordResetTokenRepository tokenRepository,
       UserRepository userRepository,
       PasswordEncoder passwordEncoder,
       PasswordResetMailPort mailPort,
-      RefreshTokenService refreshTokenService) {
+      RefreshTokenService refreshTokenService,
+      RateLimiter rateLimiter) {
     this.tokenRepository = tokenRepository;
     this.userRepository = userRepository;
     this.passwordEncoder = passwordEncoder;
     this.mailPort = mailPort;
     this.refreshTokenService = refreshTokenService;
+    this.rateLimiter = rateLimiter;
   }
 
   @Transactional
   public void requestReset(ForgotPasswordRequest request) {
+    // Checked before the lookup so known and unknown emails are throttled alike (no enumeration).
+    rateLimiter.requireAllowed(RateLimitRule.FORGOT_PASSWORD_EMAIL, request.email());
     Optional<User> maybeUser = userRepository.findByEmail(request.email());
     if (maybeUser.isEmpty()) {
       // No user enumeration: silently succeed for unknown emails.

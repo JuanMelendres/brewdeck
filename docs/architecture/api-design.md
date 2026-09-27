@@ -52,6 +52,7 @@ Collection GETs return `PageResponse<T>` and accept `page`, `size`, `sort`:
 | 409 | Conflict (e.g. duplicate) |
 | 415 | Unsupported `Content-Type` (send `application/json`) |
 | 422 | Unprocessable (e.g. AI improve with no rated history) |
+| 429 | Too many attempts on an auth endpoint; wait `Retry-After` seconds ([ADR-011](../decisions/ADR-011-in-memory-auth-rate-limiting.md)) |
 | 503 | AI feature disabled or provider unavailable |
 | 500 | Unexpected error: the body stays generic, and the full stack trace is logged server-side |
 

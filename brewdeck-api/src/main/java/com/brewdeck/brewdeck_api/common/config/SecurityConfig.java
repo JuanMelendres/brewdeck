@@ -2,6 +2,9 @@ package com.brewdeck.brewdeck_api.common.config;
 
 import com.brewdeck.brewdeck_api.auth.JwtAuthenticationFilter;
 import com.brewdeck.brewdeck_api.auth.Role;
+import com.brewdeck.brewdeck_api.common.ratelimit.AuthRateLimitFilter;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -19,16 +22,22 @@ public class SecurityConfig {
   private final RestAuthenticationEntryPoint authenticationEntryPoint;
   private final RestAccessDeniedHandler accessDeniedHandler;
   private final CorsConfigurationSource corsConfigurationSource;
+  private final RateLimiter rateLimiter;
+  private final ObjectMapper objectMapper;
 
   public SecurityConfig(
       JwtAuthenticationFilter jwtAuthenticationFilter,
       RestAuthenticationEntryPoint authenticationEntryPoint,
       RestAccessDeniedHandler accessDeniedHandler,
-      CorsConfigurationSource corsConfigurationSource) {
+      CorsConfigurationSource corsConfigurationSource,
+      RateLimiter rateLimiter,
+      ObjectMapper objectMapper) {
     this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     this.authenticationEntryPoint = authenticationEntryPoint;
     this.accessDeniedHandler = accessDeniedHandler;
     this.corsConfigurationSource = corsConfigurationSource;
+    this.rateLimiter = rateLimiter;
+    this.objectMapper = objectMapper;
   }
 
   // CSRF protection is intentionally disabled. This is a stateless, token-based REST
@@ -70,6 +79,10 @@ public class SecurityConfig {
             ex ->
                 ex.authenticationEntryPoint(authenticationEntryPoint)
                     .accessDeniedHandler(accessDeniedHandler))
+        // Rate limiting runs first (after CORS) so throttled requests do no auth or DB work.
+        .addFilterBefore(
+            new AuthRateLimitFilter(rateLimiter, objectMapper),
+            UsernamePasswordAuthenticationFilter.class)
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
     return http.build();
   }
