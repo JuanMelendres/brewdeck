@@ -5,9 +5,11 @@ import com.brewdeck.brewdeck_api.auth.refresh.RefreshTokenService;
 import com.brewdeck.brewdeck_api.auth.verification.EmailVerificationService;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
+import com.brewdeck.brewdeck_api.common.security.SecureTokens;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,6 +29,13 @@ public class AuthService {
   private final RefreshTokenService refreshTokenService;
   private final RateLimiter rateLimiter;
 
+  /**
+   * A real hash of a random password with the same encoder (and cost) as stored hashes. Login
+   * checks against it when the email is unknown, so "no such user" costs the same BCrypt work as
+   * "wrong password" and response time does not reveal which emails are registered.
+   */
+  private final String dummyPasswordHash;
+
   public AuthService(
       UserRepository userRepository,
       JwtService jwtService,
@@ -40,6 +49,7 @@ public class AuthService {
     this.emailVerificationService = emailVerificationService;
     this.refreshTokenService = refreshTokenService;
     this.rateLimiter = rateLimiter;
+    this.dummyPasswordHash = passwordEncoder.encode(SecureTokens.newToken());
   }
 
   @Transactional
@@ -68,13 +78,15 @@ public class AuthService {
   public AuthResponse login(LoginRequest request) {
     // Per-account limit, checked before the password: rotating IPs does not help an attacker.
     rateLimiter.requireAllowed(RateLimitRule.LOGIN_EMAIL, request.email());
-    User user =
-        userRepository
-            .findByEmail(request.email())
-            .orElseThrow(() -> new BadCredentialsException(INVALID_CREDENTIALS));
-    if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
+    Optional<User> maybeUser = userRepository.findByEmail(request.email());
+    // Always run exactly one BCrypt comparison, against the dummy hash when the user is unknown,
+    // so the two failure cases are indistinguishable by timing as well as by response body.
+    String hashToCheck = maybeUser.map(User::getPasswordHash).orElse(dummyPasswordHash);
+    boolean passwordMatches = passwordEncoder.matches(request.password(), hashToCheck);
+    if (maybeUser.isEmpty() || !passwordMatches) {
       throw new BadCredentialsException(INVALID_CREDENTIALS);
     }
+    User user = maybeUser.get();
     return tokenResponse(user, refreshTokenService.issue(user));
   }
 
