@@ -4,7 +4,7 @@ Endpoint catalog for the BrewDeck REST API. Design principles and conventions ar
 in [`architecture/api-design.md`](../architecture/api-design.md).
 
 - **Base URL (local):** `http://localhost:8080`
-- **Live docs:** `http://localhost:8080/swagger-ui/index.html`
+- **Live docs:** `http://localhost:8080/swagger-ui/index.html` (local/dev only; disabled in the `prod` profile unless `API_DOCS_ENABLED=true`)
 - **OpenAPI seed:** [`openapi.yaml`](openapi.yaml)
 - **Postman:** [`postman/brewdeck.postman_collection.json`](postman/brewdeck.postman_collection.json) + [`brewdeck.local.postman_environment.json`](postman/brewdeck.local.postman_environment.json)
 

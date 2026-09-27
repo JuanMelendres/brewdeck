@@ -10,3 +10,10 @@ spring:
 brewdeck:
   auth:
     secret: ${BREWDECK_JWT_SECRET}
+# The OpenAPI spec and Swagger UI map every endpoint and schema, which is useful reconnaissance for
+# an attacker. Off in production. Set API_DOCS_ENABLED=true only to debug, and turn it off again.
+springdoc:
+  api-docs:
+    enabled: ${API_DOCS_ENABLED:false}
+  swagger-ui:
+    enabled: ${API_DOCS_ENABLED:false}
