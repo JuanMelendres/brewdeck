@@ -10,6 +10,7 @@ import Typography from '@mui/material/Typography';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { rateLimitMessage } from '@/lib/api/errors';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { registerSchema, type RegisterFormValues } from '@/lib/validation/authSchema';
 
@@ -28,8 +29,8 @@ export function RegisterForm() {
     try {
       await registerAccount(values);
       router.push('/dashboard');
-    } catch {
-      setFormError('Could not register. That email may already be in use.');
+    } catch (error) {
+      setFormError(rateLimitMessage(error) ?? 'Could not register. That email may already be in use.');
     }
   });
 

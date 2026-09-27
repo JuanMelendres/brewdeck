@@ -13,6 +13,10 @@ import static org.mockito.Mockito.when;
 import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.auth.UserRepository;
 import com.brewdeck.brewdeck_api.auth.refresh.RefreshTokenService;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitExceededException;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -40,7 +44,12 @@ class PasswordResetServiceTest {
     PasswordEncoder encoder = new BCryptPasswordEncoder();
     service =
         new PasswordResetService(
-            tokenRepository, userRepository, encoder, mailPort, refreshTokenService);
+            tokenRepository,
+            userRepository,
+            encoder,
+            mailPort,
+            refreshTokenService,
+            new RateLimiter(false));
   }
 
   private User user() {
@@ -169,5 +178,26 @@ class PasswordResetServiceTest {
     assertThatThrownBy(() -> service.resetPassword(new ResetPasswordRequest("raw", "newpassword1")))
         .isInstanceOf(InvalidResetTokenException.class);
     verify(refreshTokenService, never()).revokeAllForUser(anyLong());
+  }
+
+  @Test
+  void requestReset_throttledEmail_sendsNothingAndDoesNotLookUpTheUser() {
+    RateLimiter limiter = org.mockito.Mockito.mock(RateLimiter.class);
+    org.mockito.Mockito.doThrow(new RateLimitExceededException(Duration.ofMinutes(30)))
+        .when(limiter)
+        .requireAllowed(RateLimitRule.FORGOT_PASSWORD_EMAIL, "brewer@example.com");
+    PasswordResetService limited =
+        new PasswordResetService(
+            tokenRepository,
+            userRepository,
+            new BCryptPasswordEncoder(),
+            mailPort,
+            refreshTokenService,
+            limiter);
+    ForgotPasswordRequest request = new ForgotPasswordRequest("brewer@example.com");
+
+    assertThatThrownBy(() -> limited.requestReset(request))
+        .isInstanceOf(RateLimitExceededException.class);
+    org.mockito.Mockito.verifyNoInteractions(userRepository, mailPort);
   }
 }

@@ -9,6 +9,7 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { rateLimitMessage } from '@/lib/api/errors';
 import { forgotPassword } from '@/lib/api/auth';
 import { forgotPasswordSchema, type ForgotPasswordFormValues } from '@/lib/validation/authSchema';
 
@@ -26,8 +27,8 @@ export function ForgotPasswordForm() {
     try {
       await forgotPassword(values);
       setSubmitted(true);
-    } catch {
-      setFormError('Could not send the reset link. Please try again.');
+    } catch (error) {
+      setFormError(rateLimitMessage(error) ?? 'Could not send the reset link. Please try again.');
     }
   });
 

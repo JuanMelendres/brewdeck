@@ -7,6 +7,8 @@ import com.brewdeck.brewdeck_api.auth.InvalidCurrentPasswordException;
 import com.brewdeck.brewdeck_api.auth.refresh.InvalidRefreshTokenException;
 import com.brewdeck.brewdeck_api.auth.reset.InvalidResetTokenException;
 import com.brewdeck.brewdeck_api.auth.verification.InvalidVerificationTokenException;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitExceededException;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitMessages;
 import com.brewdeck.brewdeck_api.featureflag.FeatureDisabledException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +18,7 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.core.PropertyReferenceException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -169,6 +172,22 @@ public class GlobalExceptionHandler {
             null);
 
     return ResponseEntity.badRequest().body(errorResponse);
+  }
+
+  @ExceptionHandler(RateLimitExceededException.class)
+  public ResponseEntity<ErrorResponse> handleRateLimitExceeded(
+      RateLimitExceededException exception, HttpServletRequest request) {
+    long retryAfterSeconds = exception.getDecision().retryAfterSeconds();
+    ErrorResponse errorResponse =
+        buildErrorResponse(
+            HttpStatus.TOO_MANY_REQUESTS,
+            RateLimitMessages.tooManyAttempts(retryAfterSeconds),
+            sanitize(request.getRequestURI()),
+            null);
+
+    return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+        .header(HttpHeaders.RETRY_AFTER, String.valueOf(retryAfterSeconds))
+        .body(errorResponse);
   }
 
   @ExceptionHandler(AccessDeniedException.class)

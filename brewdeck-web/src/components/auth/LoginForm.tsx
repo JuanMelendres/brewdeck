@@ -10,6 +10,7 @@ import Typography from '@mui/material/Typography';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { rateLimitMessage } from '@/lib/api/errors';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { loginSchema, type LoginFormValues } from '@/lib/validation/authSchema';
 
@@ -28,8 +29,8 @@ export function LoginForm() {
     try {
       await login(values);
       router.push('/dashboard');
-    } catch {
-      setFormError('Could not log in. Check your email and password.');
+    } catch (error) {
+      setFormError(rateLimitMessage(error) ?? 'Could not log in. Check your email and password.');
     }
   });
 
