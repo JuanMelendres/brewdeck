@@ -51,8 +51,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                       new WebAuthenticationDetailsSource().buildDetails(request));
                   SecurityContextHolder.getContext().setAuthentication(authentication);
                 });
-      } catch (JwtException ignored) {
-        // invalid/expired token -> stay anonymous; authorization rules reject protected routes
+      } catch (JwtException | IllegalArgumentException ignored) {
+        // invalid/expired token -> stay anonymous; authorization rules reject protected routes.
+        // jjwt signals an empty token ("Bearer ") with IllegalArgumentException rather than
+        // JwtException; without this it escaped the filter as a 500.
       }
     }
     filterChain.doFilter(request, response);
