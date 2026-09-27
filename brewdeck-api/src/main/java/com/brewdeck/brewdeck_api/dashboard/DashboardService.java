@@ -7,9 +7,11 @@ import com.brewdeck.brewdeck_api.recipe.RecipeRepository;
 import com.brewdeck.brewdeck_api.session.BrewSessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class DashboardService {
 
   private final CoffeeRepository coffeeRepository;
