@@ -12,6 +12,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+/*
+ * Deliberately NOT @Transactional: this method calls an external LLM (up to
+ * brewdeck.ai.timeout-seconds), and a surrounding transaction would hold a pooled DB connection for
+ * that whole time. The repository reads run in their own short read-only transactions and fetch
+ * everything the prompt needs up front (no lazy loading after them; open-in-view is off).
+ */
 @Service
 @Slf4j
 @RequiredArgsConstructor

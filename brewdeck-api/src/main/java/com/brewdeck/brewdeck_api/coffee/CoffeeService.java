@@ -10,10 +10,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional(readOnly = true)
 public class CoffeeService {
 
   private static final int MIN_LIMIT = 1;
@@ -58,6 +60,7 @@ public class CoffeeService {
     return CoffeeResponse.fromEntity(coffee);
   }
 
+  @Transactional
   public CoffeeResponse create(CoffeeRequest request) {
     Coffee coffee = new Coffee();
     coffee.setOwner(currentUserProvider.require());
@@ -69,6 +72,7 @@ public class CoffeeService {
     return CoffeeResponse.fromEntity(saved);
   }
 
+  @Transactional
   public CoffeeResponse update(Long id, CoffeeRequest request) {
     Coffee coffee =
         coffeeRepository
@@ -83,6 +87,7 @@ public class CoffeeService {
     return CoffeeResponse.fromEntity(saved);
   }
 
+  @Transactional
   public void delete(Long id) {
     if (!coffeeRepository.existsByIdAndOwnerId(id, currentOwnerId())) {
       throw new EntityNotFoundException("Coffee not found");
