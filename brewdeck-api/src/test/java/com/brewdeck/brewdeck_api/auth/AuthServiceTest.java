@@ -226,4 +226,47 @@ class AuthServiceTest {
     assertThatThrownBy(() -> limited.login(request)).isInstanceOf(RateLimitExceededException.class);
     org.mockito.Mockito.verifyNoInteractions(userRepository, refreshTokenService);
   }
+
+  @Test
+  void login_unknownEmail_stillRunsOneBcryptComparison_soTimingMatchesAWrongPassword() {
+    PasswordEncoder encoder = org.mockito.Mockito.spy(new BCryptPasswordEncoder());
+    AuthService service =
+        new AuthService(
+            userRepository,
+            jwtService,
+            encoder,
+            emailVerificationService,
+            refreshTokenService,
+            new RateLimiter(false));
+    when(userRepository.findByEmail("ghost@example.com")).thenReturn(Optional.empty());
+    LoginRequest request = new LoginRequest("ghost@example.com", "password1");
+
+    assertThatThrownBy(() -> service.login(request))
+        .isInstanceOf(org.springframework.security.authentication.BadCredentialsException.class)
+        .hasMessage("Invalid email or password");
+
+    // Exactly one comparison, against a real BCrypt hash (not a cheap early return).
+    org.mockito.Mockito.verify(encoder)
+        .matches(
+            org.mockito.ArgumentMatchers.eq("password1"),
+            org.mockito.ArgumentMatchers.startsWith("$2"));
+    org.mockito.Mockito.verifyNoInteractions(refreshTokenService);
+  }
+
+  @Test
+  void login_unknownEmail_andWrongPassword_failIdentically() {
+    when(userRepository.findByEmail("ghost@example.com")).thenReturn(Optional.empty());
+    when(userRepository.findByEmail("brewer@example.com"))
+        .thenReturn(Optional.of(stored("brewer@example.com", "password1")));
+    LoginRequest unknown = new LoginRequest("ghost@example.com", "password1");
+    LoginRequest wrong = new LoginRequest("brewer@example.com", "not-the-password");
+
+    Throwable unknownError =
+        org.assertj.core.api.Assertions.catchThrowable(() -> authService.login(unknown));
+    Throwable wrongError =
+        org.assertj.core.api.Assertions.catchThrowable(() -> authService.login(wrong));
+
+    assertThat(unknownError).isExactlyInstanceOf(wrongError.getClass());
+    assertThat(unknownError).hasMessage(wrongError.getMessage());
+  }
 }
