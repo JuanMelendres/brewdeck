@@ -2,6 +2,9 @@ package com.brewdeck.brewdeck_api.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
@@ -59,5 +62,33 @@ class CurrentUserProviderTest {
     SecurityContextHolder.getContext()
         .setAuthentication(
             new UsernamePasswordAuthenticationToken(email, null, java.util.List.of()));
+  }
+
+  @Test
+  void require_withJwtPrincipal_returnsAReferenceWithoutQueryingByEmail() {
+    User reference = User.builder().id(7L).build();
+    when(userRepository.getReferenceById(7L)).thenReturn(reference);
+    SecurityContextHolder.getContext()
+        .setAuthentication(
+            new UsernamePasswordAuthenticationToken(
+                new AuthenticatedUser(7L, "barista@brewdeck.test", Role.USER),
+                null,
+                java.util.List.of()));
+
+    User result = currentUserProvider().require();
+
+    assertThat(result.getId()).isEqualTo(7L);
+    verify(userRepository, never()).findByEmail(anyString());
+  }
+
+  @Test
+  void authenticatedUser_nameIsTheEmail() {
+    AuthenticatedUser principal = new AuthenticatedUser(7L, "barista@brewdeck.test", Role.ADMIN);
+    UsernamePasswordAuthenticationToken authentication =
+        new UsernamePasswordAuthenticationToken(principal, null, java.util.List.of());
+
+    // Controllers that take java.security.Principal keep receiving the email.
+    assertThat(principal.getName()).isEqualTo("barista@brewdeck.test");
+    assertThat(authentication.getName()).isEqualTo("barista@brewdeck.test");
   }
 }
