@@ -27,7 +27,7 @@ class RecipeRepositoryTest extends PostgresRepositoryTest {
   private org.springframework.boot.jpa.test.autoconfigure.TestEntityManager entityManager;
 
   @Test
-  void findByFavoriteTrue_shouldReturnOnlyFavoriteRecipes() {
+  void findByFavoriteTrueAndOwnerId_shouldReturnOnlyFavoriteRecipes() {
     Coffee coffee = persistCoffee("Mezcla Veracruz");
     BrewMethod method = persistBrewMethod("AeroPress");
     User owner = persistUser("favorite-owner@brewdeck.test");
@@ -73,7 +73,7 @@ class RecipeRepositoryTest extends PostgresRepositoryTest {
 
     Pageable pageable = PageRequest.of(0, 10);
 
-    Page<Recipe> result = recipeRepository.findByFavoriteTrue(pageable);
+    Page<Recipe> result = recipeRepository.findByFavoriteTrueAndOwnerId(owner.getId(), pageable);
 
     assertThat(result.getContent()).hasSize(1);
     assertThat(result.getContent().getFirst().getName()).isEqualTo("Favorite AeroPress Recipe");
@@ -97,7 +97,7 @@ class RecipeRepositoryTest extends PostgresRepositoryTest {
   }
 
   @Test
-  void findByCoffeeId_shouldReturnRecipesForSpecificCoffee() {
+  void findByCoffeeIdAndOwnerId_shouldReturnRecipesForSpecificCoffee() {
     Coffee veracruz = persistCoffee("Mezcla Veracruz");
     Coffee maya = persistCoffee("Mezcla Maya");
 
@@ -129,7 +129,8 @@ class RecipeRepositoryTest extends PostgresRepositoryTest {
 
     Pageable pageable = PageRequest.of(0, 10);
 
-    Page<Recipe> result = recipeRepository.findByCoffeeId(veracruz.getId(), pageable);
+    Page<Recipe> result =
+        recipeRepository.findByCoffeeIdAndOwnerId(veracruz.getId(), owner.getId(), pageable);
 
     assertThat(result.getContent()).hasSize(1);
     assertThat(result.getContent().getFirst().getName()).isEqualTo("Veracruz V60");
@@ -140,7 +141,7 @@ class RecipeRepositoryTest extends PostgresRepositoryTest {
   }
 
   @Test
-  void findByMethodId_shouldReturnRecipesForSpecificMethod() {
+  void findByMethodIdAndOwnerId_shouldReturnRecipesForSpecificMethod() {
     Coffee coffee = persistCoffee("Mezcla Veracruz");
 
     BrewMethod aeroPress = persistBrewMethod("AeroPress");
@@ -172,7 +173,8 @@ class RecipeRepositoryTest extends PostgresRepositoryTest {
 
     Pageable pageable = PageRequest.of(0, 10);
 
-    Page<Recipe> result = recipeRepository.findByMethodId(aeroPress.getId(), pageable);
+    Page<Recipe> result =
+        recipeRepository.findByMethodIdAndOwnerId(aeroPress.getId(), owner.getId(), pageable);
 
     assertThat(result.getContent()).hasSize(1);
     assertThat(result.getContent().getFirst().getName()).isEqualTo("Veracruz AeroPress");
@@ -183,7 +185,7 @@ class RecipeRepositoryTest extends PostgresRepositoryTest {
   }
 
   @Test
-  void findByCoffeeId_shouldRespectPaginationSize() {
+  void findByCoffeeIdAndOwnerId_shouldRespectPaginationSize() {
     Coffee coffee = persistCoffee("Mezcla Veracruz");
     BrewMethod method = persistBrewMethod("AeroPress");
     User owner = persistUser("pagination-owner@brewdeck.test");
@@ -213,7 +215,8 @@ class RecipeRepositoryTest extends PostgresRepositoryTest {
 
     Pageable pageable = PageRequest.of(0, 1);
 
-    Page<Recipe> result = recipeRepository.findByCoffeeId(coffee.getId(), pageable);
+    Page<Recipe> result =
+        recipeRepository.findByCoffeeIdAndOwnerId(coffee.getId(), owner.getId(), pageable);
 
     assertThat(result.getContent()).hasSize(1);
     assertThat(result.getTotalElements()).isEqualTo(2);

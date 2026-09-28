@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   changePasswordSchema,
+  loginSchema,
   fitsPasswordByteLimit,
   registerSchema,
   resetPasswordSchema,
@@ -46,5 +47,13 @@ describe('password byte limit in auth schemas', () => {
 
   it('still enforces the 8-character minimum', () => {
     expect(registerSchema.safeParse({ email, password: 'short' }).success).toBe(false);
+  });
+});
+
+describe('email length', () => {
+  it('rejects emails longer than the 255-character column', () => {
+    const tooLong = `${'a'.repeat(250)}@x.com`;
+    expect(loginSchema.safeParse({ email: tooLong, password: 'x' }).success).toBe(false);
+    expect(registerSchema.safeParse({ email: tooLong, password: 'password1' }).success).toBe(false);
   });
 });

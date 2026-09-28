@@ -27,7 +27,7 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
   private org.springframework.boot.jpa.test.autoconfigure.TestEntityManager entityManager;
 
   @Test
-  void findByRecipeIdOrderByBrewedAtDesc_shouldReturnPagedSessionsOrderedByNewestFirst() {
+  void findByRecipeIdAndOwnerIdOrderByBrewedAtDesc_shouldReturnPagedSessionsOrderedByNewestFirst() {
     User owner = persistUser("newest-first-owner@brewdeck.test");
     Recipe recipe = persistRecipe("Mezcla Veracruz AeroPress", owner);
 
@@ -65,7 +65,8 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
     Pageable pageable = PageRequest.of(0, 10);
 
     Page<BrewSession> result =
-        brewSessionRepository.findByRecipeIdOrderByBrewedAtDesc(recipe.getId(), pageable);
+        brewSessionRepository.findByRecipeIdAndOwnerIdOrderByBrewedAtDesc(
+            recipe.getId(), owner.getId(), pageable);
 
     assertThat(result.getContent()).hasSize(2);
     assertThat(result.getContent().get(0).getRating()).isEqualTo(9);
@@ -76,7 +77,7 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
   }
 
   @Test
-  void findByRecipeIdOrderByBrewedAtDesc_shouldReturnPagedSessionsForSpecificRecipe() {
+  void findByRecipeIdAndOwnerIdOrderByBrewedAtDesc_shouldReturnPagedSessionsForSpecificRecipe() {
     User owner = persistUser("specific-recipe-owner@brewdeck.test");
     Recipe aeroPressRecipe = persistRecipe("Mezcla Veracruz AeroPress", owner);
     Recipe espressoRecipe = persistRecipe("Mezcla Veracruz Espresso", owner);
@@ -115,7 +116,8 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
     Pageable pageable = PageRequest.of(0, 10);
 
     Page<BrewSession> result =
-        brewSessionRepository.findByRecipeIdOrderByBrewedAtDesc(aeroPressRecipe.getId(), pageable);
+        brewSessionRepository.findByRecipeIdAndOwnerIdOrderByBrewedAtDesc(
+            aeroPressRecipe.getId(), owner.getId(), pageable);
 
     assertThat(result.getContent()).hasSize(1);
     assertThat(result.getContent().getFirst().getRecipe().getId())
@@ -125,7 +127,7 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
   }
 
   @Test
-  void findByRecipeIdOrderByBrewedAtDesc_shouldRespectPaginationSize() {
+  void findByRecipeIdAndOwnerIdOrderByBrewedAtDesc_shouldRespectPaginationSize() {
     User owner = persistUser("pagination-size-owner@brewdeck.test");
     Recipe recipe = persistRecipe("Mezcla Veracruz AeroPress", owner);
 
@@ -153,7 +155,8 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
     Pageable pageable = PageRequest.of(0, 1);
 
     Page<BrewSession> result =
-        brewSessionRepository.findByRecipeIdOrderByBrewedAtDesc(recipe.getId(), pageable);
+        brewSessionRepository.findByRecipeIdAndOwnerIdOrderByBrewedAtDesc(
+            recipe.getId(), owner.getId(), pageable);
 
     assertThat(result.getContent()).hasSize(1);
     assertThat(result.getTotalElements()).isEqualTo(2);
@@ -304,5 +307,43 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
             .build();
 
     return entityManager.persistAndFlush(recipe);
+  }
+
+  @Test
+  void findTopRated_breaksTiesDeterministically() {
+    User owner = persistUser("tie-top-rated-" + System.nanoTime() + "@brewdeck.test");
+    Recipe zeta = persistRecipe("Zeta", owner);
+    Recipe alpha = persistRecipe("Alpha", owner);
+    Recipe beta = persistRecipe("Beta", owner);
+    // Same average (8). Beta has more ratings, so it ranks first; Alpha beats Zeta on name.
+    persistRatedSession(zeta, owner, 8);
+    persistRatedSession(alpha, owner, 8);
+    persistRatedSession(beta, owner, 8);
+    persistRatedSession(beta, owner, 8);
+
+    List<TopRatedRecipe> result =
+        brewSessionRepository.findTopRated(owner.getId(), PageRequest.of(0, 10));
+
+    assertThat(result)
+        .extracting(TopRatedRecipe::getRecipeName)
+        .containsExactly("Beta", "Alpha", "Zeta");
+  }
+
+  @Test
+  void findMostBrewed_breaksTiesByNameThenId() {
+    User owner = persistUser("tie-most-brewed-" + System.nanoTime() + "@brewdeck.test");
+    Recipe second = persistRecipe("Same Name", owner);
+    Recipe first = persistRecipe("Aardvark", owner);
+    Recipe third = persistRecipe("Same Name", owner);
+    persistRatedSession(second, owner, 5);
+    persistRatedSession(first, owner, 5);
+    persistRatedSession(third, owner, 5);
+
+    List<MostBrewedRecipe> result =
+        brewSessionRepository.findMostBrewed(owner.getId(), PageRequest.of(0, 10));
+
+    assertThat(result)
+        .extracting(MostBrewedRecipe::getRecipeId)
+        .containsExactly(first.getId(), second.getId(), third.getId());
   }
 }

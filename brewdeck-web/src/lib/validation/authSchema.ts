@@ -15,12 +15,12 @@ function newPassword(minMessage: string) {
 }
 
 export const loginSchema = z.object({
-  email: z.string().min(1, 'Email is required').email('Enter a valid email'),
+  email: z.string().min(1, 'Email is required').max(255, 'Email must not exceed 255 characters').email('Enter a valid email'),
   password: z.string().min(1, 'Password is required'),
 });
 
 export const registerSchema = z.object({
-  email: z.string().min(1, 'Email is required').email('Enter a valid email'),
+  email: z.string().min(1, 'Email is required').max(255, 'Email must not exceed 255 characters').email('Enter a valid email'),
   password: newPassword('Password must be at least 8 characters'),
 });
 
@@ -40,7 +40,7 @@ export const changePasswordSchema = z
   });
 
 export const forgotPasswordSchema = z.object({
-  email: z.string().min(1, 'Email is required').email('Enter a valid email'),
+  email: z.string().min(1, 'Email is required').max(255, 'Email must not exceed 255 characters').email('Enter a valid email'),
 });
 
 export const resetPasswordSchema = z

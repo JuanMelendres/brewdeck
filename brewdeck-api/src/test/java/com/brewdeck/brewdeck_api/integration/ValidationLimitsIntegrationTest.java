@@ -155,6 +155,22 @@ class ValidationLimitsIntegrationTest extends PostgresIntegrationTest {
         .andExpect(jsonPath("$.validationErrors.newPassword").value(PASSWORD_TOO_LONG));
   }
 
+  @Test
+  void register_emailLongerThanTheColumn_isAFieldErrorNotA409() throws Exception {
+    String tooLong = "a".repeat(250) + "@x.com";
+
+    postJson("/api/auth/register", "{\"email\":\"" + tooLong + "\",\"password\":\"password123\"}")
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.validationErrors.email").exists());
+  }
+
+  @Test
+  void login_malformedEmail_isAFieldError() throws Exception {
+    postJson("/api/auth/login", "{\"email\":\"not-an-email\",\"password\":\"password123\"}")
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.validationErrors.email").exists());
+  }
+
   private org.springframework.test.web.servlet.ResultActions postJson(String url, String body)
       throws Exception {
     return mockMvc.perform(post(url).contentType(MediaType.APPLICATION_JSON).content(body));

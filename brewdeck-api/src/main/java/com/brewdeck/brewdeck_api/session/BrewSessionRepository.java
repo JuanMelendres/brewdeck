@@ -36,12 +36,7 @@ public interface BrewSessionRepository
   /** Sessions logged against a recipe. Guards recipe deletes. */
   long countByRecipeId(Long recipeId);
 
-  List<BrewSession> findByRecipeIdOrderByBrewedAtDesc(Long recipeId);
-
   List<BrewSession> findTop10ByRecipeIdAndRatingIsNotNullOrderByBrewedAtDesc(Long recipeId);
-
-  @EntityGraph(attributePaths = "recipe")
-  Page<BrewSession> findByRecipeIdOrderByBrewedAtDesc(Long recipeId, Pageable pageable);
 
   @EntityGraph(attributePaths = "recipe")
   Page<BrewSession> findByRecipeIdAndOwnerIdOrderByBrewedAtDesc(
@@ -71,7 +66,7 @@ public interface BrewSessionRepository
       from BrewSession s
       where s.rating is not null and s.owner.id = :ownerId
       group by s.recipe.id, s.recipe.name
-      order by avg(s.rating) desc
+      order by avg(s.rating) desc, count(s) desc, s.recipe.name asc, s.recipe.id asc
       """)
   List<TopRatedRecipe> findTopRated(@Param("ownerId") Long ownerId, Pageable pageable);
 
@@ -83,7 +78,7 @@ public interface BrewSessionRepository
       from BrewSession s
       where s.owner.id = :ownerId
       group by s.recipe.id, s.recipe.name
-      order by count(s) desc
+      order by count(s) desc, s.recipe.name asc, s.recipe.id asc
       """)
   List<MostBrewedRecipe> findMostBrewed(@Param("ownerId") Long ownerId, Pageable pageable);
 }

@@ -602,7 +602,7 @@ class RecipeServiceTest {
 
     RecipeResponse response = recipeService.share(1L);
 
-    assertThat(response.shareToken()).isNotBlank();
+    assertThat(response.shareToken()).isNotBlank().hasSize(22);
     assertThat(recipe.getShareToken()).isEqualTo(response.shareToken());
     verify(recipeRepository).save(recipe);
   }

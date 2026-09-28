@@ -27,23 +27,6 @@ public interface RecipeRepository
   @EntityGraph(attributePaths = {"coffee", "method"})
   Page<Recipe> findAll(@Nullable Specification<Recipe> spec, @NonNull Pageable pageable);
 
-  List<Recipe> findByFavoriteTrue();
-
-  @EntityGraph(attributePaths = {"coffee", "method"})
-  Page<Recipe> findByFavoriteTrue(Pageable pageable);
-
-  long countByFavoriteTrue();
-
-  List<Recipe> findByCoffeeId(Long coffeeId);
-
-  @EntityGraph(attributePaths = {"coffee", "method"})
-  Page<Recipe> findByCoffeeId(Long coffeeId, Pageable pageable);
-
-  List<Recipe> findByMethodId(Long methodId);
-
-  @EntityGraph(attributePaths = {"coffee", "method"})
-  Page<Recipe> findByMethodId(Long methodId, Pageable pageable);
-
   @EntityGraph(attributePaths = {"coffee", "method"})
   Optional<Recipe> findByIdAndOwnerId(Long id, Long ownerId);
 
@@ -74,7 +57,7 @@ public interface RecipeRepository
       from Recipe r
       where r.owner.id = :ownerId
       group by r.coffee.id, r.coffee.name
-      order by count(r) desc, r.coffee.name asc
+      order by count(r) desc, r.coffee.name asc, r.coffee.id asc
       """)
   List<MostUsedCoffee> findMostUsedCoffees(@Param("ownerId") Long ownerId, Pageable pageable);
 
