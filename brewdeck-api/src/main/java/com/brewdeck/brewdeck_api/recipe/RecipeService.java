@@ -5,6 +5,7 @@ import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.coffee.CoffeeRepository;
 import com.brewdeck.brewdeck_api.common.error.ResourceInUseException;
 import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
+import com.brewdeck.brewdeck_api.common.security.SecureTokens;
 import com.brewdeck.brewdeck_api.method.BrewMethod;
 import com.brewdeck.brewdeck_api.method.BrewMethodRepository;
 import com.brewdeck.brewdeck_api.session.BrewSessionRepository;
@@ -24,7 +25,8 @@ public class RecipeService {
   private static final String RECIPE_NOT_FOUND = "Recipe not found";
   private static final String COFFEE_NOT_FOUND = "Coffee not found";
   private static final String BREW_METHOD_NOT_FOUND = "Brew method not found";
-  private static final java.security.SecureRandom SECURE_RANDOM = new java.security.SecureRandom();
+  // 128 bits: unguessable for a share link, and 22 chars fits share_token VARCHAR(32).
+  private static final int SHARE_TOKEN_BYTES = 16;
 
   private final RecipeRepository recipeRepository;
   private final CoffeeRepository coffeeRepository;
@@ -180,7 +182,7 @@ public class RecipeService {
   public RecipeResponse share(Long id) {
     Recipe recipe = findRecipeById(id);
     if (recipe.getShareToken() == null) {
-      recipe.setShareToken(generateToken());
+      recipe.setShareToken(SecureTokens.newToken(SHARE_TOKEN_BYTES));
       recipe = recipeRepository.save(recipe);
       log.info("Shared recipe id={}", recipe.getId());
     }
@@ -201,11 +203,5 @@ public class RecipeService {
         .findByShareToken(token)
         .map(PublicRecipeResponse::fromEntity)
         .orElseThrow(() -> new EntityNotFoundException(RECIPE_NOT_FOUND));
-  }
-
-  private String generateToken() {
-    byte[] bytes = new byte[16];
-    SECURE_RANDOM.nextBytes(bytes);
-    return java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
   }
 }

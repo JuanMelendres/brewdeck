@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 
 // Passwords are capped at 72 UTF-8 bytes: BCrypt rejects longer input.
 public record RegisterRequest(
-    @NotBlank @Email String email,
+    @NotBlank @Email @Size(max = 255) String email,
     @NotBlank
         @Size(min = 8, message = "Password must be at least 8 characters")
         @MaxUtf8Bytes(

@@ -31,7 +31,7 @@ public interface BrewMethodRepository extends JpaRepository<BrewMethod, Long> {
       left join Recipe r on r.method = m and r.owner.id = :ownerId
       where m.owner is null or m.owner.id = :ownerId
       group by m.id, m.name
-      order by count(r) desc, m.name asc
+      order by count(r) desc, m.name asc, m.id asc
       """)
   List<MethodUsage> findUsage(@Param("ownerId") Long ownerId);
 }

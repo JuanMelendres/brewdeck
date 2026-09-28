@@ -8,9 +8,9 @@ import java.util.Base64;
 import java.util.HexFormat;
 
 /**
- * Shared helpers for opaque security tokens (password reset, email verification): generate a
- * high-entropy raw token and derive the SHA-256 hex hash that is persisted. Only the hash is
- * stored; the raw token travels solely to the user (e.g. via an emailed link).
+ * Shared helpers for opaque security tokens (password reset, email verification, recipe share
+ * links): generate a high-entropy raw token and derive the SHA-256 hex hash that is persisted. Only
+ * the hash is stored; the raw token travels solely to the user (e.g. via an emailed link).
  */
 public final class SecureTokens {
 
@@ -21,7 +21,15 @@ public final class SecureTokens {
 
   /** A new 256-bit random token, base64url-encoded without padding. */
   public static String newToken() {
-    byte[] bytes = new byte[TOKEN_BYTES];
+    return newToken(TOKEN_BYTES);
+  }
+
+  /**
+   * A new random token of {@code byteLength} bytes, base64url-encoded without padding (4 chars per
+   * 3 bytes, rounded up). Use when a column caps the length, e.g. recipe share tokens.
+   */
+  public static String newToken(int byteLength) {
+    byte[] bytes = new byte[byteLength];
     SECURE_RANDOM.nextBytes(bytes);
     return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
   }
