@@ -216,6 +216,19 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
   }
 
+  @ExceptionHandler(ResourceInUseException.class)
+  public ResponseEntity<ErrorResponse> handleResourceInUse(
+      ResourceInUseException exception, HttpServletRequest request) {
+    ErrorResponse errorResponse =
+        buildErrorResponse(
+            HttpStatus.CONFLICT,
+            sanitize(exception.getMessage()),
+            sanitize(request.getRequestURI()),
+            null);
+
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+  }
+
   @ExceptionHandler(DataIntegrityViolationException.class)
   public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(
       DataIntegrityViolationException exception, HttpServletRequest request) {

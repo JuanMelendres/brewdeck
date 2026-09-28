@@ -3,9 +3,11 @@ package com.brewdeck.brewdeck_api.recipe;
 import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
 import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.coffee.CoffeeRepository;
+import com.brewdeck.brewdeck_api.common.error.ResourceInUseException;
 import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
 import com.brewdeck.brewdeck_api.method.BrewMethod;
 import com.brewdeck.brewdeck_api.method.BrewMethodRepository;
+import com.brewdeck.brewdeck_api.session.BrewSessionRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +30,7 @@ public class RecipeService {
   private final CoffeeRepository coffeeRepository;
   private final BrewMethodRepository brewMethodRepository;
   private final CurrentUserProvider currentUserProvider;
+  private final BrewSessionRepository brewSessionRepository;
 
   public PageResponse<RecipeResponse> search(RecipeFilter filter, Pageable pageable) {
     return PageResponse.fromPage(
@@ -100,6 +103,11 @@ public class RecipeService {
   public void delete(Long id) {
     if (!recipeRepository.existsByIdAndOwnerId(id, currentOwnerId())) {
       throw new EntityNotFoundException(RECIPE_NOT_FOUND);
+    }
+    // Brew sessions are the user's history; never delete them implicitly.
+    long sessions = brewSessionRepository.countByRecipeId(id);
+    if (sessions > 0) {
+      throw ResourceInUseException.of("Recipe", sessions, "brew session", "brew sessions");
     }
 
     recipeRepository.deleteById(id);

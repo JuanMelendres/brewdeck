@@ -51,6 +51,12 @@ public interface RecipeRepository
 
   long countByOwnerId(Long ownerId);
 
+  /** Recipes referencing a coffee (all belong to the coffee's owner). Guards coffee deletes. */
+  long countByCoffeeId(Long coffeeId);
+
+  /** Recipes, of any user, referencing a brew method. Guards brew-method deletes. */
+  long countByMethodId(Long methodId);
+
   @EntityGraph(attributePaths = {"coffee", "method"})
   Page<Recipe> findByFavoriteTrueAndOwnerId(Long ownerId, Pageable pageable);
 

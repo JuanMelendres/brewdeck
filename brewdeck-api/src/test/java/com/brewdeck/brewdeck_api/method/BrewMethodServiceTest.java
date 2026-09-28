@@ -31,6 +31,8 @@ class BrewMethodServiceTest {
 
   @Mock private CurrentUserProvider currentUserProvider;
 
+  @Mock private com.brewdeck.brewdeck_api.recipe.RecipeRepository recipeRepository;
+
   @InjectMocks private BrewMethodService brewMethodService;
 
   private final User owner = User.builder().id(OWNER_ID).build();
@@ -276,6 +278,30 @@ class BrewMethodServiceTest {
 
     assertThatThrownBy(() -> brewMethodService.deleteShared(2L))
         .isInstanceOf(EntityNotFoundException.class);
+    verify(brewMethodRepository, never()).delete(any());
+  }
+
+  @Test
+  void delete_shouldRefuse_whenOwnRecipesUseThePrivateMethod() {
+    BrewMethod mine = privateMethod(1L, "Mine");
+    when(currentUserProvider.require()).thenReturn(owner);
+    when(brewMethodRepository.findVisibleById(1L, OWNER_ID)).thenReturn(Optional.of(mine));
+    when(recipeRepository.countByMethodId(1L)).thenReturn(1L);
+
+    assertThatThrownBy(() -> brewMethodService.delete(1L))
+        .isInstanceOf(com.brewdeck.brewdeck_api.common.error.ResourceInUseException.class)
+        .hasMessage("Brew method is used by 1 recipe. Delete or change it first.");
+    verify(brewMethodRepository, never()).delete(any());
+  }
+
+  @Test
+  void deleteShared_shouldRefuse_whenAnyRecipeUsesTheCatalogMethod() {
+    when(brewMethodRepository.findByIdAndOwnerIsNull(1L))
+        .thenReturn(Optional.of(sharedMethod(1L, "V60")));
+    when(recipeRepository.countByMethodId(1L)).thenReturn(12L);
+
+    assertThatThrownBy(() -> brewMethodService.deleteShared(1L))
+        .isInstanceOf(com.brewdeck.brewdeck_api.common.error.ResourceInUseException.class);
     verify(brewMethodRepository, never()).delete(any());
   }
 }

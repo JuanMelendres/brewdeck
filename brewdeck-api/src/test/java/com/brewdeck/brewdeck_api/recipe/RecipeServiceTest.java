@@ -12,6 +12,7 @@ import com.brewdeck.brewdeck_api.coffee.CoffeeRepository;
 import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
 import com.brewdeck.brewdeck_api.method.BrewMethod;
 import com.brewdeck.brewdeck_api.method.BrewMethodRepository;
+import com.brewdeck.brewdeck_api.session.BrewSessionRepository;
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -35,6 +36,7 @@ class RecipeServiceTest {
   @Mock private CoffeeRepository coffeeRepository;
   @Mock private BrewMethodRepository brewMethodRepository;
   @Mock private CurrentUserProvider currentUserProvider;
+  @Mock private BrewSessionRepository brewSessionRepository;
 
   @InjectMocks private RecipeService recipeService;
 
@@ -708,5 +710,17 @@ class RecipeServiceTest {
   @SuppressWarnings("unchecked")
   private Specification<Recipe> anyRecipeSpecification() {
     return any(Specification.class);
+  }
+
+  @Test
+  void delete_shouldRefuse_whenTheRecipeHasBrewSessions() {
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.existsByIdAndOwnerId(1L, 42L)).thenReturn(true);
+    when(brewSessionRepository.countByRecipeId(1L)).thenReturn(2L);
+
+    assertThatThrownBy(() -> recipeService.delete(1L))
+        .isInstanceOf(com.brewdeck.brewdeck_api.common.error.ResourceInUseException.class)
+        .hasMessage("Recipe is used by 2 brew sessions. Delete or change them first.");
+    verify(recipeRepository, never()).deleteById(anyLong());
   }
 }

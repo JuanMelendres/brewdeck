@@ -1,7 +1,9 @@
 package com.brewdeck.brewdeck_api.method;
 
 import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
+import com.brewdeck.brewdeck_api.common.error.ResourceInUseException;
 import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
+import com.brewdeck.brewdeck_api.recipe.RecipeRepository;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,7 @@ public class BrewMethodService {
 
   private final BrewMethodRepository brewMethodRepository;
   private final CurrentUserProvider currentUserProvider;
+  private final RecipeRepository recipeRepository;
 
   public PageResponse<BrewMethodResponse> findAll(Pageable pageable) {
     return PageResponse.fromPage(
@@ -80,6 +83,7 @@ public class BrewMethodService {
   @Transactional
   public void delete(Long id) {
     BrewMethod method = findOwnedByCurrentUser(id);
+    requireUnused(method);
 
     brewMethodRepository.delete(method);
     log.info("Deleted private brew method id={}", id);
@@ -113,9 +117,17 @@ public class BrewMethodService {
   @Transactional
   public void deleteShared(Long id) {
     BrewMethod method = findShared(id);
+    requireUnused(method);
 
     brewMethodRepository.delete(method);
     log.info("Deleted shared brew method id={}", id);
+  }
+
+  private void requireUnused(BrewMethod method) {
+    long recipes = recipeRepository.countByMethodId(method.getId());
+    if (recipes > 0) {
+      throw ResourceInUseException.of("Brew method", recipes, "recipe", "recipes");
+    }
   }
 
   private BrewMethod findVisible(Long id) {

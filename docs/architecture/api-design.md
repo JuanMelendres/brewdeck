@@ -49,7 +49,7 @@ Collection GETs return `PageResponse<T>` and accept `page`, `size`, `sort`:
 | 404 | Resource not found, or no such endpoint |
 | 405 | HTTP method not supported on that path (`Allow` header lists the valid ones) |
 | 406 | Requested `Accept` type cannot be produced |
-| 409 | Conflict (e.g. duplicate) |
+| 409 | Conflict: a duplicate, or a delete blocked because other rows still use the resource (the message says what, e.g. `"Coffee is used by 2 recipes. Delete or change them first."`) |
 | 415 | Unsupported `Content-Type` (send `application/json`) |
 | 422 | Unprocessable (e.g. AI improve with no rated history) |
 | 429 | Too many attempts on an auth endpoint; wait `Retry-After` seconds ([ADR-011](../decisions/ADR-011-in-memory-auth-rate-limiting.md)) |

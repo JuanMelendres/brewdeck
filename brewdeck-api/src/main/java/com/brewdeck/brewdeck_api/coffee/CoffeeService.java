@@ -1,6 +1,7 @@
 package com.brewdeck.brewdeck_api.coffee;
 
 import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
+import com.brewdeck.brewdeck_api.common.error.ResourceInUseException;
 import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
 import com.brewdeck.brewdeck_api.recipe.RecipeRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -91,6 +92,10 @@ public class CoffeeService {
   public void delete(Long id) {
     if (!coffeeRepository.existsByIdAndOwnerId(id, currentOwnerId())) {
       throw new EntityNotFoundException("Coffee not found");
+    }
+    long recipes = recipeRepository.countByCoffeeId(id);
+    if (recipes > 0) {
+      throw ResourceInUseException.of("Coffee", recipes, "recipe", "recipes");
     }
 
     coffeeRepository.deleteById(id);

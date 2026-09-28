@@ -9,11 +9,8 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import { useState } from 'react';
-import { ApiError } from '@/lib/api/client';
 import { useDeleteBrewMethod } from '@/hooks/useBrewMethodMutations';
 import type { BrewMethod } from '@/lib/api/brewMethods';
-
-const IN_USE = 'This method is used by one or more recipes. Change or delete those recipes first.';
 
 export function DeleteBrewMethodDialog({
   open,
@@ -31,13 +28,8 @@ export function DeleteBrewMethodDialog({
     setError(null);
     del.mutate(method.id, {
       onSuccess: () => onClose(),
-      onError: (e: unknown) => {
-        if (e instanceof ApiError && e.status === 409) {
-          setError(IN_USE);
-        } else {
-          setError(e instanceof Error ? e.message : 'Something went wrong');
-        }
-      },
+      // A 409 carries the server's explanation, e.g. "Brew method is used by 2 recipes. ...".
+      onError: (e: unknown) => setError(e instanceof Error ? e.message : 'Something went wrong'),
     });
   };
 

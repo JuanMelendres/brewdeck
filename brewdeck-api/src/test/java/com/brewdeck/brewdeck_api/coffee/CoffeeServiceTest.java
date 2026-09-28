@@ -397,4 +397,26 @@ class CoffeeServiceTest {
     verify(coffeeRepository).findByIdAndOwnerId(99L, 42L);
     verify(coffeeRepository, never()).save(any());
   }
+
+  @Test
+  void delete_shouldRefuseWithAClearMessage_whenRecipesUseTheCoffee() {
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(coffeeRepository.existsByIdAndOwnerId(1L, 42L)).thenReturn(true);
+    when(recipeRepository.countByCoffeeId(1L)).thenReturn(3L);
+
+    assertThatThrownBy(() -> coffeeService.delete(1L))
+        .isInstanceOf(com.brewdeck.brewdeck_api.common.error.ResourceInUseException.class)
+        .hasMessage("Coffee is used by 3 recipes. Delete or change them first.");
+    verify(coffeeRepository, never()).deleteById(anyLong());
+  }
+
+  @Test
+  void delete_usesSingularWording_forOneRecipe() {
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(coffeeRepository.existsByIdAndOwnerId(1L, 42L)).thenReturn(true);
+    when(recipeRepository.countByCoffeeId(1L)).thenReturn(1L);
+
+    assertThatThrownBy(() -> coffeeService.delete(1L))
+        .hasMessage("Coffee is used by 1 recipe. Delete or change it first.");
+  }
 }
