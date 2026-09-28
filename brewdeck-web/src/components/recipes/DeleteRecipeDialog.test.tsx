@@ -1,6 +1,7 @@
 import { fireEvent, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderWithTheme } from '@/test/renderWithTheme';
+import { ApiError } from '@/lib/api/client';
 import { DeleteRecipeDialog } from './DeleteRecipeDialog';
 import * as mutations from '@/hooks/useRecipeMutations';
 import type { Recipe } from '@/lib/api/types';
@@ -22,5 +23,17 @@ describe('DeleteRecipeDialog', () => {
     renderWithTheme(<DeleteRecipeDialog open recipe={recipe} onClose={vi.fn()} />);
     fireEvent.click(screen.getByRole('button', { name: /^delete$/i }));
     expect(deleteMutate.mock.calls[0][0]).toBe(7);
+  });
+
+  it('shows the server explanation when the recipe is still in use', async () => {
+    deleteMutate.mockImplementation((_id: number, opts: { onError: (e: unknown) => void }) => {
+      opts.onError(new ApiError(409, 'Recipe is used by 1 brew session. Delete or change it first.'));
+    });
+    vi.spyOn(mutations, 'useDeleteRecipe').mockReturnValue({ mutate: deleteMutate, isPending: false } as never);
+    renderWithTheme(<DeleteRecipeDialog open recipe={recipe} onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /^delete$/i }));
+
+    expect(await screen.findByText('Recipe is used by 1 brew session. Delete or change it first.')).toBeInTheDocument();
   });
 });

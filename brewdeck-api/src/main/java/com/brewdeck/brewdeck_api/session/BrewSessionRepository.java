@@ -33,6 +33,9 @@ public interface BrewSessionRepository
 
   long countByOwnerId(Long ownerId);
 
+  /** Sessions logged against a recipe. Guards recipe deletes. */
+  long countByRecipeId(Long recipeId);
+
   List<BrewSession> findByRecipeIdOrderByBrewedAtDesc(Long recipeId);
 
   List<BrewSession> findTop10ByRecipeIdAndRatingIsNotNullOrderByBrewedAtDesc(Long recipeId);

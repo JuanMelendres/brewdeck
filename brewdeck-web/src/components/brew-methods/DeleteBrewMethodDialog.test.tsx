@@ -31,15 +31,23 @@ describe('DeleteBrewMethodDialog', () => {
     expect(deleteMutate.mock.calls[0][0]).toBe(3);
   });
 
-  it('explains a 409 as the method still being used by recipes', async () => {
+  it('shows the server explanation when the method is still used by recipes', async () => {
     deleteMutate.mockImplementation((_id, opts) => {
-      opts.onError(new ApiError(409, 'Data integrity violation', '/api/brew-methods/3'));
+      opts.onError(
+        new ApiError(
+          409,
+          'Brew method is used by 2 recipes. Delete or change them first.',
+          '/api/brew-methods/3',
+        ),
+      );
     });
     vi.spyOn(mutations, 'useDeleteBrewMethod').mockReturnValue({ mutate: deleteMutate, isPending: false } as never);
     renderWithTheme(<DeleteBrewMethodDialog open method={myMethod} onClose={vi.fn()} />);
 
     fireEvent.click(screen.getByRole('button', { name: /^delete$/i }));
 
-    expect(await screen.findByText(/used by one or more recipes/i)).toBeInTheDocument();
+    expect(
+      await screen.findByText('Brew method is used by 2 recipes. Delete or change them first.'),
+    ).toBeInTheDocument();
   });
 });
