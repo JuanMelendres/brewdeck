@@ -177,6 +177,12 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-cache</artifactId>
 		</dependency>
+		<!-- Real SMTP delivery for verification and password-reset emails (JavaMailSender). Only
+		     active when brewdeck.mail.enabled=true; otherwise the logging adapters are used. -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>com.github.ben-manes.caffeine</groupId>
 			<artifactId>caffeine</artifactId>

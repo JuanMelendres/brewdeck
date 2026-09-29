@@ -11,6 +11,9 @@ import static org.mockito.Mockito.when;
 
 import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.auth.UserRepository;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitExceededException;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -32,7 +35,9 @@ class EmailVerificationServiceTest {
 
   @BeforeEach
   void setUp() {
-    service = new EmailVerificationService(tokenRepository, userRepository, mailPort);
+    service =
+        new EmailVerificationService(
+            tokenRepository, userRepository, mailPort, new RateLimiter(false));
   }
 
   private User user(boolean verified) {
@@ -195,5 +200,20 @@ class EmailVerificationServiceTest {
 
     verify(tokenRepository).save(any(EmailVerificationToken.class));
     verify(mailPort).sendVerificationLink(eq("brewer@example.com"), anyString());
+  }
+
+  @Test
+  void resendFor_throttled_throwsWithoutLookingUpTheUser() {
+    RateLimiter limiter = org.mockito.Mockito.mock(RateLimiter.class);
+    org.mockito.Mockito.doThrow(new RateLimitExceededException(java.time.Duration.ofMinutes(40)))
+        .when(limiter)
+        .requireAllowed(RateLimitRule.RESEND_VERIFICATION_EMAIL, "brewer@example.com");
+    EmailVerificationService limited =
+        new EmailVerificationService(tokenRepository, userRepository, mailPort, limiter);
+
+    org.assertj.core.api.Assertions.assertThatThrownBy(
+            () -> limited.resendFor("brewer@example.com"))
+        .isInstanceOf(RateLimitExceededException.class);
+    org.mockito.Mockito.verifyNoInteractions(userRepository, mailPort);
   }
 }

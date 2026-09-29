@@ -9,7 +9,9 @@ class LoggingPasswordResetMailAdapterTest {
   @Test
   void sendResetLink_logsWithoutThrowing() {
     LoggingPasswordResetMailAdapter adapter =
-        new LoggingPasswordResetMailAdapter(new MailProperties(false, "http://localhost:3000"));
+        new LoggingPasswordResetMailAdapter(
+            new MailProperties(
+                false, "http://localhost:3000", "BrewDeck <no-reply@brewdeck.local>"));
 
     assertThatCode(() -> adapter.sendResetLink("brewer@example.com", "raw-token"))
         .doesNotThrowAnyException();

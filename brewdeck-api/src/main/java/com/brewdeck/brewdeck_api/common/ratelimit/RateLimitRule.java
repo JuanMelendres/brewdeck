@@ -16,7 +16,9 @@ public enum RateLimitRule {
   // Stops anyone from flooding a mailbox with reset emails.
   FORGOT_PASSWORD_EMAIL(3, Duration.ofHours(1)),
   RESET_PASSWORD_IP(10, Duration.ofMinutes(15)),
-  VERIFY_EMAIL_IP(10, Duration.ofMinutes(15));
+  VERIFY_EMAIL_IP(10, Duration.ofMinutes(15)),
+  // Authenticated, keyed by the account email: stops a user from flooding their own inbox.
+  RESEND_VERIFICATION_EMAIL(3, Duration.ofHours(1));
 
   private final int limit;
   private final Duration window;

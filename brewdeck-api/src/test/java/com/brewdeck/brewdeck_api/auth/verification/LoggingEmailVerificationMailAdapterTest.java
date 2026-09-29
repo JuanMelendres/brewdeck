@@ -10,7 +10,9 @@ class LoggingEmailVerificationMailAdapterTest {
   @Test
   void sendVerificationLink_logsWithoutThrowing() {
     LoggingEmailVerificationMailAdapter adapter =
-        new LoggingEmailVerificationMailAdapter(new MailProperties(false, "http://localhost:3000"));
+        new LoggingEmailVerificationMailAdapter(
+            new MailProperties(
+                false, "http://localhost:3000", "BrewDeck <no-reply@brewdeck.local>"));
 
     assertThatCode(() -> adapter.sendVerificationLink("brewer@example.com", "raw-token"))
         .doesNotThrowAnyException();

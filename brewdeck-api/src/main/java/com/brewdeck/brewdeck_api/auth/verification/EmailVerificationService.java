@@ -2,6 +2,8 @@ package com.brewdeck.brewdeck_api.auth.verification;
 
 import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.auth.UserRepository;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
 import com.brewdeck.brewdeck_api.common.security.SecureTokens;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
@@ -19,14 +21,17 @@ public class EmailVerificationService {
   private final EmailVerificationTokenRepository tokenRepository;
   private final UserRepository userRepository;
   private final EmailVerificationMailPort mailPort;
+  private final RateLimiter rateLimiter;
 
   public EmailVerificationService(
       EmailVerificationTokenRepository tokenRepository,
       UserRepository userRepository,
-      EmailVerificationMailPort mailPort) {
+      EmailVerificationMailPort mailPort,
+      RateLimiter rateLimiter) {
     this.tokenRepository = tokenRepository;
     this.userRepository = userRepository;
     this.mailPort = mailPort;
+    this.rateLimiter = rateLimiter;
   }
 
   /** Issues a fresh verification token for the user and sends the link best-effort. */
@@ -83,6 +88,7 @@ public class EmailVerificationService {
 
   @Transactional
   public void resendFor(String email) {
+    rateLimiter.requireAllowed(RateLimitRule.RESEND_VERIFICATION_EMAIL, email);
     User user =
         userRepository
             .findByEmail(email)
