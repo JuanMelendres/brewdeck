@@ -2,6 +2,17 @@ spring:
   application:
     name: brewdeck-api
 
+  # SMTP connection. Host, port, username, and password bind from SPRING_MAIL_HOST,
+  # SPRING_MAIL_PORT, SPRING_MAIL_USERNAME, and SPRING_MAIL_PASSWORD. Only used when
+  # brewdeck.mail.enabled=true.
+  mail:
+    properties:
+      mail.smtp.auth: ${SPRING_MAIL_SMTP_AUTH:false}
+      mail.smtp.starttls.enable: ${SPRING_MAIL_SMTP_STARTTLS:false}
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 5000
+      mail.smtp.writetimeout: 5000
+
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local}
 
@@ -55,5 +66,8 @@ brewdeck:
     # In-memory limits on auth endpoints (ADR-011). Keep enabled in every real environment.
     enabled: ${RATE_LIMIT_ENABLED:true}
   mail:
+    # true = real SMTP via spring.mail.* (SPRING_MAIL_HOST, SPRING_MAIL_PORT, ...); false = links
+    # are only logged. Enabling it without SPRING_MAIL_HOST fails at startup on purpose.
     enabled: ${BREWDECK_MAIL_ENABLED:false}
+    from: ${BREWDECK_MAIL_FROM:BrewDeck <no-reply@brewdeck.local>}
     frontend-base-url: ${BREWDECK_MAIL_FRONTEND_BASE_URL:http://localhost:3000}
