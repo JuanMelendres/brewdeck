@@ -1,6 +1,6 @@
 package com.brewdeck.brewdeck_api.auth;
 
-import com.brewdeck.brewdeck_api.auth.refresh.RefreshRequest;
+import com.brewdeck.brewdeck_api.auth.refresh.InvalidRefreshTokenException;
 import com.brewdeck.brewdeck_api.auth.refresh.RefreshTokenService;
 import com.brewdeck.brewdeck_api.auth.verification.EmailVerificationService;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
@@ -123,15 +123,20 @@ public class AuthService {
   // rotate()'s transaction and roll it back on InvalidRefreshTokenException, undoing the
   // revocation.
   // refresh() has no other DB write of its own (it only rotates, then generates a JWT).
-  public AuthResponse refresh(RefreshRequest request) {
-    RefreshTokenService.RotationResult result = refreshTokenService.rotate(request.refreshToken());
+  public AuthResponse refresh(String rawRefreshToken) {
+    if (rawRefreshToken == null || rawRefreshToken.isBlank()) {
+      throw new InvalidRefreshTokenException("Missing refresh token");
+    }
+    RefreshTokenService.RotationResult result = refreshTokenService.rotate(rawRefreshToken);
     return tokenResponse(result.user(), result.rawToken());
   }
 
   @Transactional
-  public void logout(String email, RefreshRequest request) {
+  public void logout(String email, String rawRefreshToken) {
     User user = requireByEmail(email);
-    refreshTokenService.revoke(request.refreshToken(), user.getId());
+    if (rawRefreshToken != null && !rawRefreshToken.isBlank()) {
+      refreshTokenService.revoke(rawRefreshToken, user.getId());
+    }
   }
 
   private User requireByEmail(String email) {

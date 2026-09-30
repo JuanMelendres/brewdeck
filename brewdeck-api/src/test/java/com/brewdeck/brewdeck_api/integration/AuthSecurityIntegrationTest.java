@@ -251,4 +251,70 @@ class AuthSecurityIntegrationTest extends PostgresIntegrationTest {
         .getResponse()
         .getContentAsString();
   }
+
+  @Test
+  void refreshCookieFlow_rotatesOnRefresh_detectsReuse_andIsClearedOnLogout() throws Exception {
+    String email = "cookie-flow-" + System.nanoTime() + "@example.com";
+    var login =
+        mockMvc
+            .perform(
+                post("/api/auth/register")
+                    .contentType("application/json")
+                    .content("{\"email\":\"" + email + "\",\"password\":\"password123\"}"))
+            .andExpect(status().isCreated())
+            .andReturn()
+            .getResponse();
+    jakarta.servlet.http.Cookie first = login.getCookie("brewdeck_refresh");
+    assertThat(first).isNotNull();
+    assertThat(first.isHttpOnly()).isTrue();
+    assertThat(first.getSecure()).isTrue();
+    assertThat(first.getPath()).isEqualTo("/api/auth");
+
+    var rotated =
+        mockMvc
+            .perform(post("/api/auth/refresh").cookie(first).header("X-Requested-With", "fetch"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.token").isNotEmpty())
+            .andReturn()
+            .getResponse();
+    jakarta.servlet.http.Cookie second = rotated.getCookie("brewdeck_refresh");
+    assertThat(second.getValue()).isNotEqualTo(first.getValue());
+    String access = com.jayway.jsonpath.JsonPath.read(rotated.getContentAsString(), "$.token");
+
+    // Replaying the old cookie is reuse: 401, and it revokes the rotated one too.
+    mockMvc
+        .perform(post("/api/auth/refresh").cookie(first).header("X-Requested-With", "fetch"))
+        .andExpect(status().isUnauthorized());
+    mockMvc
+        .perform(post("/api/auth/refresh").cookie(second).header("X-Requested-With", "fetch"))
+        .andExpect(status().isUnauthorized());
+
+    // Logout clears the cookie.
+    var logout =
+        mockMvc
+            .perform(
+                post("/api/auth/logout")
+                    .header("Authorization", "Bearer " + access)
+                    .header("X-Requested-With", "fetch"))
+            .andExpect(status().isNoContent())
+            .andReturn()
+            .getResponse();
+    assertThat(logout.getCookie("brewdeck_refresh").getMaxAge()).isZero();
+  }
+
+  @Test
+  void refreshWithCookieButWithoutCsrfHeader_isForbidden() throws Exception {
+    String email = "cookie-csrf-" + System.nanoTime() + "@example.com";
+    jakarta.servlet.http.Cookie cookie =
+        mockMvc
+            .perform(
+                post("/api/auth/register")
+                    .contentType("application/json")
+                    .content("{\"email\":\"" + email + "\",\"password\":\"password123\"}"))
+            .andReturn()
+            .getResponse()
+            .getCookie("brewdeck_refresh");
+
+    mockMvc.perform(post("/api/auth/refresh").cookie(cookie)).andExpect(status().isForbidden());
+  }
 }

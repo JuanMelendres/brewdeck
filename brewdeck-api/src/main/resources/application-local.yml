@@ -12,3 +12,9 @@ logging:
     org.springframework.jdbc.datasource: DEBUG
     org.flywaydb: DEBUG
     org.hibernate.SQL: DEBUG
+
+brewdeck:
+  auth:
+    refresh-cookie:
+      # Local dev runs over plain http://localhost; some browsers drop Secure cookies there.
+      secure: ${AUTH_COOKIE_SECURE:false}
