@@ -1,7 +1,7 @@
 package com.brewdeck.brewdeck_api.recipe;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record RecipeResponse(
     Long id,
@@ -19,8 +19,8 @@ public record RecipeResponse(
     String steps,
     String expectedTaste,
     Boolean favorite,
-    LocalDateTime createdAt,
-    LocalDateTime updatedAt,
+    Instant createdAt,
+    Instant updatedAt,
     String shareToken) {
   public static RecipeResponse fromEntity(Recipe recipe) {
     return new RecipeResponse(

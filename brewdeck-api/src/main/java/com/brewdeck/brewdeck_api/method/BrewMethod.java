@@ -2,7 +2,7 @@ package com.brewdeck.brewdeck_api.method;
 
 import com.brewdeck.brewdeck_api.auth.User;
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.*;
 
 @Entity
@@ -31,7 +31,7 @@ public class BrewMethod {
   private String description;
 
   @Column(name = "created_at", nullable = false)
-  private LocalDateTime createdAt;
+  private Instant createdAt;
 
   public boolean isShared() {
     return owner == null;
@@ -39,6 +39,6 @@ public class BrewMethod {
 
   @PrePersist
   void onCreate() {
-    this.createdAt = LocalDateTime.now();
+    this.createdAt = Instant.now();
   }
 }

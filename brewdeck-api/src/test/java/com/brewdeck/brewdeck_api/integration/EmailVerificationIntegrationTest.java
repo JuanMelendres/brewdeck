@@ -11,7 +11,8 @@ import com.brewdeck.brewdeck_api.auth.verification.EmailVerificationMailPort;
 import com.brewdeck.brewdeck_api.auth.verification.EmailVerificationToken;
 import com.brewdeck.brewdeck_api.auth.verification.EmailVerificationTokenRepository;
 import com.brewdeck.brewdeck_api.common.PostgresIntegrationTest;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -113,15 +114,15 @@ class EmailVerificationIntegrationTest extends PostgresIntegrationTest {
             User.builder()
                 .email(email)
                 .passwordHash(passwordEncoder.encode("password1"))
-                .createdAt(LocalDateTime.now())
+                .createdAt(Instant.now())
                 .build());
     String rawExpired = "expired-verify-token";
     tokenRepository.save(
         EmailVerificationToken.builder()
             .userId(user.getId())
             .tokenHash(sha256Hex(rawExpired))
-            .expiresAt(LocalDateTime.now().minusMinutes(1))
-            .createdAt(LocalDateTime.now().minusHours(25))
+            .expiresAt(Instant.now().minus(1, ChronoUnit.MINUTES))
+            .createdAt(Instant.now().minus(25, ChronoUnit.HOURS))
             .build());
 
     mockMvc

@@ -14,7 +14,7 @@ import com.brewdeck.brewdeck_api.recipe.Recipe;
 import com.brewdeck.brewdeck_api.recipe.RecipeRepository;
 import com.brewdeck.brewdeck_api.session.BrewSession;
 import com.brewdeck.brewdeck_api.session.BrewSessionRepository;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -66,7 +66,7 @@ class ResourceInUseIntegrationTest extends PostgresIntegrationTest {
         BrewSession.builder()
             .recipe(recipe)
             .owner(mockUser())
-            .brewedAt(LocalDateTime.now())
+            .brewedAt(Instant.now())
             .rating(7)
             .build());
 

@@ -3,6 +3,7 @@
 import Alert from '@mui/material/Alert';
 import { useRecipeBrewSessions } from '@/hooks/useRecipeBrewSessions';
 import type { BrewSession } from '@/lib/api/types';
+import { compareInstants } from '@/lib/format/dates';
 
 function bestRatedWithGrind(sessions: BrewSession[]): BrewSession | null {
   const candidates = sessions.filter(
@@ -17,7 +18,7 @@ function bestRatedWithGrind(sessions: BrewSession[]): BrewSession | null {
     if (rating > bestRating) {
       return session;
     }
-    if (rating === bestRating && session.brewedAt > best.brewedAt) {
+    if (rating === bestRating && compareInstants(session.brewedAt, best.brewedAt) > 0) {
       return session;
     }
     return best;

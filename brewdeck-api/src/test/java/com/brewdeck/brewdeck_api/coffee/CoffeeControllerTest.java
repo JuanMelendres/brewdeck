@@ -17,7 +17,7 @@ import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.persistence.EntityNotFoundException;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -104,7 +104,7 @@ class CoffeeControllerTest {
             4,
             2,
             "Café limpio y aromático",
-            LocalDateTime.now(),
+            Instant.now(),
             null);
 
     CoffeeFilter filter = new CoffeeFilter(null, null, null, null);
@@ -167,7 +167,7 @@ class CoffeeControllerTest {
             4,
             2,
             "Café limpio y aromático",
-            LocalDateTime.now(),
+            Instant.now(),
             null);
 
     CoffeeFilter filter = new CoffeeFilter("Veracruz", "Veracruz", "Medio", "Lavado");
@@ -221,7 +221,7 @@ class CoffeeControllerTest {
             4,
             2,
             "Café limpio y aromático",
-            LocalDateTime.now(),
+            Instant.now(),
             null);
 
     when(coffeeService.findById(1L)).thenReturn(response);
@@ -290,7 +290,7 @@ class CoffeeControllerTest {
             request.sweetnessScore(),
             request.bitternessScore(),
             request.description(),
-            LocalDateTime.now(),
+            Instant.now(),
             null);
 
     when(coffeeService.create(any(CoffeeRequest.class))).thenReturn(response);
@@ -380,8 +380,8 @@ class CoffeeControllerTest {
             request.sweetnessScore(),
             request.bitternessScore(),
             request.description(),
-            LocalDateTime.now(),
-            LocalDateTime.now());
+            Instant.now(),
+            Instant.now());
 
     when(coffeeService.update(eq(1L), any(CoffeeRequest.class))).thenReturn(response);
 
@@ -555,7 +555,7 @@ class CoffeeControllerTest {
                 null,
                 null,
                 null,
-                LocalDateTime.now(),
+                Instant.now(),
                 null));
 
     mockMvc

@@ -8,6 +8,7 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import type { BrewSession } from '@/lib/api/types';
+import { formatDateTime } from '@/lib/format/dates';
 
 function orDash(value: string | number | null): string {
   if (value === null) {
@@ -15,10 +16,6 @@ function orDash(value: string | number | null): string {
   }
   const text = String(value);
   return text.trim() !== '' ? text : '—';
-}
-
-function formatDateTime(iso: string): string {
-  return iso.replace('T', ' ').slice(0, 16);
 }
 
 export function BrewSessionsTable({ sessions }: { sessions: BrewSession[] }) {

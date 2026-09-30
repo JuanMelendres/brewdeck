@@ -1,7 +1,7 @@
 package com.brewdeck.brewdeck_api.auth;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.*;
 
 @Entity
@@ -35,5 +35,5 @@ public class User {
   private boolean emailVerified;
 
   @Column(name = "created_at", nullable = false)
-  private LocalDateTime createdAt;
+  private Instant createdAt;
 }

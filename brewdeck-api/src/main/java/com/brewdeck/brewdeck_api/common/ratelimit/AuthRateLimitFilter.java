@@ -7,7 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Map;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -62,7 +62,7 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
     long retryAfterSeconds = decision.retryAfterSeconds();
     ErrorResponse body =
         new ErrorResponse(
-            LocalDateTime.now(),
+            Instant.now(),
             HttpStatus.TOO_MANY_REQUESTS.value(),
             HttpStatus.TOO_MANY_REQUESTS.getReasonPhrase(),
             RateLimitMessages.tooManyAttempts(retryAfterSeconds),

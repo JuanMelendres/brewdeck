@@ -15,7 +15,7 @@ import com.brewdeck.brewdeck_api.method.BrewMethodRepository;
 import com.brewdeck.brewdeck_api.session.BrewSessionRepository;
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -52,7 +52,7 @@ class RecipeServiceTest {
             .method(method)
             .name("Veracruz AeroPress")
             .favorite(true)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     Pageable pageable = PageRequest.of(0, 10);
@@ -87,7 +87,7 @@ class RecipeServiceTest {
             .method(method)
             .name("Mezcla Veracruz AeroPress")
             .favorite(true)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     RecipeFilter filter = new RecipeFilter(1L, 1L, true, "AeroPress");
@@ -123,7 +123,7 @@ class RecipeServiceTest {
             .method(method)
             .name("Veracruz AeroPress")
             .favorite(false)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
@@ -194,7 +194,7 @@ class RecipeServiceTest {
             .steps(request.steps())
             .expectedTaste(request.expectedTaste())
             .favorite(true)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
@@ -263,7 +263,7 @@ class RecipeServiceTest {
             .method(method)
             .name("Favorite Recipe")
             .favorite(true)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     Pageable pageable = PageRequest.of(0, 10);
@@ -293,7 +293,7 @@ class RecipeServiceTest {
             .method(method)
             .name("Veracruz AeroPress")
             .favorite(false)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     Pageable pageable = PageRequest.of(0, 10);
@@ -323,7 +323,7 @@ class RecipeServiceTest {
             .method(method)
             .name("Veracruz AeroPress")
             .favorite(false)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     Pageable pageable = PageRequest.of(0, 10);
@@ -356,7 +356,7 @@ class RecipeServiceTest {
             .method(oldMethod)
             .name("Old Recipe")
             .favorite(false)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     RecipeRequest request =
@@ -423,7 +423,7 @@ class RecipeServiceTest {
             .method(method)
             .name("Existing Recipe")
             .favorite(false)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     RecipeRequest request =
@@ -455,7 +455,7 @@ class RecipeServiceTest {
             .method(oldMethod)
             .name("Existing Recipe")
             .favorite(false)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     RecipeRequest request =
@@ -512,7 +512,7 @@ class RecipeServiceTest {
             .method(method)
             .name("Veracruz AeroPress")
             .favorite(false)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
@@ -552,7 +552,7 @@ class RecipeServiceTest {
             .method(method)
             .name("Veracruz AeroPress")
             .favorite(true)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
@@ -593,7 +593,7 @@ class RecipeServiceTest {
             .name("Veracruz AeroPress")
             .favorite(false)
             .shareToken(null)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
@@ -620,7 +620,7 @@ class RecipeServiceTest {
             .name("Veracruz AeroPress")
             .favorite(false)
             .shareToken("existing-token")
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
@@ -661,7 +661,7 @@ class RecipeServiceTest {
             .name("Veracruz AeroPress")
             .favorite(false)
             .shareToken("existing-token")
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
@@ -687,7 +687,7 @@ class RecipeServiceTest {
             .name("Morning Cup")
             .shareToken("tok-1")
             .favorite(false)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     when(recipeRepository.findByShareToken("tok-1")).thenReturn(Optional.of(recipe));

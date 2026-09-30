@@ -9,7 +9,7 @@ import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
 import com.brewdeck.brewdeck_api.recipe.RecipeRepository;
 import jakarta.persistence.EntityNotFoundException;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -93,7 +93,7 @@ class CoffeeServiceTest {
             .brand("Café local")
             .origin("Veracruz")
             .notesPrimary("Cardamomo")
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     Pageable pageable = PageRequest.of(0, 10);
@@ -134,7 +134,7 @@ class CoffeeServiceTest {
             .process("Lavado")
             .roastLevel("Medio")
             .notesPrimary("Cardamomo")
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     CoffeeFilter filter = new CoffeeFilter("Veracruz", "Veracruz", "Medio", "Lavado");
@@ -162,7 +162,7 @@ class CoffeeServiceTest {
   @Test
   void findById_shouldReturnCoffee_whenCoffeeExists() {
     Coffee coffee =
-        Coffee.builder().id(1L).name("Mezcla Veracruz").createdAt(LocalDateTime.now()).build();
+        Coffee.builder().id(1L).name("Mezcla Veracruz").createdAt(Instant.now()).build();
 
     when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
     when(coffeeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(coffee));
@@ -237,7 +237,7 @@ class CoffeeServiceTest {
             .sweetnessScore(request.sweetnessScore())
             .bitternessScore(request.bitternessScore())
             .description(request.description())
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     when(coffeeRepository.save(any(Coffee.class))).thenReturn(savedCoffee);
@@ -316,7 +316,7 @@ class CoffeeServiceTest {
             .name("Old Coffee")
             .brand("Old Brand")
             .origin("Old Origin")
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     CoffeeRequest request =

@@ -6,7 +6,7 @@ import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.common.PostgresRepositoryTest;
 import com.brewdeck.brewdeck_api.method.BrewMethod;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -150,7 +150,7 @@ class RecipeSpecificationRepositoryTest extends PostgresRepositoryTest {
         User.builder()
             .email(email)
             .passwordHash("hashed-password")
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     return entityManager.persistAndFlush(user);

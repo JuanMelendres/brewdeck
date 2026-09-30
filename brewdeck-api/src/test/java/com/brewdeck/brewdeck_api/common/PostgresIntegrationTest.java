@@ -2,7 +2,7 @@ package com.brewdeck.brewdeck_api.common;
 
 import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.auth.UserRepository;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
@@ -41,7 +41,7 @@ public abstract class PostgresIntegrationTest {
           User.builder()
               .email(MOCK_USER_EMAIL)
               .passwordHash("integration-test-placeholder")
-              .createdAt(LocalDateTime.now())
+              .createdAt(Instant.now())
               .build());
     }
   }

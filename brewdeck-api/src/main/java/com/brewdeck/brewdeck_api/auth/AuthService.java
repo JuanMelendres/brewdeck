@@ -8,7 +8,6 @@ import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
 import com.brewdeck.brewdeck_api.common.security.SecureTokens;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -61,7 +60,7 @@ public class AuthService {
         User.builder()
             .email(request.email())
             .passwordHash(passwordEncoder.encode(request.password()))
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
     User saved = userRepository.save(user);
     log.info("Registered user id={}", saved.getId());

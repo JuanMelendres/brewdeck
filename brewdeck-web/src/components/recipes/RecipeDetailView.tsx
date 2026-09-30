@@ -27,14 +27,7 @@ import { RecommendedGrind } from './RecommendedGrind';
 import { RecipeFormDialog } from './RecipeFormDialog';
 import { ShareRecipeDialog } from './ShareRecipeDialog';
 import { downloadRecipePdf, orDash } from '@/lib/pdf/recipePdf';
-
-function formatDate(value: string | null): string {
-  if (!value) {
-    return '—';
-  }
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString();
-}
+import { formatDate } from '@/lib/format/dates';
 
 export function RecipeDetailView({ recipeId }: { recipeId: number }) {
   const recipeQuery = useRecipe(recipeId);

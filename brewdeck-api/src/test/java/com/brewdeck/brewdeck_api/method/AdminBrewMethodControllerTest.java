@@ -14,7 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -51,8 +51,7 @@ class AdminBrewMethodControllerTest {
     BrewMethodRequest request = new BrewMethodRequest("Siphon", "Vacuum brewer.");
     when(brewMethodService.createShared(any(BrewMethodRequest.class)))
         .thenReturn(
-            new BrewMethodResponse(
-                5L, request.name(), request.description(), true, LocalDateTime.now()));
+            new BrewMethodResponse(5L, request.name(), request.description(), true, Instant.now()));
 
     mockMvc
         .perform(
@@ -81,7 +80,7 @@ class AdminBrewMethodControllerTest {
   void update_shouldReturnUpdatedSharedMethod() throws Exception {
     BrewMethodRequest request = new BrewMethodRequest("Hario V60", null);
     when(brewMethodService.updateShared(eq(1L), any(BrewMethodRequest.class)))
-        .thenReturn(new BrewMethodResponse(1L, "Hario V60", null, true, LocalDateTime.now()));
+        .thenReturn(new BrewMethodResponse(1L, "Hario V60", null, true, Instant.now()));
 
     mockMvc
         .perform(

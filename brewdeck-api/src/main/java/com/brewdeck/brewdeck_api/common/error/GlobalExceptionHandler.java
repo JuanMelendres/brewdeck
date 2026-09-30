@@ -12,7 +12,7 @@ import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitMessages;
 import com.brewdeck.brewdeck_api.featureflag.FeatureDisabledException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -345,12 +345,7 @@ public class GlobalExceptionHandler {
   private ErrorResponse buildErrorResponse(
       HttpStatus status, String message, String path, Map<String, String> validationErrors) {
     return new ErrorResponse(
-        LocalDateTime.now(),
-        status.value(),
-        status.getReasonPhrase(),
-        message,
-        path,
-        validationErrors);
+        Instant.now(), status.value(), status.getReasonPhrase(), message, path, validationErrors);
   }
 
   /** Strips CR/LF so request-controlled values cannot forge log lines. */

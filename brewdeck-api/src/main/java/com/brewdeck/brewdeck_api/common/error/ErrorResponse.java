@@ -1,6 +1,6 @@
 package com.brewdeck.brewdeck_api.common.error;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Map;
 
 /**
@@ -8,7 +8,7 @@ import java.util.Map;
  * react to one specific error (e.g. {@code EMAIL_NOT_VERIFIED}); it is {@code null} otherwise.
  */
 public record ErrorResponse(
-    LocalDateTime timestamp,
+    Instant timestamp,
     int status,
     String error,
     String message,
@@ -17,7 +17,7 @@ public record ErrorResponse(
     String code) {
 
   public ErrorResponse(
-      LocalDateTime timestamp,
+      Instant timestamp,
       int status,
       String error,
       String message,

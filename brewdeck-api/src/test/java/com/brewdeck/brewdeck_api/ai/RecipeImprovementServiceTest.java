@@ -21,7 +21,7 @@ import com.brewdeck.brewdeck_api.session.BrewSession;
 import com.brewdeck.brewdeck_api.session.BrewSessionRepository;
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -131,7 +131,7 @@ class RecipeImprovementServiceTest {
     BrewSession session =
         BrewSession.builder()
             .recipe(recipe)
-            .brewedAt(LocalDateTime.of(2026, 4, 21, 10, 0))
+            .brewedAt(Instant.parse("2026-04-21T10:00:00Z"))
             .actualGrind("Timemore S3 - 5.5")
             .actualTemp(91)
             .actualTime("2:20")

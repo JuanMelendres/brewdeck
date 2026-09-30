@@ -20,7 +20,7 @@ import com.brewdeck.brewdeck_api.recipe.Recipe;
 import com.brewdeck.brewdeck_api.recipe.RecipeRepository;
 import com.brewdeck.brewdeck_api.session.BrewSession;
 import com.brewdeck.brewdeck_api.session.BrewSessionRepository;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,7 +68,7 @@ class CrossUserWriteIsolationIntegrationTest extends PostgresIntegrationTest {
                         User.builder()
                             .email(OTHER_USER_EMAIL)
                             .passwordHash("integration-test-placeholder")
-                            .createdAt(LocalDateTime.now())
+                            .createdAt(Instant.now())
                             .build()));
 
     sharedMethod =
@@ -91,7 +91,7 @@ class CrossUserWriteIsolationIntegrationTest extends PostgresIntegrationTest {
             BrewSession.builder()
                 .recipe(foreignRecipe)
                 .owner(otherUser)
-                .brewedAt(LocalDateTime.now())
+                .brewedAt(Instant.now())
                 .rating(8)
                 .build());
   }
