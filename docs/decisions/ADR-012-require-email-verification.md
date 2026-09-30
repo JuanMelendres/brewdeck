@@ -15,6 +15,7 @@ Unverified accounts had full access (audit finding 9), so anyone could register 
   Public endpoints (`/api/public/**`, register/login/forgot/reset) and anonymous requests are unaffected. Admins are not exempt.
 - **Enforcement:** `EmailVerificationRequiredFilter` runs in the security chain right after the JWT filter, before any controller or side effect. It reads `emailVerified` from the `AuthenticatedUser` principal, which the JWT filter loads fresh from the DB on every request, so verifying takes effect on the very next request with no extra query.
 - **Error shape:** `ErrorResponse` gains an optional `code` field (`null` elsewhere), so the client can tell this `403` apart from "not an admin".
+- **Frontend:** `EmailVerificationGate` wraps the authenticated layout. When the flag is on and the user is unverified, it replaces the app with a "Verify your email to continue" screen (resend with rate-limit message, "I've verified my email" to re-check, log out). It also switches to that screen as soon as any API call returns `EMAIL_NOT_VERIFIED`, because the client caches flags for the session and the backend's answer wins. The public `/verify-email?token=` page refreshes the user, which reopens the app.
 - **Rollout:** gated by the RELEASE flag `auth-require-email-verification` (V20). It is **disabled in every environment, including local**. The flag is evaluated only for unverified users (a cached lookup). It is exposed to the frontend as `requireEmailVerification`.
 
 ## Consequences

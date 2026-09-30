@@ -15,6 +15,8 @@ export type ErrorResponse = {
   message: string;
   path: string;
   validationErrors?: Record<string, string>;
+  /** Machine-readable reason, set only for specific errors (e.g. EMAIL_NOT_VERIFIED). */
+  code?: string | null;
 };
 
 export type DashboardSummary = {

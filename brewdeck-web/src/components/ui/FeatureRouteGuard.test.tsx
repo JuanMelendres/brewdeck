@@ -14,7 +14,7 @@ type FlagsValue = ReturnType<typeof provider.useFeatureFlags>;
 
 function mockFlags(status: FlagsValue['status'], aiRecipeAssistant: boolean) {
   vi.spyOn(provider, 'useFeatureFlags').mockReturnValue({
-    flags: { aiRecipeAssistant },
+    flags: { aiRecipeAssistant, requireEmailVerification: false },
     status,
   });
 }

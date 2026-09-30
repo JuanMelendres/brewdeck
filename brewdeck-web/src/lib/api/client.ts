@@ -1,4 +1,5 @@
 import { API_BASE_URL } from '@/config/env';
+import { EMAIL_NOT_VERIFIED, notifyEmailNotVerified } from '@/lib/auth/emailVerificationSignal';
 import {
   clearTokens,
   getRefreshToken,
@@ -12,18 +13,21 @@ export class ApiError extends Error {
   status: number;
   path?: string;
   validationErrors?: Record<string, string>;
+  code?: string;
 
   constructor(
     status: number,
     message: string,
     path?: string,
     validationErrors?: Record<string, string>,
+    code?: string,
   ) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
     this.path = path;
     this.validationErrors = validationErrors;
+    this.code = code;
   }
 }
 
@@ -112,11 +116,15 @@ export async function apiFetch<T>(
     } catch {
       // non-JSON error body; fall back to status text
     }
+    if (response.status === 403 && body.code === EMAIL_NOT_VERIFIED) {
+      notifyEmailNotVerified();
+    }
     throw new ApiError(
       response.status,
       body.message ?? response.statusText,
       body.path,
       body.validationErrors,
+      body.code ?? undefined,
     );
   }
 
