@@ -111,7 +111,7 @@ Status: Planned (added 2026-09-30)
   4. Lists — cards or airier tables, chips, `Rating` stars, skeletons, `EmptyState` with CTA — TODO
   5. Auth screens — split layout with brand panel — TODO
   6. Micro-interactions — hover transitions, snackbars after mutations — TODO
-  7. Theme preference — toggle in Account settings, first-login light/dark dialog with live preview, per-user persistence — TODO
+  7. Theme preference — backend: V22 `users.theme_preference` (null = never asked), `themePreference` in `/me`, `PUT /api/auth/me/theme`; frontend: toggle in Account settings + first-login light/dark dialog with live preview — TODO
 
 ## Status Summary
 

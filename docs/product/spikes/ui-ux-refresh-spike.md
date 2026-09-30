@@ -162,12 +162,33 @@ Foundation first (theme + fonts + dark mode) in one PR, then the screen workstre
 **Theme preference.** The owner wants the light/dark switch in Account settings rather than in the app bar, to
 keep the main UI uncluttered, and a one-time choice right after the first login (after email verification
 when it is required): a dialog asks "Light or dark?", switches the whole app live as the user picks so they can
-see it, and saves the answer. Recommendation for storage: a per-user `theme_preference` on the backend
-(`LIGHT` / `DARK`, `null` = never asked), exposed in `/api/auth/me` and updated through `PATCH /api/auth/me`.
-That way the prompt shows once per user rather than once per browser, and the choice follows the user
-across devices. Assumption: a local cached copy (localStorage) applies the theme before `/me` resolves, to
-avoid a flash of the wrong theme. Alternative: localStorage only (no backend change), but the prompt would
-reappear on every new device.
+see it, and saves the answer. The preference is stored per user on the backend (accepted, see §16), so the
+prompt shows once per user rather than once per browser, and the choice follows the user across devices.
+Alternative rejected: localStorage only (no backend change), because the prompt would reappear on every new
+device.
+
+**Backend design (to be detailed in the workstream 7 TDD):**
+
+- **Migration `V22`:** nullable `theme_preference VARCHAR(10)` on `users` with a `CHECK` for `'LIGHT'` or
+  `'DARK'`. `NULL` means "never asked" and is what triggers the first-login dialog. Existing users start at
+  `NULL`, so they also see the dialog once.
+- **Entity:** a `ThemePreference` enum (`LIGHT`, `DARK`) on `User`, mapped with `@Enumerated(EnumType.STRING)`.
+- **Read:** `UserResponse` gains `themePreference` (nullable), so `GET /api/auth/me` returns it. Adding a
+  field is backward compatible.
+- **Write: a dedicated `PUT /api/auth/me/theme`** with `{ "themePreference": "LIGHT" | "DARK" }` (`@NotNull`),
+  returning `200` with the updated `UserResponse`. It is deliberately separate from `PATCH /api/auth/me`:
+  `AuthService.updateProfile` sets `displayName` from the request as given, so a theme-only PATCH would clear
+  the display name.
+- **Email verification:** the new endpoint is not on the ADR-012 allow-list, so an unverified user cannot
+  save a theme. That matches the flow: the dialog opens only after the user is verified (or right after
+  login when verification is not required).
+- **Tests:** service, controller (200, 400 for a null or unknown value, 401 without auth), and a
+  Testcontainers integration test for the round trip through `/me`.
+- **Docs:** `docs/api/README.md`, `openapi.yaml`, and the Postman collection.
+- **Frontend cache:** Assumption: a localStorage copy applies the theme before `/me` resolves, to avoid a flash
+  of the wrong theme; `/me` is the source of truth and overwrites it.
+- **Feature flag:** not needed. The field and endpoint are additive, have no effect until the frontend uses
+  them, and each PR is complete (evaluated against the Feature Flag Policy).
 
 ## 16. Decision
 
@@ -176,7 +197,7 @@ reappear on every new device.
   pick one.
 - Date: 2026-09-30
 - Owner: Juan (product owner)
-- Status: Accepted (direction). Theme-preference storage: Proposed, see §15.
+- Status: Accepted. Theme-preference storage: **per-user on the backend** (accepted 2026-09-30), design in §15.
 
 ## 17. Next Steps
 
@@ -190,7 +211,7 @@ The refresh is split into workstreams. Each becomes its own document and PR seri
 | 4 | Lists | FDD | Coffee cards or airier tables, roast/process chips, `Rating` stars, skeleton loading, `EmptyState` with icon and CTA |
 | 5 | Auth screens | FDD | Split layout with brand panel, form in a card |
 | 6 | Micro-interactions | FDD | Hover transitions, snackbar feedback after create/edit/delete |
-| 7 | Theme preference | FDD + TDD (backend field) | Toggle in Account settings, first-login light/dark dialog with live preview, per-user persistence |
+| 7 | Theme preference | FDD + TDD (backend) | `V22` `users.theme_preference`, `themePreference` in `/me`, `PUT /api/auth/me/theme`; toggle in Account settings; first-login light/dark dialog with live preview |
 
 ## 18. ADR Candidate
 
@@ -202,7 +223,7 @@ The refresh is split into workstreams. Each becomes its own document and PR seri
 
 - ~~Which direction (Q-001)?~~ Answered: A for light, C's palette for dark (§16).
 - ~~Follow the OS setting or default to light?~~ Answered: default light; the user chooses on first login and in Account settings.
-- Theme preference stored per user on the backend, or localStorage only (§15)?
+- ~~Theme preference stored per user on the backend, or localStorage only?~~ Answered: backend, per user (§15).
 - Is there a logo or brand mark, or should the POC use a placeholder?
 
 ## Appendix A: Direction tokens (kept for future reference)
