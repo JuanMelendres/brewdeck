@@ -4,6 +4,12 @@ name: Dependabot Auto-Merge
 # pre-1.0 package's version bump) auto-merge once the checks relevant to their
 # ecosystem report success; everything else (major bumps, any 0.x package bump) is
 # left for manual review (commented, never merged automatically).
+#
+# A PR is only merged if it is up to date with develop. Green checks on a stale branch
+# prove nothing about the merged result: #157 passed against an old base, merged after
+# #159 had moved vitest, and left develop with a broken pnpm lockfile. A branch that is
+# behind gets "@dependabot rebase" instead; the rebase re-triggers this workflow, and the
+# checks run again on the real base.
 on:
   pull_request:
     branches: [develop]
@@ -119,8 +125,33 @@ jobs:
               await sleep(30000);
             }
 
-            core.info("All required checks green — merging.");
-            await github.rest.pulls.merge({ owner, repo, pull_number, merge_method: "merge" });
+            // Only merge what was actually tested against the current develop tip.
+            const baseRef = context.payload.pull_request.base.ref;
+            const { data: comparison } = await github.rest.repos.compareCommitsWithBasehead({
+              owner,
+              repo,
+              basehead: `${baseRef}...${ref}`,
+            });
+            if (comparison.behind_by > 0) {
+              core.notice(
+                `Branch is ${comparison.behind_by} commit(s) behind ${baseRef}; asking Dependabot to rebase ` +
+                  "instead of merging. The rebase re-runs the checks and this workflow.",
+              );
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: pull_number,
+                body:
+                  `@dependabot rebase\n\n_Auto-merge paused: this branch is ${comparison.behind_by} ` +
+                  `commit(s) behind \`${baseRef}\`, so its green checks don't cover the merged result. ` +
+                  "It will be merged automatically once the rebased branch passes._",
+              });
+              return;
+            }
+
+            core.info("All required checks green and branch up to date — merging.");
+            // sha pins the exact head that was checked: a push after the checks aborts the merge.
+            await github.rest.pulls.merge({ owner, repo, pull_number, merge_method: "merge", sha: ref });
 
       - name: Flag ineligible bump for manual review
         if: steps.eligibility.outputs.eligible == 'false'
