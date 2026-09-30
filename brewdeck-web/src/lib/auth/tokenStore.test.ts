@@ -1,44 +1,36 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import {
-  clearRefreshToken,
-  clearToken,
-  clearTokens,
-  getRefreshToken,
-  getToken,
-  setRefreshToken,
-  setToken,
-} from './tokenStore';
+import { clearTokens, getToken, purgeLegacyTokenStorage, setToken } from './tokenStore';
 
 describe('tokenStore', () => {
-  afterEach(() => clearTokens());
-
-  it('returns null when no token is set', () => {
-    expect(getToken()).toBeNull();
+  afterEach(() => {
+    clearTokens();
+    window.localStorage.clear();
   });
 
-  it('stores and reads a token', () => {
+  it('holds the access token in memory only', () => {
+    expect(getToken()).toBeNull();
+
     setToken('abc.def.ghi');
+
     expect(getToken()).toBe('abc.def.ghi');
+    expect(window.localStorage.length).toBe(0);
   });
 
-  it('clears a stored token', () => {
+  it('clearTokens forgets the access token', () => {
     setToken('abc.def.ghi');
-    clearToken();
-    expect(getToken()).toBeNull();
-  });
-
-  it('stores, reads, and clears the refresh token', () => {
-    setRefreshToken('r-1');
-    expect(getRefreshToken()).toBe('r-1');
-    clearRefreshToken();
-    expect(getRefreshToken()).toBeNull();
-  });
-
-  it('clearTokens clears both the access and refresh tokens', () => {
-    setToken('a-1');
-    setRefreshToken('r-1');
     clearTokens();
     expect(getToken()).toBeNull();
-    expect(getRefreshToken()).toBeNull();
+  });
+
+  it('purges tokens an older version left in localStorage', () => {
+    window.localStorage.setItem('brewdeck.token', 'old-access');
+    window.localStorage.setItem('brewdeck.refreshToken', 'old-refresh');
+    window.localStorage.setItem('unrelated', 'keep');
+
+    purgeLegacyTokenStorage();
+
+    expect(window.localStorage.getItem('brewdeck.token')).toBeNull();
+    expect(window.localStorage.getItem('brewdeck.refreshToken')).toBeNull();
+    expect(window.localStorage.getItem('unrelated')).toBe('keep');
   });
 });

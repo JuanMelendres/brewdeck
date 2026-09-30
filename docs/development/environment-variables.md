@@ -28,6 +28,7 @@ General settings live in the root `.env.example`; auth, mail, and hardening sett
 | `BREWDECK_ADMIN_EMAIL` | *(blank)* | Existing account promoted to `ADMIN` at startup ([ADR-009](../decisions/ADR-009-role-based-authorization.md)) |
 | `RATE_LIMIT_ENABLED` | `true` | Auth endpoint rate limiting ([ADR-011](../decisions/ADR-011-in-memory-auth-rate-limiting.md)); keep on outside automated tests |
 | `BREWDECK_LEGACY_TIMEZONE` | `UTC` | Zone that pre-V21 timestamps were written in; used **once** by migration V21 to convert them to `TIMESTAMPTZ`. Set `America/Mexico_City` for a CST developer DB, or local rows shift 6 h |
+| `FORWARD_HEADERS_STRATEGY` | `none` | `native` only if a load balancer in front of the Next proxy overwrites `X-Forwarded-For`; per-IP rate limits then use the real client IP. Leave `none` when Next is exposed directly, otherwise clients could spoof their IP ([ADR-013](../decisions/ADR-013-refresh-token-cookie.md)) |
 | `API_DOCS_ENABLED` | `false` in `prod` only | Serve `/v3/api-docs` and Swagger UI in production; enable only temporarily |
 
 Database connection (from the README / Spring config; Docker Compose provides matching defaults):
@@ -64,7 +65,8 @@ The `mailpit` service (SMTP on `1025`, web UI on `8025`) catches local emails.
 
 | Variable | Default | Purpose |
 | -------- | ------- | ------- |
-| `NEXT_PUBLIC_API_BASE_URL` | `http://localhost:8080` | Base URL of the REST API |
+| `NEXT_PUBLIC_API_BASE_URL` | *(empty)* | Leave empty: the browser calls its own origin and Next proxies `/api/*` ([ADR-013](../decisions/ADR-013-refresh-token-cookie.md)). Another origin breaks the `SameSite=Strict` refresh cookie |
+| `API_PROXY_TARGET` | `http://localhost:8080` | Where the Next **server** proxies `/api/*` (server-side only) |
 
 ## Rules
 
