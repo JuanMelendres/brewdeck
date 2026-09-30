@@ -21,7 +21,7 @@ POST  /api/auth/forgot-password     200 (always; no user enumeration)
 POST  /api/auth/reset-password      204 (400 if token invalid/expired/used; revokes all refresh tokens)
 POST  /api/auth/verify-email        204 (400 if token invalid/expired/used)
 POST  /api/auth/resend-verification 200 (authenticated; no-op if already verified)
-POST  /api/auth/refresh             200 (public; token from the httpOnly cookie + X-Requested-With header, or legacy body; 401 if invalid/expired/used/missing; 403 cookie without header)
+POST  /api/auth/refresh             200 (public; refresh token from the httpOnly cookie + X-Requested-With header; 401 if invalid/expired/used/missing; 403 cookie without header)
 POST  /api/auth/logout              204 (authenticated; revokes the presented refresh token and clears the cookie)
 ```
 
@@ -40,10 +40,10 @@ POST  /api/auth/logout              204 (authenticated; revokes the presented re
 
 > **Refresh token cookie (ADR-013).** `register`, `login`, and `refresh` set `brewdeck_refresh`
 > (`HttpOnly; Secure; SameSite=Strict; Path=/api/auth`). Cookie-authenticated calls must send an
-> `X-Requested-With` header. During the rollout the token is still returned in the JSON body and
-> accepted in the request body; the cookie wins when both are present.
+> `X-Requested-With` header. The refresh token is **never** returned in or accepted from a JSON
+> body.
 
-> `register` and `login` responses now also include a `refreshToken` field alongside `token`, `expiresAt`, and `email`.
+> `register`, `login`, and `refresh` return `token`, `expiresAt`, and `email`.
 
 ## Feature flags (`/api/feature-flags`)
 ```

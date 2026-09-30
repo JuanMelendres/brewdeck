@@ -1,6 +1,5 @@
 package com.brewdeck.brewdeck_api.auth;
 
-import com.brewdeck.brewdeck_api.auth.refresh.RefreshRequest;
 import com.brewdeck.brewdeck_api.auth.refresh.RefreshTokenCookies;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -63,29 +62,26 @@ public class AuthController {
   @Operation(
       summary = "Exchange the refresh token for a new access token and rotated refresh cookie",
       description =
-          "Reads the refresh token from the httpOnly cookie (requires the X-Requested-With"
-              + " header) or, during the transition, from the JSON body.")
-  public ResponseEntity<AuthResponse> refresh(
-      HttpServletRequest httpRequest, @RequestBody(required = false) RefreshRequest body) {
-    String rawToken = refreshTokenCookies.resolve(httpRequest, body);
+          "Reads the refresh token from the httpOnly cookie; requires the X-Requested-With"
+              + " header.")
+  public ResponseEntity<AuthResponse> refresh(HttpServletRequest httpRequest) {
+    String rawToken = refreshTokenCookies.resolve(httpRequest);
     return withRefreshCookie(HttpStatus.OK, authService.refresh(rawToken));
   }
 
   @PostMapping("/logout")
   @Operation(summary = "Revoke the presented refresh token and clear the refresh cookie")
-  public ResponseEntity<Void> logout(
-      Principal principal,
-      HttpServletRequest httpRequest,
-      @RequestBody(required = false) RefreshRequest body) {
-    authService.logout(principal.getName(), refreshTokenCookies.resolve(httpRequest, body));
+  public ResponseEntity<Void> logout(Principal principal, HttpServletRequest httpRequest) {
+    authService.logout(principal.getName(), refreshTokenCookies.resolve(httpRequest));
     return ResponseEntity.noContent()
         .header(HttpHeaders.SET_COOKIE, refreshTokenCookies.clear().toString())
         .build();
   }
 
-  private ResponseEntity<AuthResponse> withRefreshCookie(HttpStatus status, AuthResponse auth) {
+  private ResponseEntity<AuthResponse> withRefreshCookie(HttpStatus status, AuthSession session) {
     return ResponseEntity.status(status)
-        .header(HttpHeaders.SET_COOKIE, refreshTokenCookies.issue(auth.refreshToken()).toString())
-        .body(auth);
+        .header(
+            HttpHeaders.SET_COOKIE, refreshTokenCookies.issue(session.refreshToken()).toString())
+        .body(session.response());
   }
 }

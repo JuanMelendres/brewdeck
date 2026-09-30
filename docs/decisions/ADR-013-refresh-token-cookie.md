@@ -1,7 +1,7 @@
 # ADR-013: Refresh token in an httpOnly cookie, access token in memory
 
 ## Status
-Accepted (rollout in 3 PRs; see Plan)
+Accepted. Rollout completed (steps 1–3 below).
 
 ## Date
 2026-10-01

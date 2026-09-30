@@ -97,7 +97,7 @@ class PasswordResetIntegrationTest extends PostgresIntegrationTest {
             .build());
 
     // An existing session obtained with the old password.
-    String loginResponse =
+    jakarta.servlet.http.Cookie staleRefresh =
         mockMvc
             .perform(
                 post("/api/auth/login")
@@ -106,8 +106,7 @@ class PasswordResetIntegrationTest extends PostgresIntegrationTest {
             .andExpect(status().isOk())
             .andReturn()
             .getResponse()
-            .getContentAsString();
-    String staleRefresh = com.jayway.jsonpath.JsonPath.read(loginResponse, "$.refreshToken");
+            .getCookie("brewdeck_refresh");
 
     mockMvc
         .perform(
@@ -129,10 +128,7 @@ class PasswordResetIntegrationTest extends PostgresIntegrationTest {
 
     // The pre-reset session can no longer be refreshed.
     mockMvc
-        .perform(
-            post("/api/auth/refresh")
-                .contentType("application/json")
-                .content("{\"refreshToken\":\"" + staleRefresh + "\"}"))
+        .perform(post("/api/auth/refresh").cookie(staleRefresh).header("X-Requested-With", "fetch"))
         .andExpect(status().isUnauthorized());
   }
 

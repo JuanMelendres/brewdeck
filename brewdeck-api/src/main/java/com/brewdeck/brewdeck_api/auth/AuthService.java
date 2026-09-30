@@ -52,7 +52,7 @@ public class AuthService {
   }
 
   @Transactional
-  public AuthResponse register(RegisterRequest request) {
+  public AuthSession register(RegisterRequest request) {
     if (userRepository.existsByEmail(request.email())) {
       throw new EmailAlreadyUsedException("Email is already registered");
     }
@@ -74,7 +74,7 @@ public class AuthService {
   }
 
   @Transactional
-  public AuthResponse login(LoginRequest request) {
+  public AuthSession login(LoginRequest request) {
     // Per-account limit, checked before the password: rotating IPs does not help an attacker.
     rateLimiter.requireAllowed(RateLimitRule.LOGIN_EMAIL, request.email());
     Optional<User> maybeUser = userRepository.findByEmail(request.email());
@@ -123,7 +123,7 @@ public class AuthService {
   // rotate()'s transaction and roll it back on InvalidRefreshTokenException, undoing the
   // revocation.
   // refresh() has no other DB write of its own (it only rotates, then generates a JWT).
-  public AuthResponse refresh(String rawRefreshToken) {
+  public AuthSession refresh(String rawRefreshToken) {
     if (rawRefreshToken == null || rawRefreshToken.isBlank()) {
       throw new InvalidRefreshTokenException("Missing refresh token");
     }
@@ -145,9 +145,10 @@ public class AuthService {
         .orElseThrow(() -> new EntityNotFoundException("User not found"));
   }
 
-  private AuthResponse tokenResponse(User user, String refreshToken) {
+  private AuthSession tokenResponse(User user, String refreshToken) {
     String token = jwtService.generateToken(user);
-    return new AuthResponse(
-        token, jwtService.expiryFor(Instant.now()), user.getEmail(), refreshToken);
+    return new AuthSession(
+        new AuthResponse(token, jwtService.expiryFor(Instant.now()), user.getEmail()),
+        refreshToken);
   }
 }
