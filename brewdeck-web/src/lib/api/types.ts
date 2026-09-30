@@ -138,7 +138,7 @@ export type AuthResponse = {
   token: string;
   expiresAt: string;
   email: string;
-  refreshToken: string;
+  // The refresh token is never read by the client: it travels in an httpOnly cookie (ADR-013).
 };
 
 export type UserResponse = {

@@ -1,50 +1,36 @@
-const TOKEN_KEY = 'brewdeck.token';
+/**
+ * The access token lives only in memory (ADR-013): it is short-lived (15 min) and a page reload
+ * gets a new one from the httpOnly refresh cookie, which scripts can never read. Nothing
+ * token-related is persisted in the browser anymore.
+ */
+let accessToken: string | null = null;
+
+/** Keys the pre-ADR-013 client stored in localStorage. */
+const LEGACY_STORAGE_KEYS = ['brewdeck.token', 'brewdeck.refreshToken'];
 
 export function getToken(): string | null {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-  return window.localStorage.getItem(TOKEN_KEY);
+  return accessToken;
 }
 
 export function setToken(token: string): void {
-  if (typeof window === 'undefined') {
-    return;
-  }
-  window.localStorage.setItem(TOKEN_KEY, token);
-}
-
-export function clearToken(): void {
-  if (typeof window === 'undefined') {
-    return;
-  }
-  window.localStorage.removeItem(TOKEN_KEY);
-}
-
-const REFRESH_TOKEN_KEY = 'brewdeck.refreshToken';
-
-export function getRefreshToken(): string | null {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-  return window.localStorage.getItem(REFRESH_TOKEN_KEY);
-}
-
-export function setRefreshToken(token: string): void {
-  if (typeof window === 'undefined') {
-    return;
-  }
-  window.localStorage.setItem(REFRESH_TOKEN_KEY, token);
-}
-
-export function clearRefreshToken(): void {
-  if (typeof window === 'undefined') {
-    return;
-  }
-  window.localStorage.removeItem(REFRESH_TOKEN_KEY);
+  accessToken = token;
 }
 
 export function clearTokens(): void {
-  clearToken();
-  clearRefreshToken();
+  accessToken = null;
+}
+
+/**
+ * Removes tokens an older version of the app left in localStorage, so a refresh token never
+ * lingers where scripts can read it.
+ */
+export function purgeLegacyTokenStorage(): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  try {
+    LEGACY_STORAGE_KEYS.forEach((key) => window.localStorage.removeItem(key));
+  } catch {
+    // Storage can be unavailable (privacy mode); there is nothing to purge then.
+  }
 }

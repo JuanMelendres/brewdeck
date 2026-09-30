@@ -1,4 +1,11 @@
 spring:
+  # Spring caches one application context per distinct test configuration, and every cached
+  # context keeps its own connection pool open against the shared Testcontainers Postgres
+  # (max_connections=100). Small pools keep the whole suite well under that limit.
+  datasource:
+    hikari:
+      maximum-pool-size: 3
+      minimum-idle: 1
   jpa:
     hibernate:
       ddl-auto: validate

@@ -63,16 +63,7 @@ export function resendVerification(): Promise<{ message: string }> {
   });
 }
 
-export function refresh(refreshToken: string): Promise<AuthResponse> {
-  return apiFetch<AuthResponse>('/api/auth/refresh', {
-    method: 'POST',
-    body: JSON.stringify({ refreshToken }),
-  });
-}
-
-export function logout(refreshToken: string): Promise<void> {
-  return apiFetch<void>('/api/auth/logout', {
-    method: 'POST',
-    body: JSON.stringify({ refreshToken }),
-  });
+/** Revokes the refresh cookie's token server-side and clears the cookie (ADR-013). */
+export function logout(): Promise<void> {
+  return apiFetch<void>('/api/auth/logout', { method: 'POST' });
 }
