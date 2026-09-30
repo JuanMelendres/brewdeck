@@ -7,7 +7,8 @@ package com.brewdeck.brewdeck_api.featureflag;
  * /api/feature-flags} response never leaks operational internals or administrative metadata.
  */
 public enum FrontendFeatureFlag {
-  AI_RECIPE_ASSISTANT(FeatureKeys.AI_RECIPE_ASSISTANT, "aiRecipeAssistant");
+  AI_RECIPE_ASSISTANT(FeatureKeys.AI_RECIPE_ASSISTANT, "aiRecipeAssistant"),
+  REQUIRE_EMAIL_VERIFICATION(FeatureKeys.REQUIRE_EMAIL_VERIFICATION, "requireEmailVerification");
 
   private final String backendKey;
   private final String frontendAlias;

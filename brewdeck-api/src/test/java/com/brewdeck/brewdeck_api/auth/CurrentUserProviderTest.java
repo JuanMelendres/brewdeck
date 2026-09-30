@@ -71,7 +71,7 @@ class CurrentUserProviderTest {
     SecurityContextHolder.getContext()
         .setAuthentication(
             new UsernamePasswordAuthenticationToken(
-                new AuthenticatedUser(7L, "barista@brewdeck.test", Role.USER),
+                new AuthenticatedUser(7L, "barista@brewdeck.test", Role.USER, true),
                 null,
                 java.util.List.of()));
 
@@ -83,7 +83,8 @@ class CurrentUserProviderTest {
 
   @Test
   void authenticatedUser_nameIsTheEmail() {
-    AuthenticatedUser principal = new AuthenticatedUser(7L, "barista@brewdeck.test", Role.ADMIN);
+    AuthenticatedUser principal =
+        new AuthenticatedUser(7L, "barista@brewdeck.test", Role.ADMIN, true);
     UsernamePasswordAuthenticationToken authentication =
         new UsernamePasswordAuthenticationToken(principal, null, java.util.List.of());
 
