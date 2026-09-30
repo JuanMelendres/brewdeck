@@ -67,7 +67,7 @@ class AuthServiceTest {
     when(jwtService.generateToken(any(User.class))).thenReturn("jwt-token");
 
     AuthResponse response =
-        authService.register(new RegisterRequest("new@example.com", "password1"));
+        authService.register(new RegisterRequest("new@example.com", "password1")).response();
 
     assertThat(response.token()).isEqualTo("jwt-token");
     assertThat(response.email()).isEqualTo("new@example.com");
@@ -95,7 +95,7 @@ class AuthServiceTest {
 
     // The account is created and a token returned even if verification issuance fails.
     AuthResponse response =
-        authService.register(new RegisterRequest("new@example.com", "password1"));
+        authService.register(new RegisterRequest("new@example.com", "password1")).response();
 
     assertThat(response.token()).isEqualTo("jwt-token");
   }
@@ -106,7 +106,8 @@ class AuthServiceTest {
         .thenReturn(Optional.of(stored("brewer@example.com", "password1")));
     when(jwtService.generateToken(any(User.class))).thenReturn("jwt-token");
 
-    AuthResponse response = authService.login(new LoginRequest("brewer@example.com", "password1"));
+    AuthResponse response =
+        authService.login(new LoginRequest("brewer@example.com", "password1")).response();
 
     assertThat(response.token()).isEqualTo("jwt-token");
   }

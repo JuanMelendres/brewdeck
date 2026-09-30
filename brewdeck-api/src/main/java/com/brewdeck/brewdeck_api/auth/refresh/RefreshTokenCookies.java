@@ -19,8 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
  * {@code X-Requested-With} (defense in depth against CSRF on top of SameSite; a cross-site page
  * cannot add that header without a CORS preflight the API refuses).
  *
- * <p>Transition (ADR-013): the token may still come in the JSON body for clients that have not
- * moved to the cookie yet. A cookie always wins over the body.
+ * <p>The cookie is the only way the refresh token is accepted; JSON bodies never carry it.
  */
 @Component
 public class RefreshTokenCookies {
@@ -57,10 +56,10 @@ public class RefreshTokenCookies {
   }
 
   /**
-   * The refresh token presented by the client: the cookie if present (requiring the CSRF header),
-   * otherwise the legacy body value. {@code null} when neither is present.
+   * The refresh token from the cookie (requiring the CSRF header), or {@code null} when the request
+   * carries no refresh cookie.
    */
-  public String resolve(HttpServletRequest request, RefreshRequest body) {
+  public String resolve(HttpServletRequest request) {
     String fromCookie = cookieValue(request);
     if (fromCookie != null) {
       String csrfHeader = request.getHeader(CSRF_HEADER);
@@ -70,7 +69,7 @@ public class RefreshTokenCookies {
       }
       return fromCookie;
     }
-    return body == null ? null : body.refreshToken();
+    return null;
   }
 
   private String cookieValue(HttpServletRequest request) {

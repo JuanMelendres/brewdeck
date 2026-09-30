@@ -67,12 +67,9 @@ components:
         token: { type: string, description: Bearer access token (JWT) }
         expiresAt: { type: string, format: date-time, description: Access-token expiry }
         email: { type: string, format: email }
-        refreshToken: { type: string, description: Opaque single-use refresh token; exchange via POST /api/auth/refresh }
-    RefreshRequest:
-      type: object
-      required: [refreshToken]
-      properties:
-        refreshToken: { type: string }
+      description: >-
+        The refresh token is never in the body. It is set as the httpOnly cookie brewdeck_refresh
+        (HttpOnly; Secure; SameSite=Strict; Path=/api/auth), see ADR-013.
     FeatureFlagsResponse:
       type: object
       properties:
@@ -158,29 +155,25 @@ paths:
     post:
       tags: [Auth]
       security: []
-      summary: Exchange a refresh token for a new access + refresh token pair (single-use; rotates on every call)
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { $ref: "#/components/schemas/RefreshRequest" }
+      summary: Exchange the refresh cookie for a new access token and a rotated refresh cookie (single-use)
+      parameters:
+        - { name: brewdeck_refresh, in: cookie, required: true, schema: { type: string }, description: httpOnly refresh cookie set by register/login/refresh }
+        - { name: X-Requested-With, in: header, required: true, schema: { type: string }, description: CSRF defense; any non-blank value }
       responses:
-        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/AuthResponse" } } } }
-        "400": { description: Validation error (blank refresh token), content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
-        "401": { description: Refresh token invalid, expired, or already used, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "200": { description: OK; Set-Cookie rotates brewdeck_refresh, content: { application/json: { schema: { $ref: "#/components/schemas/AuthResponse" } } } }
+        "401": { description: Refresh cookie missing, invalid, expired, or already used, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "403": { description: Refresh cookie sent without the X-Requested-With header, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
   /api/auth/logout:
     post:
       tags: [Auth]
-      summary: Revoke the presented refresh token for the authenticated user
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { $ref: "#/components/schemas/RefreshRequest" }
+      summary: Revoke the refresh cookie's token for the authenticated user and clear the cookie
+      parameters:
+        - { name: brewdeck_refresh, in: cookie, required: false, schema: { type: string } }
+        - { name: X-Requested-With, in: header, required: false, schema: { type: string }, description: Required when the refresh cookie is sent }
       responses:
-        "204": { description: Refresh token revoked }
-        "400": { description: Validation error (blank refresh token), content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "204": { description: Refresh token revoked; Set-Cookie clears brewdeck_refresh (Max-Age=0) }
         "401": { description: Unauthenticated (missing/invalid access token) }
+        "403": { description: Refresh cookie sent without the X-Requested-With header }
   /api/feature-flags:
     get:
       tags: [Feature Flags]

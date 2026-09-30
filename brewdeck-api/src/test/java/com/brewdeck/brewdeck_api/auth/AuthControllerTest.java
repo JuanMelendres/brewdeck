@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -57,8 +58,9 @@ class AuthControllerTest {
   void register_returns201WithToken() throws Exception {
     when(authService.register(any()))
         .thenReturn(
-            new AuthResponse(
-                "jwt", Instant.parse("2026-07-09T00:00:00Z"), "new@example.com", "refresh-token"));
+            new AuthSession(
+                new AuthResponse("jwt", Instant.parse("2026-07-09T00:00:00Z"), "new@example.com"),
+                "refresh-token"));
 
     mockMvc
         .perform(
@@ -185,21 +187,30 @@ class AuthControllerTest {
   }
 
   @Test
-  void refreshReturns200WithNewPair() throws Exception {
+  void refreshReturns200_withTheAccessTokenInTheBody_andTheRefreshTokenOnlyInTheCookie()
+      throws Exception {
     when(authService.refresh("old-refresh"))
         .thenReturn(
-            new AuthResponse(
-                "new-jwt", Instant.parse("2026-07-14T00:15:00Z"), "u@example.com", "new-refresh"));
+            new AuthSession(
+                new AuthResponse("new-jwt", Instant.parse("2026-07-14T00:15:00Z"), "u@example.com"),
+                "new-refresh"));
 
-    mockMvc
-        .perform(
-            post("/api/auth/refresh")
-                .contentType("application/json")
-                .content("{\"refreshToken\":\"old-refresh\"}"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.token").value("new-jwt"))
-        .andExpect(jsonPath("$.refreshToken").value("new-refresh"))
-        .andExpect(jsonPath("$.email").value("u@example.com"));
+    String setCookie =
+        mockMvc
+            .perform(
+                post("/api/auth/refresh")
+                    .cookie(new Cookie("brewdeck_refresh", "old-refresh"))
+                    .header("X-Requested-With", "fetch"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.token").value("new-jwt"))
+            .andExpect(jsonPath("$.email").value("u@example.com"))
+            // Never exposed to page scripts.
+            .andExpect(jsonPath("$.refreshToken").doesNotExist())
+            .andReturn()
+            .getResponse()
+            .getHeader(HttpHeaders.SET_COOKIE);
+
+    assertThat(setCookie).startsWith("brewdeck_refresh=new-refresh");
   }
 
   @Test
@@ -209,8 +220,8 @@ class AuthControllerTest {
     mockMvc
         .perform(
             post("/api/auth/refresh")
-                .contentType("application/json")
-                .content("{\"refreshToken\":\"bad\"}"))
+                .cookie(new Cookie("brewdeck_refresh", "bad"))
+                .header("X-Requested-With", "fetch"))
         .andExpect(status().isUnauthorized())
         .andExpect(jsonPath("$.message").value("Refresh token is invalid or has expired"));
   }
@@ -226,7 +237,9 @@ class AuthControllerTest {
   void login_setsTheRefreshTokenAsAHardenedCookie() throws Exception {
     when(authService.login(any()))
         .thenReturn(
-            new AuthResponse("jwt", Instant.parse("2026-07-09T00:00:00Z"), "u@example.com", "r1"));
+            new AuthSession(
+                new AuthResponse("jwt", Instant.parse("2026-07-09T00:00:00Z"), "u@example.com"),
+                "r1"));
 
     String setCookie =
         mockMvc
@@ -249,26 +262,40 @@ class AuthControllerTest {
   }
 
   @Test
-  void refresh_prefersTheCookieOverTheBody_andRotatesIt() throws Exception {
+  void refresh_ignoresATokenInTheBody() throws Exception {
+    when(authService.refresh(null)).thenThrow(new InvalidRefreshTokenException("Missing"));
+
+    mockMvc
+        .perform(
+            post("/api/auth/refresh")
+                .header("X-Requested-With", "fetch")
+                .contentType("application/json")
+                .content("{\"refreshToken\":\"from-body\"}"))
+        .andExpect(status().isUnauthorized());
+
+    verify(authService, never()).refresh("from-body");
+  }
+
+  @Test
+  void refresh_readsTheCookie_andRotatesIt() throws Exception {
     when(authService.refresh("from-cookie"))
         .thenReturn(
-            new AuthResponse("jwt", Instant.parse("2026-07-09T00:00:00Z"), "u@example.com", "r2"));
+            new AuthSession(
+                new AuthResponse("jwt", Instant.parse("2026-07-09T00:00:00Z"), "u@example.com"),
+                "r2"));
 
     String setCookie =
         mockMvc
             .perform(
                 post("/api/auth/refresh")
                     .cookie(new Cookie("brewdeck_refresh", "from-cookie"))
-                    .header("X-Requested-With", "fetch")
-                    .contentType("application/json")
-                    .content("{\"refreshToken\":\"from-body\"}"))
+                    .header("X-Requested-With", "fetch"))
             .andExpect(status().isOk())
             .andReturn()
             .getResponse()
             .getHeader(HttpHeaders.SET_COOKIE);
 
     assertThat(setCookie).startsWith("brewdeck_refresh=r2");
-    verify(authService, never()).refresh("from-body");
   }
 
   @Test
@@ -300,7 +327,7 @@ class AuthControllerTest {
   }
 
   @Test
-  void logoutReturns204() throws Exception {
+  void logout_ignoresATokenInTheBody_butStillClearsTheCookie() throws Exception {
     mockMvc
         .perform(
             post("/api/auth/logout")
@@ -309,6 +336,6 @@ class AuthControllerTest {
                 .content("{\"refreshToken\":\"some-refresh\"}"))
         .andExpect(status().isNoContent());
 
-    verify(authService).logout(eq("u@example.com"), eq("some-refresh"));
+    verify(authService).logout(eq("u@example.com"), isNull());
   }
 }

@@ -40,11 +40,6 @@
    "key": "authToken",
    "value": "",
    "type": "string"
-  },
-  {
-   "key": "refreshToken",
-   "value": "",
-   "type": "string"
   }
  ],
  "auth": {
@@ -60,7 +55,7 @@
  "item": [
   {
    "name": "Auth",
-   "description": "Self-registration, JWT login, current-user, and refresh/logout endpoints. Register/login are unauthenticated; login and register save the returned access token into authToken and the returned refresh token into refreshToken (collection variables) so protected requests inherit the bearer token via collection-level Bearer auth and Refresh/Logout can reuse the refresh token.",
+   "description": "Self-registration, JWT login, current-user, and refresh/logout endpoints. Register/login are unauthenticated; they save the access token into {{authToken}}, and the refresh token arrives as the httpOnly brewdeck_refresh cookie, which Postman's cookie jar sends automatically to /api/auth/refresh and /api/auth/logout (ADR-013). Those two require the X-Requested-With header.",
    "item": [
     {
      "name": "POST - Register",
@@ -101,8 +96,7 @@
          "pm.test('Status code is 201', function () {",
          "  pm.response.to.have.status(201);",
          "});",
-         "pm.collectionVariables.set('authToken', pm.response.json().token);",
-         "pm.collectionVariables.set('refreshToken', pm.response.json().refreshToken);"
+         "pm.collectionVariables.set('authToken', pm.response.json().token);"
         ]
        }
       }
@@ -147,8 +141,7 @@
          "pm.test('Status code is 200', function () {",
          "  pm.response.to.have.status(200);",
          "});",
-         "pm.collectionVariables.set('authToken', pm.response.json().token);",
-         "pm.collectionVariables.set('refreshToken', pm.response.json().refreshToken);"
+         "pm.collectionVariables.set('authToken', pm.response.json().token);"
         ]
        }
       }
@@ -459,14 +452,11 @@
       "method": "POST",
       "header": [
        {
-        "key": "Content-Type",
-        "value": "application/json"
+        "key": "X-Requested-With",
+        "value": "postman",
+        "type": "text"
        }
       ],
-      "body": {
-       "mode": "raw",
-       "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
-      },
       "url": {
        "raw": "{{baseURL}}/api/auth/refresh",
        "host": [
@@ -477,7 +467,8 @@
         "auth",
         "refresh"
        ]
-      }
+      },
+      "description": "Uses the httpOnly brewdeck_refresh cookie that Postman's cookie jar stored from Register/Login (ADR-013). No body. The X-Requested-With header is required with the cookie."
      },
      "response": [],
      "event": [
@@ -489,8 +480,7 @@
          "pm.test('Status code is 200', function () {",
          "  pm.response.to.have.status(200);",
          "});",
-         "pm.collectionVariables.set('authToken', pm.response.json().token);",
-         "pm.collectionVariables.set('refreshToken', pm.response.json().refreshToken);"
+         "pm.collectionVariables.set('authToken', pm.response.json().token);"
         ]
        }
       }
@@ -502,18 +492,15 @@
       "method": "POST",
       "header": [
        {
-        "key": "Content-Type",
-        "value": "application/json"
-       },
-       {
         "key": "Authorization",
         "value": "Bearer {{authToken}}"
+       },
+       {
+        "key": "X-Requested-With",
+        "value": "postman",
+        "type": "text"
        }
       ],
-      "body": {
-       "mode": "raw",
-       "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
-      },
       "url": {
        "raw": "{{baseURL}}/api/auth/logout",
        "host": [
@@ -524,7 +511,8 @@
         "auth",
         "logout"
        ]
-      }
+      },
+      "description": "Uses the httpOnly brewdeck_refresh cookie that Postman's cookie jar stored from Register/Login (ADR-013). No body. The X-Requested-With header is required with the cookie."
      },
      "response": [],
      "event": [
