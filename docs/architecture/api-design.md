@@ -37,15 +37,18 @@ Collection GETs return `PageResponse<T>` and accept `page`, `size`, `sort`:
   "error": "Bad Request",
   "message": "Validation failed",
   "path": "/api/example",
-  "validationErrors": { "field": "message" }
+  "validationErrors": { "field": "message" },
+  "code": null
 }
 ```
+
+`code` is an optional machine-readable reason, set only where a client must react to one specific error (currently `EMAIL_NOT_VERIFIED`).
 
 | Status | Meaning |
 | ------ | ------- |
 | 400 | Validation / malformed request / missing or mistyped parameter |
 | 401 | Missing or invalid JWT |
-| 403 | Authenticated but not allowed (e.g. non-admin on `/api/admin/**`, editing a shared brew method) |
+| 403 | Authenticated but not allowed (e.g. non-admin on `/api/admin/**`, editing a shared brew method). With `"code": "EMAIL_NOT_VERIFIED"`: verify your email first ([ADR-012](../decisions/ADR-012-require-email-verification.md), only while that flag is on) |
 | 404 | Resource not found, or no such endpoint |
 | 405 | HTTP method not supported on that path (`Allow` header lists the valid ones) |
 | 406 | Requested `Accept` type cannot be produced |

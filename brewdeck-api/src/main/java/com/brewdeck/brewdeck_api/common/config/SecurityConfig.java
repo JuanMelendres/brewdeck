@@ -2,8 +2,10 @@ package com.brewdeck.brewdeck_api.common.config;
 
 import com.brewdeck.brewdeck_api.auth.JwtAuthenticationFilter;
 import com.brewdeck.brewdeck_api.auth.Role;
+import com.brewdeck.brewdeck_api.auth.verification.EmailVerificationRequiredFilter;
 import com.brewdeck.brewdeck_api.common.ratelimit.AuthRateLimitFilter;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
+import com.brewdeck.brewdeck_api.featureflag.FeatureFlagService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,6 +26,7 @@ public class SecurityConfig {
   private final CorsConfigurationSource corsConfigurationSource;
   private final RateLimiter rateLimiter;
   private final ObjectMapper objectMapper;
+  private final FeatureFlagService featureFlagService;
 
   public SecurityConfig(
       JwtAuthenticationFilter jwtAuthenticationFilter,
@@ -31,13 +34,15 @@ public class SecurityConfig {
       RestAccessDeniedHandler accessDeniedHandler,
       CorsConfigurationSource corsConfigurationSource,
       RateLimiter rateLimiter,
-      ObjectMapper objectMapper) {
+      ObjectMapper objectMapper,
+      FeatureFlagService featureFlagService) {
     this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     this.authenticationEntryPoint = authenticationEntryPoint;
     this.accessDeniedHandler = accessDeniedHandler;
     this.corsConfigurationSource = corsConfigurationSource;
     this.rateLimiter = rateLimiter;
     this.objectMapper = objectMapper;
+    this.featureFlagService = featureFlagService;
   }
 
   // CSRF protection is intentionally disabled. This is a stateless, token-based REST
@@ -83,7 +88,11 @@ public class SecurityConfig {
         .addFilterBefore(
             new AuthRateLimitFilter(rateLimiter, objectMapper),
             UsernamePasswordAuthenticationFilter.class)
-        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+        // Needs the principal the JWT filter just set; blocks unverified users when flagged on.
+        .addFilterAfter(
+            new EmailVerificationRequiredFilter(featureFlagService, objectMapper),
+            JwtAuthenticationFilter.class);
     return http.build();
   }
 }
