@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.auth.UserRepository;
 import com.brewdeck.brewdeck_api.common.PostgresRepositoryTest;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,7 +109,7 @@ class BrewMethodRepositoryTest extends PostgresRepositoryTest {
         User.builder()
             .email("method-repo-" + System.nanoTime() + "@example.com")
             .passwordHash("hash")
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build());
   }
 

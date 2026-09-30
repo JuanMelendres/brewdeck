@@ -4,7 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.brewdeck.brewdeck_api.common.PostgresIntegrationTest;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -54,10 +55,10 @@ class FeatureFlagRepositoryTest extends PostgresIntegrationTest {
   void findByExpiresAtBefore_returnsOnlyPastExpiries() {
     String key = "repo-exp-" + System.nanoTime();
     FeatureFlag expired = flag(key, "exp-env", true);
-    expired.setExpiresAt(LocalDateTime.now().minusDays(1));
+    expired.setExpiresAt(Instant.now().minus(1, ChronoUnit.DAYS));
     repository.save(expired);
 
-    assertThat(repository.findByExpiresAtBefore(LocalDateTime.now()))
+    assertThat(repository.findByExpiresAtBefore(Instant.now()))
         .anyMatch(f -> f.getFeatureKey().equals(key));
   }
 }

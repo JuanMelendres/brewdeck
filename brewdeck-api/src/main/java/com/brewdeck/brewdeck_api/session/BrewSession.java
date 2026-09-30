@@ -3,7 +3,7 @@ package com.brewdeck.brewdeck_api.session;
 import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.recipe.Recipe;
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.*;
 
 @Entity
@@ -28,7 +28,7 @@ public class BrewSession {
   private Recipe recipe;
 
   @Column(name = "brewed_at", nullable = false)
-  private LocalDateTime brewedAt;
+  private Instant brewedAt;
 
   @Column(name = "actual_grind", length = 120)
   private String actualGrind;
@@ -50,7 +50,7 @@ public class BrewSession {
   @PrePersist
   void onCreate() {
     if (this.brewedAt == null) {
-      this.brewedAt = LocalDateTime.now();
+      this.brewedAt = Instant.now();
     }
   }
 }

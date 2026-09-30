@@ -1,6 +1,6 @@
 package com.brewdeck.brewdeck_api.auth;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record UserResponse(
     Long id,
@@ -8,7 +8,7 @@ public record UserResponse(
     String displayName,
     boolean emailVerified,
     Role role,
-    LocalDateTime createdAt) {
+    Instant createdAt) {
   public static UserResponse fromEntity(User user) {
     return new UserResponse(
         user.getId(),

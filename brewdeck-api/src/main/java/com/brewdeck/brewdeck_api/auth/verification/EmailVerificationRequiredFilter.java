@@ -10,7 +10,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Set;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -80,7 +80,7 @@ public class EmailVerificationRequiredFilter extends OncePerRequestFilter {
       throws IOException {
     ErrorResponse body =
         new ErrorResponse(
-            LocalDateTime.now(),
+            Instant.now(),
             HttpStatus.FORBIDDEN.value(),
             HttpStatus.FORBIDDEN.getReasonPhrase(),
             "Verify your email address to continue",

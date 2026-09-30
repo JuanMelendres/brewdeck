@@ -26,6 +26,7 @@ General settings live in the root `.env.example`; auth, mail, and hardening sett
 | `SPRING_MAIL_SMTP_STARTTLS` | `false` | `true` for port 587 providers |
 | `BREWDECK_ADMIN_EMAIL` | *(blank)* | Existing account promoted to `ADMIN` at startup ([ADR-009](../decisions/ADR-009-role-based-authorization.md)) |
 | `RATE_LIMIT_ENABLED` | `true` | Auth endpoint rate limiting ([ADR-011](../decisions/ADR-011-in-memory-auth-rate-limiting.md)); keep on outside automated tests |
+| `BREWDECK_LEGACY_TIMEZONE` | `UTC` | Zone that pre-V21 timestamps were written in; used **once** by migration V21 to convert them to `TIMESTAMPTZ`. Set `America/Mexico_City` for a CST developer DB, or local rows shift 6 h |
 | `API_DOCS_ENABLED` | `false` in `prod` only | Serve `/v3/api-docs` and Swagger UI in production; enable only temporarily |
 
 Database connection (from the README / Spring config; Docker Compose provides matching defaults):

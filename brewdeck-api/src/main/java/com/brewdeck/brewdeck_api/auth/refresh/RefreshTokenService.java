@@ -4,7 +4,7 @@ import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.auth.UserRepository;
 import com.brewdeck.brewdeck_api.common.security.SecureTokens;
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,7 +31,7 @@ public class RefreshTokenService {
   /** Issues a fresh refresh token for the user and returns the raw (unhashed) value. */
   @Transactional
   public String issue(User user) {
-    return issueInternal(user, LocalDateTime.now());
+    return issueInternal(user, Instant.now());
   }
 
   /**
@@ -52,7 +52,7 @@ public class RefreshTokenService {
             .findByTokenHash(SecureTokens.sha256Hex(rawToken))
             .orElseThrow(() -> new InvalidRefreshTokenException("Unknown refresh token"));
 
-    LocalDateTime now = LocalDateTime.now();
+    Instant now = Instant.now();
 
     if (token.getUsedAt() != null || token.getRevokedAt() != null) {
       tokenRepository.revokeAllActiveForUser(token.getUserId(), now);
@@ -90,7 +90,7 @@ public class RefreshTokenService {
                     && t.getRevokedAt() == null)
         .ifPresent(
             t -> {
-              t.setRevokedAt(LocalDateTime.now());
+              t.setRevokedAt(Instant.now());
               tokenRepository.save(t);
               log.info("Refresh token revoked for user id={}", userId);
             });
@@ -102,11 +102,11 @@ public class RefreshTokenService {
    */
   @Transactional
   public void revokeAllForUser(Long userId) {
-    int revoked = tokenRepository.revokeAllActiveForUser(userId, LocalDateTime.now());
+    int revoked = tokenRepository.revokeAllActiveForUser(userId, Instant.now());
     log.info("Revoked {} active refresh token(s) for user id={}", revoked, userId);
   }
 
-  private String issueInternal(User user, LocalDateTime now) {
+  private String issueInternal(User user, Instant now) {
     String rawToken = SecureTokens.newToken();
     tokenRepository.save(
         RefreshToken.builder()

@@ -15,7 +15,6 @@ import com.brewdeck.brewdeck_api.auth.refresh.RefreshRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.security.Principal;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -115,7 +114,7 @@ class AuthControllerTest {
                 "Barista Bob",
                 true,
                 Role.USER,
-                LocalDateTime.parse("2026-07-09T00:00")));
+                Instant.parse("2026-07-09T00:00:00Z")));
 
     mockMvc
         .perform(

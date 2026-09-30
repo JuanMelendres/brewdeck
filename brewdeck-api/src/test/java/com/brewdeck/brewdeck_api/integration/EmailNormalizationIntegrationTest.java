@@ -14,7 +14,7 @@ import com.brewdeck.brewdeck_api.auth.UserRepository;
 import com.brewdeck.brewdeck_api.auth.reset.PasswordResetMailPort;
 import com.brewdeck.brewdeck_api.common.PostgresIntegrationTest;
 import com.jayway.jsonpath.JsonPath;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -104,7 +104,7 @@ class EmailNormalizationIntegrationTest extends PostgresIntegrationTest {
         User.builder()
             .email("Not.Normalized-" + System.nanoTime() + "@Example.com")
             .passwordHash("hash")
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     assertThatThrownBy(() -> userRepository.saveAndFlush(user))

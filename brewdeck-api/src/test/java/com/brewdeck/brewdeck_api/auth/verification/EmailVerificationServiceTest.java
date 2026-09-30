@@ -14,7 +14,8 @@ import com.brewdeck.brewdeck_api.auth.UserRepository;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitExceededException;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,7 +47,7 @@ class EmailVerificationServiceTest {
         .email("brewer@example.com")
         .passwordHash("hash")
         .emailVerified(verified)
-        .createdAt(LocalDateTime.now())
+        .createdAt(Instant.now())
         .build();
   }
 
@@ -64,7 +65,7 @@ class EmailVerificationServiceTest {
 
     EmailVerificationToken saved = tokenCaptor.getValue();
     assertThat(saved.getTokenHash()).hasSize(64).isNotEqualTo(rawCaptor.getValue());
-    assertThat(saved.getExpiresAt()).isAfter(LocalDateTime.now().plusHours(23));
+    assertThat(saved.getExpiresAt()).isAfter(Instant.now().plus(23, ChronoUnit.HOURS));
   }
 
   @Test
@@ -87,9 +88,9 @@ class EmailVerificationServiceTest {
             .id(3L)
             .userId(1L)
             .tokenHash("prior-hash")
-            .expiresAt(LocalDateTime.now().plusHours(1))
+            .expiresAt(Instant.now().plus(1, ChronoUnit.HOURS))
             .usedAt(null)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
     when(tokenRepository.findByUserIdAndUsedAtIsNull(1L))
         .thenReturn(new java.util.ArrayList<>(java.util.List.of(prior)));
@@ -107,8 +108,8 @@ class EmailVerificationServiceTest {
             .id(5L)
             .userId(1L)
             .tokenHash("hash")
-            .expiresAt(LocalDateTime.now().plusHours(1))
-            .createdAt(LocalDateTime.now())
+            .expiresAt(Instant.now().plus(1, ChronoUnit.HOURS))
+            .createdAt(Instant.now())
             .build();
     when(tokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(token));
     User user = user(false);
@@ -127,8 +128,8 @@ class EmailVerificationServiceTest {
             .id(8L)
             .userId(1L)
             .tokenHash("hash")
-            .expiresAt(LocalDateTime.now().plusHours(1))
-            .createdAt(LocalDateTime.now())
+            .expiresAt(Instant.now().plus(1, ChronoUnit.HOURS))
+            .createdAt(Instant.now())
             .build();
     when(tokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(token));
     User user = user(false);
@@ -155,8 +156,8 @@ class EmailVerificationServiceTest {
             .id(6L)
             .userId(1L)
             .tokenHash("hash")
-            .expiresAt(LocalDateTime.now().minusMinutes(1))
-            .createdAt(LocalDateTime.now().minusHours(25))
+            .expiresAt(Instant.now().minus(1, ChronoUnit.MINUTES))
+            .createdAt(Instant.now().minus(25, ChronoUnit.HOURS))
             .build();
     when(tokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(token));
 
@@ -171,9 +172,9 @@ class EmailVerificationServiceTest {
             .id(7L)
             .userId(1L)
             .tokenHash("hash")
-            .expiresAt(LocalDateTime.now().plusHours(1))
-            .usedAt(LocalDateTime.now().minusMinutes(1))
-            .createdAt(LocalDateTime.now())
+            .expiresAt(Instant.now().plus(1, ChronoUnit.HOURS))
+            .usedAt(Instant.now().minus(1, ChronoUnit.MINUTES))
+            .createdAt(Instant.now())
             .build();
     when(tokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(token));
 

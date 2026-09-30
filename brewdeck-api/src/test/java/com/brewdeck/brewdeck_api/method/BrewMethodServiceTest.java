@@ -8,7 +8,7 @@ import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
 import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
 import jakarta.persistence.EntityNotFoundException;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -38,16 +38,11 @@ class BrewMethodServiceTest {
   private final User owner = User.builder().id(OWNER_ID).build();
 
   private BrewMethod sharedMethod(Long id, String name) {
-    return BrewMethod.builder().id(id).name(name).createdAt(LocalDateTime.now()).build();
+    return BrewMethod.builder().id(id).name(name).createdAt(Instant.now()).build();
   }
 
   private BrewMethod privateMethod(Long id, String name) {
-    return BrewMethod.builder()
-        .id(id)
-        .name(name)
-        .owner(owner)
-        .createdAt(LocalDateTime.now())
-        .build();
+    return BrewMethod.builder().id(id).name(name).owner(owner).createdAt(Instant.now()).build();
   }
 
   @Test

@@ -1,7 +1,7 @@
 package com.brewdeck.brewdeck_api.featureflag;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -55,20 +55,20 @@ public class FeatureFlag {
   private String owner;
 
   @Column(name = "expires_at")
-  private LocalDateTime expiresAt;
+  private Instant expiresAt;
 
   @Column(name = "removal_condition", length = 500)
   private String removalCondition;
 
   @Column(name = "created_at", nullable = false)
-  private LocalDateTime createdAt;
+  private Instant createdAt;
 
   @Column(name = "updated_at", nullable = false)
-  private LocalDateTime updatedAt;
+  private Instant updatedAt;
 
   @PrePersist
   void onCreate() {
-    LocalDateTime now = LocalDateTime.now();
+    Instant now = Instant.now();
     this.createdAt = now;
     this.updatedAt = now;
     if (this.flagType == null) {
@@ -78,6 +78,6 @@ public class FeatureFlag {
 
   @PreUpdate
   void onUpdate() {
-    this.updatedAt = LocalDateTime.now();
+    this.updatedAt = Instant.now();
   }
 }

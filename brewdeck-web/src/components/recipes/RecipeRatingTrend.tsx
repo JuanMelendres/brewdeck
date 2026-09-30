@@ -17,6 +17,7 @@ import {
 import { useRecipeBrewSessions } from '@/hooks/useRecipeBrewSessions';
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorState } from '@/components/ui/ErrorState';
+import { compareInstants, localDayKey } from '@/lib/format/dates';
 
 type TrendPoint = { label: string; rating: number };
 
@@ -26,8 +27,8 @@ function toTrendPoints(
   return sessions
     .filter((session): session is { brewedAt: string; rating: number } => session.rating !== null)
     .slice()
-    .sort((a, b) => a.brewedAt.localeCompare(b.brewedAt))
-    .map((session) => ({ label: session.brewedAt.slice(0, 10), rating: session.rating }));
+    .sort((a, b) => compareInstants(a.brewedAt, b.brewedAt))
+    .map((session) => ({ label: localDayKey(session.brewedAt), rating: session.rating }));
 }
 
 export function RecipeRatingTrend({ recipeId }: { recipeId: number }) {

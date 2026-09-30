@@ -24,9 +24,15 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        # Instants are bound and read in UTC regardless of the JVM or server zone.
+        jdbc:
+          time_zone: UTC
 
   flyway:
     enabled: true
+    placeholders:
+      # Zone that pre-V21 zone-less timestamps were written in (V21 converts them to TIMESTAMPTZ).
+      legacy_timezone: ${BREWDECK_LEGACY_TIMEZONE:UTC}
 
   data:
     web:

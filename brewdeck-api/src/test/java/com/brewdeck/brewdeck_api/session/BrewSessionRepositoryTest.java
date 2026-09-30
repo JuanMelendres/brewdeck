@@ -7,7 +7,7 @@ import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.common.PostgresRepositoryTest;
 import com.brewdeck.brewdeck_api.method.BrewMethod;
 import com.brewdeck.brewdeck_api.recipe.Recipe;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +35,7 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
         BrewSession.builder()
             .recipe(recipe)
             .owner(owner)
-            .brewedAt(LocalDateTime.of(2026, 4, 20, 10, 0))
+            .brewedAt(Instant.parse("2026-04-20T10:00:00Z"))
             .actualGrind("Timemore S3 - 5.5")
             .actualTemp(90)
             .actualTime("2:30")
@@ -48,7 +48,7 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
         BrewSession.builder()
             .recipe(recipe)
             .owner(owner)
-            .brewedAt(LocalDateTime.of(2026, 4, 21, 10, 0))
+            .brewedAt(Instant.parse("2026-04-21T10:00:00Z"))
             .actualGrind("Timemore S3 - 5.5")
             .actualTemp(91)
             .actualTime("2:20")
@@ -86,7 +86,7 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
         BrewSession.builder()
             .recipe(aeroPressRecipe)
             .owner(owner)
-            .brewedAt(LocalDateTime.of(2026, 4, 21, 10, 0))
+            .brewedAt(Instant.parse("2026-04-21T10:00:00Z"))
             .actualGrind("Timemore S3 - 5.5")
             .actualTemp(90)
             .actualTime("2:30")
@@ -99,7 +99,7 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
         BrewSession.builder()
             .recipe(espressoRecipe)
             .owner(owner)
-            .brewedAt(LocalDateTime.of(2026, 4, 21, 11, 0))
+            .brewedAt(Instant.parse("2026-04-21T11:00:00Z"))
             .actualGrind("Fine")
             .actualTemp(93)
             .actualTime("28s")
@@ -135,7 +135,7 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
         BrewSession.builder()
             .recipe(recipe)
             .owner(owner)
-            .brewedAt(LocalDateTime.of(2026, 4, 21, 10, 0))
+            .brewedAt(Instant.parse("2026-04-21T10:00:00Z"))
             .rating(9)
             .build();
 
@@ -143,7 +143,7 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
         BrewSession.builder()
             .recipe(recipe)
             .owner(owner)
-            .brewedAt(LocalDateTime.of(2026, 4, 22, 10, 0))
+            .brewedAt(Instant.parse("2026-04-22T10:00:00Z"))
             .rating(10)
             .build();
 
@@ -175,7 +175,7 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
         BrewSession.builder()
             .recipe(recipe)
             .owner(owner)
-            .brewedAt(LocalDateTime.of(2026, 5, 1, 10, 0))
+            .brewedAt(Instant.parse("2026-05-01T10:00:00Z"))
             .actualTemp(90)
             .build());
 
@@ -185,7 +185,8 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
           BrewSession.builder()
               .recipe(recipe)
               .owner(owner)
-              .brewedAt(LocalDateTime.of(2026, 4, i, 10, 0))
+              .brewedAt(
+                  java.time.LocalDateTime.of(2026, 4, i, 10, 0).toInstant(java.time.ZoneOffset.UTC))
               .actualTemp(88 + i)
               .actualTime("2:30")
               .tasteResult("taste " + i)
@@ -202,7 +203,7 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
 
     assertThat(result).hasSize(10);
     assertThat(result).allSatisfy(session -> assertThat(session.getRating()).isNotNull());
-    assertThat(result.get(0).getBrewedAt()).isEqualTo(LocalDateTime.of(2026, 4, 11, 10, 0));
+    assertThat(result.get(0).getBrewedAt()).isEqualTo(Instant.parse("2026-04-11T10:00:00Z"));
     assertThat(result.get(0).getBrewedAt()).isAfter(result.get(1).getBrewedAt());
   }
 
@@ -245,7 +246,7 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
         User.builder()
             .email(email)
             .passwordHash("hashed-password")
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     return entityManager.persistAndFlush(user);
@@ -256,7 +257,7 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
         BrewSession.builder()
             .recipe(recipe)
             .owner(owner)
-            .brewedAt(LocalDateTime.now())
+            .brewedAt(Instant.now())
             .rating(rating)
             .build();
 

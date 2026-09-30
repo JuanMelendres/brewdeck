@@ -1,12 +1,12 @@
 package com.brewdeck.brewdeck_api.session;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record BrewSessionResponse(
     Long id,
     Long recipeId,
     String recipeName,
-    LocalDateTime brewedAt,
+    Instant brewedAt,
     String actualGrind,
     Integer actualTemp,
     String actualTime,

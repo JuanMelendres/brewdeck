@@ -25,6 +25,8 @@ PostgreSQL 16, schema versioned by Flyway (`brewdeck-api/src/main/resources/db/m
 | V17 | Widen `coffees.roast_level` (80), `recipes.grind_setting` (120), `brew_sessions.actual_grind` (120) to the validated limits |
 | V18 | Normalize `users.email` to trimmed lowercase + `CHECK` so uniqueness is case-insensitive; aborts if accounts differ only by case |
 | V19 | Index foreign keys: `recipes(coffee_id)`, `recipes(method_id)`, `brew_sessions(recipe_id, brewed_at DESC)`. `SchemaIndexesIntegrationTest` fails if any FK column lacks a leading index |
+| V20 | Seed `auth-require-email-verification` flag (disabled everywhere, ADR-012) |
+| V21 | All timestamp columns `TIMESTAMP` → `TIMESTAMPTZ`; existing rows read in `${legacy_timezone}` (`BREWDECK_LEGACY_TIMEZONE`, default `UTC`). Fails on an invalid zone and if any zone-less timestamp column remains |
 
 ## Entity relationships
 

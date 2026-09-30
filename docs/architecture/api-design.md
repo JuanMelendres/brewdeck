@@ -29,6 +29,10 @@ Collection GETs return `PageResponse<T>` and accept `page`, `size`, `sort`:
 - GET-by-id returns the DTO directly (not wrapped).
 - Bounded analytics rankings (top-rated, most-brewed, most-used, usage) return a plain `List<T>` — they are top-N, not browsable collections.
 
+## Timestamps
+
+Every timestamp in requests and responses is an ISO-8601 **UTC instant**, e.g. `"2026-09-30T17:27:25.020Z"`. The database stores `TIMESTAMPTZ`, and the backend uses `java.time.Instant` with Hibernate pinned to UTC. Clients render timestamps in the viewer's zone (`brewdeck-web/src/lib/format/dates.ts`) and must never slice the string for display.
+
 ## Error shape
 
 ```json

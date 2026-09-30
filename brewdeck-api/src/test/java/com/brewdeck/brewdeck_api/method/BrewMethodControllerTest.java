@@ -16,7 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,11 +78,7 @@ class BrewMethodControllerTest {
   void findAll_shouldReturnBrewMethods() throws Exception {
     BrewMethodResponse response =
         new BrewMethodResponse(
-            1L,
-            "AeroPress",
-            "Immersion and pressure-based brewing method.",
-            true,
-            LocalDateTime.now());
+            1L, "AeroPress", "Immersion and pressure-based brewing method.", true, Instant.now());
 
     PageResponse<BrewMethodResponse> pageResponse =
         PageResponse.fromPage(new PageImpl<>(List.of(response), PageRequest.of(0, 10), 1));
@@ -108,7 +104,7 @@ class BrewMethodControllerTest {
   @Test
   void findAll_shouldReturnPagedBrewMethods() throws Exception {
     BrewMethodResponse response =
-        new BrewMethodResponse(1L, "V60", "Pour-over brewing method.", true, LocalDateTime.now());
+        new BrewMethodResponse(1L, "V60", "Pour-over brewing method.", true, Instant.now());
 
     PageResponse<BrewMethodResponse> pageResponse =
         PageResponse.fromPage(new PageImpl<>(List.of(response), PageRequest.of(0, 5), 1));
@@ -132,11 +128,7 @@ class BrewMethodControllerTest {
   void findById_shouldReturnBrewMethod() throws Exception {
     BrewMethodResponse response =
         new BrewMethodResponse(
-            1L,
-            "AeroPress",
-            "Immersion and pressure-based brewing method.",
-            true,
-            LocalDateTime.now());
+            1L, "AeroPress", "Immersion and pressure-based brewing method.", true, Instant.now());
 
     when(brewMethodService.findById(1L)).thenReturn(response);
 
@@ -155,8 +147,7 @@ class BrewMethodControllerTest {
         new BrewMethodRequest("AeroPress", "Immersion and pressure-based brewing method.");
 
     BrewMethodResponse response =
-        new BrewMethodResponse(
-            1L, request.name(), request.description(), false, LocalDateTime.now());
+        new BrewMethodResponse(1L, request.name(), request.description(), false, Instant.now());
 
     when(brewMethodService.create(any(BrewMethodRequest.class))).thenReturn(response);
 
@@ -214,8 +205,7 @@ class BrewMethodControllerTest {
     BrewMethodRequest request = new BrewMethodRequest("V60", "Pour-over brewing method.");
 
     BrewMethodResponse response =
-        new BrewMethodResponse(
-            1L, request.name(), request.description(), false, LocalDateTime.now());
+        new BrewMethodResponse(1L, request.name(), request.description(), false, Instant.now());
 
     when(brewMethodService.update(eq(1L), any(BrewMethodRequest.class))).thenReturn(response);
 

@@ -15,7 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -373,7 +373,7 @@ class BrewSessionControllerTest {
         1L,
         1L,
         "Mezcla Veracruz AeroPress",
-        LocalDateTime.now(),
+        Instant.now(),
         "Timemore S3 - 5.5",
         90,
         "2:30",

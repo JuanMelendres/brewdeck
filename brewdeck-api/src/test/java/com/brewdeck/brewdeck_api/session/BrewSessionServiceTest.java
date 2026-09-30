@@ -12,7 +12,7 @@ import com.brewdeck.brewdeck_api.method.BrewMethod;
 import com.brewdeck.brewdeck_api.recipe.Recipe;
 import com.brewdeck.brewdeck_api.recipe.RecipeRepository;
 import jakarta.persistence.EntityNotFoundException;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -43,7 +43,7 @@ class BrewSessionServiceTest {
         BrewSession.builder()
             .id(1L)
             .recipe(recipe)
-            .brewedAt(LocalDateTime.now())
+            .brewedAt(Instant.now())
             .actualGrind("Timemore S3 - 5.5")
             .actualTemp(90)
             .actualTime("2:30")
@@ -80,7 +80,7 @@ class BrewSessionServiceTest {
         BrewSession.builder()
             .id(1L)
             .recipe(recipe)
-            .brewedAt(LocalDateTime.now())
+            .brewedAt(Instant.now())
             .actualGrind("Timemore S3 - 5.5")
             .actualTemp(90)
             .actualTime("2:30")
@@ -114,7 +114,7 @@ class BrewSessionServiceTest {
     Recipe recipe = buildRecipe();
 
     BrewSession session =
-        BrewSession.builder().id(1L).recipe(recipe).brewedAt(LocalDateTime.now()).rating(9).build();
+        BrewSession.builder().id(1L).recipe(recipe).brewedAt(Instant.now()).rating(9).build();
 
     when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
     when(brewSessionRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(session));
@@ -167,7 +167,7 @@ class BrewSessionServiceTest {
         BrewSession.builder()
             .id(1L)
             .recipe(recipe)
-            .brewedAt(LocalDateTime.now())
+            .brewedAt(Instant.now())
             .actualGrind(request.actualGrind())
             .actualTemp(request.actualTemp())
             .actualTime(request.actualTime())
@@ -227,7 +227,7 @@ class BrewSessionServiceTest {
     Recipe recipe = buildRecipe();
 
     BrewSession session =
-        BrewSession.builder().id(1L).recipe(recipe).brewedAt(LocalDateTime.now()).rating(9).build();
+        BrewSession.builder().id(1L).recipe(recipe).brewedAt(Instant.now()).rating(9).build();
 
     Pageable pageable = PageRequest.of(0, 10);
 
@@ -255,7 +255,7 @@ class BrewSessionServiceTest {
         .method(method)
         .name("Veracruz AeroPress")
         .favorite(true)
-        .createdAt(LocalDateTime.now())
+        .createdAt(Instant.now())
         .build();
   }
 
@@ -268,7 +268,7 @@ class BrewSessionServiceTest {
         BrewSession.builder()
             .id(1L)
             .recipe(oldRecipe)
-            .brewedAt(LocalDateTime.now())
+            .brewedAt(Instant.now())
             .actualGrind("Old grind")
             .actualTemp(88)
             .actualTime("2:00")
@@ -338,12 +338,7 @@ class BrewSessionServiceTest {
     Recipe oldRecipe = buildRecipe();
 
     BrewSession existingSession =
-        BrewSession.builder()
-            .id(1L)
-            .recipe(oldRecipe)
-            .brewedAt(LocalDateTime.now())
-            .rating(8)
-            .build();
+        BrewSession.builder().id(1L).recipe(oldRecipe).brewedAt(Instant.now()).rating(8).build();
 
     BrewSessionRequest request =
         new BrewSessionRequest(

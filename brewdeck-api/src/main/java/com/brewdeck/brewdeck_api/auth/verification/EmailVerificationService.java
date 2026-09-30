@@ -6,7 +6,8 @@ import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
 import com.brewdeck.brewdeck_api.common.security.SecureTokens;
 import jakarta.persistence.EntityNotFoundException;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -39,7 +40,7 @@ public class EmailVerificationService {
   public void issueFor(User user) {
     List<EmailVerificationToken> outstanding =
         tokenRepository.findByUserIdAndUsedAtIsNull(user.getId());
-    LocalDateTime now = LocalDateTime.now();
+    Instant now = Instant.now();
     outstanding.forEach(token -> token.setUsedAt(now));
     tokenRepository.saveAll(outstanding);
 
@@ -48,7 +49,7 @@ public class EmailVerificationService {
         EmailVerificationToken.builder()
             .userId(user.getId())
             .tokenHash(SecureTokens.sha256Hex(rawToken))
-            .expiresAt(now.plusHours(TTL_HOURS))
+            .expiresAt(now.plus(TTL_HOURS, ChronoUnit.HOURS))
             .createdAt(now)
             .build());
 
@@ -68,7 +69,7 @@ public class EmailVerificationService {
             .findByTokenHash(SecureTokens.sha256Hex(rawToken))
             .orElseThrow(() -> new InvalidVerificationTokenException("Unknown verification token"));
 
-    if (token.getUsedAt() != null || token.getExpiresAt().isBefore(LocalDateTime.now())) {
+    if (token.getUsedAt() != null || token.getExpiresAt().isBefore(Instant.now())) {
       throw new InvalidVerificationTokenException("Verification token used or expired");
     }
 
@@ -81,7 +82,7 @@ public class EmailVerificationService {
     user.setEmailVerified(true);
     userRepository.save(user);
 
-    token.setUsedAt(LocalDateTime.now());
+    token.setUsedAt(Instant.now());
     tokenRepository.save(token);
     log.info("Email verified for user id={}", user.getId());
   }

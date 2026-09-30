@@ -9,7 +9,8 @@ import com.brewdeck.brewdeck_api.auth.reset.PasswordResetMailPort;
 import com.brewdeck.brewdeck_api.auth.reset.PasswordResetToken;
 import com.brewdeck.brewdeck_api.auth.reset.PasswordResetTokenRepository;
 import com.brewdeck.brewdeck_api.common.PostgresIntegrationTest;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +39,7 @@ class PasswordResetIntegrationTest extends PostgresIntegrationTest {
         User.builder()
             .email(email)
             .passwordHash(passwordEncoder.encode("password1"))
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build());
 
     // forgot-password returns 200 and issues a link
@@ -92,7 +93,7 @@ class PasswordResetIntegrationTest extends PostgresIntegrationTest {
         User.builder()
             .email(email)
             .passwordHash(passwordEncoder.encode("password1"))
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build());
 
     // An existing session obtained with the old password.
@@ -158,7 +159,7 @@ class PasswordResetIntegrationTest extends PostgresIntegrationTest {
             User.builder()
                 .email(email)
                 .passwordHash(passwordEncoder.encode("password1"))
-                .createdAt(LocalDateTime.now())
+                .createdAt(Instant.now())
                 .build());
     // Persist a token whose hash we know, already expired.
     // SHA-256 hex of "expired-raw-token":
@@ -167,8 +168,8 @@ class PasswordResetIntegrationTest extends PostgresIntegrationTest {
         PasswordResetToken.builder()
             .userId(user.getId())
             .tokenHash(sha256Hex(rawExpired))
-            .expiresAt(LocalDateTime.now().minusMinutes(1))
-            .createdAt(LocalDateTime.now().minusMinutes(31))
+            .expiresAt(Instant.now().minus(1, ChronoUnit.MINUTES))
+            .createdAt(Instant.now().minus(31, ChronoUnit.MINUTES))
             .build());
 
     mockMvc
