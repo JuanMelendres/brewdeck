@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { onEmailNotVerified } from '@/lib/auth/emailVerificationSignal';
 import { ApiError, apiFetch } from './client';
 import {
   clearRefreshToken,
@@ -70,6 +71,41 @@ describe('apiFetch', () => {
     });
 
     await expect(apiFetch('/api/thing')).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it('carries the error code and signals EMAIL_NOT_VERIFIED to the UI', async () => {
+    const listener = vi.fn();
+    const unsubscribe = onEmailNotVerified(listener);
+    mockFetchOnce(
+      {
+        status: 403,
+        error: 'Forbidden',
+        message: 'Verify your email address to continue',
+        path: '/api/coffees',
+        code: 'EMAIL_NOT_VERIFIED',
+      },
+      { ok: false, status: 403 },
+    );
+
+    await expect(apiFetch('/api/coffees')).rejects.toMatchObject({
+      status: 403,
+      code: 'EMAIL_NOT_VERIFIED',
+    });
+    expect(listener).toHaveBeenCalledTimes(1);
+    unsubscribe();
+  });
+
+  it('does not signal for an ordinary 403', async () => {
+    const listener = vi.fn();
+    const unsubscribe = onEmailNotVerified(listener);
+    mockFetchOnce(
+      { status: 403, error: 'Forbidden', message: 'Insufficient permissions', path: '/api/admin/x' },
+      { ok: false, status: 403 },
+    );
+
+    await expect(apiFetch('/api/admin/x')).rejects.toMatchObject({ status: 403 });
+    expect(listener).not.toHaveBeenCalled();
+    unsubscribe();
   });
 
   it('adds the Authorization header when a token is present', async () => {
