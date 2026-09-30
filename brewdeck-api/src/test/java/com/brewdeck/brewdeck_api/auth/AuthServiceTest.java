@@ -269,4 +269,23 @@ class AuthServiceTest {
     assertThat(unknownError).isExactlyInstanceOf(wrongError.getClass());
     assertThat(unknownError).hasMessage(wrongError.getMessage());
   }
+
+  @Test
+  void refresh_withoutAnyToken_isRejected() {
+    assertThatThrownBy(() -> authService.refresh(null))
+        .isInstanceOf(com.brewdeck.brewdeck_api.auth.refresh.InvalidRefreshTokenException.class);
+    assertThatThrownBy(() -> authService.refresh("  "))
+        .isInstanceOf(com.brewdeck.brewdeck_api.auth.refresh.InvalidRefreshTokenException.class);
+    org.mockito.Mockito.verifyNoInteractions(refreshTokenService);
+  }
+
+  @Test
+  void logout_withoutAToken_revokesNothing() {
+    when(userRepository.findByEmail("brewer@example.com"))
+        .thenReturn(Optional.of(stored("brewer@example.com", "password1")));
+
+    authService.logout("brewer@example.com", null);
+
+    org.mockito.Mockito.verifyNoInteractions(refreshTokenService);
+  }
 }

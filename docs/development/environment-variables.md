@@ -15,7 +15,8 @@ General settings live in the root `.env.example`; auth, mail, and hardening sett
 | `ANTHROPIC_API_KEY` | *(blank)* | Anthropic key; required only when `AI_ENABLED=true` |
 | `BREWDECK_JWT_SECRET` | dev-only placeholder; **required in `prod`** | HMAC key for access tokens (≥ 32 bytes) |
 | `AUTH_TOKEN_TTL` | `PT15M` | Access-token lifetime (ISO-8601) |
-| `AUTH_REFRESH_TTL` | `P7D` | Refresh-token lifetime (ISO-8601) |
+| `AUTH_REFRESH_TTL` | `P7D` | Refresh-token lifetime (ISO-8601); also the refresh cookie's `Max-Age` |
+| `AUTH_COOKIE_SECURE` | `true` (`false` in the `local` profile) | `Secure` flag of the `brewdeck_refresh` cookie ([ADR-013](../decisions/ADR-013-refresh-token-cookie.md)); only disable for plain-HTTP local development |
 | `BREWDECK_MAIL_ENABLED` | `false` | `true` sends real emails over SMTP (`SPRING_MAIL_*` below); `false` only logs the links |
 | `BREWDECK_MAIL_FRONTEND_BASE_URL` | `http://localhost:3000` | Base URL for links in emails |
 | `BREWDECK_MAIL_FROM` | `BrewDeck <no-reply@brewdeck.local>` | Sender address (must be allowed by your provider) |

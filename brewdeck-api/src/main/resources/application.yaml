@@ -66,6 +66,13 @@ brewdeck:
     secret: ${BREWDECK_JWT_SECRET:dev-only-insecure-secret-change-me-at-least-32-bytes}
     token-ttl: ${AUTH_TOKEN_TTL:PT15M}
     refresh-ttl: ${AUTH_REFRESH_TTL:P7D}
+    # httpOnly cookie carrying the refresh token (ADR-013). Secure must stay true outside plain-HTTP
+    # local development.
+    refresh-cookie:
+      name: brewdeck_refresh
+      path: /api/auth
+      secure: ${AUTH_COOKIE_SECURE:true}
+      same-site: Strict
     # Existing account promoted to ADMIN at startup. Empty = no admin bootstrap.
     admin-email: ${BREWDECK_ADMIN_EMAIL:}
   rate-limit:
