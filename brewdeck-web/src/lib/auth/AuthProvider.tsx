@@ -7,8 +7,9 @@ import {
   logout as logoutApi,
   register as registerApi,
   updateProfile as updateProfileApi,
+  updateTheme as updateThemeApi,
 } from '@/lib/api/auth';
-import type { UserResponse } from '@/lib/api/types';
+import type { ThemePreference, UserResponse } from '@/lib/api/types';
 import { refreshSession } from '@/lib/api/client';
 import { clearTokens, getToken, purgeLegacyTokenStorage, setToken } from './tokenStore';
 
@@ -22,6 +23,7 @@ type AuthContextValue = {
   login: (body: Credentials) => Promise<void>;
   register: (body: Credentials) => Promise<void>;
   updateProfile: (body: { displayName: string | null }) => Promise<void>;
+  updateTheme: (themePreference: ThemePreference) => Promise<void>;
   refreshUser: () => Promise<void>;
   logout: () => Promise<void>;
 };
@@ -77,6 +79,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
       updateProfile: async (body) => {
         const updated = await updateProfileApi(body);
+        setUser(updated);
+      },
+      updateTheme: async (themePreference) => {
+        const updated = await updateThemeApi({ themePreference });
         setUser(updated);
       },
       refreshUser: async () => {

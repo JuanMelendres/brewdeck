@@ -147,7 +147,11 @@ export type UserResponse = {
   displayName: string | null;
   emailVerified: boolean;
   role: UserRole;
+  /** `null` until the user picks a theme; the app then shows its one-time theme dialog. */
+  themePreference: ThemePreference | null;
   createdAt: string;
 };
 
 export type UserRole = 'USER' | 'ADMIN';
+
+export type ThemePreference = 'LIGHT' | 'DARK';
