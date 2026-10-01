@@ -177,6 +177,8 @@ Phase 6 (auth & multi-user) complete: Slice A (auth foundation), Slice B (per-us
 
 8. **New (2026-09-24)** — backend audit backlog, one PR each: ~~(3) `GlobalExceptionHandler` 405/404/415 return 500 and 500s are not logged~~ (fixed on `fix/mvc-errors-return-proper-status`); ~~(4) validation limits exceed DB columns (`roastLevel`, `grindSetting`, `actualGrind`, grams) and password max must be 72 bytes for BCrypt~~ (fixed on `fix/align-validation-with-db-limits`); ~~(5) case-insensitive email + AI `findByIdAndOwnerId`~~ (fixed on `fix/case-insensitive-email-and-ai-coffee-ownership`); ~~(6) auth rate limiting~~ (on `feat/auth-rate-limiting`, ADR-011); ~~(7) cross-user write + JWT edge-case integration tests~~ (on `test/cross-user-writes-and-jwt-edge-cases`); ~~(8) FK indexes + missing `@Transactional`~~ (on `perf/fk-indexes-and-service-transactions`). Then user-owned private brew methods (ADR-009 follow-up).
 
+9. **New (2026-09-30)** — Phase 7 UI/UX refresh planned. Spike: `docs/product/spikes/ui-ux-refresh-spike.md` (diagnosis, three visual directions, POC plan, seven workstreams). Direction chosen 2026-09-30: A (warm café) for light, C palette for dark; theme toggle in Account settings + first-login light/dark dialog. Next: run the design-foundation POC (theme tokens, `next/font`, dark mode, applied to AppShell, Dashboard, Login).
+
 ## AI Integration — Suspended (2026-09-08)
 
 Owner has paused the AI recipe assistant integration indefinitely: no intent to pay for an LLM

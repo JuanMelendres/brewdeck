@@ -6,7 +6,7 @@ Docs-as-code for BrewDeck. Everything here lives in the repo and evolves with th
 
 | Area | What's inside |
 | ---- | ------------- |
-| [product/](product/) | Vision, roadmap, feature list, and lightweight FDDs |
+| [product/](product/) | Vision, roadmap, feature list, lightweight FDDs, and spikes/POCs (`product/spikes/`) |
 | [architecture/](architecture/) | System overview, technical design, database & API design, diagrams |
 | [decisions/](decisions/) | Architecture Decision Records (ADRs) |
 | [api/](api/) | Endpoint overview, conventions, OpenAPI, Postman pointer |

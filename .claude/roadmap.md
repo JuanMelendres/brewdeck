@@ -99,6 +99,20 @@ Status: Completed
 
 Released to master: Phase 6 shipped develop→master via PR #77 (Slices C.1 #73, C.2 #74, C.3 #75, C.4 #76 + pnpm migration + CI overhaul); all CI green, develop kept as the default working branch.
 
+## Phase 7 — UI/UX Refresh
+
+Status: Planned (added 2026-09-30)
+
+- Spike + POC: design foundation and visual direction — [docs/product/spikes/ui-ux-refresh-spike.md](../docs/product/spikes/ui-ux-refresh-spike.md). Direction chosen 2026-09-30: A (warm café) light + C palette for dark mode.
+- Workstreams after the POC (each gets an FDD, the foundation gets a TDD):
+  1. Design foundation — theme tokens, typography (`next/font`), shape, shadows, component overrides, dark mode — TODO
+  2. Navigation — icons, active route, logo, user menu, responsive drawer — TODO
+  3. Dashboard — greeting, stat cards with icons, method-usage chart, rankings as lists — TODO
+  4. Lists — cards or airier tables, chips, `Rating` stars, skeletons, `EmptyState` with CTA — TODO
+  5. Auth screens — split layout with brand panel — TODO
+  6. Micro-interactions — hover transitions, snackbars after mutations — TODO
+  7. Theme preference — backend: V22 `users.theme_preference` (null = never asked), `themePreference` in `/me`, `PUT /api/auth/me/theme`; frontend: toggle in Account settings + first-login light/dark dialog with live preview — TODO
+
 ## Status Summary
 
 All 6 planned phases are Completed — 100% of the current roadmap shipped. AI recipe assistant (Phase 5) is built full-stack but feature-flagged off (paused, not cancelled — see `.claude/project-state.md` "AI Integration — Suspended"). Ongoing work beyond this roadmap is maintenance (dependency/CVE remediation) and open follow-ups tracked in `.claude/project-state.md` "Immediate Next Steps" (e.g. migrating auth tokens from `localStorage` to `httpOnly` cookies). "Vision (post-roadmap)" below is unscheduled future scope, not part of this roadmap's completion percentage.
