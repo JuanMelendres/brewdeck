@@ -108,7 +108,8 @@ export function BrewSessionFormDialog({
               render={({ field }) => (
                 <TextField
                   select
-                  slotProps={{ select: { native: true } }}
+                  // A native select always shows its first option, so the label must sit above it.
+                  slotProps={{ select: { native: true }, inputLabel: { shrink: true } }}
                   label="Recipe"
                   required
                   size="small"
