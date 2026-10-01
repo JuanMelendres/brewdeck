@@ -4,6 +4,10 @@ import { renderWithTheme } from '@/test/renderWithTheme';
 import { DashboardView } from './DashboardView';
 import * as hook from '@/hooks/useDashboardSummary';
 
+vi.mock('@/lib/auth/AuthProvider', () => ({
+  useAuth: () => ({ user: { displayName: 'Juan' } }),
+}));
+
 vi.mock('./TopRatedRecipes', () => ({
   TopRatedRecipes: () => <div>Top Rated Recipes</div>,
 }));
@@ -60,5 +64,29 @@ describe('DashboardView', () => {
     expect(screen.getByText('5')).toBeInTheDocument();
     expect(screen.getByText('Average Rating')).toBeInTheDocument();
     expect(screen.getByText('—')).toBeInTheDocument();
+  });
+
+  it('greets the user by display name, with the date in English', () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2026, 8, 30, 15, 0));
+    mockHook({
+      isLoading: false,
+      isError: false,
+      data: {
+        totalCoffees: 0,
+        totalBrewMethods: 0,
+        totalRecipes: 0,
+        favoriteRecipes: 0,
+        totalBrewSessions: 0,
+        averageSessionRating: null,
+      },
+    });
+    renderWithTheme(<DashboardView />);
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Good afternoon, Juan' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Wednesday, September 30')).toBeInTheDocument();
+    vi.useRealTimers();
   });
 });

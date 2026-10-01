@@ -1,13 +1,10 @@
 'use client';
 
+import StarRoundedIcon from '@mui/icons-material/StarRounded';
+import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Link from '@mui/material/Link';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 import NextLink from 'next/link';
 import type { ReactNode } from 'react';
@@ -30,38 +27,71 @@ export function TopRatedRecipes() {
     body = <EmptyState message="No rated recipes yet." />;
   } else {
     body = (
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>#</TableCell>
-            <TableCell>Recipe</TableCell>
-            <TableCell align="right">Avg Rating</TableCell>
-            <TableCell align="right">Sessions</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {data.map((recipe, index) => (
-            <TableRow key={recipe.recipeId}>
-              <TableCell>{index + 1}</TableCell>
-              <TableCell>
-                <Link component={NextLink} href={`/recipes/${recipe.recipeId}`}>
-                  {recipe.recipeName}
-                </Link>
-              </TableCell>
-              <TableCell align="right">
-                {recipe.averageRating === null ? '—' : recipe.averageRating.toFixed(1)}
-              </TableCell>
-              <TableCell align="right">{recipe.totalSessions}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <Box component="ol" sx={{ listStyle: 'none', m: 0, p: 0, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+        {data.map((recipe, index) => (
+          <Box
+            component="li"
+            key={recipe.recipeId}
+            sx={{ display: 'flex', alignItems: 'center', gap: 1.75, py: 1.25, px: 0.5 }}
+          >
+            <Box
+              aria-hidden
+              sx={{
+                width: 32,
+                height: 32,
+                flexShrink: 0,
+                borderRadius: '50%',
+                bgcolor: 'background.tint',
+                color: 'primary.main',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 600,
+                fontSize: 13,
+              }}
+            >
+              {index + 1}
+            </Box>
+            <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+              <Link
+                component={NextLink}
+                href={`/recipes/${recipe.recipeId}`}
+                underline="hover"
+                color="text.primary"
+                sx={{ fontWeight: 600 }}
+              >
+                {recipe.recipeName}
+              </Link>
+              <Typography variant="caption" color="text.secondary" component="p">
+                {recipe.totalSessions} {recipe.totalSessions === 1 ? 'session' : 'sessions'}
+              </Typography>
+            </Box>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.5,
+                px: 1.25,
+                py: 0.5,
+                borderRadius: 999,
+                bgcolor: 'background.tint',
+                color: 'secondary.main',
+                fontWeight: 600,
+                fontSize: 13,
+              }}
+            >
+              <StarRoundedIcon sx={{ fontSize: 15 }} aria-hidden />
+              <span>{recipe.averageRating === null ? '—' : recipe.averageRating.toFixed(1)}</span>
+            </Box>
+          </Box>
+        ))}
+      </Box>
     );
   }
 
   return (
-    <Card variant="outlined">
-      <CardContent>
+    <Card sx={{ height: '100%' }}>
+      <CardContent sx={{ p: 3 }}>
         <Typography variant="h6" component="h2" gutterBottom>
           Top Rated Recipes
         </Typography>

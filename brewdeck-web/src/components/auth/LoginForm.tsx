@@ -4,9 +4,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -35,11 +37,14 @@ export function LoginForm() {
   });
 
   return (
-    <Box component="form" onSubmit={onSubmit} sx={{ maxWidth: 400, mx: 'auto', mt: 8 }}>
-      <Typography variant="h5" component="h1" gutterBottom>
+    <Box component="form" onSubmit={onSubmit}>
+      <Typography variant="h4" component="h1">
         Log in
       </Typography>
-      <Stack spacing={2}>
+      <Typography color="text.secondary" sx={{ mt: 0.5, mb: 3 }}>
+        Welcome back. Your brews are waiting.
+      </Typography>
+      <Stack spacing={2.25}>
         {formError ? <Alert severity="error">{formError}</Alert> : null}
         <TextField
           label="Email"
@@ -55,14 +60,19 @@ export function LoginForm() {
           error={!!errors.password}
           helperText={errors.password?.message}
         />
-        <Button type="submit" variant="contained" disabled={isSubmitting}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Link component={NextLink} href="/forgot-password" variant="body2" underline="hover">
+            Forgot password?
+          </Link>
+        </Box>
+        <Button type="submit" variant="contained" size="large" disabled={isSubmitting}>
           Log in
         </Button>
-        <Typography variant="body2">
-          No account? <a href="/register">Register</a>
-        </Typography>
-        <Typography variant="body2">
-          <a href="/forgot-password">Forgot password?</a>
+        <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+          No account?{' '}
+          <Link component={NextLink} href="/register" underline="hover" sx={{ fontWeight: 600 }}>
+            Register
+          </Link>
         </Typography>
       </Stack>
     </Box>
