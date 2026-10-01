@@ -106,7 +106,7 @@ Status: Planned (added 2026-09-30)
 - Spike + POC: design foundation and visual direction — [docs/product/spikes/ui-ux-refresh-spike.md](../docs/product/spikes/ui-ux-refresh-spike.md). Direction chosen 2026-09-30: A (warm café) light + C palette for dark mode.
 - Workstreams after the POC (each gets an FDD, the foundation gets a TDD):
   1. Design foundation — theme tokens, typography (`next/font`), shape, shadows, component overrides, dark mode — POC Done (PR #173: theme, fonts, AppShell, Dashboard, Login, Account appearance setting); TDD and ADR-014 still TODO
-  2. Navigation — icons, active route, logo, user menu, responsive drawer — TODO
+  2. Navigation — icons, active route, logo, user card (POC, PR #173) + responsive mobile drawer with top bar — Done (FDD `docs/product/fdd/navigation-fdd.md`, PR on `feat/web-responsive-navigation`)
   3. Dashboard — greeting, stat cards with icons, method-usage chart, rankings as lists — TODO
   4. Lists — cards or airier tables, chips, `Rating` stars, skeletons, `EmptyState` with CTA — TODO
   5. Auth screens — split layout with brand panel — TODO
