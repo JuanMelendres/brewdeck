@@ -136,7 +136,21 @@ No `colorSchemes`, `useColorScheme`, or dark palette anywhere in `src/`.
 
 ## 12. Proof of Concept Results
 
-TODO — fill in after the POC (what worked, what failed, screenshots, Q-002 to Q-005 answers).
+Delivered in PR #173 (merged 2026-10-01) and reviewed in the browser by the owner.
+
+- **Q-002:** answered yes. A CSS-variables theme (`cssVariables: { colorSchemeSelector: 'class' }`) with
+  `colorSchemes.light`/`dark`, plus `InitColorSchemeScript` in the root layout, switches modes with no flash
+  under the App Router.
+- **Q-003:** the theme alone (fonts, palette, radii, card and table overrides) visibly lifts the screens
+  that were not restyled.
+- **Q-004:** Fraunces and DM Sans load through `next/font/google` as CSS variables (`--font-display`,
+  `--font-body`). The theme reads those variables, so it stays importable in tests.
+- **Q-005:** the existing tests passed with a single change, a mocked `useAuth` for the dashboard greeting.
+  The suite is now 319 tests, including new ones for the active nav route, logout, the greeting, and the
+  theme setting.
+- **Contrast:** every text/background pair meets WCAG AA in both palettes (lowest 4.6:1).
+- **Found during review:** the dashboard date used the browser locale, which mixed Spanish into the English
+  UI. It is now fixed to `en-US`. That finding led to workstream 8 (§17).
 
 ## 13. Trade-Off Analysis
 
@@ -212,6 +226,7 @@ The refresh is split into workstreams. Each becomes its own document and PR seri
 | 5 | Auth screens | FDD | Split layout with brand panel, form in a card |
 | 6 | Micro-interactions | FDD | Hover transitions, snackbar feedback after create/edit/delete |
 | 7 | Theme preference | FDD + TDD (backend) | `V22` `users.theme_preference`, `themePreference` in `/me`, `PUT /api/auth/me/theme`; toggle in Account settings; first-login light/dark dialog with live preview |
+| 8 | Language (i18n) | Spike + FDD + TDD | Spanish and English. Frontend strings in translation files (`next-intl` to evaluate in the spike); dates and numbers formatted per language; backend validation/error messages and emails translated; per-user language preference stored like the theme, selector in Account settings; the first-login dialog can ask language and theme together. Until then the UI stays English-only and dates use `en-US` explicitly. Known leftover: `src/lib/pdf/recipePdf.ts` still formats its date with the browser locale. |
 
 ## 18. ADR Candidate
 

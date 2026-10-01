@@ -105,13 +105,14 @@ Status: Planned (added 2026-09-30)
 
 - Spike + POC: design foundation and visual direction — [docs/product/spikes/ui-ux-refresh-spike.md](../docs/product/spikes/ui-ux-refresh-spike.md). Direction chosen 2026-09-30: A (warm café) light + C palette for dark mode.
 - Workstreams after the POC (each gets an FDD, the foundation gets a TDD):
-  1. Design foundation — theme tokens, typography (`next/font`), shape, shadows, component overrides, dark mode — TODO
+  1. Design foundation — theme tokens, typography (`next/font`), shape, shadows, component overrides, dark mode — POC Done (PR #173: theme, fonts, AppShell, Dashboard, Login, Account appearance setting); TDD and ADR-014 still TODO
   2. Navigation — icons, active route, logo, user menu, responsive drawer — TODO
   3. Dashboard — greeting, stat cards with icons, method-usage chart, rankings as lists — TODO
   4. Lists — cards or airier tables, chips, `Rating` stars, skeletons, `EmptyState` with CTA — TODO
   5. Auth screens — split layout with brand panel — TODO
   6. Micro-interactions — hover transitions, snackbars after mutations — TODO
   7. Theme preference — backend: V22 `users.theme_preference` (null = never asked), `themePreference` in `/me`, `PUT /api/auth/me/theme`; frontend: toggle in Account settings + first-login light/dark dialog with live preview — TODO
+  8. Language (i18n) — Spanish + English: translation files (evaluate `next-intl`), locale-aware dates/numbers, translated backend messages and emails, per-user language preference + selector in Account (first-login dialog can ask language and theme together). Needs its own spike. Until then: English-only, dates fixed to `en-US` — TODO
 
 ## Status Summary
 
