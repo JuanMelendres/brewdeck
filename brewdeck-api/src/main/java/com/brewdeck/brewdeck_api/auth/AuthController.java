@@ -50,6 +50,16 @@ public class AuthController {
     return ResponseEntity.ok(authService.updateProfile(principal.getName(), request));
   }
 
+  @PutMapping("/me/theme")
+  @Operation(
+      summary = "Set the authenticated user's light/dark theme",
+      description =
+          "Separate from PATCH /me so a theme-only update never touches the display name.")
+  public ResponseEntity<UserResponse> updateTheme(
+      Principal principal, @Valid @RequestBody UpdateThemeRequest request) {
+    return ResponseEntity.ok(authService.updateTheme(principal.getName(), request));
+  }
+
   @PostMapping("/change-password")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(summary = "Change the authenticated user's password")

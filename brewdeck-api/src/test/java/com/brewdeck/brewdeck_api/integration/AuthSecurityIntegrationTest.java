@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -66,6 +67,62 @@ class AuthSecurityIntegrationTest extends PostgresIntegrationTest {
         .perform(get("/api/auth/me").header("Authorization", "Bearer " + token))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.email").value(email));
+  }
+
+  @Test
+  void themePreference_startsUnsetThenPersistsWithoutTouchingDisplayName() throws Exception {
+    String email = "theme-" + System.nanoTime() + "@example.com";
+    String register = "{\"email\":\"" + email + "\",\"password\":\"password1\"}";
+    String token =
+        com.jayway.jsonpath.JsonPath.read(
+            mockMvc
+                .perform(
+                    post("/api/auth/register").contentType("application/json").content(register))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString(),
+            "$.token");
+
+    // A new account has not chosen a theme yet.
+    mockMvc
+        .perform(get("/api/auth/me").header("Authorization", "Bearer " + token))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.themePreference").doesNotExist());
+
+    mockMvc
+        .perform(
+            patch("/api/auth/me")
+                .header("Authorization", "Bearer " + token)
+                .contentType("application/json")
+                .content("{\"displayName\":\"Barista Bob\"}"))
+        .andExpect(status().isOk());
+
+    mockMvc
+        .perform(
+            put("/api/auth/me/theme")
+                .header("Authorization", "Bearer " + token)
+                .contentType("application/json")
+                .content("{\"themePreference\":\"DARK\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.themePreference").value("DARK"));
+
+    // Persisted, and the display name set earlier is untouched.
+    mockMvc
+        .perform(get("/api/auth/me").header("Authorization", "Bearer " + token))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.themePreference").value("DARK"))
+        .andExpect(jsonPath("$.displayName").value("Barista Bob"));
+  }
+
+  @Test
+  void updateTheme_withoutToken_returns401() throws Exception {
+    mockMvc
+        .perform(
+            put("/api/auth/me/theme")
+                .contentType("application/json")
+                .content("{\"themePreference\":\"DARK\"}"))
+        .andExpect(status().isUnauthorized());
   }
 
   @Test

@@ -107,6 +107,15 @@ public class AuthService {
   }
 
   @Transactional
+  public UserResponse updateTheme(String email, UpdateThemeRequest request) {
+    User user = requireByEmail(email);
+    user.setThemePreference(request.themePreference());
+    User saved = userRepository.save(user);
+    log.info("Updated theme preference for user id={}", saved.getId());
+    return UserResponse.fromEntity(saved);
+  }
+
+  @Transactional
   public void changePassword(String email, ChangePasswordRequest request) {
     User user = requireByEmail(email);
     if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {

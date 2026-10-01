@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -126,6 +127,7 @@ class AuthControllerTest {
                 "Barista Bob",
                 true,
                 Role.USER,
+                null,
                 Instant.parse("2026-07-09T00:00:00Z")));
 
     mockMvc
@@ -136,6 +138,60 @@ class AuthControllerTest {
                 .content(objectMapper.writeValueAsString(new UpdateProfileRequest("Barista Bob"))))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.displayName").value("Barista Bob"));
+  }
+
+  @Test
+  void updateTheme_returns200WithThePreference() throws Exception {
+    Principal principal = () -> "brewer@example.com";
+    when(authService.updateTheme(eq("brewer@example.com"), any()))
+        .thenReturn(
+            new UserResponse(
+                1L,
+                "brewer@example.com",
+                "Barista Bob",
+                true,
+                Role.USER,
+                ThemePreference.DARK,
+                Instant.parse("2026-07-09T00:00:00Z")));
+
+    mockMvc
+        .perform(
+            put("/api/auth/me/theme")
+                .principal(principal)
+                .contentType("application/json")
+                .content("{\"themePreference\":\"DARK\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.themePreference").value("DARK"))
+        .andExpect(jsonPath("$.displayName").value("Barista Bob"));
+  }
+
+  @Test
+  void updateTheme_missingPreferenceReturns400() throws Exception {
+    Principal principal = () -> "brewer@example.com";
+
+    mockMvc
+        .perform(
+            put("/api/auth/me/theme")
+                .principal(principal)
+                .contentType("application/json")
+                .content("{}"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.validationErrors.themePreference").exists());
+    verify(authService, never()).updateTheme(anyString(), any());
+  }
+
+  @Test
+  void updateTheme_unknownPreferenceReturns400() throws Exception {
+    Principal principal = () -> "brewer@example.com";
+
+    mockMvc
+        .perform(
+            put("/api/auth/me/theme")
+                .principal(principal)
+                .contentType("application/json")
+                .content("{\"themePreference\":\"SEPIA\"}"))
+        .andExpect(status().isBadRequest());
+    verify(authService, never()).updateTheme(anyString(), any());
   }
 
   @Test
