@@ -31,6 +31,10 @@ public class User {
   @Builder.Default
   private Role role = Role.USER;
 
+  @Enumerated(EnumType.STRING)
+  @Column(name = "theme_preference", length = 10)
+  private ThemePreference themePreference;
+
   @Column(name = "email_verified", nullable = false)
   private boolean emailVerified;
 

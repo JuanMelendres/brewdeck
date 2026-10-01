@@ -169,6 +169,31 @@ class AuthServiceTest {
   }
 
   @Test
+  void updateTheme_setsPreferenceAndKeepsDisplayName() {
+    User user = stored("brewer@example.com", "password1");
+    user.setDisplayName("Barista Bob");
+    when(userRepository.findByEmail("brewer@example.com")).thenReturn(Optional.of(user));
+    when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+    UserResponse response =
+        authService.updateTheme("brewer@example.com", new UpdateThemeRequest(ThemePreference.DARK));
+
+    assertThat(response.themePreference()).isEqualTo(ThemePreference.DARK);
+    assertThat(response.displayName()).isEqualTo("Barista Bob");
+  }
+
+  @Test
+  void updateTheme_throwsWhenUserMissing() {
+    when(userRepository.findByEmail("ghost@example.com")).thenReturn(Optional.empty());
+
+    assertThatThrownBy(
+            () ->
+                authService.updateTheme(
+                    "ghost@example.com", new UpdateThemeRequest(ThemePreference.LIGHT)))
+        .isInstanceOf(EntityNotFoundException.class);
+  }
+
+  @Test
   void changePassword_reencodesWhenCurrentMatches() {
     User user = stored("brewer@example.com", "password1");
     String originalHash = user.getPasswordHash();

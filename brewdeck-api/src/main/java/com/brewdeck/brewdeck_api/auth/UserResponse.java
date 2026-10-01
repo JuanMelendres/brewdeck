@@ -8,6 +8,7 @@ public record UserResponse(
     String displayName,
     boolean emailVerified,
     Role role,
+    ThemePreference themePreference,
     Instant createdAt) {
   public static UserResponse fromEntity(User user) {
     return new UserResponse(
@@ -16,6 +17,7 @@ public record UserResponse(
         user.getDisplayName(),
         user.isEmailVerified(),
         user.getRole(),
+        user.getThemePreference(),
         user.getCreatedAt());
   }
 }

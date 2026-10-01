@@ -14,8 +14,9 @@ in [`architecture/api-design.md`](../architecture/api-design.md).
 ```
 POST  /api/auth/register            201
 POST  /api/auth/login               200
-GET   /api/auth/me                  200 (401 without token; includes emailVerified and role: USER|ADMIN)
+GET   /api/auth/me                  200 (401 without token; includes emailVerified, role: USER|ADMIN, themePreference: LIGHT|DARK|null)
 PATCH /api/auth/me                  200 (update display name)
+PUT   /api/auth/me/theme            200 (set themePreference LIGHT|DARK; 400 if missing or unknown)
 POST  /api/auth/change-password     204 (400 if current password wrong; revokes all refresh tokens)
 POST  /api/auth/forgot-password     200 (always; no user enumeration)
 POST  /api/auth/reset-password      204 (400 if token invalid/expired/used; revokes all refresh tokens)
