@@ -1,24 +1,31 @@
 'use client';
 
-import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
-import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
+import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import { useColorScheme } from '@mui/material/styles';
-import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Typography from '@mui/material/Typography';
+import { useState } from 'react';
+import { useAuth } from '@/lib/auth/AuthProvider';
+import { toThemePreference, type ThemeMode } from '@/lib/theme/themePreference';
+import { ThemeChoice } from './ThemeChoice';
 
-type ThemeMode = 'light' | 'dark';
-
-/**
- * Light/dark switch for the Account page. For now the choice lives in this browser only (MUI keeps it in
- * localStorage); the per-user backend preference and the first-login dialog come with workstream 7 of
- * docs/product/spikes/ui-ux-refresh-spike.md.
- */
+/** Light/dark switch on the Account page; applies at once and saves to the account. */
 export function ThemeModeSetting() {
+  const { updateTheme } = useAuth();
   const { mode, systemMode, setMode } = useColorScheme();
+  const [error, setError] = useState<string | null>(null);
   // `mode` is undefined until the provider mounts; "system" resolves to the OS mode.
   const current: ThemeMode = (mode === 'system' ? systemMode : mode) ?? 'light';
+
+  const onChange = async (next: ThemeMode) => {
+    setError(null);
+    setMode(next);
+    try {
+      await updateTheme(toThemePreference(next));
+    } catch {
+      setError('Could not save your theme. It applies on this device only for now.');
+    }
+  };
 
   return (
     <Stack spacing={1.5}>
@@ -26,26 +33,10 @@ export function ThemeModeSetting() {
         Appearance
       </Typography>
       <Typography variant="body2" color="text.secondary">
-        Choose how BrewDeck looks on this device.
+        Choose how BrewDeck looks. Your choice is saved to your account.
       </Typography>
-      <ToggleButtonGroup
-        exclusive
-        value={current}
-        onChange={(_event, next: ThemeMode | null) => {
-          if (next) setMode(next);
-        }}
-        aria-label="Theme"
-        sx={{ alignSelf: 'flex-start' }}
-      >
-        <ToggleButton value="light" sx={{ gap: 1, px: 2.5, textTransform: 'none' }}>
-          <LightModeOutlinedIcon fontSize="small" />
-          Light
-        </ToggleButton>
-        <ToggleButton value="dark" sx={{ gap: 1, px: 2.5, textTransform: 'none' }}>
-          <DarkModeOutlinedIcon fontSize="small" />
-          Dark
-        </ToggleButton>
-      </ToggleButtonGroup>
+      <ThemeChoice value={current} onChange={onChange} />
+      {error ? <Alert severity="error">{error}</Alert> : null}
     </Stack>
   );
 }

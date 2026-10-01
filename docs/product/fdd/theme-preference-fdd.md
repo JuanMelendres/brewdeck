@@ -64,7 +64,13 @@ a new device starts in light mode, and nothing tells users dark mode exists.
 - More themes than light and dark.
 - The language preference (workstream 8, i18n); the dialog may later ask language and theme together.
 
-## Open Questions
+## Decisions
 
-- Assumption: the dialog cannot be dismissed without choosing (Light is preselected, so it is one click).
-  TODO: confirm with the owner.
+- The dialog cannot be dismissed without choosing (no Escape or backdrop close). Light is preselected, so it
+  is one click. Confirmed by the owner on 2026-10-01.
+
+## Implementation
+
+- Backend: PR #175 (Flyway V22, `themePreference` in `/me`, `PUT /api/auth/me/theme`).
+- Frontend: `ThemeOnboardingDialog` and `ThemePreferenceSync` in the `(app)` layout (inside the email
+  verification gate), `ThemeModeSetting` on the Account page saving through `AuthProvider.updateTheme`.

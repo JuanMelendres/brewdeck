@@ -36,6 +36,7 @@ const me = (email: string): UserResponse => ({
   displayName: null,
   emailVerified: true,
   role: 'USER',
+  themePreference: null,
   createdAt: '2026-07-01T00:00:00Z',
 });
 
