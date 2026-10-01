@@ -160,7 +160,8 @@ export function RecipeFormDialog({
               render={({ field }) => (
                 <TextField
                   select
-                  slotProps={{ select: { native: true } }}
+                  // A native select always shows its first option, so the label must sit above it.
+                  slotProps={{ select: { native: true }, inputLabel: { shrink: true } }}
                   label="Coffee"
                   required
                   size="small"
@@ -186,7 +187,8 @@ export function RecipeFormDialog({
               render={({ field }) => (
                 <TextField
                   select
-                  slotProps={{ select: { native: true } }}
+                  // A native select always shows its first option, so the label must sit above it.
+                  slotProps={{ select: { native: true }, inputLabel: { shrink: true } }}
                   label="Brew Method"
                   required
                   size="small"

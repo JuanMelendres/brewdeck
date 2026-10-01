@@ -64,4 +64,19 @@ describe('CoffeeFormDialog', () => {
 
     expect(await screen.findByText('Coffee name is required')).toBeInTheDocument();
   });
+
+  it('groups the fields into Coffee, Origin, and Tasting sections', () => {
+    mockHooks();
+    renderWithTheme(<CoffeeFormDialog open onClose={vi.fn()} />);
+
+    expect(screen.getByRole('region', { name: 'Coffee' })).toContainElement(
+      screen.getByLabelText(/^Name/),
+    );
+    expect(screen.getByRole('region', { name: 'Origin' })).toContainElement(
+      screen.getByLabelText('Farm'),
+    );
+    const tasting = screen.getByRole('region', { name: 'Tasting' });
+    expect(tasting).toContainElement(screen.getByRole('slider', { name: /acidity/i }));
+    expect(tasting).toContainElement(screen.getByLabelText('Description'));
+  });
 });

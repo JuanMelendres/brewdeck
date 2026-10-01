@@ -40,6 +40,17 @@ describe('RecipeFormDialog', () => {
     expect(screen.getByRole('option', { name: 'AeroPress' })).toBeInTheDocument();
   });
 
+  it('keeps the select labels above the placeholder option so they do not overlap', () => {
+    mockAll();
+    renderWithTheme(<RecipeFormDialog open onClose={vi.fn()} />);
+    // MUI marks a label moved above the field with data-shrink.
+    expect(screen.getByText('Coffee', { selector: 'label' })).toHaveAttribute('data-shrink', 'true');
+    expect(screen.getByText('Brew Method', { selector: 'label' })).toHaveAttribute(
+      'data-shrink',
+      'true',
+    );
+  });
+
   it('blocks submit and shows required errors when empty', async () => {
     mockAll();
     renderWithTheme(<RecipeFormDialog open onClose={vi.fn()} />);

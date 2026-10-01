@@ -227,6 +227,7 @@ The refresh is split into workstreams. Each becomes its own document and PR seri
 | 6 | Micro-interactions | FDD | Hover transitions, snackbar feedback after create/edit/delete |
 | 7 | Theme preference | FDD + TDD (backend) | `V22` `users.theme_preference`, `themePreference` in `/me`, `PUT /api/auth/me/theme`; toggle in Account settings; first-login light/dark dialog with live preview |
 | 8 | Language (i18n) | Spike + FDD + TDD | Spanish and English. Frontend strings in translation files (`next-intl` to evaluate in the spike); dates and numbers formatted per language; backend validation/error messages and emails translated; per-user language preference stored like the theme, selector in Account settings; the first-login dialog can ask language and theme together. Until then the UI stays English-only and dates use `en-US` explicitly. Known leftover: `src/lib/pdf/recipePdf.ts` still formats its date with the browser locale. |
+| 9 | Forms | FDD | Found during review (2026-10-01). Fix native-select labels overlapping their placeholder option (Recipe, Brew Session dialogs). Long dialogs in two columns with sections grouped by meaning (Coffee / Origin / Tasting for coffees), one column on phones; then the same pattern for the Recipe and Brew Session dialogs. |
 
 ## 18. ADR Candidate
 
