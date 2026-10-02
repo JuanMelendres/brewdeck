@@ -108,7 +108,7 @@ Status: Planned (added 2026-09-30)
   1. Design foundation — theme tokens, typography (`next/font`), shape, shadows, component overrides, dark mode — POC Done (PR #173: theme, fonts, AppShell, Dashboard, Login, Account appearance setting); TDD and ADR-014 still TODO
   2. Navigation — icons, active route, logo, user card (POC, PR #173) + responsive mobile drawer with top bar — Done (FDD `docs/product/fdd/navigation-fdd.md`, PR on `feat/web-responsive-navigation`)
   3. Dashboard — greeting, stat cards with icons, method-usage bars, Top Rated as a list (POC, PR #173) + Most Brewed and Most Used on the shared `RankedList` — Done (PR on `feat/web-dashboard-rankings`)
-  4. Lists — cards or airier tables, chips, `Rating` stars, skeletons, `EmptyState` with CTA — TODO
+  4. Lists — In progress: Coffees as a card grid (chips, tasting bars, skeleton loading) + `EmptyState` with icon and CTA (PR on `feat/web-coffee-list-cards`); next: Recipes, Favorites, Brew Methods, Brew Sessions
   5. Auth screens — split layout with brand panel on login (POC, PR #173), register, forgot/reset password, verify email, and the verification-required screen — Done (PR on `feat/web-auth-screens`)
   6. Micro-interactions — hover transitions, snackbars after mutations — TODO
   7. Theme preference — backend: V22 `users.theme_preference` (null = never asked), `themePreference` in `/me`, `PUT /api/auth/me/theme`; frontend: toggle in Account settings + first-login light/dark dialog with live preview — Done (FDD `docs/product/fdd/theme-preference-fdd.md`; backend PR #175, frontend PR on `feat/web-theme-preference`)
