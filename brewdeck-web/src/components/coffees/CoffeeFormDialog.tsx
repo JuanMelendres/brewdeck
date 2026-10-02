@@ -14,11 +14,12 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { ApiError } from '@/lib/api/client';
 import { coffeeSchema, type CoffeeFormValues } from '@/lib/validation/coffeeSchema';
 import { useCreateCoffee, useUpdateCoffee } from '@/hooks/useCoffeeMutations';
+import { FormSection } from '@/components/ui/FormSection';
 import type { Coffee } from '@/lib/api/types';
 
 type TextFieldSpec = { name: keyof CoffeeFormValues; label: string; full?: boolean };
@@ -216,25 +217,5 @@ export function CoffeeFormDialog({
         </DialogActions>
       </form>
     </Dialog>
-  );
-}
-
-function FormSection({ title, children }: { title: string; children: ReactNode }) {
-  const headingId = `coffee-form-${title.toLowerCase()}`;
-  return (
-    <Box component="section" aria-labelledby={headingId}>
-      <Typography
-        id={headingId}
-        variant="overline"
-        component="h3"
-        color="text.secondary"
-        sx={{ display: 'block', fontWeight: 600, mb: 1 }}
-      >
-        {title}
-      </Typography>
-      <Grid container spacing={2}>
-        {children}
-      </Grid>
-    </Box>
   );
 }

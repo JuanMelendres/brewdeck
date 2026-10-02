@@ -7,6 +7,7 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
+import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -20,20 +21,26 @@ import {
 } from '@/lib/validation/brewSessionSchema';
 import { useCreateBrewSession } from '@/hooks/useBrewSessionMutations';
 import { useRecipeOptions } from '@/hooks/useResourceOptions';
+import { FormSection } from '@/components/ui/FormSection';
 
 type BrewSessionFormInput = z.input<typeof brewSessionSchema>;
 
-const TEXT_FIELDS: Array<{
+type TextFieldSpec = {
   name: keyof BrewSessionFormValues;
   label: string;
   multiline?: boolean;
   number?: boolean;
-}> = [
+};
+
+// What was actually brewed, three short parameters to a row on wider screens.
+const BREW_FIELDS: TextFieldSpec[] = [
   { name: 'actualGrind', label: 'Actual Grind' },
   { name: 'actualTemp', label: 'Actual Temp', number: true },
   { name: 'actualTime', label: 'Actual Time' },
+];
+
+const RESULT_NOTE_FIELDS: TextFieldSpec[] = [
   { name: 'tasteResult', label: 'Taste Result', multiline: true },
-  { name: 'rating', label: 'Rating', number: true },
   { name: 'adjustmentNotes', label: 'Adjustment Notes', multiline: true },
 ];
 
@@ -91,8 +98,22 @@ export function BrewSessionFormDialog({
     });
   };
 
+  const renderTextField = (f: TextFieldSpec) => (
+    <TextField
+      label={f.label}
+      type={f.number ? 'number' : 'text'}
+      multiline={f.multiline}
+      minRows={f.multiline ? 3 : undefined}
+      size="small"
+      fullWidth
+      error={Boolean(errors[f.name])}
+      helperText={errors[f.name]?.message}
+      {...register(f.name)}
+    />
+  );
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>Add brew session</DialogTitle>
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <DialogContent>
@@ -101,50 +122,55 @@ export function BrewSessionFormDialog({
               {serverError}
             </Alert>
           ) : null}
-          <Stack spacing={2}>
-            <Controller
-              name="recipeId"
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  select
-                  // A native select always shows its first option, so the label must sit above it.
-                  slotProps={{ select: { native: true }, inputLabel: { shrink: true } }}
-                  label="Recipe"
-                  required
-                  size="small"
-                  fullWidth
-                  disabled={recipeOptions.isLoading}
-                  value={field.value ?? ''}
-                  onChange={field.onChange}
-                  error={Boolean(errors.recipeId)}
-                  helperText={errors.recipeId?.message}
-                >
-                  <option value="">
-                    {recipeOptions.isLoading ? 'Loading…' : 'Select a recipe'}
-                  </option>
-                  {(recipeOptions.data ?? []).map((option) => (
-                    <option key={option.id} value={option.id}>
-                      {option.name}
-                    </option>
-                  ))}
-                </TextField>
-              )}
-            />
-            {TEXT_FIELDS.map((f) => (
-              <TextField
-                key={f.name}
-                label={f.label}
-                type={f.number ? 'number' : 'text'}
-                multiline={f.multiline}
-                minRows={f.multiline ? 2 : undefined}
-                size="small"
-                fullWidth
-                error={Boolean(errors[f.name])}
-                helperText={errors[f.name]?.message}
-                {...register(f.name)}
-              />
-            ))}
+          <Stack spacing={3}>
+            <FormSection title="Brew">
+              <Grid size={12}>
+                <Controller
+                  name="recipeId"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      select
+                      // A native select always shows its first option, so the label must sit above it.
+                      slotProps={{ select: { native: true }, inputLabel: { shrink: true } }}
+                      label="Recipe"
+                      required
+                      size="small"
+                      fullWidth
+                      disabled={recipeOptions.isLoading}
+                      value={field.value ?? ''}
+                      onChange={field.onChange}
+                      error={Boolean(errors.recipeId)}
+                      helperText={errors.recipeId?.message}
+                    >
+                      <option value="">
+                        {recipeOptions.isLoading ? 'Loading…' : 'Select a recipe'}
+                      </option>
+                      {(recipeOptions.data ?? []).map((option) => (
+                        <option key={option.id} value={option.id}>
+                          {option.name}
+                        </option>
+                      ))}
+                    </TextField>
+                  )}
+                />
+              </Grid>
+              {BREW_FIELDS.map((f) => (
+                <Grid key={f.name} size={{ xs: 12, sm: 4 }}>
+                  {renderTextField(f)}
+                </Grid>
+              ))}
+            </FormSection>
+            <FormSection title="Result">
+              <Grid size={{ xs: 12, sm: 4 }}>
+                {renderTextField({ name: 'rating', label: 'Rating', number: true })}
+              </Grid>
+              {RESULT_NOTE_FIELDS.map((f) => (
+                <Grid key={f.name} size={12}>
+                  {renderTextField(f)}
+                </Grid>
+              ))}
+            </FormSection>
           </Stack>
         </DialogContent>
         <DialogActions>
