@@ -1,7 +1,10 @@
 'use client';
 
 import Alert from '@mui/material/Alert';
-import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import NextLink from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { verifyEmail } from '@/lib/api/auth';
@@ -34,16 +37,27 @@ export function VerifyEmailView() {
   }, [token, refreshUser]);
 
   return (
-    <Box sx={{ maxWidth: 400, mx: 'auto', mt: 8 }}>
+    <Stack spacing={3}>
+      <Typography variant="h4" component="h1">
+        Verify your email
+      </Typography>
       {state === 'verifying' ? <Spinner /> : null}
       {state === 'success' ? (
-        <Alert severity="success">
-          Your email has been verified. <a href="/dashboard">Continue to the app</a>
-        </Alert>
+        <>
+          <Alert severity="success">Your email has been verified.</Alert>
+          <Button component={NextLink} href="/dashboard" variant="contained" size="large">
+            Continue to the app
+          </Button>
+        </>
       ) : null}
       {state === 'error' ? (
-        <Alert severity="error">This verification link is invalid or has expired.</Alert>
+        <>
+          <Alert severity="error">This verification link is invalid or has expired.</Alert>
+          <Typography variant="body2" color="text.secondary">
+            Log in and use Resend verification email to get a new link.
+          </Typography>
+        </>
       ) : null}
-    </Box>
+    </Stack>
   );
 }

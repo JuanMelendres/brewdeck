@@ -109,7 +109,7 @@ Status: Planned (added 2026-09-30)
   2. Navigation — icons, active route, logo, user card (POC, PR #173) + responsive mobile drawer with top bar — Done (FDD `docs/product/fdd/navigation-fdd.md`, PR on `feat/web-responsive-navigation`)
   3. Dashboard — greeting, stat cards with icons, method-usage chart, rankings as lists — TODO
   4. Lists — cards or airier tables, chips, `Rating` stars, skeletons, `EmptyState` with CTA — TODO
-  5. Auth screens — split layout with brand panel — TODO
+  5. Auth screens — split layout with brand panel on login (POC, PR #173), register, forgot/reset password, verify email, and the verification-required screen — Done (PR on `feat/web-auth-screens`)
   6. Micro-interactions — hover transitions, snackbars after mutations — TODO
   7. Theme preference — backend: V22 `users.theme_preference` (null = never asked), `themePreference` in `/me`, `PUT /api/auth/me/theme`; frontend: toggle in Account settings + first-login light/dark dialog with live preview — Done (FDD `docs/product/fdd/theme-preference-fdd.md`; backend PR #175, frontend PR on `feat/web-theme-preference`)
   8. Language (i18n) — Spanish + English: translation files (evaluate `next-intl`), locale-aware dates/numbers, translated backend messages and emails, per-user language preference + selector in Account (first-login dialog can ask language and theme together). Needs its own spike. Until then: English-only, dates fixed to `en-US` — TODO

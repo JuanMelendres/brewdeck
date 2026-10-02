@@ -7,6 +7,7 @@ import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import NextLink from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -45,20 +46,27 @@ export function ResetPasswordForm() {
 
   if (done) {
     return (
-      <Box sx={{ maxWidth: 400, mx: 'auto', mt: 8 }}>
-        <Alert severity="success">
-          Your password has been reset. <a href="/login">Log in</a>
-        </Alert>
-      </Box>
+      <Stack spacing={3}>
+        <Typography variant="h4" component="h1">
+          Password updated
+        </Typography>
+        <Alert severity="success">Your password has been reset.</Alert>
+        <Button component={NextLink} href="/login" variant="contained" size="large">
+          Log in
+        </Button>
+      </Stack>
     );
   }
 
   return (
-    <Box component="form" onSubmit={onSubmit} sx={{ maxWidth: 400, mx: 'auto', mt: 8 }}>
-      <Typography variant="h5" component="h1" gutterBottom>
+    <Box component="form" onSubmit={onSubmit}>
+      <Typography variant="h4" component="h1">
         Choose a new password
       </Typography>
-      <Stack spacing={2}>
+      <Typography color="text.secondary" sx={{ mt: 0.5, mb: 3 }}>
+        Enter it twice to confirm.
+      </Typography>
+      <Stack spacing={2.25}>
         {formError ? <Alert severity="error">{formError}</Alert> : null}
         <TextField
           label="New password"
@@ -74,7 +82,7 @@ export function ResetPasswordForm() {
           error={!!errors.confirmPassword}
           helperText={errors.confirmPassword?.message}
         />
-        <Button type="submit" variant="contained" disabled={isSubmitting}>
+        <Button type="submit" variant="contained" size="large" disabled={isSubmitting}>
           Reset password
         </Button>
       </Stack>
