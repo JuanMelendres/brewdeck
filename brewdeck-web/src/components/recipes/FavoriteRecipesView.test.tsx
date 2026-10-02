@@ -5,6 +5,9 @@ import { FavoriteRecipesView } from './FavoriteRecipesView';
 import * as favoritesHook from '@/hooks/useFavoriteRecipes';
 import type { PageResponse, Recipe } from '@/lib/api/types';
 
+vi.mock('@/hooks/useRecipeMutations', () => ({
+  useToggleFavorite: () => ({ mutate: vi.fn(), isPending: false }),
+}));
 vi.mock('./RecipeFormDialog', () => ({
   RecipeFormDialog: ({ open }: { open: boolean }) => (open ? <div>Edit recipe</div> : null),
 }));
@@ -50,7 +53,7 @@ describe('FavoriteRecipesView', () => {
     expect(screen.getByText(/no favorite recipes yet/i)).toBeInTheDocument();
   });
 
-  it('renders the table on success', () => {
+  it('renders the recipe cards on success', () => {
     mockHook({ isLoading: false, isError: false, data: page([recipe], 1) });
     renderWithTheme(<FavoriteRecipesView />);
     expect(screen.getByRole('link', { name: 'Mezcla AeroPress' })).toHaveAttribute(
@@ -64,7 +67,7 @@ describe('FavoriteRecipesView', () => {
     renderWithTheme(<FavoriteRecipesView />);
 
     expect(screen.queryByText('Edit recipe')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'edit' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Edit Mezcla AeroPress' }));
     expect(screen.getByText('Edit recipe')).toBeInTheDocument();
   });
 });

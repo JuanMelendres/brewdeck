@@ -1,7 +1,14 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { createRecipe, deleteRecipe, updateRecipe } from '@/lib/api/recipes';
+import {
+  createRecipe,
+  deleteRecipe,
+  favoriteRecipe,
+  unfavoriteRecipe,
+  updateRecipe,
+} from '@/lib/api/recipes';
+import { keys } from '@/lib/query/keys';
 import type { RecipeFormValues } from '@/lib/validation/recipeSchema';
 
 export function useCreateRecipe() {
@@ -25,5 +32,18 @@ export function useDeleteRecipe() {
   return useMutation({
     mutationFn: (id: number) => deleteRecipe(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['recipes'] }),
+  });
+}
+
+/** Marks or unmarks a recipe as favorite; refreshes recipe lists and the dashboard's favorite count. */
+export function useToggleFavorite() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, favorite }: { id: number; favorite: boolean }) =>
+      favorite ? favoriteRecipe(id) : unfavoriteRecipe(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['recipes'] });
+      void queryClient.invalidateQueries({ queryKey: keys.dashboard.summary });
+    },
   });
 }

@@ -9,10 +9,11 @@ import { useState } from 'react';
 import { useCoffees } from '@/hooks/useCoffees';
 import { useDebounce } from '@/hooks/useDebounce';
 import { ErrorState } from '@/components/ui/ErrorState';
+import { CardGridSkeleton } from '@/components/ui/CardGrid';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { CoffeeFilters } from './CoffeeFilters';
 import { CoffeeFormDialog } from './CoffeeFormDialog';
-import { CoffeeCards, CoffeeCardsSkeleton } from './CoffeeCards';
+import { CoffeeCards } from './CoffeeCards';
 import { DeleteCoffeeDialog } from './DeleteCoffeeDialog';
 import type { Coffee, CoffeeFilters as Filters } from '@/lib/api/types';
 
@@ -40,7 +41,7 @@ export function CoffeesView() {
 
   let body;
   if (isLoading && !data) {
-    body = <CoffeeCardsSkeleton />;
+    body = <CardGridSkeleton />;
   } else if (isError || !data) {
     body = <ErrorState message="Could not load coffees." onRetry={() => refetch()} />;
   } else if (data.content.length === 0) {
