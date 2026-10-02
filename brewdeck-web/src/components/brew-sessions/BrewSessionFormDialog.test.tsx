@@ -76,4 +76,16 @@ describe('BrewSessionFormDialog', () => {
     fireEvent.click(screen.getByRole('button', { name: /create/i }));
     expect(await screen.findByText('Rating must not exceed 10')).toBeInTheDocument();
   });
+
+  it('groups the fields into Brew and Result sections', () => {
+    mockAll();
+    renderWithTheme(<BrewSessionFormDialog open onClose={vi.fn()} />);
+
+    expect(screen.getByRole('region', { name: 'Brew' })).toContainElement(
+      screen.getByLabelText('Actual Grind'),
+    );
+    const result = screen.getByRole('region', { name: 'Result' });
+    expect(result).toContainElement(screen.getByLabelText('Rating'));
+    expect(result).toContainElement(screen.getByLabelText('Adjustment Notes'));
+  });
 });

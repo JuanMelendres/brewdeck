@@ -130,4 +130,19 @@ describe('RecipeFormDialog', () => {
     expect(await screen.findByText(/balanced for a medium roast/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/ratio/i)).toHaveValue('1:16');
   });
+
+  it('groups the fields into Recipe, Brewing, and Notes sections', () => {
+    mockAll();
+    renderWithTheme(<RecipeFormDialog open onClose={vi.fn()} />);
+
+    expect(screen.getByRole('region', { name: 'Recipe' })).toContainElement(
+      screen.getByLabelText(/^Brew Method/),
+    );
+    expect(screen.getByRole('region', { name: 'Brewing' })).toContainElement(
+      screen.getByLabelText('Grind Setting'),
+    );
+    expect(screen.getByRole('region', { name: 'Notes' })).toContainElement(
+      screen.getByLabelText('Steps'),
+    );
+  });
 });

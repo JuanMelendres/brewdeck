@@ -113,7 +113,7 @@ Status: Planned (added 2026-09-30)
   6. Micro-interactions — hover transitions, snackbars after mutations — TODO
   7. Theme preference — backend: V22 `users.theme_preference` (null = never asked), `themePreference` in `/me`, `PUT /api/auth/me/theme`; frontend: toggle in Account settings + first-login light/dark dialog with live preview — Done (FDD `docs/product/fdd/theme-preference-fdd.md`; backend PR #175, frontend PR on `feat/web-theme-preference`)
   8. Language (i18n) — Spanish + English: translation files (evaluate `next-intl`), locale-aware dates/numbers, translated backend messages and emails, per-user language preference + selector in Account (first-login dialog can ask language and theme together). Needs its own spike. Until then: English-only, dates fixed to `en-US` — TODO
-  9. Forms — select-label overlap fix + coffee dialog in two columns with Coffee/Origin/Tasting sections — In progress (PR on `feat/web-coffee-form-layout`); next: same layout for the Recipe and Brew Session dialogs, FDD TODO
+  9. Forms — select-label overlap fix + coffee dialog sections (PR #178) + Recipe and Brew Session dialog sections with a shared `FormSection` — Done (FDD `docs/product/fdd/forms-fdd.md`)
 
 ## Status Summary
 
