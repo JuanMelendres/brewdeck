@@ -17,20 +17,25 @@ const empty: BrewSession = {
 };
 
 describe('BrewSessionsTable', () => {
-  it('renders session rows with recipe name, formatted brewedAt, and dashes for nulls', () => {
+  it('renders session rows with the recipe link, formatted date, rating, and units', () => {
     renderWithTheme(<BrewSessionsTable sessions={[base, empty]} />);
 
-    expect(screen.getByText('Mezcla AeroPress')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Mezcla AeroPress' })).toHaveAttribute('href', '/recipes/1');
     // Rendered in the viewer's zone, never the raw UTC string.
     expect(screen.getByText(formatDateTime(base.brewedAt))).toBeInTheDocument();
     expect(screen.queryByText(/2026-01-01T10:30/)).not.toBeInTheDocument();
     expect(screen.getByText('9')).toBeInTheDocument();
-    expect(screen.getByText('90')).toBeInTheDocument();
+    expect(screen.getByText('/10')).toBeInTheDocument();
+    expect(screen.getByText('90°C')).toBeInTheDocument();
     expect(screen.getByText('2:30')).toBeInTheDocument();
     expect(screen.getByText('Clean')).toBeInTheDocument();
+  });
+
+  it('shows a dash for each missing value', () => {
+    renderWithTheme(<BrewSessionsTable sessions={[empty]} />);
 
     expect(screen.getByText(formatDateTime(empty.brewedAt))).toBeInTheDocument();
-    // 'empty' row has null rating, actualTemp, actualTime, tasteResult → four dashes
-    expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(4);
+    // Null rating, actualTemp, actualTime, and tasteResult.
+    expect(screen.getAllByText('—')).toHaveLength(4);
   });
 });

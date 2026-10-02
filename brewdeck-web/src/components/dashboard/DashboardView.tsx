@@ -12,6 +12,7 @@ import Typography from '@mui/material/Typography';
 import type { ReactNode } from 'react';
 import { useDashboardSummary } from '@/hooks/useDashboardSummary';
 import { useAuth } from '@/lib/auth/AuthProvider';
+import { UI_LOCALE } from '@/lib/format/dates';
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { StatCard } from './StatCard';
@@ -57,8 +58,7 @@ export function DashboardView() {
     <>
       <Box component="header" sx={{ mb: 3.5 }}>
         <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
-          {/* Fixed to English like the rest of the UI; the browser locale would mix languages. */}
-          {now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+          {now.toLocaleDateString(UI_LOCALE, { weekday: 'long', month: 'long', day: 'numeric' })}
         </Typography>
         <Typography variant="h4" component="h1">
           {name ? `${greeting(now.getHours())}, ${name}` : 'Dashboard'}
