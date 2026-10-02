@@ -4,9 +4,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -35,11 +37,14 @@ export function RegisterForm() {
   });
 
   return (
-    <Box component="form" onSubmit={onSubmit} sx={{ maxWidth: 400, mx: 'auto', mt: 8 }}>
-      <Typography variant="h5" component="h1" gutterBottom>
-        Register
+    <Box component="form" onSubmit={onSubmit}>
+      <Typography variant="h4" component="h1">
+        Create your account
       </Typography>
-      <Stack spacing={2}>
+      <Typography color="text.secondary" sx={{ mt: 0.5, mb: 3 }}>
+        Start logging your coffees, recipes, and brews.
+      </Typography>
+      <Stack spacing={2.25}>
         {formError ? <Alert severity="error">{formError}</Alert> : null}
         <TextField
           label="Email"
@@ -55,11 +60,14 @@ export function RegisterForm() {
           error={!!errors.password}
           helperText={errors.password?.message}
         />
-        <Button type="submit" variant="contained" disabled={isSubmitting}>
+        <Button type="submit" variant="contained" size="large" disabled={isSubmitting}>
           Create account
         </Button>
-        <Typography variant="body2">
-          Already have an account? <a href="/login">Log in</a>
+        <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+          Already have an account?{' '}
+          <Link component={NextLink} href="/login" underline="hover" sx={{ fontWeight: 600 }}>
+            Log in
+          </Link>
         </Typography>
       </Stack>
     </Box>

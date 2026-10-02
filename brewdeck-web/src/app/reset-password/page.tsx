@@ -1,10 +1,13 @@
 import { Suspense } from 'react';
+import { AuthLayout } from '@/components/auth/AuthLayout';
 import { ResetPasswordForm } from '@/components/auth/ResetPasswordForm';
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense>
-      <ResetPasswordForm />
-    </Suspense>
+    <AuthLayout>
+      <Suspense>
+        <ResetPasswordForm />
+      </Suspense>
+    </AuthLayout>
   );
 }

@@ -1,7 +1,6 @@
 'use client';
 
 import Alert from '@mui/material/Alert';
-import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -12,6 +11,7 @@ import { useAuth } from '@/lib/auth/AuthProvider';
 import { onEmailNotVerified } from '@/lib/auth/emailVerificationSignal';
 import { useFeatureFlags } from '@/lib/featureFlags/FeatureFlagProvider';
 import { Spinner } from '@/components/ui/Spinner';
+import { AuthLayout } from './AuthLayout';
 
 type ResendStatus = 'idle' | 'sending' | 'sent' | 'error';
 
@@ -71,11 +71,11 @@ function VerifyEmailRequired({ email }: { email: string }) {
   };
 
   return (
-    <Box component="main" sx={{ maxWidth: 480, mx: 'auto', mt: 10, px: 2 }}>
-      <Typography variant="h5" component="h1" gutterBottom>
+    <AuthLayout>
+      <Typography variant="h4" component="h1" gutterBottom>
         Verify your email to continue
       </Typography>
-      <Typography sx={{ mb: 3 }}>
+      <Typography color="text.secondary" sx={{ mb: 3 }}>
         We sent a verification link to <strong>{email}</strong>. Open it to start using BrewDeck.
       </Typography>
       <Stack spacing={2}>
@@ -98,6 +98,6 @@ function VerifyEmailRequired({ email }: { email: string }) {
           Log out
         </Button>
       </Stack>
-    </Box>
+    </AuthLayout>
   );
 }

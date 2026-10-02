@@ -22,6 +22,7 @@ describe('VerifyEmailView', () => {
     render(<VerifyEmailView />);
     await waitFor(() => expect(verifyEmailMock).toHaveBeenCalledWith('valid-token'));
     expect(await screen.findByText(/your email has been verified/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /continue to the app/i })).toHaveAttribute('href', '/dashboard');
   });
 
   it('shows the invalid-link message on failure', async () => {

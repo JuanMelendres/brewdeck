@@ -40,6 +40,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
         <Box />
       </Box>
       <Box
+        component="main"
         sx={{
           flexGrow: 1,
           display: 'flex',

@@ -50,6 +50,7 @@ describe('ResetPasswordForm', () => {
       }),
     );
     expect(await screen.findByText(/your password has been reset/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /log in/i })).toHaveAttribute('href', '/login');
   });
 
   it('shows invalid-link message on a 400 response', async () => {
