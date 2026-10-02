@@ -2,17 +2,13 @@
 
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 import type { ReactNode } from 'react';
 import { useMostUsedCoffees } from '@/hooks/useMostUsedCoffees';
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { Count, RankedList } from './RankedList';
 
 export function MostUsedCoffees() {
   const { data, isLoading, isError, refetch } = useMostUsedCoffees(5);
@@ -26,30 +22,20 @@ export function MostUsedCoffees() {
     body = <EmptyState message="No coffees used in recipes yet." />;
   } else {
     body = (
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>#</TableCell>
-            <TableCell>Coffee</TableCell>
-            <TableCell align="right">Recipes</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {data.map((coffee, index) => (
-            <TableRow key={coffee.coffeeId}>
-              <TableCell>{index + 1}</TableCell>
-              <TableCell>{coffee.coffeeName}</TableCell>
-              <TableCell align="right">{coffee.recipeCount}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <RankedList
+        items={data.map((coffee) => ({
+          key: coffee.coffeeId,
+          label: coffee.coffeeName,
+          href: `/coffees/${coffee.coffeeId}`,
+          badge: <Count value={coffee.recipeCount} singular="recipe" plural="recipes" />,
+        }))}
+      />
     );
   }
 
   return (
-    <Card variant="outlined">
-      <CardContent>
+    <Card sx={{ height: '100%' }}>
+      <CardContent sx={{ p: 3 }}>
         <Typography variant="h6" component="h2" gutterBottom>
           Most Used Coffees
         </Typography>
