@@ -1,20 +1,22 @@
 'use client';
 
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import TablePagination from '@mui/material/TablePagination';
 import Typography from '@mui/material/Typography';
 import { useState, type ReactNode } from 'react';
 import { useFavoriteRecipes } from '@/hooks/useFavoriteRecipes';
-import { Spinner } from '@/components/ui/Spinner';
 import { ErrorState } from '@/components/ui/ErrorState';
+import { CardGridSkeleton } from '@/components/ui/CardGrid';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { RecipesTable } from './RecipesTable';
+import { RecipeCards } from './RecipeCards';
 import { RecipeFormDialog } from './RecipeFormDialog';
 import { DeleteRecipeDialog } from './DeleteRecipeDialog';
 import type { Recipe } from '@/lib/api/types';
 
 export function FavoriteRecipesView() {
   const [page, setPage] = useState(0);
-  const [size, setSize] = useState(10);
+  // Multiples of 12 fill the 1-, 2-, and 3-column card grids evenly.
+  const [size, setSize] = useState(12);
 
   const { data, isLoading, isError, refetch } = useFavoriteRecipes({ page, size });
 
@@ -23,15 +25,20 @@ export function FavoriteRecipesView() {
 
   let body: ReactNode;
   if (isLoading && !data) {
-    body = <Spinner />;
+    body = <CardGridSkeleton />;
   } else if (isError || !data) {
     body = <ErrorState message="Could not load favorite recipes." onRetry={() => refetch()} />;
   } else if (data.content.length === 0) {
-    body = <EmptyState message="No favorite recipes yet." />;
+    body = (
+      <EmptyState
+        icon={<FavoriteBorderIcon />}
+        message="No favorite recipes yet. Tap the heart on a recipe to keep it here."
+      />
+    );
   } else {
     body = (
       <>
-        <RecipesTable
+        <RecipeCards
           recipes={data.content}
           onEdit={(recipe) => setEditing(recipe)}
           onDelete={(recipe) => setDeleting(recipe)}
@@ -41,7 +48,9 @@ export function FavoriteRecipesView() {
           count={data.totalElements}
           page={page}
           rowsPerPage={size}
-          rowsPerPageOptions={[10, 20, 50]}
+          rowsPerPageOptions={[12, 24, 48]}
+          labelRowsPerPage="Per page"
+          sx={{ mt: 1 }}
           onPageChange={(_event, newPage) => setPage(newPage)}
           onRowsPerPageChange={(event) => {
             setSize(parseInt(event.target.value, 10));
@@ -54,7 +63,7 @@ export function FavoriteRecipesView() {
 
   return (
     <>
-      <Typography variant="h5" component="h1" gutterBottom>
+      <Typography variant="h4" component="h1" sx={{ mb: 2 }}>
         Favorite Recipes
       </Typography>
       {body}

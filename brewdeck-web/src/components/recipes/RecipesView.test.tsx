@@ -14,6 +14,7 @@ vi.mock('@/hooks/useRecipeMutations', () => ({
   useCreateRecipe: () => ({ mutate: vi.fn(), isPending: false }),
   useUpdateRecipe: () => ({ mutate: vi.fn(), isPending: false }),
   useDeleteRecipe: () => ({ mutate: vi.fn(), isPending: false }),
+  useToggleFavorite: () => ({ mutate: vi.fn(), isPending: false }),
 }));
 vi.mock('@/hooks/useResourceOptions', () => ({
   useCoffeeOptions: () => ({ data: [], isLoading: false }),
@@ -55,13 +56,15 @@ describe('RecipesView', () => {
     expect(screen.getByText(/could not load recipes/i)).toBeInTheDocument();
   });
 
-  it('shows an empty state when there are no recipes', () => {
+  it('invites the user to add a first recipe when there are none', () => {
     mockHook({ isLoading: false, isError: false, data: page([], 0) });
     renderWithTheme(<RecipesView />);
-    expect(screen.getByText(/no recipes found/i)).toBeInTheDocument();
+    expect(screen.getByText(/no recipes yet/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /add your first recipe/i }));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 
-  it('renders the table on success', () => {
+  it('renders the recipe cards on success', () => {
     mockHook({ isLoading: false, isError: false, data: page([recipe], 1) });
     renderWithTheme(<RecipesView />);
     expect(screen.getByText('Mezcla AeroPress')).toBeInTheDocument();

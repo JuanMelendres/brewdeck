@@ -81,6 +81,14 @@ export function deleteRecipe(id: number): Promise<void> {
   return apiFetch<void>(`/api/recipes/${id}`, { method: 'DELETE' });
 }
 
+export function favoriteRecipe(id: number): Promise<Recipe> {
+  return apiFetch<Recipe>(`/api/recipes/${id}/favorite`, { method: 'PATCH' });
+}
+
+export function unfavoriteRecipe(id: number): Promise<Recipe> {
+  return apiFetch<Recipe>(`/api/recipes/${id}/unfavorite`, { method: 'PATCH' });
+}
+
 export function shareRecipe(id: number): Promise<Recipe> {
   return apiFetch<Recipe>(`/api/recipes/${id}/share`, { method: 'PATCH' });
 }

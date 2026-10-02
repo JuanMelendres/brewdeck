@@ -7,12 +7,11 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Chip from '@mui/material/Chip';
-import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
 import Link from '@mui/material/Link';
-import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 import NextLink from 'next/link';
+import { CardGrid } from '@/components/ui/CardGrid';
 import type { Coffee } from '@/lib/api/types';
 
 const SCORES: Array<{ key: keyof Coffee; label: string }> = [
@@ -26,9 +25,7 @@ function present(value: string | null): value is string {
   return value !== null && value.trim() !== '';
 }
 
-const gridSize = { xs: 12, sm: 6, lg: 4 };
-
-/** Coffees as a responsive card grid: one column on phones, two on tablets, three on desktop. */
+/** Coffees as a responsive card grid. */
 export function CoffeeCards({
   coffees,
   onEdit,
@@ -39,13 +36,11 @@ export function CoffeeCards({
   onDelete?: (coffee: Coffee) => void;
 }) {
   return (
-    <Grid container spacing={2.5} component="ul" sx={{ listStyle: 'none', p: 0, m: 0 }}>
-      {coffees.map((coffee) => (
-        <Grid key={coffee.id} size={gridSize} component="li">
-          <CoffeeCard coffee={coffee} onEdit={onEdit} onDelete={onDelete} />
-        </Grid>
-      ))}
-    </Grid>
+    <CardGrid
+      items={coffees}
+      getKey={(coffee) => coffee.id}
+      renderItem={(coffee) => <CoffeeCard coffee={coffee} onEdit={onEdit} onDelete={onDelete} />}
+    />
   );
 }
 
@@ -133,31 +128,5 @@ function CoffeeCard({
         ) : null}
       </CardContent>
     </Card>
-  );
-}
-
-/** Placeholder grid shown while the first page loads. */
-export function CoffeeCardsSkeleton({ count = 6 }: { count?: number }) {
-  return (
-    <Box role="status" aria-label="Loading">
-      <Grid container spacing={2.5}>
-        {Array.from({ length: count }, (_, index) => (
-          <Grid key={index} size={gridSize}>
-            <Card sx={{ height: '100%' }}>
-              <CardContent sx={{ p: 2.5 }}>
-                <Skeleton variant="text" width="60%" height={28} />
-                <Skeleton variant="text" width="35%" />
-                <Skeleton variant="text" width="50%" sx={{ mt: 1 }} />
-                <Box sx={{ display: 'flex', gap: 1, my: 1.5 }}>
-                  <Skeleton variant="rounded" width={64} height={24} />
-                  <Skeleton variant="rounded" width={64} height={24} />
-                </Box>
-                <Skeleton variant="rounded" height={44} />
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-    </Box>
   );
 }
