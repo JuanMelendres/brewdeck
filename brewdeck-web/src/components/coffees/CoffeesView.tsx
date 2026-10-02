@@ -1,5 +1,6 @@
 'use client';
 
+import CoffeeOutlinedIcon from '@mui/icons-material/CoffeeOutlined';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import TablePagination from '@mui/material/TablePagination';
@@ -7,18 +8,18 @@ import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 import { useCoffees } from '@/hooks/useCoffees';
 import { useDebounce } from '@/hooks/useDebounce';
-import { Spinner } from '@/components/ui/Spinner';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { CoffeeFilters } from './CoffeeFilters';
 import { CoffeeFormDialog } from './CoffeeFormDialog';
-import { CoffeesTable } from './CoffeesTable';
+import { CoffeeCards, CoffeeCardsSkeleton } from './CoffeeCards';
 import { DeleteCoffeeDialog } from './DeleteCoffeeDialog';
 import type { Coffee, CoffeeFilters as Filters } from '@/lib/api/types';
 
 export function CoffeesView() {
   const [page, setPage] = useState(0);
-  const [size, setSize] = useState(10);
+  // Multiples of 12 fill the 1-, 2-, and 3-column card grids evenly.
+  const [size, setSize] = useState(12);
   const [filters, setFilters] = useState<Filters>({});
   const debouncedFilters = useDebounce(filters, 300);
 
@@ -39,15 +40,24 @@ export function CoffeesView() {
 
   let body;
   if (isLoading && !data) {
-    body = <Spinner />;
+    body = <CoffeeCardsSkeleton />;
   } else if (isError || !data) {
     body = <ErrorState message="Could not load coffees." onRetry={() => refetch()} />;
   } else if (data.content.length === 0) {
-    body = <EmptyState message="No coffees found." />;
+    const filtered = Object.values(debouncedFilters).some((value) => value !== undefined && value !== '');
+    body = filtered ? (
+      <EmptyState message="No coffees match these filters." />
+    ) : (
+      <EmptyState
+        icon={<CoffeeOutlinedIcon />}
+        message="No coffees yet. Add the beans you brew with to start building recipes."
+        action={{ label: 'Add your first coffee', onClick: () => setCreateOpen(true) }}
+      />
+    );
   } else {
     body = (
       <>
-        <CoffeesTable
+        <CoffeeCards
           coffees={data.content}
           onEdit={(coffee) => setEditing(coffee)}
           onDelete={(coffee) => setDeleting(coffee)}
@@ -57,7 +67,9 @@ export function CoffeesView() {
           count={data.totalElements}
           page={page}
           rowsPerPage={size}
-          rowsPerPageOptions={[10, 20, 50]}
+          rowsPerPageOptions={[12, 24, 48]}
+          labelRowsPerPage="Per page"
+          sx={{ mt: 1 }}
           onPageChange={(_event, newPage) => setPage(newPage)}
           onRowsPerPageChange={(event) => {
             setSize(parseInt(event.target.value, 10));
@@ -70,8 +82,8 @@ export function CoffeesView() {
 
   return (
     <>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-        <Typography variant="h5" component="h1">
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, mb: 2 }}>
+        <Typography variant="h4" component="h1">
           Coffees
         </Typography>
         <Button variant="contained" onClick={() => setCreateOpen(true)}>
