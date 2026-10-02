@@ -30,4 +30,9 @@ describe('date formatting', () => {
     expect('2026-09-30T10:00:25Z' > '2026-09-30T10:00:25.5Z').toBe(true);
     expect(compareInstants('2026-09-30T10:00:25Z', '2026-09-30T10:00:25.5Z')).toBeLessThan(0);
   });
+
+  it('formats in English whatever the browser locale is', () => {
+    expect(formatDateTime('2026-09-30T17:27:25Z', 'UTC')).toBe('Sep 30, 2026, 5:27 PM');
+    expect(formatDate('2026-09-30T17:27:25Z', 'UTC')).toBe('Sep 30, 2026');
+  });
 });

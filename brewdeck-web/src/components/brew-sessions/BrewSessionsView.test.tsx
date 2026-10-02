@@ -41,10 +41,11 @@ describe('BrewSessionsView', () => {
     expect(screen.getByText(/could not load brew sessions/i)).toBeInTheDocument();
   });
 
-  it('shows an empty state when there are no sessions', () => {
+  it('invites the user to log a first brew when there are none', () => {
     mockHook({ isLoading: false, isError: false, data: page([], 0) });
     renderWithTheme(<BrewSessionsView />);
-    expect(screen.getByText(/no brew sessions found/i)).toBeInTheDocument();
+    expect(screen.getByText(/no brew sessions yet/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /log your first brew/i })).toBeInTheDocument();
   });
 
   it('renders the table on success', () => {

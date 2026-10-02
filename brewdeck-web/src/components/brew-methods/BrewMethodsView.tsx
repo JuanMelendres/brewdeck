@@ -1,14 +1,15 @@
 'use client';
 
+import CoffeeMakerOutlinedIcon from '@mui/icons-material/CoffeeMakerOutlined';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import TablePagination from '@mui/material/TablePagination';
 import Typography from '@mui/material/Typography';
 import { useState, type ReactNode } from 'react';
 import { useBrewMethods } from '@/hooks/useBrewMethods';
-import { Spinner } from '@/components/ui/Spinner';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { TableSkeleton } from '@/components/ui/TableSkeleton';
 import type { BrewMethod } from '@/lib/api/brewMethods';
 import { BrewMethodFormDialog } from './BrewMethodFormDialog';
 import { BrewMethodsTable } from './BrewMethodsTable';
@@ -26,11 +27,11 @@ export function BrewMethodsView() {
 
   let body: ReactNode;
   if (isLoading && !data) {
-    body = <Spinner />;
+    body = <TableSkeleton columns={3} />;
   } else if (isError || !data) {
     body = <ErrorState message="Could not load brew methods." onRetry={() => refetch()} />;
   } else if (data.content.length === 0) {
-    body = <EmptyState message="No brew methods found." />;
+    body = <EmptyState icon={<CoffeeMakerOutlinedIcon />} message="No brew methods found." />;
   } else {
     body = (
       <>
@@ -45,6 +46,8 @@ export function BrewMethodsView() {
           page={page}
           rowsPerPage={size}
           rowsPerPageOptions={[10, 20, 50]}
+          labelRowsPerPage="Per page"
+          sx={{ mt: 1 }}
           onPageChange={(_event, newPage) => setPage(newPage)}
           onRowsPerPageChange={(event) => {
             setSize(parseInt(event.target.value, 10));
@@ -57,8 +60,8 @@ export function BrewMethodsView() {
 
   return (
     <>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-        <Typography variant="h5" component="h1">
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, mb: 2 }}>
+        <Typography variant="h4" component="h1">
           Brew Methods
         </Typography>
         <Button variant="contained" onClick={() => setCreateOpen(true)}>

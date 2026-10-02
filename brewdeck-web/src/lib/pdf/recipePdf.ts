@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
 import type { Recipe } from '@/lib/api/types';
+import { formatDate } from '@/lib/format/dates';
 
 export function orDash(value: string | number | null): string {
   if (value === null) {
@@ -78,7 +79,7 @@ export function buildRecipePdf(recipe: Recipe): jsPDF {
   }
 
   doc.setFontSize(9);
-  doc.text(`Generated ${new Date().toLocaleDateString()}`, marginX, 285);
+  doc.text(`Generated ${formatDate(new Date().toISOString())}`, marginX, 285);
 
   return doc;
 }

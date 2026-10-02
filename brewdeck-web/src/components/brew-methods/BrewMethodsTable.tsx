@@ -1,5 +1,7 @@
 'use client';
 
+import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
 import Paper from '@mui/material/Paper';
@@ -9,16 +11,8 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
+import Typography from '@mui/material/Typography';
 import type { BrewMethod } from '@/lib/api/brewMethods';
-
-function orDash(value: string | null): string {
-  if (value === null) {
-    return '—';
-  }
-  return value.trim() !== '' ? value : '—';
-}
 
 export function BrewMethodsTable({
   methods,
@@ -30,45 +24,50 @@ export function BrewMethodsTable({
   onDelete?: (method: BrewMethod) => void;
 }) {
   return (
-    <TableContainer component={Paper} variant="outlined">
-      <Table>
+    <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: '18px' }}>
+      <Table sx={{ minWidth: 560, '& td, & th': { px: 2.5 }, '& td': { py: 1.75 } }}>
         <TableHead>
           <TableRow>
-            <TableCell>Name</TableCell>
-            <TableCell>Description</TableCell>
+            <TableCell>Method</TableCell>
             <TableCell>Type</TableCell>
             <TableCell align="right">Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {methods.map((method) => (
-            <TableRow key={method.id}>
-              <TableCell>{method.name}</TableCell>
-              <TableCell>{orDash(method.description)}</TableCell>
+            <TableRow key={method.id} hover>
+              <TableCell>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  {method.name}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {method.description && method.description.trim() !== '' ? method.description : '—'}
+                </Typography>
+              </TableCell>
               <TableCell>
                 {method.shared ? (
                   <Chip label="Shared" size="small" variant="outlined" />
                 ) : (
-                  <Chip label="Mine" size="small" color="primary" />
+                  <Chip label="Mine" size="small" sx={{ bgcolor: 'background.tint', color: 'secondary.main' }} />
                 )}
               </TableCell>
-              <TableCell align="right">
+              <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                 {/* Shared-catalog methods are read-only for regular users; the backend enforces it. */}
                 {method.shared ? null : (
                   <>
                     <IconButton
-                      aria-label={`edit ${method.name}`}
+                      aria-label={`Edit ${method.name}`}
                       size="small"
                       onClick={() => onEdit?.(method)}
                     >
-                      <EditIcon fontSize="small" />
+                      <EditOutlinedIcon fontSize="small" />
                     </IconButton>
                     <IconButton
-                      aria-label={`delete ${method.name}`}
+                      aria-label={`Delete ${method.name}`}
                       size="small"
                       onClick={() => onDelete?.(method)}
                     >
-                      <DeleteIcon fontSize="small" />
+                      <DeleteOutlinedIcon fontSize="small" />
                     </IconButton>
                   </>
                 )}
