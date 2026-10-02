@@ -32,7 +32,7 @@ describe('MostUsedCoffees', () => {
     expect(screen.getByText(/no coffees used in recipes yet/i)).toBeInTheDocument();
   });
 
-  it('renders ranked rows with recipe counts', () => {
+  it('renders ranked coffees linking to their detail page', () => {
     const data: MostUsedCoffee[] = [
       { coffeeId: 2, coffeeName: 'Popular', recipeCount: 7 },
       { coffeeId: 1, coffeeName: 'Rare', recipeCount: 1 },
@@ -41,8 +41,10 @@ describe('MostUsedCoffees', () => {
 
     renderWithTheme(<MostUsedCoffees />);
 
-    expect(screen.getByText('Popular')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Popular' })).toHaveAttribute('href', '/coffees/2');
     expect(screen.getByText('7')).toBeInTheDocument();
-    expect(screen.getByText('Rare')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Rare' })).toHaveAttribute('href', '/coffees/1');
+    // Singular for a count of one.
+    expect(screen.getByText(/recipe$/)).toBeInTheDocument();
   });
 });
