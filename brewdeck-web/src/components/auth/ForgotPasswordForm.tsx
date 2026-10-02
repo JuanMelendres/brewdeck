@@ -4,11 +4,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import NextLink from 'next/link';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { rateLimitMessage } from '@/lib/api/errors';
 import { forgotPassword } from '@/lib/api/auth';
 import { forgotPasswordSchema, type ForgotPasswordFormValues } from '@/lib/validation/authSchema';
 
@@ -26,17 +29,20 @@ export function ForgotPasswordForm() {
     try {
       await forgotPassword(values);
       setSubmitted(true);
-    } catch {
-      setFormError('Could not send the reset link. Please try again.');
+    } catch (error) {
+      setFormError(rateLimitMessage(error) ?? 'Could not send the reset link. Please try again.');
     }
   });
 
   return (
-    <Box component="form" onSubmit={onSubmit} sx={{ maxWidth: 400, mx: 'auto', mt: 8 }}>
-      <Typography variant="h5" component="h1" gutterBottom>
+    <Box component="form" onSubmit={onSubmit}>
+      <Typography variant="h4" component="h1">
         Reset your password
       </Typography>
-      <Stack spacing={2}>
+      <Typography color="text.secondary" sx={{ mt: 0.5, mb: 3 }}>
+        Enter your email and we will send you a link to choose a new password.
+      </Typography>
+      <Stack spacing={2.25}>
         {formError ? <Alert severity="error">{formError}</Alert> : null}
         {submitted ? (
           <Alert severity="success">
@@ -50,11 +56,14 @@ export function ForgotPasswordForm() {
           error={!!errors.email}
           helperText={errors.email?.message}
         />
-        <Button type="submit" variant="contained" disabled={isSubmitting}>
+        <Button type="submit" variant="contained" size="large" disabled={isSubmitting}>
           Send reset link
         </Button>
-        <Typography variant="body2">
-          Remembered it? <a href="/login">Log in</a>
+        <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+          Remembered it?{' '}
+          <Link component={NextLink} href="/login" underline="hover" sx={{ fontWeight: 600 }}>
+            Log in
+          </Link>
         </Typography>
       </Stack>
     </Box>

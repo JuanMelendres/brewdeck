@@ -15,6 +15,8 @@ export type ErrorResponse = {
   message: string;
   path: string;
   validationErrors?: Record<string, string>;
+  /** Machine-readable reason, set only for specific errors (e.g. EMAIL_NOT_VERIFIED). */
+  code?: string | null;
 };
 
 export type DashboardSummary = {
@@ -136,7 +138,7 @@ export type AuthResponse = {
   token: string;
   expiresAt: string;
   email: string;
-  refreshToken: string;
+  // The refresh token is never read by the client: it travels in an httpOnly cookie (ADR-013).
 };
 
 export type UserResponse = {
@@ -144,5 +146,12 @@ export type UserResponse = {
   email: string;
   displayName: string | null;
   emailVerified: boolean;
+  role: UserRole;
+  /** `null` until the user picks a theme; the app then shows its one-time theme dialog. */
+  themePreference: ThemePreference | null;
   createdAt: string;
 };
+
+export type UserRole = 'USER' | 'ADMIN';
+
+export type ThemePreference = 'LIGHT' | 'DARK';

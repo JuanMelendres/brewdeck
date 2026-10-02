@@ -1,5 +1,5 @@
 import { apiFetch } from './client';
-import type { AuthResponse, UserResponse } from './types';
+import type { AuthResponse, ThemePreference, UserResponse } from './types';
 
 export function register(body: { email: string; password: string }): Promise<AuthResponse> {
   return apiFetch<AuthResponse>('/api/auth/register', {
@@ -22,6 +22,13 @@ export function getMe(): Promise<UserResponse> {
 export function updateProfile(body: { displayName: string | null }): Promise<UserResponse> {
   return apiFetch<UserResponse>('/api/auth/me', {
     method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+}
+
+export function updateTheme(body: { themePreference: ThemePreference }): Promise<UserResponse> {
+  return apiFetch<UserResponse>('/api/auth/me/theme', {
+    method: 'PUT',
     body: JSON.stringify(body),
   });
 }
@@ -63,16 +70,7 @@ export function resendVerification(): Promise<{ message: string }> {
   });
 }
 
-export function refresh(refreshToken: string): Promise<AuthResponse> {
-  return apiFetch<AuthResponse>('/api/auth/refresh', {
-    method: 'POST',
-    body: JSON.stringify({ refreshToken }),
-  });
-}
-
-export function logout(refreshToken: string): Promise<void> {
-  return apiFetch<void>('/api/auth/logout', {
-    method: 'POST',
-    body: JSON.stringify({ refreshToken }),
-  });
+/** Revokes the refresh cookie's token server-side and clears the cookie (ADR-013). */
+export function logout(): Promise<void> {
+  return apiFetch<void>('/api/auth/logout', { method: 'POST' });
 }

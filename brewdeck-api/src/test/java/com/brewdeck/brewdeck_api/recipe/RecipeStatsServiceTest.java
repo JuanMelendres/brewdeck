@@ -15,7 +15,7 @@ import com.brewdeck.brewdeck_api.session.MostBrewedRecipe;
 import com.brewdeck.brewdeck_api.session.RecipeSessionStats;
 import com.brewdeck.brewdeck_api.session.TopRatedRecipe;
 import jakarta.persistence.EntityNotFoundException;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,7 +39,7 @@ class RecipeStatsServiceTest {
 
   @Test
   void getStats_shouldReturnAggregatedStats() {
-    LocalDateTime lastBrewedAt = LocalDateTime.of(2026, 7, 5, 10, 0);
+    Instant lastBrewedAt = Instant.parse("2026-07-05T10:00:00Z");
 
     when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
     when(recipeRepository.existsByIdAndOwnerId(1L, 42L)).thenReturn(true);
@@ -189,7 +189,7 @@ class RecipeStatsServiceTest {
     };
   }
 
-  private RecipeSessionStats stats(long totalSessions, Double averageRating, LocalDateTime last) {
+  private RecipeSessionStats stats(long totalSessions, Double averageRating, Instant last) {
     return new RecipeSessionStats() {
       @Override
       public long getTotalSessions() {
@@ -202,7 +202,7 @@ class RecipeStatsServiceTest {
       }
 
       @Override
-      public LocalDateTime getLastBrewedAt() {
+      public Instant getLastBrewedAt() {
         return last;
       }
     };

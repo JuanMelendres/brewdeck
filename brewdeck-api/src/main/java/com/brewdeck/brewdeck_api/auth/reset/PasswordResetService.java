@@ -2,8 +2,12 @@ package com.brewdeck.brewdeck_api.auth.reset;
 
 import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.auth.UserRepository;
+import com.brewdeck.brewdeck_api.auth.refresh.RefreshTokenService;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
 import com.brewdeck.brewdeck_api.common.security.SecureTokens;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -21,20 +25,28 @@ public class PasswordResetService {
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
   private final PasswordResetMailPort mailPort;
+  private final RefreshTokenService refreshTokenService;
+  private final RateLimiter rateLimiter;
 
   public PasswordResetService(
       PasswordResetTokenRepository tokenRepository,
       UserRepository userRepository,
       PasswordEncoder passwordEncoder,
-      PasswordResetMailPort mailPort) {
+      PasswordResetMailPort mailPort,
+      RefreshTokenService refreshTokenService,
+      RateLimiter rateLimiter) {
     this.tokenRepository = tokenRepository;
     this.userRepository = userRepository;
     this.passwordEncoder = passwordEncoder;
     this.mailPort = mailPort;
+    this.refreshTokenService = refreshTokenService;
+    this.rateLimiter = rateLimiter;
   }
 
   @Transactional
   public void requestReset(ForgotPasswordRequest request) {
+    // Checked before the lookup so known and unknown emails are throttled alike (no enumeration).
+    rateLimiter.requireAllowed(RateLimitRule.FORGOT_PASSWORD_EMAIL, request.email());
     Optional<User> maybeUser = userRepository.findByEmail(request.email());
     if (maybeUser.isEmpty()) {
       // No user enumeration: silently succeed for unknown emails.
@@ -46,7 +58,7 @@ public class PasswordResetService {
     // Invalidate any outstanding unused tokens for this user.
     List<PasswordResetToken> outstanding =
         tokenRepository.findByUserIdAndUsedAtIsNull(user.getId());
-    LocalDateTime now = LocalDateTime.now();
+    Instant now = Instant.now();
     outstanding.forEach(token -> token.setUsedAt(now));
     tokenRepository.saveAll(outstanding);
 
@@ -55,7 +67,7 @@ public class PasswordResetService {
         PasswordResetToken.builder()
             .userId(user.getId())
             .tokenHash(SecureTokens.sha256Hex(rawToken))
-            .expiresAt(now.plusMinutes(TTL_MINUTES))
+            .expiresAt(now.plus(TTL_MINUTES, ChronoUnit.MINUTES))
             .createdAt(now)
             .build());
 
@@ -70,7 +82,7 @@ public class PasswordResetService {
             .findByTokenHash(SecureTokens.sha256Hex(request.token()))
             .orElseThrow(() -> new InvalidResetTokenException("Unknown reset token"));
 
-    if (token.getUsedAt() != null || token.getExpiresAt().isBefore(LocalDateTime.now())) {
+    if (token.getUsedAt() != null || token.getExpiresAt().isBefore(Instant.now())) {
       throw new InvalidResetTokenException("Reset token used or expired");
     }
 
@@ -82,8 +94,9 @@ public class PasswordResetService {
     user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
     userRepository.save(user);
 
-    token.setUsedAt(LocalDateTime.now());
+    token.setUsedAt(Instant.now());
     tokenRepository.save(token);
+    refreshTokenService.revokeAllForUser(user.getId());
     log.info("Password reset completed for user id={}", user.getId());
   }
 }

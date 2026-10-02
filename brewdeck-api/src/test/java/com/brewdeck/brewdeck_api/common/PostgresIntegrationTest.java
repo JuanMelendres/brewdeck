@@ -2,11 +2,13 @@ package com.brewdeck.brewdeck_api.common;
 
 import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.auth.UserRepository;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -39,9 +41,17 @@ public abstract class PostgresIntegrationTest {
           User.builder()
               .email(MOCK_USER_EMAIL)
               .passwordHash("integration-test-placeholder")
-              .createdAt(LocalDateTime.now())
+              .createdAt(Instant.now())
               .build());
     }
+  }
+
+  /**
+   * Runs a request as the seeded mock user holding {@code ROLE_ADMIN}, for admin-only endpoints
+   * such as brew-method writes.
+   */
+  protected static RequestPostProcessor asAdmin() {
+    return SecurityMockMvcRequestPostProcessors.user(MOCK_USER_EMAIL).roles("ADMIN");
   }
 
   protected User mockUser() {

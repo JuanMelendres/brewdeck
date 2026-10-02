@@ -1,4 +1,4 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderWithTheme } from '@/test/renderWithTheme';
 import { CoffeesView } from './CoffeesView';
@@ -43,13 +43,29 @@ describe('CoffeesView', () => {
     expect(screen.getByText(/could not load coffees/i)).toBeInTheDocument();
   });
 
-  it('shows an empty state when there are no coffees', () => {
+  it('invites the user to add a first coffee when there are none', () => {
     mockHook({ isLoading: false, isError: false, data: page([], 0) });
     renderWithTheme(<CoffeesView />);
-    expect(screen.getByText(/no coffees found/i)).toBeInTheDocument();
+
+    expect(screen.getByText(/no coffees yet/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /add your first coffee/i }));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 
-  it('renders the table on success', () => {
+  it('says nothing matches when filters hide every coffee', () => {
+    vi.useFakeTimers();
+    mockHook({ isLoading: false, isError: false, data: page([], 0) });
+    renderWithTheme(<CoffeesView />);
+
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Nope' } });
+    act(() => vi.advanceTimersByTime(300));
+
+    expect(screen.getByText(/no coffees match these filters/i)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /add your first coffee/i })).not.toBeInTheDocument();
+    vi.useRealTimers();
+  });
+
+  it('renders the coffee cards on success', () => {
     mockHook({ isLoading: false, isError: false, data: page([coffee], 1) });
     renderWithTheme(<CoffeesView />);
     expect(screen.getByText('Mezcla Veracruz')).toBeInTheDocument();

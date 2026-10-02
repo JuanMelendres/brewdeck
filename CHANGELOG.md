@@ -7,8 +7,21 @@ for status and [`.claude/project-state.md`](.claude/project-state.md) for detail
 
 ## [Unreleased]
 
+### Changed
+- **Backend migrated from Spring Boot 3.5.16 to 4.1.1** (closes `CVE-2026-59282` and `CVE-2026-47834`, unresolved in the 3.5.x line after 3 rounds of OWASP remediation). See [ADR-008](docs/decisions/ADR-008-spring-boot-4-migration.md). Notable side effects: Flyway now runs via `spring-boot-starter-flyway` (Boot 4 silently skips migrations on bare `flyway-core`), Jackson 2 kept via the `spring-boot-jackson2` compatibility shim (Jackson 3 port deferred), springdoc bumped to 3.1.1 (2.8.17 breaks Swagger UI at runtime under Boot 4), Tomcat re-pinned to 11.0.26 after Boot 4's default 11.0.24 turned out to carry its own unpatched CVEs.
+- Pinned `pnpm` bumped from a broken `11.12.0` release to `11.27.1` (`brewdeck-web/package.json`).
+
 ### Added
 - Docs-as-code structure under [`docs/`](docs/README.md): product, architecture, decisions, API, testing, development, plus ADRs and a seed `openapi.yaml`.
+- Dependabot enabled (Maven, npm, GitHub Actions) with a scoped CI-gated auto-merge workflow: eligible patch/minor bumps merge automatically once their ecosystem's checks pass; major and pre-1.0 package bumps are flagged for manual review instead.
+- `security.yml`'s OWASP scan now also runs on pull requests touching `brewdeck-api/pom.xml`, not only on the weekly schedule.
+- `PostToolUse` hook (`.claude/settings.json`) auto-runs `./mvnw spotless:apply` after editing a backend Java file.
+
+### Fixed
+- `RecipeRepository`/`BrewSessionRepository`: added explicit `@NonNull`/`@Nullable` on overridden Spring Data methods (matches the real `@NonNullApi` contract; no behavior change).
+- Backend repositories: explicit `@Param` on multi-parameter JPQL queries (defensive against losing the `-parameters` compile flag).
+- `api-ci.yml` no longer fails Dependabot PRs on a Sonar auth error — GitHub doesn't expose `SONAR_TOKEN` to Dependabot-triggered runs; Sonar analysis is now skipped only for that actor, tests/Spotless/PMD still run.
+- Deprecated `@MockBean` replaced with `@MockitoBean` in `PublicRecipeControllerTest`.
 
 ## Phase 6 — Auth & multi-user (in progress)
 

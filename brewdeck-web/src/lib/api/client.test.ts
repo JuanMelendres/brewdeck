@@ -1,13 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ApiError, apiFetch } from './client';
-import {
-  clearRefreshToken,
-  clearToken,
-  getRefreshToken,
-  getToken,
-  setRefreshToken,
-  setToken,
-} from '@/lib/auth/tokenStore';
+import { onEmailNotVerified } from '@/lib/auth/emailVerificationSignal';
+import { ApiError, apiFetch, refreshSession } from './client';
+import { clearTokens, getToken, setToken } from '@/lib/auth/tokenStore';
 
 function mockFetchOnce(body: unknown, init: { ok: boolean; status: number }) {
   vi.stubGlobal(
@@ -38,8 +32,7 @@ function routedFetch(
 
 afterEach(() => {
   vi.unstubAllGlobals();
-  clearToken();
-  clearRefreshToken();
+  clearTokens();
 });
 
 describe('apiFetch', () => {
@@ -72,6 +65,41 @@ describe('apiFetch', () => {
     await expect(apiFetch('/api/thing')).rejects.toBeInstanceOf(ApiError);
   });
 
+  it('carries the error code and signals EMAIL_NOT_VERIFIED to the UI', async () => {
+    const listener = vi.fn();
+    const unsubscribe = onEmailNotVerified(listener);
+    mockFetchOnce(
+      {
+        status: 403,
+        error: 'Forbidden',
+        message: 'Verify your email address to continue',
+        path: '/api/coffees',
+        code: 'EMAIL_NOT_VERIFIED',
+      },
+      { ok: false, status: 403 },
+    );
+
+    await expect(apiFetch('/api/coffees')).rejects.toMatchObject({
+      status: 403,
+      code: 'EMAIL_NOT_VERIFIED',
+    });
+    expect(listener).toHaveBeenCalledTimes(1);
+    unsubscribe();
+  });
+
+  it('does not signal for an ordinary 403', async () => {
+    const listener = vi.fn();
+    const unsubscribe = onEmailNotVerified(listener);
+    mockFetchOnce(
+      { status: 403, error: 'Forbidden', message: 'Insufficient permissions', path: '/api/admin/x' },
+      { ok: false, status: 403 },
+    );
+
+    await expect(apiFetch('/api/admin/x')).rejects.toMatchObject({ status: 403 });
+    expect(listener).not.toHaveBeenCalled();
+    unsubscribe();
+  });
+
   it('adds the Authorization header when a token is present', async () => {
     setToken('jwt-token');
     const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
@@ -88,7 +116,7 @@ describe('apiFetch', () => {
   });
 
   it('omits the Authorization header when no token is present', async () => {
-    clearToken();
+    clearTokens();
     const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
       ok: true,
       status: 200,
@@ -152,13 +180,12 @@ describe('apiFetch', () => {
 
   it('refreshes once and retries the original request on 401', async () => {
     setToken('stale-access');
-    setRefreshToken('r-1');
     let coffeesCalls = 0;
     const fetchMock = routedFetch({
       '/api/auth/refresh': () => ({
         ok: true,
         status: 200,
-        body: { token: 'fresh-access', refreshToken: 'r-2', email: 'u@e.com', expiresAt: 'x' },
+        body: { token: 'fresh-access', email: 'u@e.com', expiresAt: 'x' },
       }),
       '/api/coffees': () => {
         coffeesCalls += 1;
@@ -179,13 +206,12 @@ describe('apiFetch', () => {
 
   it('shares a single refresh across concurrent 401s', async () => {
     setToken('stale-access');
-    setRefreshToken('r-1');
     const okAfterRefresh: Record<string, number> = {};
     const fetchMock = routedFetch({
       '/api/auth/refresh': () => ({
         ok: true,
         status: 200,
-        body: { token: 'fresh-access', refreshToken: 'r-2', email: 'u@e.com', expiresAt: 'x' },
+        body: { token: 'fresh-access', email: 'u@e.com', expiresAt: 'x' },
       }),
       '/api/a': () => {
         okAfterRefresh.a = (okAfterRefresh.a ?? 0) + 1;
@@ -210,7 +236,6 @@ describe('apiFetch', () => {
 
   it('propagates the retried request error (400) without a forced logout when refresh succeeds', async () => {
     setToken('stale-access');
-    setRefreshToken('r-1');
     const assignMock = vi.fn();
     vi.stubGlobal('location', { pathname: '/', assign: assignMock });
     let coffeesCalls = 0;
@@ -220,7 +245,7 @@ describe('apiFetch', () => {
         '/api/auth/refresh': () => ({
           ok: true,
           status: 200,
-          body: { token: 'fresh-access', refreshToken: 'r-2', email: 'u@e.com', expiresAt: 'x' },
+          body: { token: 'fresh-access', email: 'u@e.com', expiresAt: 'x' },
         }),
         '/api/coffees': () => {
           coffeesCalls += 1;
@@ -241,7 +266,6 @@ describe('apiFetch', () => {
 
   it('clears tokens and redirects when the refresh itself fails', async () => {
     setToken('stale-access');
-    setRefreshToken('r-1');
     const assignMock = vi.fn();
     vi.stubGlobal('location', { pathname: '/', assign: assignMock });
     vi.stubGlobal(
@@ -254,7 +278,73 @@ describe('apiFetch', () => {
 
     await expect(apiFetch('/api/coffees')).rejects.toThrow();
     expect(getToken()).toBeNull();
-    expect(getRefreshToken()).toBeNull();
     expect(assignMock).toHaveBeenCalledWith('/login');
+  });
+
+  it('refreshes with the httpOnly cookie: no body, CSRF header, same-origin credentials', async () => {
+    const fetchMock = routedFetch({
+      '/api/auth/refresh': () => ({
+        ok: true,
+        status: 200,
+        body: { token: 'fresh-access', email: 'u@e.com', expiresAt: 'x' },
+      }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await refreshSession();
+
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(init.method).toBe('POST');
+    expect(init.body).toBeUndefined();
+    expect(init.credentials).toBe('same-origin');
+    expect(init.headers).toMatchObject({ 'X-Requested-With': 'fetch' });
+    expect(getToken()).toBe('fresh-access');
+  });
+
+  it('sends the CSRF header on every request', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve({}),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await apiFetch('/api/coffees');
+
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(init.headers).toMatchObject({ 'X-Requested-With': 'fetch' });
+  });
+
+  it('serializes refresh across tabs with a Web Lock when available', async () => {
+    const request = vi.fn((_name: string, callback: () => Promise<string>) => callback());
+    vi.stubGlobal('navigator', { locks: { request } });
+    vi.stubGlobal(
+      'fetch',
+      routedFetch({
+        '/api/auth/refresh': () => ({
+          ok: true,
+          status: 200,
+          body: { token: 'locked-access', email: 'u@e.com', expiresAt: 'x' },
+        }),
+      }),
+    );
+
+    await expect(refreshSession()).resolves.toBe('locked-access');
+    expect(request).toHaveBeenCalledWith('brewdeck-refresh', expect.any(Function));
+  });
+
+  it('does not try to refresh on a 401 when there is no session (e.g. a failed login)', async () => {
+    const fetchMock = routedFetch({
+      '/api/auth/login': () => ({ ok: false, status: 401, body: { message: 'Invalid email or password' } }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    vi.stubGlobal('location', { pathname: '/login', assign: vi.fn() });
+
+    await expect(apiFetch('/api/auth/login', { method: 'POST' })).rejects.toMatchObject({
+      status: 401,
+      message: 'Invalid email or password',
+    });
+    const refreshCalls = fetchMock.mock.calls.filter((c) => String(c[0]).includes('/api/auth/refresh'));
+    expect(refreshCalls).toHaveLength(0);
   });
 });

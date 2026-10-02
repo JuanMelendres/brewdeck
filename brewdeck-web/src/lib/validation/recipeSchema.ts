@@ -11,8 +11,19 @@ export const recipeSchema = z.object({
   coffeeId: z.coerce.number().int().positive('Coffee is required'),
   methodId: z.coerce.number().int().positive('Brew method is required'),
   name: z.string().min(1, 'Name is required').max(120, 'Name must not exceed 120 characters'),
-  coffeeGrams: optionalNumber(z.coerce.number().positive('Coffee grams must be greater than zero')),
-  waterGrams: optionalNumber(z.coerce.number().positive('Water grams must be greater than zero')),
+  // Backend stores grams as DECIMAL(6,2): at most 9999.99.
+  coffeeGrams: optionalNumber(
+    z.coerce
+      .number()
+      .positive('Coffee grams must be greater than zero')
+      .max(9999.99, 'Coffee grams must not exceed 9999.99'),
+  ),
+  waterGrams: optionalNumber(
+    z.coerce
+      .number()
+      .positive('Water grams must be greater than zero')
+      .max(9999.99, 'Water grams must not exceed 9999.99'),
+  ),
   ratio: z.string().max(20, 'Ratio must not exceed 20 characters').optional(),
   grindSetting: z.string().max(120, 'Grind setting must not exceed 120 characters').optional(),
   waterTemp: optionalNumber(

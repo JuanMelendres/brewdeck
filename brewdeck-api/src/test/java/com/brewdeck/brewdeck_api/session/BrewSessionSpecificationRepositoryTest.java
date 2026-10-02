@@ -7,11 +7,11 @@ import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.common.PostgresRepositoryTest;
 import com.brewdeck.brewdeck_api.method.BrewMethod;
 import com.brewdeck.brewdeck_api.recipe.Recipe;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -22,7 +22,7 @@ class BrewSessionSpecificationRepositoryTest extends PostgresRepositoryTest {
   @Autowired private BrewSessionRepository brewSessionRepository;
 
   @Autowired
-  private org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager entityManager;
+  private org.springframework.boot.jpa.test.autoconfigure.TestEntityManager entityManager;
 
   @Test
   void search_shouldFilterByRecipeIdAndRating() {
@@ -34,7 +34,7 @@ class BrewSessionSpecificationRepositoryTest extends PostgresRepositoryTest {
         BrewSession.builder()
             .recipe(recipe)
             .owner(owner)
-            .brewedAt(LocalDateTime.now())
+            .brewedAt(Instant.now())
             .rating(9)
             .tasteResult("Balanced")
             .build();
@@ -43,7 +43,7 @@ class BrewSessionSpecificationRepositoryTest extends PostgresRepositoryTest {
         BrewSession.builder()
             .recipe(otherRecipe)
             .owner(owner)
-            .brewedAt(LocalDateTime.now())
+            .brewedAt(Instant.now())
             .rating(7)
             .tasteResult("Weak")
             .build();
@@ -71,20 +71,10 @@ class BrewSessionSpecificationRepositoryTest extends PostgresRepositoryTest {
     Recipe recipe = persistRecipe("Mezcla Veracruz AeroPress", owner);
 
     BrewSession sessionOne =
-        BrewSession.builder()
-            .recipe(recipe)
-            .owner(owner)
-            .brewedAt(LocalDateTime.now())
-            .rating(9)
-            .build();
+        BrewSession.builder().recipe(recipe).owner(owner).brewedAt(Instant.now()).rating(9).build();
 
     BrewSession sessionTwo =
-        BrewSession.builder()
-            .recipe(recipe)
-            .owner(owner)
-            .brewedAt(LocalDateTime.now())
-            .rating(8)
-            .build();
+        BrewSession.builder().recipe(recipe).owner(owner).brewedAt(Instant.now()).rating(8).build();
 
     entityManager.persist(sessionOne);
     entityManager.persist(sessionTwo);
@@ -107,20 +97,10 @@ class BrewSessionSpecificationRepositoryTest extends PostgresRepositoryTest {
     Recipe recipe = persistRecipe("Mezcla Veracruz AeroPress", owner);
 
     BrewSession ownedSession =
-        BrewSession.builder()
-            .recipe(recipe)
-            .brewedAt(LocalDateTime.now())
-            .rating(9)
-            .owner(owner)
-            .build();
+        BrewSession.builder().recipe(recipe).brewedAt(Instant.now()).rating(9).owner(owner).build();
 
     BrewSession foreignSession =
-        BrewSession.builder()
-            .recipe(recipe)
-            .brewedAt(LocalDateTime.now())
-            .rating(7)
-            .owner(other)
-            .build();
+        BrewSession.builder().recipe(recipe).brewedAt(Instant.now()).rating(7).owner(other).build();
 
     entityManager.persist(ownedSession);
     entityManager.persist(foreignSession);
@@ -138,7 +118,7 @@ class BrewSessionSpecificationRepositoryTest extends PostgresRepositoryTest {
         User.builder()
             .email(email)
             .passwordHash("hashed-password")
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     return entityManager.persistAndFlush(user);

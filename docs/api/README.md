@@ -4,7 +4,7 @@ Endpoint catalog for the BrewDeck REST API. Design principles and conventions ar
 in [`architecture/api-design.md`](../architecture/api-design.md).
 
 - **Base URL (local):** `http://localhost:8080`
-- **Live docs:** `http://localhost:8080/swagger-ui/index.html`
+- **Live docs:** `http://localhost:8080/swagger-ui/index.html` (local/dev only; disabled in the `prod` profile unless `API_DOCS_ENABLED=true`)
 - **OpenAPI seed:** [`openapi.yaml`](openapi.yaml)
 - **Postman:** [`postman/brewdeck.postman_collection.json`](postman/brewdeck.postman_collection.json) + [`brewdeck.local.postman_environment.json`](postman/brewdeck.local.postman_environment.json)
 
@@ -14,18 +14,37 @@ in [`architecture/api-design.md`](../architecture/api-design.md).
 ```
 POST  /api/auth/register            201
 POST  /api/auth/login               200
-GET   /api/auth/me                  200 (401 without token; includes emailVerified)
+GET   /api/auth/me                  200 (401 without token; includes emailVerified, role: USER|ADMIN, themePreference: LIGHT|DARK|null)
 PATCH /api/auth/me                  200 (update display name)
-POST  /api/auth/change-password     204 (400 if current password wrong)
+PUT   /api/auth/me/theme            200 (set themePreference LIGHT|DARK; 400 if missing or unknown)
+POST  /api/auth/change-password     204 (400 if current password wrong; revokes all refresh tokens)
 POST  /api/auth/forgot-password     200 (always; no user enumeration)
-POST  /api/auth/reset-password      204 (400 if token invalid/expired/used)
+POST  /api/auth/reset-password      204 (400 if token invalid/expired/used; revokes all refresh tokens)
 POST  /api/auth/verify-email        204 (400 if token invalid/expired/used)
 POST  /api/auth/resend-verification 200 (authenticated; no-op if already verified)
-POST  /api/auth/refresh             200 (public; 401 if refresh token invalid/expired/used; 400 if blank)
-POST  /api/auth/logout              204 (authenticated; revokes only the presented refresh token)
+POST  /api/auth/refresh             200 (public; refresh token from the httpOnly cookie + X-Requested-With header; 401 if invalid/expired/used/missing; 403 cookie without header)
+POST  /api/auth/logout              204 (authenticated; revokes the presented refresh token and clears the cookie)
 ```
 
-> `register` and `login` responses now also include a `refreshToken` field alongside `token`, `expiresAt`, and `email`.
+> Public auth endpoints are rate limited per client IP, and login and forgot-password also per
+> account. Over the limit you get `429` with `Retry-After` (seconds) and a message such as
+> `"Too many attempts. Try again in 3 minutes."`. See
+> [ADR-011](../decisions/ADR-011-in-memory-auth-rate-limiting.md) for the limits.
+
+> Emails are case-insensitive. `register`, `login`, and `forgot-password` trim and lowercase the
+> address, and responses return that normalized form. Registering `Juan@x.com` when
+> `juan@x.com` exists is a `409`.
+
+> Changing or resetting a password ends every existing session: all of the user's active refresh
+> tokens are revoked, so other devices must log in again. Already-issued access tokens stay valid
+> until they expire (`AUTH_TOKEN_TTL`, default 15 minutes).
+
+> **Refresh token cookie (ADR-013).** `register`, `login`, and `refresh` set `brewdeck_refresh`
+> (`HttpOnly; Secure; SameSite=Strict; Path=/api/auth`). Cookie-authenticated calls must send an
+> `X-Requested-With` header. The refresh token is **never** returned in or accepted from a JSON
+> body.
+
+> `register`, `login`, and `refresh` return `token`, `expiresAt`, and `email`.
 
 ## Feature flags (`/api/feature-flags`)
 ```
@@ -49,13 +68,28 @@ GET    /api/coffees/most-used            (analytics, List)
 
 ## Brew methods (`/api/brew-methods`)
 ```
-GET    /api/brew-methods
-GET    /api/brew-methods/{id}
-POST   /api/brew-methods
-PUT    /api/brew-methods/{id}
-DELETE /api/brew-methods/{id}
-GET    /api/brew-methods/usage           (analytics, List)
+GET    /api/brew-methods                 (shared catalog + the caller's private methods)
+GET    /api/brew-methods/{id}            (404 for another user's private method)
+POST   /api/brew-methods                 201 (creates a PRIVATE method owned by the caller)
+PUT    /api/brew-methods/{id}            200 own private only (403 shared, 404 another user's)
+DELETE /api/brew-methods/{id}            204 own private only (403 shared, 404 another user's)
+GET    /api/brew-methods/usage           (analytics, List; shared + own methods)
 ```
+
+## Admin: shared brew-method catalog (`/api/admin/brew-methods`, ADMIN only)
+```
+POST   /api/admin/brew-methods           201 (creates a SHARED method visible to everyone)
+PUT    /api/admin/brew-methods/{id}      200 (404 if not in the shared catalog)
+DELETE /api/admin/brew-methods/{id}      204 (404 if not in the shared catalog)
+```
+
+> Brew methods have two tiers. The **shared catalog** (`"shared": true`) is visible to everyone
+> and only admins change it. **Private methods** (`"shared": false`) belong to the user who
+> created them. Nobody else can see them, and a recipe can only use a shared method or one of
+> the caller's own. Names are unique within the catalog and within each user's methods. A
+> regular user calling `/api/admin/**` gets `403` `{"message":"Insufficient permissions"}`, and
+> an anonymous caller gets `401`. See [ADR-009](../decisions/ADR-009-role-based-authorization.md)
+> and [ADR-010](../decisions/ADR-010-two-tier-brew-methods.md).
 
 ## Recipes (`/api/recipes`)
 ```

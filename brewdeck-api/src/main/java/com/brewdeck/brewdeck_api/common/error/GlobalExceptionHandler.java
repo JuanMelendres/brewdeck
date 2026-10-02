@@ -7,17 +7,22 @@ import com.brewdeck.brewdeck_api.auth.InvalidCurrentPasswordException;
 import com.brewdeck.brewdeck_api.auth.refresh.InvalidRefreshTokenException;
 import com.brewdeck.brewdeck_api.auth.reset.InvalidResetTokenException;
 import com.brewdeck.brewdeck_api.auth.verification.InvalidVerificationTokenException;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitExceededException;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitMessages;
 import com.brewdeck.brewdeck_api.featureflag.FeatureDisabledException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.mapping.PropertyReferenceException;
+import org.springframework.data.core.PropertyReferenceException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -26,6 +31,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.util.HtmlUtils;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
   @ExceptionHandler(EntityNotFoundException.class)
@@ -168,9 +174,51 @@ public class GlobalExceptionHandler {
     return ResponseEntity.badRequest().body(errorResponse);
   }
 
+  @ExceptionHandler(RateLimitExceededException.class)
+  public ResponseEntity<ErrorResponse> handleRateLimitExceeded(
+      RateLimitExceededException exception, HttpServletRequest request) {
+    long retryAfterSeconds = exception.getDecision().retryAfterSeconds();
+    ErrorResponse errorResponse =
+        buildErrorResponse(
+            HttpStatus.TOO_MANY_REQUESTS,
+            RateLimitMessages.tooManyAttempts(retryAfterSeconds),
+            sanitize(request.getRequestURI()),
+            null);
+
+    return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+        .header(HttpHeaders.RETRY_AFTER, String.valueOf(retryAfterSeconds))
+        .body(errorResponse);
+  }
+
+  @ExceptionHandler(AccessDeniedException.class)
+  public ResponseEntity<ErrorResponse> handleAccessDenied(
+      AccessDeniedException exception, HttpServletRequest request) {
+    ErrorResponse errorResponse =
+        buildErrorResponse(
+            HttpStatus.FORBIDDEN,
+            "Insufficient permissions",
+            sanitize(request.getRequestURI()),
+            null);
+
+    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+  }
+
   @ExceptionHandler(EmailAlreadyUsedException.class)
   public ResponseEntity<ErrorResponse> handleEmailAlreadyUsed(
       EmailAlreadyUsedException exception, HttpServletRequest request) {
+    ErrorResponse errorResponse =
+        buildErrorResponse(
+            HttpStatus.CONFLICT,
+            sanitize(exception.getMessage()),
+            sanitize(request.getRequestURI()),
+            null);
+
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+  }
+
+  @ExceptionHandler(ResourceInUseException.class)
+  public ResponseEntity<ErrorResponse> handleResourceInUse(
+      ResourceInUseException exception, HttpServletRequest request) {
     ErrorResponse errorResponse =
         buildErrorResponse(
             HttpStatus.CONFLICT,
@@ -240,6 +288,19 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ErrorResponse> handleGenericException(
       Exception exception, HttpServletRequest request) {
+    // Spring MVC's own client errors (405 method not allowed, 404 no handler/resource, 415/406
+    // media type, 400 missing parameter, ResponseStatusException, ...) all implement Spring's
+    // ErrorResponse contract. Keep their status and headers (e.g. Allow on 405) instead of
+    // flattening them into a 500.
+    if (exception instanceof org.springframework.web.ErrorResponse springError) {
+      return handleSpringWebError(springError, exception, request);
+    }
+
+    log.error(
+        "Unhandled exception on {} {}",
+        request.getMethod(),
+        sanitizeForLog(request.getRequestURI()),
+        exception);
     ErrorResponse errorResponse =
         buildErrorResponse(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -250,15 +311,46 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
   }
 
+  private ResponseEntity<ErrorResponse> handleSpringWebError(
+      org.springframework.web.ErrorResponse springError,
+      Exception exception,
+      HttpServletRequest request) {
+    HttpStatus status = HttpStatus.resolve(springError.getStatusCode().value());
+    if (status == null) {
+      status = HttpStatus.INTERNAL_SERVER_ERROR;
+    }
+    if (status.is5xxServerError()) {
+      log.error(
+          "Server error on {} {}",
+          request.getMethod(),
+          sanitizeForLog(request.getRequestURI()),
+          exception);
+    } else {
+      log.debug(
+          "Client error {} on {} {}: {}",
+          status.value(),
+          request.getMethod(),
+          sanitizeForLog(request.getRequestURI()),
+          exception.getMessage());
+    }
+
+    String detail = springError.getBody().getDetail();
+    String message = detail != null && !detail.isBlank() ? detail : status.getReasonPhrase();
+    ErrorResponse errorResponse =
+        buildErrorResponse(status, sanitize(message), sanitize(request.getRequestURI()), null);
+
+    return ResponseEntity.status(status).headers(springError.getHeaders()).body(errorResponse);
+  }
+
   private ErrorResponse buildErrorResponse(
       HttpStatus status, String message, String path, Map<String, String> validationErrors) {
     return new ErrorResponse(
-        LocalDateTime.now(),
-        status.value(),
-        status.getReasonPhrase(),
-        message,
-        path,
-        validationErrors);
+        Instant.now(), status.value(), status.getReasonPhrase(), message, path, validationErrors);
+  }
+
+  /** Strips CR/LF so request-controlled values cannot forge log lines. */
+  private String sanitizeForLog(String value) {
+    return value == null ? null : value.replaceAll("[\\r\\n]", "_");
   }
 
   private String sanitize(String value) {

@@ -40,11 +40,6 @@
    "key": "authToken",
    "value": "",
    "type": "string"
-  },
-  {
-   "key": "refreshToken",
-   "value": "",
-   "type": "string"
   }
  ],
  "auth": {
@@ -60,7 +55,7 @@
  "item": [
   {
    "name": "Auth",
-   "description": "Self-registration, JWT login, current-user, and refresh/logout endpoints. Register/login are unauthenticated; login and register save the returned access token into authToken and the returned refresh token into refreshToken (collection variables) so protected requests inherit the bearer token via collection-level Bearer auth and Refresh/Logout can reuse the refresh token.",
+   "description": "Self-registration, JWT login, current-user, and refresh/logout endpoints. Register/login are unauthenticated; they save the access token into {{authToken}}, and the refresh token arrives as the httpOnly brewdeck_refresh cookie, which Postman's cookie jar sends automatically to /api/auth/refresh and /api/auth/logout (ADR-013). Those two require the X-Requested-With header.",
    "item": [
     {
      "name": "POST - Register",
@@ -101,8 +96,7 @@
          "pm.test('Status code is 201', function () {",
          "  pm.response.to.have.status(201);",
          "});",
-         "pm.collectionVariables.set('authToken', pm.response.json().token);",
-         "pm.collectionVariables.set('refreshToken', pm.response.json().refreshToken);"
+         "pm.collectionVariables.set('authToken', pm.response.json().token);"
         ]
        }
       }
@@ -147,8 +141,7 @@
          "pm.test('Status code is 200', function () {",
          "  pm.response.to.have.status(200);",
          "});",
-         "pm.collectionVariables.set('authToken', pm.response.json().token);",
-         "pm.collectionVariables.set('refreshToken', pm.response.json().refreshToken);"
+         "pm.collectionVariables.set('authToken', pm.response.json().token);"
         ]
        }
       }
@@ -230,6 +223,55 @@
         "exec": [
          "pm.test('Status code is 200', function () {",
          "  pm.response.to.have.status(200);",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "PUT - Update theme preference (me)",
+     "request": {
+      "method": "PUT",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{authToken}}"
+       }
+      ],
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"themePreference\": \"DARK\"\n}"
+      },
+      "url": {
+       "raw": "{{baseURL}}/api/auth/me/theme",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "auth",
+        "me",
+        "theme"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 200', function () {",
+         "  pm.response.to.have.status(200);",
+         "});",
+         "pm.test('Theme preference is saved', function () {",
+         "  pm.expect(pm.response.json().themePreference).to.eql('DARK');",
          "});"
         ]
        }
@@ -459,14 +501,11 @@
       "method": "POST",
       "header": [
        {
-        "key": "Content-Type",
-        "value": "application/json"
+        "key": "X-Requested-With",
+        "value": "postman",
+        "type": "text"
        }
       ],
-      "body": {
-       "mode": "raw",
-       "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
-      },
       "url": {
        "raw": "{{baseURL}}/api/auth/refresh",
        "host": [
@@ -477,7 +516,8 @@
         "auth",
         "refresh"
        ]
-      }
+      },
+      "description": "Uses the httpOnly brewdeck_refresh cookie that Postman's cookie jar stored from Register/Login (ADR-013). No body. The X-Requested-With header is required with the cookie."
      },
      "response": [],
      "event": [
@@ -489,8 +529,7 @@
          "pm.test('Status code is 200', function () {",
          "  pm.response.to.have.status(200);",
          "});",
-         "pm.collectionVariables.set('authToken', pm.response.json().token);",
-         "pm.collectionVariables.set('refreshToken', pm.response.json().refreshToken);"
+         "pm.collectionVariables.set('authToken', pm.response.json().token);"
         ]
        }
       }
@@ -502,18 +541,15 @@
       "method": "POST",
       "header": [
        {
-        "key": "Content-Type",
-        "value": "application/json"
-       },
-       {
         "key": "Authorization",
         "value": "Bearer {{authToken}}"
+       },
+       {
+        "key": "X-Requested-With",
+        "value": "postman",
+        "type": "text"
        }
       ],
-      "body": {
-       "mode": "raw",
-       "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
-      },
       "url": {
        "raw": "{{baseURL}}/api/auth/logout",
        "host": [
@@ -524,7 +560,8 @@
         "auth",
         "logout"
        ]
-      }
+      },
+      "description": "Uses the httpOnly brewdeck_refresh cookie that Postman's cookie jar stored from Register/Login (ADR-013). No body. The X-Requested-With header is required with the cookie."
      },
      "response": [],
      "event": [
@@ -1006,7 +1043,7 @@
      ]
     },
     {
-     "name": "POST - Create brew method",
+     "name": "POST - Create private brew method",
      "request": {
       "method": "POST",
       "header": [
@@ -1033,7 +1070,8 @@
          "language": "json"
         }
        }
-      }
+      },
+      "description": "Creates a private method visible only to the caller."
      },
      "response": [],
      "event": [
@@ -1057,7 +1095,7 @@
      ]
     },
     {
-     "name": "PUT - Update brew method",
+     "name": "PUT - Update own private brew method",
      "request": {
       "method": "PUT",
       "header": [
@@ -1085,7 +1123,8 @@
          "language": "json"
         }
        }
-      }
+      },
+      "description": "Only the caller's private methods. 403 on a shared-catalog method; 404 on another user's private method."
      },
      "response": [],
      "event": [
@@ -1103,7 +1142,7 @@
      ]
     },
     {
-     "name": "DELETE - Delete brew method",
+     "name": "DELETE - Delete own private brew method",
      "request": {
       "method": "DELETE",
       "header": [],
@@ -1117,7 +1156,148 @@
         "brew-methods",
         "{{methodId}}"
        ]
+      },
+      "description": "Only the caller's private methods. 403 on a shared-catalog method; 404 on another user's private method."
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 204, 404', function () {",
+         "  pm.expect(pm.response.code).to.be.oneOf([204, 404]);",
+         "});"
+        ]
+       }
       }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Admin - Brew Method Catalog",
+   "item": [
+    {
+     "name": "POST - Create shared brew method (ADMIN)",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "{{baseURL}}/api/admin/brew-methods",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "admin",
+        "brew-methods"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"name\": \"AeroPress {{$timestamp}}\",\n  \"description\": \"Immersion and pressure-based brewing method.\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      },
+      "description": "Shared catalog, ADMIN only (403 for regular users, 404 for private methods)."
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is successful', function () {",
+         "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+         "});",
+         "",
+         "const json = pm.response.json();",
+         "if (json.id) {",
+         "  pm.environment.set('methodId', json.id);",
+         "  pm.collectionVariables.set('methodId', json.id);",
+         "}"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "PUT - Update shared brew method (ADMIN)",
+     "request": {
+      "method": "PUT",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "{{baseURL}}/api/admin/brew-methods/{{methodId}}",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "admin",
+        "brew-methods",
+        "{{methodId}}"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"name\": \"AeroPress Updated {{$timestamp}}\",\n  \"description\": \"Updated brew method description.\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      },
+      "description": "Shared catalog, ADMIN only (403 for regular users, 404 for private methods)."
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 200', function () {",
+         "  pm.expect(pm.response.code).to.be.oneOf([200]);",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "DELETE - Delete shared brew method (ADMIN)",
+     "request": {
+      "method": "DELETE",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/admin/brew-methods/{{methodId}}",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "admin",
+        "brew-methods",
+        "{{methodId}}"
+       ]
+      },
+      "description": "Shared catalog, ADMIN only (403 for regular users, 404 for private methods)."
      },
      "response": [],
      "event": [

@@ -14,7 +14,8 @@ import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.auth.UserRepository;
 import com.brewdeck.brewdeck_api.common.security.SecureTokens;
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,8 +47,8 @@ class RefreshTokenServiceTest {
         .id(1L)
         .userId(user.getId())
         .tokenHash(SecureTokens.sha256Hex(rawToken))
-        .expiresAt(LocalDateTime.now().plusDays(7))
-        .createdAt(LocalDateTime.now())
+        .expiresAt(Instant.now().plus(7, ChronoUnit.DAYS))
+        .createdAt(Instant.now())
         .build();
   }
 
@@ -83,12 +84,12 @@ class RefreshTokenServiceTest {
   void rotateOnUsedTokenRevokesAllActiveAndThrows() {
     String raw = "raw-used";
     RefreshToken used = activeToken(raw);
-    used.setUsedAt(LocalDateTime.now().minusMinutes(1));
+    used.setUsedAt(Instant.now().minus(1, ChronoUnit.MINUTES));
     when(tokenRepository.findByTokenHash(SecureTokens.sha256Hex(raw)))
         .thenReturn(Optional.of(used));
 
     assertThatThrownBy(() -> service.rotate(raw)).isInstanceOf(InvalidRefreshTokenException.class);
-    verify(tokenRepository).revokeAllActiveForUser(eq(7L), any(LocalDateTime.class));
+    verify(tokenRepository).revokeAllActiveForUser(eq(7L), any(Instant.class));
     verify(userRepository, never()).findById(any());
   }
 
@@ -96,7 +97,7 @@ class RefreshTokenServiceTest {
   void rotateOnExpiredTokenThrowsWithoutRevokingAll() {
     String raw = "raw-expired";
     RefreshToken expired = activeToken(raw);
-    expired.setExpiresAt(LocalDateTime.now().minusMinutes(1));
+    expired.setExpiresAt(Instant.now().minus(1, ChronoUnit.MINUTES));
     when(tokenRepository.findByTokenHash(SecureTokens.sha256Hex(raw)))
         .thenReturn(Optional.of(expired));
 
@@ -152,12 +153,19 @@ class RefreshTokenServiceTest {
   void revokeIsNoOpWhenTokenAlreadyRevoked() {
     String raw = "raw-already-revoked";
     RefreshToken stored = activeToken(raw);
-    stored.setRevokedAt(LocalDateTime.now().minusMinutes(1));
+    stored.setRevokedAt(Instant.now().minus(1, ChronoUnit.MINUTES));
     when(tokenRepository.findByTokenHash(SecureTokens.sha256Hex(raw)))
         .thenReturn(Optional.of(stored));
 
     service.revoke(raw, 7L);
 
     verify(tokenRepository, never()).save(any());
+  }
+
+  @Test
+  void revokeAllForUserRevokesEveryActiveTokenOfThatUser() {
+    service.revokeAllForUser(7L);
+
+    verify(tokenRepository).revokeAllActiveForUser(eq(7L), any(Instant.class));
   }
 }

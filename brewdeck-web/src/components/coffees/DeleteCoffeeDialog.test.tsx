@@ -1,6 +1,7 @@
 import { fireEvent, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderWithTheme } from '@/test/renderWithTheme';
+import { ApiError } from '@/lib/api/client';
 import { DeleteCoffeeDialog } from './DeleteCoffeeDialog';
 import * as mutations from '@/hooks/useCoffeeMutations';
 import type { Coffee } from '@/lib/api/types';
@@ -24,5 +25,17 @@ describe('DeleteCoffeeDialog', () => {
     fireEvent.click(screen.getByRole('button', { name: /^delete$/i }));
 
     expect(deleteMutate.mock.calls[0][0]).toBe(7);
+  });
+
+  it('shows the server explanation when the coffee is still in use', async () => {
+    deleteMutate.mockImplementation((_id: number, opts: { onError: (e: unknown) => void }) => {
+      opts.onError(new ApiError(409, 'Coffee is used by 3 recipes. Delete or change them first.'));
+    });
+    vi.spyOn(mutations, 'useDeleteCoffee').mockReturnValue({ mutate: deleteMutate, isPending: false } as never);
+    renderWithTheme(<DeleteCoffeeDialog open coffee={coffee} onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /^delete$/i }));
+
+    expect(await screen.findByText('Coffee is used by 3 recipes. Delete or change them first.')).toBeInTheDocument();
   });
 });

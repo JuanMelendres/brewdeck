@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.recipe;
 
+import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -14,8 +15,13 @@ public record RecipeRequest(
     @NotBlank(message = "Recipe name is required")
         @Size(max = 120, message = "Recipe name must not exceed 120 characters")
         String name,
-    @Positive(message = "Coffee grams must be greater than zero") BigDecimal coffeeGrams,
-    @Positive(message = "Water grams must be greater than zero") BigDecimal waterGrams,
+    // DECIMAL(6,2) columns: at most 9999.99.
+    @Positive(message = "Coffee grams must be greater than zero")
+        @DecimalMax(value = "9999.99", message = "Coffee grams must not exceed 9999.99")
+        BigDecimal coffeeGrams,
+    @Positive(message = "Water grams must be greater than zero")
+        @DecimalMax(value = "9999.99", message = "Water grams must not exceed 9999.99")
+        BigDecimal waterGrams,
     @Size(max = 20, message = "Ratio must not exceed 20 characters") String ratio,
     @Size(max = 120, message = "Grind setting must not exceed 120 characters") String grindSetting,
     @Min(value = 70, message = "Water temperature must be at least 70 degrees Celsius")

@@ -5,7 +5,7 @@ A system-level TDD for the API. Per-feature designs live in
 
 ## Context
 
-Spring Boot 3.5 REST API on Java 21, PostgreSQL 16, Flyway-managed schema. Organized package-by-domain. Consumed by a Next.js web client and (manually) by Postman/Swagger.
+Spring Boot 4.1 REST API on Java 21, PostgreSQL 16, Flyway-managed schema. Organized package-by-domain. Consumed by a Next.js web client and (manually) by Postman/Swagger.
 
 ## Goals
 
@@ -76,7 +76,7 @@ Service, controller (MockMvc), repository, specification, and integration (Testc
 
 ## Security Considerations
 
-Stateless JWT filter chain, BCrypt hashing, env-only secrets, CORS restricted to configured origins. See [ADR-005](../decisions/ADR-005-stateless-jwt-auth.md).
+Stateless JWT filter chain, BCrypt hashing, env-only secrets, one CORS policy applied by Spring Security (configured origins only, `Authorization`/`Content-Type` headers only, no credentials), USER/ADMIN roles, and rate-limited auth endpoints. See [ADR-005](../decisions/ADR-005-stateless-jwt-auth.md), [ADR-009](../decisions/ADR-009-role-based-authorization.md), and [ADR-011](../decisions/ADR-011-in-memory-auth-rate-limiting.md).
 
 ## Observability
 

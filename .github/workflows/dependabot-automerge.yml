@@ -1,0 +1,162 @@
+name: Dependabot Auto-Merge
+
+# Scope: only Dependabot PRs against develop. Eligible bumps (patch/minor, and NOT a
+# pre-1.0 package's version bump) auto-merge once the checks relevant to their
+# ecosystem report success; everything else (major bumps, any 0.x package bump) is
+# left for manual review (commented, never merged automatically).
+#
+# A PR is only merged if it is up to date with develop. Green checks on a stale branch
+# prove nothing about the merged result: #157 passed against an old base, merged after
+# #159 had moved vitest, and left develop with a broken pnpm lockfile. A branch that is
+# behind gets "@dependabot rebase" instead; the rebase re-triggers this workflow, and the
+# checks run again on the real base.
+on:
+  pull_request:
+    branches: [develop]
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+
+jobs:
+  automerge:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    # Generous ceiling: the OWASP scan step this waits on has run anywhere from a few
+    # minutes to several hours depending on NVD cache state.
+    timeout-minutes: 300
+    steps:
+      - name: Fetch dependency metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v3
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Determine auto-merge eligibility
+        id: eligibility
+        run: |
+          update_type="${{ steps.metadata.outputs.update-type }}"
+          previous_version="${{ steps.metadata.outputs.previous-version }}"
+          eligible=true
+          reason=""
+          if [ "$update_type" = "version-update:semver-major" ]; then
+            eligible=false
+            reason="major version bump"
+          elif [[ "$previous_version" == 0.* ]]; then
+            # Per semver, a package still on major version 0 may introduce breaking
+            # changes on ANY bump, including what Dependabot labels "minor"/"patch"
+            # (e.g. jjwt 0.12.6 -> 0.13.0 reports as semver-minor). Treat it like major.
+            eligible=false
+            reason="pre-1.0 package (currently $previous_version) — a minor/patch bump can still break, per semver"
+          fi
+          echo "eligible=$eligible" >> "$GITHUB_OUTPUT"
+          echo "reason=$reason" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for relevant checks, then merge eligible updates
+        if: steps.eligibility.outputs.eligible == 'true'
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const ecosystem = "${{ steps.metadata.outputs.package-ecosystem }}";
+            const { owner, repo } = context.repo;
+            const ref = context.payload.pull_request.head.sha;
+            const pull_number = context.payload.pull_request.number;
+
+            // security.yml's pull_request trigger is scoped to brewdeck-api/pom.xml only
+            // (unlike api-ci.yml, which runs on any brewdeck-api/** change) - a Maven
+            // Dependabot PR that only bumps the Maven Wrapper (mvnw/.mvn/**) touches
+            // neither pom.xml, so "OWASP Dependency Check" would never appear and the
+            // wait loop would hang until its deadline. Only require it when the PR
+            // actually touches pom.xml.
+            const { data: files } = await github.rest.pulls.listFiles({ owner, repo, pull_number, per_page: 100 });
+            const touchesPomXml = files.some((f) => f.filename === "brewdeck-api/pom.xml");
+
+            const requiredByEcosystem = {
+              maven: ["API Quality Checks & SonarCloud", ...(touchesPomXml ? ["OWASP Dependency Check"] : [])],
+              npm_and_yarn: ["Web Quality Checks"],
+              github_actions: [],
+            };
+            // "qodana" (the workflow job) has no path filter, so it runs on every PR
+            // regardless of ecosystem — always wait for it too.
+            const required = ["qodana", ...(requiredByEcosystem[ecosystem] ?? [])];
+            const deadline = Date.now() + 1000 * 60 * 280; // stay under the job timeout
+            const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+            core.info(`Waiting for: ${required.join(", ") || "(nothing ecosystem-specific)"}`);
+
+            while (true) {
+              // This loop can run for hours (the OWASP scan alone has taken over an
+              // hour), so a single transient GitHub API hiccup (5xx/network error)
+              // must not kill the whole run - retry a few times before giving up.
+              let data;
+              for (let attempt = 1; ; attempt++) {
+                try {
+                  ({ data } = await github.rest.checks.listForRef({ owner, repo, ref, per_page: 100 }));
+                  break;
+                } catch (err) {
+                  const status = err.status ?? 0;
+                  if (attempt >= 5 || (status && status < 500)) throw err;
+                  core.warning(`checks.listForRef failed (attempt ${attempt}, status ${status}): ${err.message}. Retrying...`);
+                  await sleep(10000);
+                }
+              }
+              const byName = new Map(data.check_runs.map((c) => [c.name, c]));
+
+              const failed = required.filter((n) => {
+                const c = byName.get(n);
+                return c && c.status === "completed" && c.conclusion !== "success";
+              });
+              if (failed.length > 0) {
+                core.setFailed(`Required check(s) failed, not merging: ${failed.join(", ")}`);
+                return;
+              }
+
+              const pending = required.filter((n) => {
+                const c = byName.get(n);
+                return !c || c.status !== "completed";
+              });
+              if (pending.length === 0) break;
+
+              if (Date.now() > deadline) {
+                core.setFailed(`Timed out waiting for: ${pending.join(", ")}`);
+                return;
+              }
+              await sleep(30000);
+            }
+
+            // Only merge what was actually tested against the current develop tip.
+            const baseRef = context.payload.pull_request.base.ref;
+            const { data: comparison } = await github.rest.repos.compareCommitsWithBasehead({
+              owner,
+              repo,
+              basehead: `${baseRef}...${ref}`,
+            });
+            if (comparison.behind_by > 0) {
+              core.notice(
+                `Branch is ${comparison.behind_by} commit(s) behind ${baseRef}; asking Dependabot to rebase ` +
+                  "instead of merging. The rebase re-runs the checks and this workflow.",
+              );
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: pull_number,
+                body:
+                  `@dependabot rebase\n\n_Auto-merge paused: this branch is ${comparison.behind_by} ` +
+                  `commit(s) behind \`${baseRef}\`, so its green checks don't cover the merged result. ` +
+                  "It will be merged automatically once the rebased branch passes._",
+              });
+              return;
+            }
+
+            core.info("All required checks green and branch up to date — merging.");
+            // sha pins the exact head that was checked: a push after the checks aborts the merge.
+            await github.rest.pulls.merge({ owner, repo, pull_number, merge_method: "merge", sha: ref });
+
+      - name: Flag ineligible bump for manual review
+        if: steps.eligibility.outputs.eligible == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment "${{ github.event.pull_request.html_url }}" \
+            --body "Not auto-merged — needs manual review (${{ steps.eligibility.outputs.reason }})."

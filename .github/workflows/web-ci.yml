@@ -42,7 +42,7 @@ jobs:
           package_json_file: brewdeck-web/package.json
 
       - name: Set up Node.js 22
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: "22"
           cache: pnpm

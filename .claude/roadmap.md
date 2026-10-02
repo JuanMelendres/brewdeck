@@ -98,3 +98,23 @@ Status: Completed
   - C.4 (refresh tokens) — hashed single-use refresh tokens (Flyway V11), rotation with reuse-detection (revokes all active tokens for the user), `POST /api/auth/refresh` (200) + `POST /api/auth/logout` (204), access-token TTL shortened to 15m, frontend silent single-flight refresh + server-revoking logout — Done (PR #76)
 
 Released to master: Phase 6 shipped develop→master via PR #77 (Slices C.1 #73, C.2 #74, C.3 #75, C.4 #76 + pnpm migration + CI overhaul); all CI green, develop kept as the default working branch.
+
+## Phase 7 — UI/UX Refresh
+
+Status: Planned (added 2026-09-30)
+
+- Spike + POC: design foundation and visual direction — [docs/product/spikes/ui-ux-refresh-spike.md](../docs/product/spikes/ui-ux-refresh-spike.md). Direction chosen 2026-09-30: A (warm café) light + C palette for dark mode.
+- Workstreams after the POC (each gets an FDD, the foundation gets a TDD):
+  1. Design foundation — theme tokens, typography (`next/font`), shape, shadows, component overrides, dark mode — POC Done (PR #173: theme, fonts, AppShell, Dashboard, Login, Account appearance setting); TDD and ADR-014 still TODO
+  2. Navigation — icons, active route, logo, user card (POC, PR #173) + responsive mobile drawer with top bar — Done (FDD `docs/product/fdd/navigation-fdd.md`, PR on `feat/web-responsive-navigation`)
+  3. Dashboard — greeting, stat cards with icons, method-usage bars, Top Rated as a list (POC, PR #173) + Most Brewed and Most Used on the shared `RankedList` — Done (PR on `feat/web-dashboard-rankings`)
+  4. Lists — In progress: Coffees as a card grid + `EmptyState` with icon and CTA (PR #182); Recipes and Favorites as cards with a favorite toggle, shared `CardGrid`/`CardGridSkeleton` (PR on `feat/web-recipe-list-cards`); next: Brew Sessions and Brew Methods as airier tables
+  5. Auth screens — split layout with brand panel on login (POC, PR #173), register, forgot/reset password, verify email, and the verification-required screen — Done (PR on `feat/web-auth-screens`)
+  6. Micro-interactions — hover transitions, snackbars after mutations — TODO
+  7. Theme preference — backend: V22 `users.theme_preference` (null = never asked), `themePreference` in `/me`, `PUT /api/auth/me/theme`; frontend: toggle in Account settings + first-login light/dark dialog with live preview — Done (FDD `docs/product/fdd/theme-preference-fdd.md`; backend PR #175, frontend PR on `feat/web-theme-preference`)
+  8. Language (i18n) — Spanish + English: translation files (evaluate `next-intl`), locale-aware dates/numbers, translated backend messages and emails, per-user language preference + selector in Account (first-login dialog can ask language and theme together). Needs its own spike. Until then: English-only, dates fixed to `en-US` — TODO
+  9. Forms — select-label overlap fix + coffee dialog sections (PR #178) + Recipe and Brew Session dialog sections with a shared `FormSection` — Done (FDD `docs/product/fdd/forms-fdd.md`)
+
+## Status Summary
+
+All 6 planned phases are Completed — 100% of the current roadmap shipped. AI recipe assistant (Phase 5) is built full-stack but feature-flagged off (paused, not cancelled — see `.claude/project-state.md` "AI Integration — Suspended"). Ongoing work beyond this roadmap is maintenance (dependency/CVE remediation) and open follow-ups tracked in `.claude/project-state.md` "Immediate Next Steps" (e.g. migrating auth tokens from `localStorage` to `httpOnly` cookies). "Vision (post-roadmap)" below is unscheduled future scope, not part of this roadmap's completion percentage.

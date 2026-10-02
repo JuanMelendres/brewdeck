@@ -29,4 +29,13 @@ class SecureTokensTest {
     assertThat(hash).isEqualTo(SecureTokens.sha256Hex("a-raw-token"));
     assertThat(hash).isNotEqualTo(SecureTokens.sha256Hex("different-token"));
   }
+
+  @Test
+  void newTokenWithLength_encodesThatManyBytes() {
+    String shareSized = SecureTokens.newToken(16);
+
+    assertThat(Base64.getUrlDecoder().decode(shareSized)).hasSize(16);
+    // 16 bytes -> 22 base64url chars, which fits recipes.share_token VARCHAR(32).
+    assertThat(shareSized).hasSize(22);
+  }
 }

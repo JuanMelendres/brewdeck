@@ -6,11 +6,11 @@ import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.common.PostgresRepositoryTest;
 import com.brewdeck.brewdeck_api.method.BrewMethod;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -21,7 +21,7 @@ class RecipeSpecificationRepositoryTest extends PostgresRepositoryTest {
   @Autowired private RecipeRepository recipeRepository;
 
   @Autowired
-  private org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager entityManager;
+  private org.springframework.boot.jpa.test.autoconfigure.TestEntityManager entityManager;
 
   @Test
   void search_shouldFilterByCoffeeIdMethodIdFavoriteAndName() {
@@ -150,7 +150,7 @@ class RecipeSpecificationRepositoryTest extends PostgresRepositoryTest {
         User.builder()
             .email(email)
             .passwordHash("hashed-password")
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     return entityManager.persistAndFlush(user);

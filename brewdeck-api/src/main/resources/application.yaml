@@ -2,6 +2,17 @@ spring:
   application:
     name: brewdeck-api
 
+  # SMTP connection. Host, port, username, and password bind from SPRING_MAIL_HOST,
+  # SPRING_MAIL_PORT, SPRING_MAIL_USERNAME, and SPRING_MAIL_PASSWORD. Only used when
+  # brewdeck.mail.enabled=true.
+  mail:
+    properties:
+      mail.smtp.auth: ${SPRING_MAIL_SMTP_AUTH:false}
+      mail.smtp.starttls.enable: ${SPRING_MAIL_SMTP_STARTTLS:false}
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 5000
+      mail.smtp.writetimeout: 5000
+
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local}
 
@@ -13,9 +24,15 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        # Instants are bound and read in UTC regardless of the JVM or server zone.
+        jdbc:
+          time_zone: UTC
 
   flyway:
     enabled: true
+    placeholders:
+      # Zone that pre-V21 zone-less timestamps were written in (V21 converts them to TIMESTAMPTZ).
+      legacy_timezone: ${BREWDECK_LEGACY_TIMEZONE:UTC}
 
   data:
     web:
@@ -25,6 +42,13 @@ spring:
 
 server:
   port: ${SERVER_PORT:8080}
+  # The browser reaches the API through the Next.js proxy (ADR-013), which forwards an incoming
+  # X-Forwarded-For but does not set one itself. Default "none" (fail-safe): per-IP rate limits
+  # (ADR-011) see the proxy's address, i.e. act as one global bucket; per-account limits are
+  # unaffected. Set "native" ONLY when a load balancer in front of Next overwrites X-Forwarded-For
+  # with the real client IP; Tomcat then trusts it from internal (private/localhost) proxies.
+  # With Next exposed directly, "native" would let clients spoof their IP.
+  forward-headers-strategy: ${FORWARD_HEADERS_STRATEGY:none}
 
 management:
   endpoints:
@@ -49,6 +73,21 @@ brewdeck:
     secret: ${BREWDECK_JWT_SECRET:dev-only-insecure-secret-change-me-at-least-32-bytes}
     token-ttl: ${AUTH_TOKEN_TTL:PT15M}
     refresh-ttl: ${AUTH_REFRESH_TTL:P7D}
+    # httpOnly cookie carrying the refresh token (ADR-013). Secure must stay true outside plain-HTTP
+    # local development.
+    refresh-cookie:
+      name: brewdeck_refresh
+      path: /api/auth
+      secure: ${AUTH_COOKIE_SECURE:true}
+      same-site: Strict
+    # Existing account promoted to ADMIN at startup. Empty = no admin bootstrap.
+    admin-email: ${BREWDECK_ADMIN_EMAIL:}
+  rate-limit:
+    # In-memory limits on auth endpoints (ADR-011). Keep enabled in every real environment.
+    enabled: ${RATE_LIMIT_ENABLED:true}
   mail:
+    # true = real SMTP via spring.mail.* (SPRING_MAIL_HOST, SPRING_MAIL_PORT, ...); false = links
+    # are only logged. Enabling it without SPRING_MAIL_HOST fails at startup on purpose.
     enabled: ${BREWDECK_MAIL_ENABLED:false}
+    from: ${BREWDECK_MAIL_FROM:BrewDeck <no-reply@brewdeck.local>}
     frontend-base-url: ${BREWDECK_MAIL_FRONTEND_BASE_URL:http://localhost:3000}

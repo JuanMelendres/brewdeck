@@ -1,0 +1,50 @@
+version: 2
+
+updates:
+  - package-ecosystem: "maven"
+    directory: "/brewdeck-api"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "backend"
+
+  - package-ecosystem: "npm"
+    directory: "/brewdeck-web"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "frontend"
+    groups:
+      # react and react-dom must stay on the exact same version (React 19 hard-fails
+      # at runtime otherwise, "Incompatible React versions") - group them so
+      # Dependabot always bumps both together instead of one at a time (see PR #113).
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "ci"
+    ignore:
+      # web-ci.yml deliberately pins pnpm/action-setup@v4 (see the inline comment on
+      # that step): v6's self-installer crashes resolving the packageManager-pinned
+      # pnpm version (confirmed again in PR #94 - ERR_PNPM_BROKEN_PNPM_RELEASE against
+      # the currently pinned pnpm release). Revisit manually once that's resolved
+      # upstream; don't let Dependabot re-propose it weekly until then.
+      - dependency-name: "pnpm/action-setup"
+        versions: [">=5"]

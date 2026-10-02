@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -15,12 +16,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -28,6 +29,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -76,7 +78,7 @@ class BrewMethodControllerTest {
   void findAll_shouldReturnBrewMethods() throws Exception {
     BrewMethodResponse response =
         new BrewMethodResponse(
-            1L, "AeroPress", "Immersion and pressure-based brewing method.", LocalDateTime.now());
+            1L, "AeroPress", "Immersion and pressure-based brewing method.", true, Instant.now());
 
     PageResponse<BrewMethodResponse> pageResponse =
         PageResponse.fromPage(new PageImpl<>(List.of(response), PageRequest.of(0, 10), 1));
@@ -102,7 +104,7 @@ class BrewMethodControllerTest {
   @Test
   void findAll_shouldReturnPagedBrewMethods() throws Exception {
     BrewMethodResponse response =
-        new BrewMethodResponse(1L, "V60", "Pour-over brewing method.", LocalDateTime.now());
+        new BrewMethodResponse(1L, "V60", "Pour-over brewing method.", true, Instant.now());
 
     PageResponse<BrewMethodResponse> pageResponse =
         PageResponse.fromPage(new PageImpl<>(List.of(response), PageRequest.of(0, 5), 1));
@@ -126,7 +128,7 @@ class BrewMethodControllerTest {
   void findById_shouldReturnBrewMethod() throws Exception {
     BrewMethodResponse response =
         new BrewMethodResponse(
-            1L, "AeroPress", "Immersion and pressure-based brewing method.", LocalDateTime.now());
+            1L, "AeroPress", "Immersion and pressure-based brewing method.", true, Instant.now());
 
     when(brewMethodService.findById(1L)).thenReturn(response);
 
@@ -145,7 +147,7 @@ class BrewMethodControllerTest {
         new BrewMethodRequest("AeroPress", "Immersion and pressure-based brewing method.");
 
     BrewMethodResponse response =
-        new BrewMethodResponse(1L, request.name(), request.description(), LocalDateTime.now());
+        new BrewMethodResponse(1L, request.name(), request.description(), false, Instant.now());
 
     when(brewMethodService.create(any(BrewMethodRequest.class))).thenReturn(response);
 
@@ -203,7 +205,7 @@ class BrewMethodControllerTest {
     BrewMethodRequest request = new BrewMethodRequest("V60", "Pour-over brewing method.");
 
     BrewMethodResponse response =
-        new BrewMethodResponse(1L, request.name(), request.description(), LocalDateTime.now());
+        new BrewMethodResponse(1L, request.name(), request.description(), false, Instant.now());
 
     when(brewMethodService.update(eq(1L), any(BrewMethodRequest.class))).thenReturn(response);
 
@@ -278,5 +280,30 @@ class BrewMethodControllerTest {
         .andExpect(jsonPath("$.error").value("Bad Request"))
         .andExpect(jsonPath("$.message").value("Validation failed"))
         .andExpect(jsonPath("$.validationErrors.name").value("Method name is required"));
+  }
+
+  @Test
+  void update_shouldReturnForbidden_whenMethodIsShared() throws Exception {
+    when(brewMethodService.update(eq(1L), any(BrewMethodRequest.class)))
+        .thenThrow(
+            new AccessDeniedException("Shared brew methods can only be changed by an admin"));
+
+    mockMvc
+        .perform(
+            put("/api/brew-methods/{id}", 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new BrewMethodRequest("V60", null))))
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.status").value(403))
+        .andExpect(jsonPath("$.message").value("Insufficient permissions"));
+  }
+
+  @Test
+  void delete_shouldReturnForbidden_whenMethodIsShared() throws Exception {
+    doThrow(new AccessDeniedException("Shared brew methods can only be changed by an admin"))
+        .when(brewMethodService)
+        .delete(1L);
+
+    mockMvc.perform(delete("/api/brew-methods/{id}", 1L)).andExpect(status().isForbidden());
   }
 }

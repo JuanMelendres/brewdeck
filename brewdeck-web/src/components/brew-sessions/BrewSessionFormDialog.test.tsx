@@ -29,6 +29,13 @@ describe('BrewSessionFormDialog', () => {
     expect(screen.getByRole('option', { name: 'Mezcla AeroPress' })).toBeInTheDocument();
   });
 
+  it('keeps the recipe label above the placeholder option so they do not overlap', () => {
+    mockAll();
+    renderWithTheme(<BrewSessionFormDialog open onClose={vi.fn()} />);
+    // MUI marks a label moved above the field with data-shrink.
+    expect(screen.getByText('Recipe', { selector: 'label' })).toHaveAttribute('data-shrink', 'true');
+  });
+
   it('blocks submit and shows the required error when no recipe is chosen', async () => {
     mockAll();
     renderWithTheme(<BrewSessionFormDialog open onClose={vi.fn()} />);
@@ -68,5 +75,17 @@ describe('BrewSessionFormDialog', () => {
     fireEvent.change(screen.getByRole('combobox', { name: /recipe/i }), { target: { value: '1' } });
     fireEvent.click(screen.getByRole('button', { name: /create/i }));
     expect(await screen.findByText('Rating must not exceed 10')).toBeInTheDocument();
+  });
+
+  it('groups the fields into Brew and Result sections', () => {
+    mockAll();
+    renderWithTheme(<BrewSessionFormDialog open onClose={vi.fn()} />);
+
+    expect(screen.getByRole('region', { name: 'Brew' })).toContainElement(
+      screen.getByLabelText('Actual Grind'),
+    );
+    const result = screen.getByRole('region', { name: 'Result' });
+    expect(result).toContainElement(screen.getByLabelText('Rating'));
+    expect(result).toContainElement(screen.getByLabelText('Adjustment Notes'));
   });
 });

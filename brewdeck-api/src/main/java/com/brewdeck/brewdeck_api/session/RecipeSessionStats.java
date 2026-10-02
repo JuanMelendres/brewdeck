@@ -1,6 +1,6 @@
 package com.brewdeck.brewdeck_api.session;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /** Aggregated brew-session statistics for a single recipe. */
 public interface RecipeSessionStats {
@@ -9,5 +9,5 @@ public interface RecipeSessionStats {
 
   Double getAverageRating();
 
-  LocalDateTime getLastBrewedAt();
+  Instant getLastBrewedAt();
 }

@@ -20,12 +20,12 @@ import com.brewdeck.brewdeck_api.session.BrewSession;
 import com.brewdeck.brewdeck_api.session.BrewSessionRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -66,7 +66,7 @@ class CrossUserIsolationIntegrationTest extends PostgresIntegrationTest {
                         User.builder()
                             .email(OTHER_USER_EMAIL)
                             .passwordHash("integration-test-placeholder")
-                            .createdAt(LocalDateTime.now())
+                            .createdAt(Instant.now())
                             .build()));
 
     // A brand-new, uniquely-named method used ONLY by the foreign recipe below, so its usage
@@ -99,7 +99,7 @@ class CrossUserIsolationIntegrationTest extends PostgresIntegrationTest {
         BrewSession.builder()
             .recipe(foreignRecipe)
             .owner(otherUser)
-            .brewedAt(LocalDateTime.now())
+            .brewedAt(Instant.now())
             .rating(10)
             .build());
   }
@@ -146,11 +146,12 @@ class CrossUserIsolationIntegrationTest extends PostgresIntegrationTest {
 
   @Test
   void getMethodUsage_shouldListSharedMethods_withZeroCountForForeignOnlyMethod() throws Exception {
-    // Brew methods are shared/global, so the usage listing must still contain the method used
+    // Shared-catalog methods are visible to everyone, so the usage listing must still contain the
+    // method used
     // by the foreign recipe. But since that method was created fresh in @BeforeEach and used
     // ONLY by the foreign recipe (owned by the other user), its recipeCount for THIS user must
     // be exactly 0 -- proving the findUsage owner JOIN excludes the other user's recipe.
-    long methodCount = brewMethodRepository.count();
+    long methodCount = brewMethodRepository.countVisibleTo(mockUser().getId());
 
     String response =
         mockMvc

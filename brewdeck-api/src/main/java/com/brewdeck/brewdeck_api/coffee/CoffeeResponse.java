@@ -1,6 +1,6 @@
 package com.brewdeck.brewdeck_api.coffee;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record CoffeeResponse(
     Long id,
@@ -20,8 +20,8 @@ public record CoffeeResponse(
     Integer sweetnessScore,
     Integer bitternessScore,
     String description,
-    LocalDateTime createdAt,
-    LocalDateTime updatedAt) {
+    Instant createdAt,
+    Instant updatedAt) {
   public static CoffeeResponse fromEntity(Coffee coffee) {
     return new CoffeeResponse(
         coffee.getId(),

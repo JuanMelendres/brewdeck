@@ -2,7 +2,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import { useCreateRecipe, useUpdateRecipe, useDeleteRecipe } from './useRecipeMutations';
+import {
+  useCreateRecipe,
+  useDeleteRecipe,
+  useToggleFavorite,
+  useUpdateRecipe,
+} from './useRecipeMutations';
 import * as recipesApi from '@/lib/api/recipes';
 
 function setup() {
@@ -40,5 +45,27 @@ describe('recipe mutation hooks', () => {
     result.current.mutate(1);
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['recipes'] });
+  });
+
+  it('useToggleFavorite favorites a recipe and refreshes recipes and the dashboard', async () => {
+    const favorite = vi.spyOn(recipesApi, 'favoriteRecipe').mockResolvedValue({ id: 1 } as never);
+    const unfavorite = vi.spyOn(recipesApi, 'unfavoriteRecipe');
+    const { wrapper, invalidateSpy } = setup();
+    const { result } = renderHook(() => useToggleFavorite(), { wrapper });
+    result.current.mutate({ id: 1, favorite: true });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(favorite).toHaveBeenCalledWith(1);
+    expect(unfavorite).not.toHaveBeenCalled();
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['recipes'] });
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['dashboard', 'summary'] });
+  });
+
+  it('useToggleFavorite unfavorites when asked to clear the favorite', async () => {
+    const unfavorite = vi.spyOn(recipesApi, 'unfavoriteRecipe').mockResolvedValue({ id: 1 } as never);
+    const { wrapper } = setup();
+    const { result } = renderHook(() => useToggleFavorite(), { wrapper });
+    result.current.mutate({ id: 1, favorite: false });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(unfavorite).toHaveBeenCalledWith(1);
   });
 });

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { getMe, login, logout, refresh, register } from './auth';
+import { getMe, login, logout, register } from './auth';
 import * as client from './client';
 
 describe('auth api', () => {
@@ -40,32 +40,11 @@ describe('auth api', () => {
     expect(spy).toHaveBeenCalledWith('/api/auth/me');
   });
 
-  it('refresh posts the refresh token to /api/auth/refresh', async () => {
-    const body = {
-      token: 't',
-      expiresAt: '2026-07-09T00:00:00Z',
-      email: 'a@b.com',
-      refreshToken: 'r-new',
-    };
-    const spy = vi.spyOn(client, 'apiFetch').mockResolvedValue(body as never);
-
-    const result = await refresh('r-old');
-
-    expect(spy).toHaveBeenCalledWith('/api/auth/refresh', {
-      method: 'POST',
-      body: JSON.stringify({ refreshToken: 'r-old' }),
-    });
-    expect(result).toEqual(body);
-  });
-
-  it('logout posts the refresh token to /api/auth/logout', async () => {
+  it('logout posts to /api/auth/logout without a body (the cookie identifies the session)', async () => {
     const spy = vi.spyOn(client, 'apiFetch').mockResolvedValue(undefined as never);
 
-    await logout('r-1');
+    await logout();
 
-    expect(spy).toHaveBeenCalledWith('/api/auth/logout', {
-      method: 'POST',
-      body: JSON.stringify({ refreshToken: 'r-1' }),
-    });
+    expect(spy).toHaveBeenCalledWith('/api/auth/logout', { method: 'POST' });
   });
 });

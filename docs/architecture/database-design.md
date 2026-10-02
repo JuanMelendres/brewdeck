@@ -13,6 +13,20 @@ PostgreSQL 16, schema versioned by Flyway (`brewdeck-api/src/main/resources/db/m
 | V5 | Create `users` table |
 | V6 | Add nullable `owner_id` FK (+ index) on `coffees`, `recipes`, `brew_sessions`; backfill to earliest user |
 | V7 | Tighten `owner_id` to `NOT NULL` on `coffees`, `recipes`, `brew_sessions` (Slice B.2) |
+| V8 | Add nullable `users.display_name` |
+| V9 | Create `password_reset_tokens` (SHA-256 hash only) |
+| V10 | Add `users.email_verified` (existing users grandfathered) + `email_verification_tokens` |
+| V11 | Create `refresh_tokens` |
+| V12 | Create `feature_flags` (ADR-007) |
+| V13 | Seed the AI recipe assistant flag |
+| V14 | Suspend the AI recipe assistant flag |
+| V15 | Add `users.role` (`USER`/`ADMIN`, default `USER`) (ADR-009) |
+| V16 | Nullable `brew_methods.owner_id` (NULL = shared catalog); name uniqueness via partial indexes per tier (ADR-010) |
+| V17 | Widen `coffees.roast_level` (80), `recipes.grind_setting` (120), `brew_sessions.actual_grind` (120) to the validated limits |
+| V18 | Normalize `users.email` to trimmed lowercase + `CHECK` so uniqueness is case-insensitive; aborts if accounts differ only by case |
+| V19 | Index foreign keys: `recipes(coffee_id)`, `recipes(method_id)`, `brew_sessions(recipe_id, brewed_at DESC)`. `SchemaIndexesIntegrationTest` fails if any FK column lacks a leading index |
+| V20 | Seed `auth-require-email-verification` flag (disabled everywhere, ADR-012) |
+| V21 | All timestamp columns `TIMESTAMP` → `TIMESTAMPTZ`; existing rows read in `${legacy_timezone}` (`BREWDECK_LEGACY_TIMEZONE`, default `UTC`). Fails on an invalid zone and if any zone-less timestamp column remains |
 
 ## Entity relationships
 
@@ -24,6 +38,7 @@ erDiagram
   USERS ||--o{ COFFEES : "owns"
   USERS ||--o{ RECIPES : "owns"
   USERS ||--o{ BREW_SESSIONS : "owns"
+  USERS |o--o{ BREW_METHODS : "owns private (NULL = shared)"
   USERS {
     bigint id PK
     varchar email UK

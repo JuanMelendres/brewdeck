@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderWithTheme } from '@/test/renderWithTheme';
 import { BrewMethodsView } from './BrewMethodsView';
 import * as methodsHook from '@/hooks/useBrewMethods';
+import * as mutations from '@/hooks/useBrewMethodMutations';
 import type { BrewMethod } from '@/lib/api/brewMethods';
 import type { PageResponse } from '@/lib/api/types';
 
@@ -17,8 +18,15 @@ function page(content: BrewMethod[], totalElements: number): PageResponse<BrewMe
 }
 
 const method: BrewMethod = {
-  id: 1, name: 'AeroPress', description: 'Immersion', createdAt: '2026-01-01T00:00:00', updatedAt: null,
+  id: 1, name: 'AeroPress', description: 'Immersion', createdAt: '2026-01-01T00:00:00', shared: true,
 };
+
+function mockMutations() {
+  const idle = { mutate: vi.fn(), isPending: false } as never;
+  vi.spyOn(mutations, 'useCreateBrewMethod').mockReturnValue(idle);
+  vi.spyOn(mutations, 'useUpdateBrewMethod').mockReturnValue(idle);
+  vi.spyOn(mutations, 'useDeleteBrewMethod').mockReturnValue(idle);
+}
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -53,5 +61,27 @@ describe('BrewMethodsView', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /next page/i }));
     expect(hookMock).toHaveBeenLastCalledWith(expect.objectContaining({ page: 1 }));
+  });
+
+  it('opens the add-method dialog', () => {
+    mockHook({ isLoading: false, isError: false, data: page([method], 1) });
+    mockMutations();
+    renderWithTheme(<BrewMethodsView />);
+
+    fireEvent.click(screen.getByRole('button', { name: /add method/i }));
+
+    expect(screen.getByRole('dialog', { name: /add brew method/i })).toBeInTheDocument();
+  });
+
+  it('opens the edit dialog for one of the user\u2019s own methods', () => {
+    const mine: BrewMethod = { ...method, id: 2, name: 'My Moka', shared: false };
+    mockHook({ isLoading: false, isError: false, data: page([method, mine], 2) });
+    mockMutations();
+    renderWithTheme(<BrewMethodsView />);
+
+    fireEvent.click(screen.getByRole('button', { name: /edit my moka/i }));
+
+    expect(screen.getByRole('dialog', { name: /edit brew method/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Name/)).toHaveValue('My Moka');
   });
 });

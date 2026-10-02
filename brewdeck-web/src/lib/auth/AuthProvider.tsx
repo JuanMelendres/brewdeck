@@ -7,9 +7,11 @@ import {
   logout as logoutApi,
   register as registerApi,
   updateProfile as updateProfileApi,
+  updateTheme as updateThemeApi,
 } from '@/lib/api/auth';
-import type { UserResponse } from '@/lib/api/types';
-import { clearTokens, getRefreshToken, getToken, setRefreshToken, setToken } from './tokenStore';
+import type { ThemePreference, UserResponse } from '@/lib/api/types';
+import { refreshSession } from '@/lib/api/client';
+import { clearTokens, getToken, purgeLegacyTokenStorage, setToken } from './tokenStore';
 
 type AuthStatus = 'loading' | 'authenticated' | 'anonymous';
 
@@ -21,6 +23,7 @@ type AuthContextValue = {
   login: (body: Credentials) => Promise<void>;
   register: (body: Credentials) => Promise<void>;
   updateProfile: (body: { displayName: string | null }) => Promise<void>;
+  updateTheme: (themePreference: ThemePreference) => Promise<void>;
   refreshUser: () => Promise<void>;
   logout: () => Promise<void>;
 };
@@ -29,26 +32,31 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserResponse | null>(null);
-  // Initialise status without a token check in the effect body to avoid
-  // synchronous setState inside useEffect (react-hooks/set-state-in-effect).
-  const [status, setStatus] = useState<AuthStatus>(() =>
-    getToken() ? 'loading' : 'anonymous',
-  );
+  // Always start loading: whether a session exists is only known after asking the server,
+  // because the refresh token is an httpOnly cookie scripts can't see (ADR-013).
+  const [status, setStatus] = useState<AuthStatus>('loading');
 
   useEffect(() => {
-    if (!getToken()) {
-      return;
-    }
-    getMe()
+    purgeLegacyTokenStorage();
+    let cancelled = false;
+    refreshSession()
+      .then(() => getMe())
       .then((me) => {
-        setUser(me);
-        setStatus('authenticated');
+        if (!cancelled) {
+          setUser(me);
+          setStatus('authenticated');
+        }
       })
       .catch(() => {
-        clearTokens();
-        setUser(null);
-        setStatus('anonymous');
+        if (!cancelled) {
+          clearTokens();
+          setUser(null);
+          setStatus('anonymous');
+        }
       });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const value = useMemo<AuthContextValue>(
@@ -58,7 +66,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login: async (body) => {
         const response = await loginApi(body);
         setToken(response.token);
-        setRefreshToken(response.refreshToken);
         const me = await getMe();
         setUser(me);
         setStatus('authenticated');
@@ -66,13 +73,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       register: async (body) => {
         const response = await registerApi(body);
         setToken(response.token);
-        setRefreshToken(response.refreshToken);
         const me = await getMe();
         setUser(me);
         setStatus('authenticated');
       },
       updateProfile: async (body) => {
         const updated = await updateProfileApi(body);
+        setUser(updated);
+      },
+      updateTheme: async (themePreference) => {
+        const updated = await updateThemeApi({ themePreference });
         setUser(updated);
       },
       refreshUser: async () => {
@@ -87,13 +97,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       },
       logout: async () => {
-        const refreshToken = getRefreshToken();
         setUser(null);
         setStatus('anonymous');
         try {
-          if (refreshToken) {
-            await logoutApi(refreshToken);
-          }
+          // Revokes the cookie's refresh token server-side and clears the cookie.
+          await logoutApi();
         } catch {
           // Best-effort server revoke; local sign-out already done.
         } finally {

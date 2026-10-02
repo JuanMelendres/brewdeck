@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ForgotPasswordForm } from './ForgotPasswordForm';
+import { ApiError } from '@/lib/api/client';
 
 const forgotPasswordMock = vi.fn();
 vi.mock('@/lib/api/auth', () => ({
@@ -33,5 +34,15 @@ describe('ForgotPasswordForm', () => {
     await userEvent.type(screen.getByLabelText(/email/i), 'a@b.com');
     await userEvent.click(screen.getByRole('button', { name: /send reset link/i }));
     expect(await screen.findByText(/could not send the reset link/i)).toBeInTheDocument();
+  });
+
+  it('tells the user how long to wait when rate limited', async () => {
+    forgotPasswordMock.mockRejectedValue(
+      new ApiError(429, 'Too many attempts. Try again in 45 minutes.'),
+    );
+    render(<ForgotPasswordForm />);
+    await userEvent.type(screen.getByLabelText(/email/i), 'a@b.com');
+    await userEvent.click(screen.getByRole('button', { name: /send reset link/i }));
+    expect(await screen.findByText('Too many attempts. Try again in 45 minutes.')).toBeInTheDocument();
   });
 });

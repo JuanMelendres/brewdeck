@@ -1,33 +1,40 @@
 import { API_BASE_URL } from '@/config/env';
-import {
-  clearTokens,
-  getRefreshToken,
-  getToken,
-  setRefreshToken,
-  setToken,
-} from '@/lib/auth/tokenStore';
+import { EMAIL_NOT_VERIFIED, notifyEmailNotVerified } from '@/lib/auth/emailVerificationSignal';
+import { clearTokens, getToken, setToken } from '@/lib/auth/tokenStore';
 import type { AuthResponse, ErrorResponse } from './types';
 
 export class ApiError extends Error {
   status: number;
   path?: string;
   validationErrors?: Record<string, string>;
+  code?: string;
 
   constructor(
     status: number,
     message: string,
     path?: string,
     validationErrors?: Record<string, string>,
+    code?: string,
   ) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
     this.path = path;
     this.validationErrors = validationErrors;
+    this.code = code;
   }
 }
 
-let refreshInFlight: Promise<AuthResponse> | null = null;
+/**
+ * Sent on every request. The refresh cookie endpoints require it (ADR-013): a cross-site page
+ * cannot add a custom header without a CORS preflight, so its presence proves a same-origin call.
+ */
+export const CSRF_HEADER: Record<string, string> = { 'X-Requested-With': 'fetch' };
+
+/** Web Locks name shared by every tab of this origin. */
+const REFRESH_LOCK = 'brewdeck-refresh';
+
+let refreshInFlight: Promise<string> | null = null;
 
 function isOnPublicPath(): boolean {
   if (typeof window === 'undefined') {
@@ -44,23 +51,34 @@ function isOnPublicPath(): boolean {
   );
 }
 
-async function runRefresh(refreshToken: string): Promise<AuthResponse> {
+async function runRefresh(): Promise<string> {
+  // The httpOnly refresh cookie authenticates this call; the body is empty.
   const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refreshToken }),
+    headers: CSRF_HEADER,
+    credentials: 'same-origin',
   });
   if (!response.ok) {
     throw new ApiError(response.status, 'Refresh failed');
   }
-  return (await response.json()) as AuthResponse;
+  const auth = (await response.json()) as AuthResponse;
+  setToken(auth.token);
+  return auth.token;
 }
 
-// Collapses concurrent 401s into a single rotation so we never double-fire /refresh
-// (a second rotation would present an already-used token and trip reuse detection).
-function attemptRefresh(refreshToken: string): Promise<AuthResponse> {
+/**
+ * Gets a fresh access token from the refresh cookie. Rotation must never run twice at once:
+ * a second call would present the already-rotated cookie and trip reuse detection, which revokes
+ * every session. Within a tab, concurrent callers share one in-flight promise. Across tabs (which
+ * share the cookie), a Web Lock queues them, so each tab rotates the latest cookie in turn.
+ */
+export function refreshSession(): Promise<string> {
   if (!refreshInFlight) {
-    refreshInFlight = runRefresh(refreshToken).finally(() => {
+    const locks = typeof navigator !== 'undefined' ? navigator.locks : undefined;
+    const run = locks
+      ? async (): Promise<string> => await locks.request(REFRESH_LOCK, runRefresh)
+      : runRefresh;
+    refreshInFlight = run().finally(() => {
       refreshInFlight = null;
     });
   }
@@ -76,18 +94,22 @@ export async function apiFetch<T>(
   const authHeader: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
-    headers: { 'Content-Type': 'application/json', ...authHeader, ...init?.headers },
+    credentials: 'same-origin',
+    headers: {
+      'Content-Type': 'application/json',
+      ...CSRF_HEADER,
+      ...authHeader,
+      ...init?.headers,
+    },
   });
 
   if (response.status === 401) {
-    const refreshToken = getRefreshToken();
-    const canRefresh = allowRefresh && path !== '/api/auth/refresh' && refreshToken !== null;
+    // Only an existing session can be renewed; a 401 from login etc. is just a failed attempt.
+    const canRefresh = allowRefresh && path !== '/api/auth/refresh' && token !== null;
 
     if (canRefresh) {
       try {
-        const auth = await attemptRefresh(refreshToken as string);
-        setToken(auth.token);
-        setRefreshToken(auth.refreshToken);
+        await refreshSession();
       } catch {
         clearTokens();
         if (typeof window !== 'undefined' && !isOnPublicPath()) {
@@ -112,11 +134,15 @@ export async function apiFetch<T>(
     } catch {
       // non-JSON error body; fall back to status text
     }
+    if (response.status === 403 && body.code === EMAIL_NOT_VERIFIED) {
+      notifyEmailNotVerified();
+    }
     throw new ApiError(
       response.status,
       body.message ?? response.statusText,
       body.path,
       body.validationErrors,
+      body.code ?? undefined,
     );
   }
 

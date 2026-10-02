@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.ai;
 
+import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
 import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.coffee.CoffeeRepository;
 import com.brewdeck.brewdeck_api.featureflag.FeatureFlagService;
@@ -11,6 +12,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+/*
+ * Deliberately NOT @Transactional: this method calls an external LLM (up to
+ * brewdeck.ai.timeout-seconds), and a surrounding transaction would hold a pooled DB connection for
+ * that whole time. The repository reads run in their own short read-only transactions and fetch
+ * everything the prompt needs up front (no lazy loading after them; open-in-view is off).
+ */
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -24,6 +31,7 @@ public class RecipeSuggestionService {
   private final RecipeSuggestionPort suggestionPort;
   private final AiProperties aiProperties;
   private final FeatureFlagService featureFlagService;
+  private final CurrentUserProvider currentUserProvider;
 
   public SuggestedRecipeResponse suggest(SuggestRecipeRequest request) {
     // Release gate: the AI assistant is the source of truth here, not the frontend hiding buttons.
@@ -33,13 +41,16 @@ public class RecipeSuggestionService {
     // disabled adapter still throws AiUnavailable -> 503 when the flag is on but AI is not.)
     featureFlagService.requireEnabled(FeatureKeys.AI_RECIPE_ASSISTANT);
 
+    // Both lookups are scoped to the caller: another user's coffee or private method is a 404,
+    // so their data can never reach the AI prompt.
+    Long ownerId = currentUserProvider.require().getId();
     Coffee coffee =
         coffeeRepository
-            .findById(request.coffeeId())
+            .findByIdAndOwnerId(request.coffeeId(), ownerId)
             .orElseThrow(() -> new EntityNotFoundException(COFFEE_NOT_FOUND));
     BrewMethod method =
         brewMethodRepository
-            .findById(request.methodId())
+            .findVisibleById(request.methodId(), ownerId)
             .orElseThrow(() -> new EntityNotFoundException(BREW_METHOD_NOT_FOUND));
 
     SuggestionContext context =

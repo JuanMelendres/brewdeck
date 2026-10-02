@@ -5,11 +5,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.auth.UserRepository;
 import com.brewdeck.brewdeck_api.common.PostgresIntegrationTest;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
 
 @DataJpaTest
@@ -25,25 +26,25 @@ class RefreshTokenRepositoryTest extends PostgresIntegrationTest {
         User.builder()
             .email("refresh-repo-" + System.nanoTime() + "@example.com")
             .passwordHash("x")
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
     return userRepository.save(user).getId();
   }
 
-  private RefreshToken persistToken(Long userId, String hash, LocalDateTime expiresAt) {
+  private RefreshToken persistToken(Long userId, String hash, Instant expiresAt) {
     return refreshTokenRepository.save(
         RefreshToken.builder()
             .userId(userId)
             .tokenHash(hash)
             .expiresAt(expiresAt)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build());
   }
 
   @Test
   void findByTokenHashReturnsTheStoredToken() {
     Long userId = persistUser();
-    persistToken(userId, "hash-a", LocalDateTime.now().plusDays(7));
+    persistToken(userId, "hash-a", Instant.now().plus(7, ChronoUnit.DAYS));
 
     assertThat(refreshTokenRepository.findByTokenHash("hash-a")).isPresent();
     assertThat(refreshTokenRepository.findByTokenHash("missing")).isEmpty();
@@ -53,10 +54,10 @@ class RefreshTokenRepositoryTest extends PostgresIntegrationTest {
   void revokeAllActiveForUserRevokesOnlyActiveRowsOfThatUser() {
     Long userId = persistUser();
     Long otherUserId = persistUser();
-    LocalDateTime now = LocalDateTime.now();
+    Instant now = Instant.now();
 
-    persistToken(userId, "active", now.plusDays(7));
-    persistToken(otherUserId, "other-active", now.plusDays(7));
+    persistToken(userId, "active", now.plus(7, ChronoUnit.DAYS));
+    persistToken(otherUserId, "other-active", now.plus(7, ChronoUnit.DAYS));
 
     int updated = refreshTokenRepository.revokeAllActiveForUser(userId, now);
     // The @Modifying bulk update runs a direct SQL UPDATE that bypasses the persistence

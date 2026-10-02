@@ -1,6 +1,6 @@
 package com.brewdeck.brewdeck_api.recipe;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record RecipeStatsResponse(
-    Long recipeId, long totalSessions, Double averageRating, LocalDateTime lastBrewedAt) {}
+    Long recipeId, long totalSessions, Double averageRating, Instant lastBrewedAt) {}

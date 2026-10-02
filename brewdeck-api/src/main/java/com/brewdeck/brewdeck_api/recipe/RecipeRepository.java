@@ -3,6 +3,8 @@ package com.brewdeck.brewdeck_api.recipe;
 import com.brewdeck.brewdeck_api.coffee.MostUsedCoffee;
 import java.util.List;
 import java.util.Optional;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -10,34 +12,20 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface RecipeRepository
     extends JpaRepository<Recipe, Long>, JpaSpecificationExecutor<Recipe> {
 
   @Override
+  @NonNull
   @EntityGraph(attributePaths = {"coffee", "method"})
-  Optional<Recipe> findById(Long id);
+  Optional<Recipe> findById(@NonNull Long id);
 
   @Override
+  @NonNull
   @EntityGraph(attributePaths = {"coffee", "method"})
-  Page<Recipe> findAll(Specification<Recipe> spec, Pageable pageable);
-
-  List<Recipe> findByFavoriteTrue();
-
-  @EntityGraph(attributePaths = {"coffee", "method"})
-  Page<Recipe> findByFavoriteTrue(Pageable pageable);
-
-  long countByFavoriteTrue();
-
-  List<Recipe> findByCoffeeId(Long coffeeId);
-
-  @EntityGraph(attributePaths = {"coffee", "method"})
-  Page<Recipe> findByCoffeeId(Long coffeeId, Pageable pageable);
-
-  List<Recipe> findByMethodId(Long methodId);
-
-  @EntityGraph(attributePaths = {"coffee", "method"})
-  Page<Recipe> findByMethodId(Long methodId, Pageable pageable);
+  Page<Recipe> findAll(@Nullable Specification<Recipe> spec, @NonNull Pageable pageable);
 
   @EntityGraph(attributePaths = {"coffee", "method"})
   Optional<Recipe> findByIdAndOwnerId(Long id, Long ownerId);
@@ -45,6 +33,12 @@ public interface RecipeRepository
   boolean existsByIdAndOwnerId(Long id, Long ownerId);
 
   long countByOwnerId(Long ownerId);
+
+  /** Recipes referencing a coffee (all belong to the coffee's owner). Guards coffee deletes. */
+  long countByCoffeeId(Long coffeeId);
+
+  /** Recipes, of any user, referencing a brew method. Guards brew-method deletes. */
+  long countByMethodId(Long methodId);
 
   @EntityGraph(attributePaths = {"coffee", "method"})
   Page<Recipe> findByFavoriteTrueAndOwnerId(Long ownerId, Pageable pageable);
@@ -63,9 +57,9 @@ public interface RecipeRepository
       from Recipe r
       where r.owner.id = :ownerId
       group by r.coffee.id, r.coffee.name
-      order by count(r) desc, r.coffee.name asc
+      order by count(r) desc, r.coffee.name asc, r.coffee.id asc
       """)
-  List<MostUsedCoffee> findMostUsedCoffees(Long ownerId, Pageable pageable);
+  List<MostUsedCoffee> findMostUsedCoffees(@Param("ownerId") Long ownerId, Pageable pageable);
 
   @EntityGraph(attributePaths = {"coffee", "method"})
   Optional<Recipe> findByShareToken(String shareToken);

@@ -2,6 +2,8 @@ package com.brewdeck.brewdeck_api.session;
 
 import java.util.List;
 import java.util.Optional;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -9,17 +11,20 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface BrewSessionRepository
     extends JpaRepository<BrewSession, Long>, JpaSpecificationExecutor<BrewSession> {
 
   @Override
+  @NonNull
   @EntityGraph(attributePaths = "recipe")
-  Optional<BrewSession> findById(Long id);
+  Optional<BrewSession> findById(@NonNull Long id);
 
   @Override
+  @NonNull
   @EntityGraph(attributePaths = "recipe")
-  Page<BrewSession> findAll(Specification<BrewSession> spec, Pageable pageable);
+  Page<BrewSession> findAll(@Nullable Specification<BrewSession> spec, @NonNull Pageable pageable);
 
   @EntityGraph(attributePaths = "recipe")
   Optional<BrewSession> findByIdAndOwnerId(Long id, Long ownerId);
@@ -28,12 +33,10 @@ public interface BrewSessionRepository
 
   long countByOwnerId(Long ownerId);
 
-  List<BrewSession> findByRecipeIdOrderByBrewedAtDesc(Long recipeId);
+  /** Sessions logged against a recipe. Guards recipe deletes. */
+  long countByRecipeId(Long recipeId);
 
   List<BrewSession> findTop10ByRecipeIdAndRatingIsNotNullOrderByBrewedAtDesc(Long recipeId);
-
-  @EntityGraph(attributePaths = "recipe")
-  Page<BrewSession> findByRecipeIdOrderByBrewedAtDesc(Long recipeId, Pageable pageable);
 
   @EntityGraph(attributePaths = "recipe")
   Page<BrewSession> findByRecipeIdAndOwnerIdOrderByBrewedAtDesc(
@@ -41,7 +44,7 @@ public interface BrewSessionRepository
 
   @Query(
       "select avg(s.rating) from BrewSession s where s.rating is not null and s.owner.id = :ownerId")
-  Double findAverageRating(Long ownerId);
+  Double findAverageRating(@Param("ownerId") Long ownerId);
 
   @Query(
       """
@@ -51,7 +54,8 @@ public interface BrewSessionRepository
       from BrewSession s
       where s.recipe.id = :recipeId and s.owner.id = :ownerId
       """)
-  RecipeSessionStats findStatsByRecipeId(Long recipeId, Long ownerId);
+  RecipeSessionStats findStatsByRecipeId(
+      @Param("recipeId") Long recipeId, @Param("ownerId") Long ownerId);
 
   @Query(
       """
@@ -62,9 +66,9 @@ public interface BrewSessionRepository
       from BrewSession s
       where s.rating is not null and s.owner.id = :ownerId
       group by s.recipe.id, s.recipe.name
-      order by avg(s.rating) desc
+      order by avg(s.rating) desc, count(s) desc, s.recipe.name asc, s.recipe.id asc
       """)
-  List<TopRatedRecipe> findTopRated(Long ownerId, Pageable pageable);
+  List<TopRatedRecipe> findTopRated(@Param("ownerId") Long ownerId, Pageable pageable);
 
   @Query(
       """
@@ -74,7 +78,7 @@ public interface BrewSessionRepository
       from BrewSession s
       where s.owner.id = :ownerId
       group by s.recipe.id, s.recipe.name
-      order by count(s) desc
+      order by count(s) desc, s.recipe.name asc, s.recipe.id asc
       """)
-  List<MostBrewedRecipe> findMostBrewed(Long ownerId, Pageable pageable);
+  List<MostBrewedRecipe> findMostBrewed(@Param("ownerId") Long ownerId, Pageable pageable);
 }

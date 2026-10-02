@@ -10,3 +10,13 @@ services:
       - "5432:5432"
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
+
+  # Local SMTP catcher: the API sends real emails here instead of to real inboxes.
+  # Web UI: http://localhost:8025. Point the API at it with BREWDECK_MAIL_ENABLED=true,
+  # SPRING_MAIL_HOST=localhost, and SPRING_MAIL_PORT=1025.
+  mailpit:
+    image: axllent/mailpit:v1.27
+    container_name: brewdeck-mailpit
+    ports:
+      - "1025:1025"
+      - "8025:8025"

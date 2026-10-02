@@ -9,6 +9,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -21,18 +22,24 @@ import { useCreateRecipe, useUpdateRecipe } from '@/hooks/useRecipeMutations';
 import { useCoffeeOptions, useMethodOptions } from '@/hooks/useResourceOptions';
 import { useSuggestRecipe } from '@/hooks/useSuggestRecipe';
 import { FeatureFlag } from '@/components/ui/FeatureFlag';
+import { FormSection } from '@/components/ui/FormSection';
 import type { Recipe } from '@/lib/api/types';
 
 type RecipeFormInput = z.input<typeof recipeSchema>;
 
-const TEXT_FIELDS: Array<{ name: keyof RecipeFormValues; label: string; multiline?: boolean; number?: boolean }> = [
-  { name: 'name', label: 'Name' },
+type TextFieldSpec = { name: keyof RecipeFormValues; label: string; multiline?: boolean; number?: boolean };
+
+// Short brewing parameters sit three to a row on wider screens.
+const BREWING_FIELDS: TextFieldSpec[] = [
   { name: 'coffeeGrams', label: 'Coffee Grams', number: true },
   { name: 'waterGrams', label: 'Water Grams', number: true },
   { name: 'ratio', label: 'Ratio' },
   { name: 'grindSetting', label: 'Grind Setting' },
   { name: 'waterTemp', label: 'Water Temp', number: true },
   { name: 'brewTime', label: 'Brew Time' },
+];
+
+const NOTE_FIELDS: TextFieldSpec[] = [
   { name: 'steps', label: 'Steps', multiline: true },
   { name: 'expectedTaste', label: 'Expected Taste', multiline: true },
 ];
@@ -143,8 +150,23 @@ export function RecipeFormDialog({
     }
   };
 
+  const renderTextField = (f: TextFieldSpec) => (
+    <TextField
+      label={f.label}
+      required={f.name === 'name'}
+      type={f.number ? 'number' : 'text'}
+      multiline={f.multiline}
+      minRows={f.multiline ? 3 : undefined}
+      size="small"
+      fullWidth
+      error={Boolean(errors[f.name])}
+      helperText={errors[f.name]?.message}
+      {...register(f.name)}
+    />
+  );
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>{isEdit ? 'Edit recipe' : 'Add recipe'}</DialogTitle>
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <DialogContent>
@@ -153,96 +175,109 @@ export function RecipeFormDialog({
               {serverError}
             </Alert>
           ) : null}
-          <Stack spacing={2}>
-            <Controller
-              name="coffeeId"
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  select
-                  slotProps={{ select: { native: true } }}
-                  label="Coffee"
-                  required
-                  size="small"
-                  fullWidth
-                  disabled={coffeeOptions.isLoading}
-                  value={field.value ?? ''}
-                  onChange={field.onChange}
-                  error={Boolean(errors.coffeeId)}
-                  helperText={errors.coffeeId?.message}
-                >
-                  <option value="">{coffeeOptions.isLoading ? 'Loading…' : 'Select a coffee'}</option>
-                  {(coffeeOptions.data ?? []).map((option) => (
-                    <option key={option.id} value={option.id}>
-                      {option.name}
-                    </option>
-                  ))}
-                </TextField>
-              )}
-            />
-            <Controller
-              name="methodId"
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  select
-                  slotProps={{ select: { native: true } }}
-                  label="Brew Method"
-                  required
-                  size="small"
-                  fullWidth
-                  disabled={methodOptions.isLoading}
-                  value={field.value ?? ''}
-                  onChange={field.onChange}
-                  error={Boolean(errors.methodId)}
-                  helperText={errors.methodId?.message}
-                >
-                  <option value="">{methodOptions.isLoading ? 'Loading…' : 'Select a brew method'}</option>
-                  {(methodOptions.data ?? []).map((option) => (
-                    <option key={option.id} value={option.id}>
-                      {option.name}
-                    </option>
-                  ))}
-                </TextField>
-              )}
-            />
-            <FeatureFlag name="aiRecipeAssistant">
-              <Button
-                variant="outlined"
-                onClick={onSuggest}
-                disabled={!canSuggest}
-                startIcon={suggestion.isPending ? <CircularProgress size={16} /> : undefined}
-              >
-                Suggest with AI
-              </Button>
-              {suggestError ? <Alert severity="error">{suggestError}</Alert> : null}
-              {rationale ? <Alert severity="info">{rationale}</Alert> : null}
-            </FeatureFlag>
-            {TEXT_FIELDS.map((f) => (
-              <TextField
-                key={f.name}
-                label={f.label}
-                required={f.name === 'name'}
-                type={f.number ? 'number' : 'text'}
-                multiline={f.multiline}
-                minRows={f.multiline ? 2 : undefined}
-                size="small"
-                fullWidth
-                error={Boolean(errors[f.name])}
-                helperText={errors[f.name]?.message}
-                {...register(f.name)}
-              />
-            ))}
-            <Controller
-              name="favorite"
-              control={control}
-              render={({ field }) => (
-                <FormControlLabel
-                  control={<Checkbox checked={Boolean(field.value)} onChange={(e) => field.onChange(e.target.checked)} />}
-                  label="Favorite"
+          <Stack spacing={3}>
+            <FormSection title="Recipe">
+              <Grid size={12}>{renderTextField({ name: 'name', label: 'Name' })}</Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Controller
+                  name="coffeeId"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      select
+                      // A native select always shows its first option, so the label must sit above it.
+                      slotProps={{ select: { native: true }, inputLabel: { shrink: true } }}
+                      label="Coffee"
+                      required
+                      size="small"
+                      fullWidth
+                      disabled={coffeeOptions.isLoading}
+                      value={field.value ?? ''}
+                      onChange={field.onChange}
+                      error={Boolean(errors.coffeeId)}
+                      helperText={errors.coffeeId?.message}
+                    >
+                      <option value="">{coffeeOptions.isLoading ? 'Loading…' : 'Select a coffee'}</option>
+                      {(coffeeOptions.data ?? []).map((option) => (
+                        <option key={option.id} value={option.id}>
+                          {option.name}
+                        </option>
+                      ))}
+                    </TextField>
+                  )}
                 />
-              )}
-            />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Controller
+                  name="methodId"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      select
+                      // A native select always shows its first option, so the label must sit above it.
+                      slotProps={{ select: { native: true }, inputLabel: { shrink: true } }}
+                      label="Brew Method"
+                      required
+                      size="small"
+                      fullWidth
+                      disabled={methodOptions.isLoading}
+                      value={field.value ?? ''}
+                      onChange={field.onChange}
+                      error={Boolean(errors.methodId)}
+                      helperText={errors.methodId?.message}
+                    >
+                      <option value="">{methodOptions.isLoading ? 'Loading…' : 'Select a brew method'}</option>
+                      {(methodOptions.data ?? []).map((option) => (
+                        <option key={option.id} value={option.id}>
+                          {option.name}
+                        </option>
+                      ))}
+                    </TextField>
+                  )}
+                />
+              </Grid>
+              <FeatureFlag name="aiRecipeAssistant">
+                <Grid size={12} sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                  <Button
+                    variant="outlined"
+                    sx={{ alignSelf: 'flex-start' }}
+                    onClick={onSuggest}
+                    disabled={!canSuggest}
+                    startIcon={suggestion.isPending ? <CircularProgress size={16} /> : undefined}
+                  >
+                    Suggest with AI
+                  </Button>
+                  {suggestError ? <Alert severity="error">{suggestError}</Alert> : null}
+                  {rationale ? <Alert severity="info">{rationale}</Alert> : null}
+                </Grid>
+              </FeatureFlag>
+              <Grid size={12}>
+                <Controller
+                  name="favorite"
+                  control={control}
+                  render={({ field }) => (
+                    <FormControlLabel
+                      control={<Checkbox checked={Boolean(field.value)} onChange={(e) => field.onChange(e.target.checked)} />}
+                      label="Favorite"
+                    />
+                  )}
+                />
+              </Grid>
+            </FormSection>
+            <FormSection title="Brewing">
+              {BREWING_FIELDS.map((f) => (
+                <Grid key={f.name} size={{ xs: 12, sm: 6, md: 4 }}>
+                  {renderTextField(f)}
+                </Grid>
+              ))}
+            </FormSection>
+            <FormSection title="Notes">
+              {NOTE_FIELDS.map((f) => (
+                <Grid key={f.name} size={12}>
+                  {renderTextField(f)}
+                </Grid>
+              ))}
+            </FormSection>
           </Stack>
         </DialogContent>
         <DialogActions>

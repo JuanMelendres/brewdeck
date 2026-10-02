@@ -1,7 +1,7 @@
 package com.brewdeck.brewdeck_api.featureflag;
 
 import jakarta.persistence.EntityNotFoundException;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +35,7 @@ public class FeatureFlagAdminService {
   /** Flags whose expiry has already passed — surface these so they don't rot as tech debt. */
   @Transactional(readOnly = true)
   public List<FeatureFlag> findExpired() {
-    return repository.findByExpiresAtBefore(LocalDateTime.now());
+    return repository.findByExpiresAtBefore(Instant.now());
   }
 
   @Transactional
@@ -68,9 +68,9 @@ public class FeatureFlagAdminService {
 
   @Transactional
   public FeatureFlag setExpiration(
-      String featureKey, String environment, LocalDateTime expiresAt, String actingUser) {
+      String featureKey, String environment, Instant expiresAt, String actingUser) {
     FeatureFlag flag = require(featureKey, environment);
-    LocalDateTime previous = flag.getExpiresAt();
+    Instant previous = flag.getExpiresAt();
     flag.setExpiresAt(expiresAt);
     FeatureFlag saved = repository.save(flag);
     cache.evict(featureKey, environment);
@@ -108,6 +108,6 @@ public class FeatureFlagAdminService {
         previous,
         next,
         actingUser == null ? SYSTEM_ACTOR : actingUser,
-        LocalDateTime.now());
+        Instant.now());
   }
 }

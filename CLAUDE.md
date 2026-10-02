@@ -3,7 +3,7 @@
 ## Role
 
 Act as a senior full-stack software engineer with strong experience in:
-- Java 21 / Spring Boot 3 / Spring Data JPA
+- Java 21 / Spring Boot 4 / Spring Data JPA
 - PostgreSQL / Flyway / Testcontainers
 - REST API design (RESTful status codes, JSON validation, pagination)
 - Next.js (App Router) / React / TypeScript
@@ -25,7 +25,17 @@ Both backend and frontend are active. Prioritize full-stack consistency: keep en
 ## Backend Stack & Architecture
 
 ### Stack
-Java 21, Spring Boot 3, Maven Wrapper, PostgreSQL 16, Docker Compose, Flyway, Spring Data JPA, Hibernate, Bean Validation, Testcontainers, JUnit 5, Mockito, MockMvc, JaCoCo, Spotless, OWASP Dependency Check, SonarCloud, GitHub Actions, Springdoc OpenAPI / Swagger.
+Java 21, Spring Boot 4.1 (migrated from 3.5.16 on 2026-09-23 — see [ADR-008](docs/decisions/ADR-008-spring-boot-4-migration.md); Jackson 2 kept via the `spring-boot-jackson2` compatibility shim, Jackson 3 port deferred), Maven Wrapper, PostgreSQL 16, Docker Compose, Flyway (via `spring-boot-starter-flyway` — Boot 4 silently skips migrations on a bare `flyway-core` dependency, don't revert this), Spring Data JPA, Hibernate, Bean Validation, Testcontainers, JUnit 5, Mockito, MockMvc, JaCoCo, Spotless, PMD, OWASP Dependency Check, SonarCloud, GitHub Actions, Springdoc OpenAPI 3.x / Swagger.
+
+### Conventions (as built)
+- **Dependency injection:** constructor injection only, via Lombok `@RequiredArgsConstructor` + `private final` fields. No field injection (`@Autowired` on fields).
+- **DTOs/Requests:** always `record`, never a class. Validate with Bean Validation annotations directly on the record components.
+- **Package-by-feature:** one package per domain (`coffee`, `method`, `recipe`, `session`, `common`, `auth`, `featureflag`), not by layer.
+
+### JPA & Persistence Rules
+- **No `FetchType.EAGER`.** Associations default to `LAZY`; when a query needs an association loaded, use `@EntityGraph(attributePaths = {...})` on the repository method (see `RecipeRepository`, `BrewSessionRepository` for the pattern) instead of widening the entity's own fetch type.
+- **Avoid N+1 the same way:** `@EntityGraph` on the specific finder that needs it, not a blanket `EAGER` on the entity.
+- **`@Transactional` belongs on the service layer**, never on controllers or repositories. Keep transaction boundaries explicit and as narrow as the use case allows.
 
 ### Packages & Resources
 - Main packages: `coffee`, `method`, `recipe`, `session`, `common`, `integration`
@@ -128,6 +138,7 @@ Vitest + React Testing Library. Test behavior, not implementation. Prefer access
 Run before considering a task done.
 
 ### Backend (Maven Wrapper)
+- A `PostToolUse` hook runs `./mvnw spotless:apply` automatically after every edit to a `brewdeck-api/**/*.java` file — diffs should already be formatted. Still run the full sequence yourself before considering a task done:
 - macOS/Linux: `./mvnw spotless:apply` then `./mvnw clean verify`
 - Windows: `.\mvnw.cmd spotless:apply` then `.\mvnw.cmd clean verify`
 - Focused: `./mvnw -Dtest=ClassName test` (or `.\mvnw.cmd -Dtest=ClassName test`)

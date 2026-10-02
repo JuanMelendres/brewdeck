@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.integration;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -8,8 +9,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.brewdeck.brewdeck_api.common.PostgresIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
@@ -58,5 +59,61 @@ class CorsIntegrationTest extends PostgresIntegrationTest {
                 .header(HttpHeaders.ORIGIN, "http://evil.example.com")
                 .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "GET"))
         .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void preflight_allowsExactlyTheHeadersTheWebClientSends() throws Exception {
+    mockMvc
+        .perform(
+            options("/api/coffees")
+                .header(HttpHeaders.ORIGIN, ALLOWED_ORIGIN)
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "POST")
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS, "authorization, content-type"))
+        .andExpect(status().isOk())
+        .andExpect(
+            header()
+                .string(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS, containsString("authorization")));
+  }
+
+  @Test
+  void preflight_withAnUnlistedHeader_isForbidden() throws Exception {
+    mockMvc
+        .perform(
+            options("/api/coffees")
+                .header(HttpHeaders.ORIGIN, ALLOWED_ORIGIN)
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "GET")
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS, "x-custom-header"))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void actualResponse_doesNotAllowCredentials_andExposesRetryAfterAndLocation() throws Exception {
+    mockMvc
+        .perform(
+            get("/api/coffees")
+                .header(HttpHeaders.ORIGIN, ALLOWED_ORIGIN)
+                .param("page", "0")
+                .param("size", "10")
+                .param("sort", "id,asc"))
+        .andExpect(status().isOk())
+        .andExpect(header().doesNotExist(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS))
+        .andExpect(
+            header()
+                .string(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, containsString("Retry-After")))
+        .andExpect(
+            header().string(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, containsString("Location")));
+  }
+
+  @Test
+  @org.springframework.security.test.context.support.WithAnonymousUser
+  void preflight_toAPublicAuthEndpoint_worksWithoutAToken() throws Exception {
+    mockMvc
+        .perform(
+            options("/api/auth/login")
+                .header(HttpHeaders.ORIGIN, ALLOWED_ORIGIN)
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "POST")
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS, "content-type"))
+        .andExpect(status().isOk())
+        .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, ALLOWED_ORIGIN));
   }
 }

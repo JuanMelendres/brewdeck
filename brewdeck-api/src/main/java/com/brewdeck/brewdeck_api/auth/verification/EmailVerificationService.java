@@ -2,9 +2,12 @@ package com.brewdeck.brewdeck_api.auth.verification;
 
 import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.auth.UserRepository;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
 import com.brewdeck.brewdeck_api.common.security.SecureTokens;
 import jakarta.persistence.EntityNotFoundException;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,14 +22,17 @@ public class EmailVerificationService {
   private final EmailVerificationTokenRepository tokenRepository;
   private final UserRepository userRepository;
   private final EmailVerificationMailPort mailPort;
+  private final RateLimiter rateLimiter;
 
   public EmailVerificationService(
       EmailVerificationTokenRepository tokenRepository,
       UserRepository userRepository,
-      EmailVerificationMailPort mailPort) {
+      EmailVerificationMailPort mailPort,
+      RateLimiter rateLimiter) {
     this.tokenRepository = tokenRepository;
     this.userRepository = userRepository;
     this.mailPort = mailPort;
+    this.rateLimiter = rateLimiter;
   }
 
   /** Issues a fresh verification token for the user and sends the link best-effort. */
@@ -34,7 +40,7 @@ public class EmailVerificationService {
   public void issueFor(User user) {
     List<EmailVerificationToken> outstanding =
         tokenRepository.findByUserIdAndUsedAtIsNull(user.getId());
-    LocalDateTime now = LocalDateTime.now();
+    Instant now = Instant.now();
     outstanding.forEach(token -> token.setUsedAt(now));
     tokenRepository.saveAll(outstanding);
 
@@ -43,7 +49,7 @@ public class EmailVerificationService {
         EmailVerificationToken.builder()
             .userId(user.getId())
             .tokenHash(SecureTokens.sha256Hex(rawToken))
-            .expiresAt(now.plusHours(TTL_HOURS))
+            .expiresAt(now.plus(TTL_HOURS, ChronoUnit.HOURS))
             .createdAt(now)
             .build());
 
@@ -63,7 +69,7 @@ public class EmailVerificationService {
             .findByTokenHash(SecureTokens.sha256Hex(rawToken))
             .orElseThrow(() -> new InvalidVerificationTokenException("Unknown verification token"));
 
-    if (token.getUsedAt() != null || token.getExpiresAt().isBefore(LocalDateTime.now())) {
+    if (token.getUsedAt() != null || token.getExpiresAt().isBefore(Instant.now())) {
       throw new InvalidVerificationTokenException("Verification token used or expired");
     }
 
@@ -76,13 +82,14 @@ public class EmailVerificationService {
     user.setEmailVerified(true);
     userRepository.save(user);
 
-    token.setUsedAt(LocalDateTime.now());
+    token.setUsedAt(Instant.now());
     tokenRepository.save(token);
     log.info("Email verified for user id={}", user.getId());
   }
 
   @Transactional
   public void resendFor(String email) {
+    rateLimiter.requireAllowed(RateLimitRule.RESEND_VERIFICATION_EMAIL, email);
     User user =
         userRepository
             .findByEmail(email)

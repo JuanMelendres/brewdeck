@@ -1,6 +1,12 @@
 package com.brewdeck.brewdeck_api.common.config;
 
 import com.brewdeck.brewdeck_api.auth.JwtAuthenticationFilter;
+import com.brewdeck.brewdeck_api.auth.Role;
+import com.brewdeck.brewdeck_api.auth.verification.EmailVerificationRequiredFilter;
+import com.brewdeck.brewdeck_api.common.ratelimit.AuthRateLimitFilter;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
+import com.brewdeck.brewdeck_api.featureflag.FeatureFlagService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -16,15 +22,27 @@ public class SecurityConfig {
 
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
   private final RestAuthenticationEntryPoint authenticationEntryPoint;
+  private final RestAccessDeniedHandler accessDeniedHandler;
   private final CorsConfigurationSource corsConfigurationSource;
+  private final RateLimiter rateLimiter;
+  private final ObjectMapper objectMapper;
+  private final FeatureFlagService featureFlagService;
 
   public SecurityConfig(
       JwtAuthenticationFilter jwtAuthenticationFilter,
       RestAuthenticationEntryPoint authenticationEntryPoint,
-      CorsConfigurationSource corsConfigurationSource) {
+      RestAccessDeniedHandler accessDeniedHandler,
+      CorsConfigurationSource corsConfigurationSource,
+      RateLimiter rateLimiter,
+      ObjectMapper objectMapper,
+      FeatureFlagService featureFlagService) {
     this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     this.authenticationEntryPoint = authenticationEntryPoint;
+    this.accessDeniedHandler = accessDeniedHandler;
     this.corsConfigurationSource = corsConfigurationSource;
+    this.rateLimiter = rateLimiter;
+    this.objectMapper = objectMapper;
+    this.featureFlagService = featureFlagService;
   }
 
   // CSRF protection is intentionally disabled. This is a stateless, token-based REST
@@ -57,10 +75,24 @@ public class SecurityConfig {
                     .requestMatchers(
                         "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/actuator/health")
                     .permitAll()
+                    // Admin-only management APIs (e.g. the shared brew-method catalog).
+                    .requestMatchers("/api/admin/**")
+                    .hasRole(Role.ADMIN.name())
                     .anyRequest()
                     .authenticated())
-        .exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint))
-        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        .exceptionHandling(
+            ex ->
+                ex.authenticationEntryPoint(authenticationEntryPoint)
+                    .accessDeniedHandler(accessDeniedHandler))
+        // Rate limiting runs first (after CORS) so throttled requests do no auth or DB work.
+        .addFilterBefore(
+            new AuthRateLimitFilter(rateLimiter, objectMapper),
+            UsernamePasswordAuthenticationFilter.class)
+        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+        // Needs the principal the JWT filter just set; blocks unverified users when flagged on.
+        .addFilterAfter(
+            new EmailVerificationRequiredFilter(featureFlagService, objectMapper),
+            JwtAuthenticationFilter.class);
     return http.build();
   }
 }

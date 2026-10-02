@@ -10,5 +10,11 @@ public final class FeatureKeys {
   /** AI recipe suggestion + improvement (POST /api/recipes/suggest, /api/recipes/{id}/improve). */
   public static final String AI_RECIPE_ASSISTANT = "brew-recipe-ai-assistant";
 
+  /**
+   * Blocks accounts with an unverified email from everything except verifying (ADR-012). RELEASE
+   * flag, off by default until real email delivery is confirmed.
+   */
+  public static final String REQUIRE_EMAIL_VERIFICATION = "auth-require-email-verification";
+
   private FeatureKeys() {}
 }

@@ -3,10 +3,12 @@
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
+import Box from '@mui/material/Box';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
+import Grid from '@mui/material/Grid';
 import Slider from '@mui/material/Slider';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
@@ -17,21 +19,37 @@ import { Controller, useForm } from 'react-hook-form';
 import { ApiError } from '@/lib/api/client';
 import { coffeeSchema, type CoffeeFormValues } from '@/lib/validation/coffeeSchema';
 import { useCreateCoffee, useUpdateCoffee } from '@/hooks/useCoffeeMutations';
+import { FormSection } from '@/components/ui/FormSection';
 import type { Coffee } from '@/lib/api/types';
 
-const FIELDS: Array<{ name: keyof CoffeeFormValues; label: string }> = [
-  { name: 'name', label: 'Name' },
-  { name: 'brand', label: 'Brand' },
-  { name: 'origin', label: 'Origin' },
-  { name: 'region', label: 'Region' },
-  { name: 'farm', label: 'Farm' },
-  { name: 'producer', label: 'Producer' },
-  { name: 'variety', label: 'Variety' },
-  { name: 'process', label: 'Process' },
-  { name: 'roastLevel', label: 'Roast Level' },
+type TextFieldSpec = { name: keyof CoffeeFormValues; label: string; full?: boolean };
+
+// Grouped by meaning: what the coffee is, where it comes from, and how it tastes.
+const SECTIONS: Array<{ title: string; fields: TextFieldSpec[] }> = [
+  {
+    title: 'Coffee',
+    fields: [
+      { name: 'name', label: 'Name', full: true },
+      { name: 'brand', label: 'Brand' },
+      { name: 'roastLevel', label: 'Roast Level' },
+      { name: 'process', label: 'Process' },
+      { name: 'variety', label: 'Variety' },
+    ],
+  },
+  {
+    title: 'Origin',
+    fields: [
+      { name: 'origin', label: 'Origin' },
+      { name: 'region', label: 'Region' },
+      { name: 'farm', label: 'Farm' },
+      { name: 'producer', label: 'Producer' },
+    ],
+  },
+];
+
+const NOTE_FIELDS: TextFieldSpec[] = [
   { name: 'notesPrimary', label: 'Primary Notes' },
   { name: 'notesSecondary', label: 'Secondary Notes' },
-  { name: 'description', label: 'Description' },
 ];
 
 const SCORE_FIELDS: Array<{ name: keyof CoffeeFormValues; label: string }> = [
@@ -110,8 +128,24 @@ export function CoffeeFormDialog({
     }
   };
 
+  const renderTextField = (
+    field: TextFieldSpec,
+    extra?: { multiline?: boolean; minRows?: number },
+  ) => (
+    <TextField
+      label={field.label}
+      required={field.name === 'name'}
+      size="small"
+      fullWidth
+      error={Boolean(errors[field.name])}
+      helperText={errors[field.name]?.message}
+      {...extra}
+      {...register(field.name)}
+    />
+  );
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>{isEdit ? 'Edit coffee' : 'Add coffee'}</DialogTitle>
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <DialogContent>
@@ -120,47 +154,52 @@ export function CoffeeFormDialog({
               {serverError}
             </Alert>
           ) : null}
-          <Stack spacing={2}>
-            {FIELDS.map((field) => (
-              <TextField
-                key={field.name}
-                label={field.label}
-                required={field.name === 'name'}
-                size="small"
-                fullWidth
-                error={Boolean(errors[field.name])}
-                helperText={errors[field.name]?.message}
-                {...register(field.name)}
-              />
+          <Stack spacing={3}>
+            {SECTIONS.map((section) => (
+              <FormSection key={section.title} title={section.title}>
+                {section.fields.map((field) => (
+                  <Grid key={field.name} size={{ xs: 12, sm: field.full ? 12 : 6 }}>
+                    {renderTextField(field)}
+                  </Grid>
+                ))}
+              </FormSection>
             ))}
-            <Typography variant="subtitle2" sx={{ mt: 1 }}>
-              Tasting profile (1-5)
-            </Typography>
-            {SCORE_FIELDS.map((field) => (
-              <Controller
-                key={field.name}
-                name={field.name}
-                control={control}
-                render={({ field: { value, onChange } }) => (
-                  <div>
-                    <Typography variant="body2" gutterBottom id={`${field.name}-label`}>
-                      {field.label}
-                    </Typography>
-                    <Slider
-                      value={typeof value === 'number' ? value : 3}
-                      onChange={(_, next) => onChange(next as number)}
-                      step={1}
-                      marks
-                      min={1}
-                      max={5}
-                      valueLabelDisplay="auto"
-                      aria-labelledby={`${field.name}-label`}
-                      aria-label={field.label}
-                    />
-                  </div>
-                )}
-              />
-            ))}
+            <FormSection title="Tasting">
+              {NOTE_FIELDS.map((field) => (
+                <Grid key={field.name} size={{ xs: 12, sm: 6 }}>
+                  {renderTextField(field)}
+                </Grid>
+              ))}
+              {SCORE_FIELDS.map((field) => (
+                <Grid key={field.name} size={{ xs: 12, sm: 6 }}>
+                  <Controller
+                    name={field.name}
+                    control={control}
+                    render={({ field: { value, onChange } }) => (
+                      <Box sx={{ px: 1 }}>
+                        <Typography variant="body2" id={`${field.name}-label`}>
+                          {field.label} (1-5)
+                        </Typography>
+                        <Slider
+                          value={typeof value === 'number' ? value : 3}
+                          onChange={(_, next) => onChange(next as number)}
+                          step={1}
+                          marks
+                          min={1}
+                          max={5}
+                          valueLabelDisplay="auto"
+                          aria-labelledby={`${field.name}-label`}
+                          aria-label={field.label}
+                        />
+                      </Box>
+                    )}
+                  />
+                </Grid>
+              ))}
+              <Grid size={12}>
+                {renderTextField({ name: 'description', label: 'Description' }, { multiline: true, minRows: 3 })}
+              </Grid>
+            </FormSection>
           </Stack>
         </DialogContent>
         <DialogActions>

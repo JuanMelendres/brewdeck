@@ -34,7 +34,7 @@ class DashboardServiceTest {
   void getSummary_shouldAggregateCounts() {
     when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
     when(coffeeRepository.countByOwnerId(42L)).thenReturn(5L);
-    when(brewMethodRepository.count()).thenReturn(4L);
+    when(brewMethodRepository.countVisibleTo(42L)).thenReturn(4L);
     when(recipeRepository.countByOwnerId(42L)).thenReturn(10L);
     when(recipeRepository.countByFavoriteTrueAndOwnerId(42L)).thenReturn(3L);
     when(brewSessionRepository.countByOwnerId(42L)).thenReturn(20L);
@@ -54,7 +54,7 @@ class DashboardServiceTest {
   void getSummary_shouldReturnNullAverage_whenNoRatings() {
     when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
     when(coffeeRepository.countByOwnerId(42L)).thenReturn(0L);
-    when(brewMethodRepository.count()).thenReturn(0L);
+    when(brewMethodRepository.countVisibleTo(42L)).thenReturn(0L);
     when(recipeRepository.countByOwnerId(42L)).thenReturn(0L);
     when(recipeRepository.countByFavoriteTrueAndOwnerId(42L)).thenReturn(0L);
     when(brewSessionRepository.countByOwnerId(42L)).thenReturn(0L);

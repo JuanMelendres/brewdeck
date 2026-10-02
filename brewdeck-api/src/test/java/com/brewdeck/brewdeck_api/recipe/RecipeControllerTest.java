@@ -15,14 +15,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.data.domain.PageImpl;
@@ -132,7 +132,7 @@ class RecipeControllerTest {
   @Test
   void getStats_shouldReturnRecipeStats() throws Exception {
     RecipeStatsResponse stats =
-        new RecipeStatsResponse(1L, 3L, 8.5, LocalDateTime.of(2026, 7, 5, 10, 0));
+        new RecipeStatsResponse(1L, 3L, 8.5, Instant.parse("2026-07-05T10:00:00Z"));
 
     when(recipeStatsService.getStats(1L)).thenReturn(stats);
 
@@ -351,7 +351,7 @@ class RecipeControllerTest {
             "Bloom 30s, stir gently, press slowly.",
             "Clean, aromatic, spicy, balanced.",
             true,
-            LocalDateTime.now(),
+            Instant.now(),
             null,
             null);
 
@@ -385,7 +385,7 @@ class RecipeControllerTest {
             "Bloom 30s, stir gently, press slowly.",
             "Clean, aromatic, spicy, balanced.",
             false,
-            LocalDateTime.now(),
+            Instant.now(),
             null,
             null);
 
@@ -433,7 +433,7 @@ class RecipeControllerTest {
         "Bloom 30s, stir gently, press slowly.",
         "Clean, aromatic, spicy, balanced.",
         true,
-        LocalDateTime.now(),
+        Instant.now(),
         null,
         null);
   }
@@ -706,7 +706,7 @@ class RecipeControllerTest {
         "Bloom then pour",
         "Floral",
         false,
-        java.time.LocalDateTime.now(),
+        java.time.Instant.now(),
         null,
         token);
   }

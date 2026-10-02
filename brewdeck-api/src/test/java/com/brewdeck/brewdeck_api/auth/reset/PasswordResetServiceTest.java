@@ -3,6 +3,7 @@ package com.brewdeck.brewdeck_api.auth.reset;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -11,7 +12,13 @@ import static org.mockito.Mockito.when;
 
 import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.auth.UserRepository;
-import java.time.LocalDateTime;
+import com.brewdeck.brewdeck_api.auth.refresh.RefreshTokenService;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitExceededException;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,13 +36,21 @@ class PasswordResetServiceTest {
   @Mock private PasswordResetTokenRepository tokenRepository;
   @Mock private UserRepository userRepository;
   @Mock private PasswordResetMailPort mailPort;
+  @Mock private RefreshTokenService refreshTokenService;
 
   private PasswordResetService service;
 
   @BeforeEach
   void setUp() {
     PasswordEncoder encoder = new BCryptPasswordEncoder();
-    service = new PasswordResetService(tokenRepository, userRepository, encoder, mailPort);
+    service =
+        new PasswordResetService(
+            tokenRepository,
+            userRepository,
+            encoder,
+            mailPort,
+            refreshTokenService,
+            new RateLimiter(false));
   }
 
   private User user() {
@@ -43,7 +58,7 @@ class PasswordResetServiceTest {
         .id(1L)
         .email("brewer@example.com")
         .passwordHash(new BCryptPasswordEncoder().encode("password1"))
-        .createdAt(LocalDateTime.now())
+        .createdAt(Instant.now())
         .build();
   }
 
@@ -73,7 +88,7 @@ class PasswordResetServiceTest {
     PasswordResetToken saved = tokenCaptor.getValue();
     // Stored value is a 64-char hex hash, never the raw token.
     assertThat(saved.getTokenHash()).hasSize(64).isNotEqualTo(rawCaptor.getValue());
-    assertThat(saved.getExpiresAt()).isAfter(LocalDateTime.now());
+    assertThat(saved.getExpiresAt()).isAfter(Instant.now());
   }
 
   @Test
@@ -84,8 +99,8 @@ class PasswordResetServiceTest {
             .id(9L)
             .userId(1L)
             .tokenHash("prior-hash")
-            .expiresAt(LocalDateTime.now().plusMinutes(10))
-            .createdAt(LocalDateTime.now())
+            .expiresAt(Instant.now().plus(10, ChronoUnit.MINUTES))
+            .createdAt(Instant.now())
             .build();
     when(tokenRepository.findByUserIdAndUsedAtIsNull(1L)).thenReturn(List.of(outstanding));
 
@@ -103,8 +118,8 @@ class PasswordResetServiceTest {
             .id(5L)
             .userId(1L)
             .tokenHash("9d0e410f5e6a3f0e0c3e8f6d6f2b4a0c9d0e410f5e6a3f0e0c3e8f6d6f2b4a0c")
-            .expiresAt(LocalDateTime.now().plusMinutes(10))
-            .createdAt(LocalDateTime.now())
+            .expiresAt(Instant.now().plus(10, ChronoUnit.MINUTES))
+            .createdAt(Instant.now())
             .build();
     // Match the service's hash of the supplied raw token.
     when(tokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(token));
@@ -118,6 +133,7 @@ class PasswordResetServiceTest {
     assertThat(new BCryptPasswordEncoder().matches("newpassword1", user.getPasswordHash()))
         .isTrue();
     assertThat(token.getUsedAt()).isNotNull();
+    verify(refreshTokenService).revokeAllForUser(1L);
   }
 
   @Test
@@ -127,6 +143,7 @@ class PasswordResetServiceTest {
     assertThatThrownBy(
             () -> service.resetPassword(new ResetPasswordRequest("nope", "newpassword1")))
         .isInstanceOf(InvalidResetTokenException.class);
+    verify(refreshTokenService, never()).revokeAllForUser(anyLong());
   }
 
   @Test
@@ -136,13 +153,14 @@ class PasswordResetServiceTest {
             .id(6L)
             .userId(1L)
             .tokenHash("hash")
-            .expiresAt(LocalDateTime.now().minusMinutes(1))
-            .createdAt(LocalDateTime.now().minusMinutes(31))
+            .expiresAt(Instant.now().minus(1, ChronoUnit.MINUTES))
+            .createdAt(Instant.now().minus(31, ChronoUnit.MINUTES))
             .build();
     when(tokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(token));
 
     assertThatThrownBy(() -> service.resetPassword(new ResetPasswordRequest("raw", "newpassword1")))
         .isInstanceOf(InvalidResetTokenException.class);
+    verify(refreshTokenService, never()).revokeAllForUser(anyLong());
   }
 
   @Test
@@ -152,13 +170,35 @@ class PasswordResetServiceTest {
             .id(7L)
             .userId(1L)
             .tokenHash("hash")
-            .expiresAt(LocalDateTime.now().plusMinutes(10))
-            .usedAt(LocalDateTime.now().minusMinutes(1))
-            .createdAt(LocalDateTime.now())
+            .expiresAt(Instant.now().plus(10, ChronoUnit.MINUTES))
+            .usedAt(Instant.now().minus(1, ChronoUnit.MINUTES))
+            .createdAt(Instant.now())
             .build();
     when(tokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(token));
 
     assertThatThrownBy(() -> service.resetPassword(new ResetPasswordRequest("raw", "newpassword1")))
         .isInstanceOf(InvalidResetTokenException.class);
+    verify(refreshTokenService, never()).revokeAllForUser(anyLong());
+  }
+
+  @Test
+  void requestReset_throttledEmail_sendsNothingAndDoesNotLookUpTheUser() {
+    RateLimiter limiter = org.mockito.Mockito.mock(RateLimiter.class);
+    org.mockito.Mockito.doThrow(new RateLimitExceededException(Duration.ofMinutes(30)))
+        .when(limiter)
+        .requireAllowed(RateLimitRule.FORGOT_PASSWORD_EMAIL, "brewer@example.com");
+    PasswordResetService limited =
+        new PasswordResetService(
+            tokenRepository,
+            userRepository,
+            new BCryptPasswordEncoder(),
+            mailPort,
+            refreshTokenService,
+            limiter);
+    ForgotPasswordRequest request = new ForgotPasswordRequest("brewer@example.com");
+
+    assertThatThrownBy(() -> limited.requestReset(request))
+        .isInstanceOf(RateLimitExceededException.class);
+    org.mockito.Mockito.verifyNoInteractions(userRepository, mailPort);
   }
 }

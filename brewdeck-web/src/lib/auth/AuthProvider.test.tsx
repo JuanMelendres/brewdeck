@@ -4,13 +4,15 @@ import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AuthProvider, useAuth } from './AuthProvider';
-import { clearTokens, getRefreshToken, getToken, setRefreshToken, setToken } from './tokenStore';
+import { clearTokens, getToken, setToken } from './tokenStore';
 import * as authApi from '@/lib/api/auth';
+import * as client from '@/lib/api/client';
+import type { UserResponse } from '@/lib/api/types';
 
 function wrapper({ children }: { children: ReactNode }) {
-  const client = new QueryClient();
+  const queryClient = new QueryClient();
   return (
-    <QueryClientProvider client={client}>
+    <QueryClientProvider client={queryClient}>
       <AuthProvider>{children}</AuthProvider>
     </QueryClientProvider>
   );
@@ -28,157 +30,120 @@ function Probe() {
   );
 }
 
+const me = (email: string): UserResponse => ({
+  id: 1,
+  email,
+  displayName: null,
+  emailVerified: true,
+  role: 'USER',
+  themePreference: null,
+  createdAt: '2026-07-01T00:00:00Z',
+});
+
+/** No refresh cookie (or an invalid one): the server answers 401. */
+function noSession() {
+  return vi.spyOn(client, 'refreshSession').mockRejectedValue(new client.ApiError(401, 'x'));
+}
+
+/** A valid refresh cookie: the server issues a fresh access token. */
+function cookieSession(token = 'cookie-access') {
+  return vi.spyOn(client, 'refreshSession').mockImplementation(async () => {
+    setToken(token);
+    return token;
+  });
+}
+
+function loginSucceeds() {
+  vi.spyOn(authApi, 'login').mockResolvedValue({
+    token: 'jwt',
+    expiresAt: '2026-07-09T00:00:00Z',
+    email: 'a@b.com',
+  });
+  vi.spyOn(authApi, 'getMe').mockResolvedValue(me('a@b.com'));
+}
+
 describe('AuthProvider', () => {
   afterEach(() => {
     clearTokens();
+    window.localStorage.clear();
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
 
-  it('is anonymous when no token exists', async () => {
+  it('is anonymous when there is no refresh cookie', async () => {
+    noSession();
     render(<Probe />, { wrapper });
     await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('anonymous'));
   });
 
-  it('hydrates the user from getMe when a token exists', async () => {
-    setToken('jwt');
-    vi.spyOn(authApi, 'getMe').mockResolvedValue({
-      id: 1,
-      email: 'brewer@example.com',
-      displayName: null,
-      emailVerified: true,
-      createdAt: '2026-07-01T00:00:00Z',
-    });
+  it('restores the session from the refresh cookie on load', async () => {
+    const refresh = cookieSession();
+    vi.spyOn(authApi, 'getMe').mockResolvedValue(me('brewer@example.com'));
+
     render(<Probe />, { wrapper });
+
     await waitFor(() => expect(screen.getByTestId('email')).toHaveTextContent('brewer@example.com'));
     expect(screen.getByTestId('status')).toHaveTextContent('authenticated');
+    expect(refresh).toHaveBeenCalled();
+    expect(getToken()).toBe('cookie-access');
   });
 
-  it('logs in and stores the token', async () => {
-    vi.spyOn(authApi, 'login').mockResolvedValue({
-      token: 'jwt',
-      expiresAt: '2026-07-09T00:00:00Z',
-      email: 'a@b.com',
-      refreshToken: 'refresh-jwt',
-    });
-    vi.spyOn(authApi, 'getMe').mockResolvedValue({
-      id: 2,
-      email: 'a@b.com',
-      displayName: null,
-      emailVerified: true,
-      createdAt: '2026-07-01T00:00:00Z',
-    });
+  it('removes tokens an older version left in localStorage', async () => {
+    window.localStorage.setItem('brewdeck.refreshToken', 'old-refresh');
+    noSession();
+
     render(<Probe />, { wrapper });
-    await userEvent.click(screen.getByRole('button', { name: 'login' }));
-    await waitFor(() => expect(screen.getByTestId('email')).toHaveTextContent('a@b.com'));
+
+    await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('anonymous'));
+    expect(window.localStorage.getItem('brewdeck.refreshToken')).toBeNull();
   });
 
-  it('persists the refresh token after login', async () => {
-    vi.spyOn(authApi, 'login').mockResolvedValue({
-      token: 'jwt',
-      expiresAt: '2026-07-09T00:00:00Z',
-      email: 'a@b.com',
-      refreshToken: 'refresh-jwt',
-    });
-    vi.spyOn(authApi, 'getMe').mockResolvedValue({
-      id: 2,
-      email: 'a@b.com',
-      displayName: null,
-      emailVerified: true,
-      createdAt: '2026-07-01T00:00:00Z',
-    });
+  it('logs in and keeps the access token in memory only', async () => {
+    noSession();
+    loginSucceeds();
     render(<Probe />, { wrapper });
+    await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('anonymous'));
+
     await userEvent.click(screen.getByRole('button', { name: 'login' }));
+
     await waitFor(() => expect(screen.getByTestId('email')).toHaveTextContent('a@b.com'));
-    expect(getRefreshToken()).toBe('refresh-jwt');
+    expect(getToken()).toBe('jwt');
+    expect(window.localStorage.length).toBe(0);
   });
 
-  it('resets to anonymous and clears the user on logout', async () => {
-    setToken('jwt');
-    vi.spyOn(authApi, 'getMe').mockResolvedValue({
-      id: 3,
-      email: 'brewer@example.com',
-      displayName: null,
-      emailVerified: true,
-      createdAt: '2026-07-01T00:00:00Z',
-    });
+  it('resets to anonymous, calls the logout API, and forgets the token on logout', async () => {
+    cookieSession();
+    vi.spyOn(authApi, 'getMe').mockResolvedValue(me('brewer@example.com'));
+    const logoutSpy = vi.spyOn(authApi, 'logout').mockResolvedValue(undefined);
     render(<Probe />, { wrapper });
     await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('authenticated'));
 
     await userEvent.click(screen.getByRole('button', { name: 'logout' }));
 
+    expect(logoutSpy).toHaveBeenCalledWith();
     await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('anonymous'));
     expect(screen.getByTestId('email')).toHaveTextContent('none');
-  });
-
-  it('calls the logout API with the stored refresh token and clears both tokens', async () => {
-    vi.spyOn(authApi, 'login').mockResolvedValue({
-      token: 'jwt',
-      expiresAt: '2026-07-09T00:00:00Z',
-      email: 'a@b.com',
-      refreshToken: 'refresh-jwt',
-    });
-    vi.spyOn(authApi, 'getMe').mockResolvedValue({
-      id: 2,
-      email: 'a@b.com',
-      displayName: null,
-      emailVerified: true,
-      createdAt: '2026-07-01T00:00:00Z',
-    });
-    const logoutSpy = vi.spyOn(authApi, 'logout').mockResolvedValue(undefined);
-
-    render(<Probe />, { wrapper });
-    await userEvent.click(screen.getByRole('button', { name: 'login' }));
-    await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('authenticated'));
-
-    await userEvent.click(screen.getByRole('button', { name: 'logout' }));
-
-    expect(logoutSpy).toHaveBeenCalledWith('refresh-jwt');
-    await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('anonymous'));
     expect(getToken()).toBeNull();
-    expect(getRefreshToken()).toBeNull();
   });
 
-  it('still clears tokens locally when the logout API call rejects', async () => {
-    vi.spyOn(authApi, 'login').mockResolvedValue({
-      token: 'jwt',
-      expiresAt: '2026-07-09T00:00:00Z',
-      email: 'a@b.com',
-      refreshToken: 'refresh-jwt',
-    });
-    vi.spyOn(authApi, 'getMe').mockResolvedValue({
-      id: 2,
-      email: 'a@b.com',
-      displayName: null,
-      emailVerified: true,
-      createdAt: '2026-07-01T00:00:00Z',
-    });
+  it('still signs out locally when the logout API call rejects', async () => {
+    cookieSession();
+    vi.spyOn(authApi, 'getMe').mockResolvedValue(me('brewer@example.com'));
     vi.spyOn(authApi, 'logout').mockRejectedValue(new Error('Network error'));
-
     render(<Probe />, { wrapper });
-    await userEvent.click(screen.getByRole('button', { name: 'login' }));
     await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('authenticated'));
 
     await userEvent.click(screen.getByRole('button', { name: 'logout' }));
 
-    expect(authApi.logout).toHaveBeenCalledWith('refresh-jwt');
     await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('anonymous'));
     expect(getToken()).toBeNull();
-    expect(getRefreshToken()).toBeNull();
   });
 
-  it('sends the authenticated logout request with the bearer token before clearing storage', async () => {
-    // Exercises the REAL apiFetch path (global fetch mocked, not authApi.logout)
-    // so a regression that drops the Authorization header cannot slip through.
-    setToken('access-jwt');
-    setRefreshToken('refresh-jwt');
-    vi.spyOn(authApi, 'getMe').mockResolvedValue({
-      id: 4,
-      email: 'a@b.com',
-      displayName: null,
-      emailVerified: true,
-      createdAt: '2026-07-01T00:00:00Z',
-    });
+  it('sends logout with the bearer token and CSRF header, and no body', async () => {
+    // Exercises the REAL apiFetch path (global fetch mocked) so a regression that drops the
+    // Authorization or X-Requested-With header cannot slip through.
+    cookieSession('access-jwt');
+    vi.spyOn(authApi, 'getMe').mockResolvedValue(me('a@b.com'));
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       status: 204,
@@ -200,23 +165,21 @@ describe('AuthProvider', () => {
     expect(logoutCall).toBeDefined();
     const [, requestInit] = logoutCall as [string, RequestInit];
     expect(requestInit.method).toBe('POST');
-    expect(requestInit.body).toBe(JSON.stringify({ refreshToken: 'refresh-jwt' }));
-    expect((requestInit.headers as Record<string, string>).Authorization).toBe(
-      'Bearer access-jwt',
-    );
-
+    expect(requestInit.body).toBeUndefined();
+    expect(requestInit.headers).toMatchObject({
+      Authorization: 'Bearer access-jwt',
+      'X-Requested-With': 'fetch',
+    });
     expect(getToken()).toBeNull();
-    expect(getRefreshToken()).toBeNull();
     expect(result.current.status).toBe('anonymous');
   });
 
-  it('falls back to anonymous when getMe rejects during hydration', async () => {
-    setToken('jwt');
+  it('falls back to anonymous when getMe rejects after a refresh', async () => {
+    cookieSession();
     vi.spyOn(authApi, 'getMe').mockRejectedValue(new Error('Unauthorized'));
     render(<Probe />, { wrapper });
 
     await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('anonymous'));
-    expect(screen.getByTestId('email')).toHaveTextContent('none');
     expect(getToken()).toBeNull();
   });
 });

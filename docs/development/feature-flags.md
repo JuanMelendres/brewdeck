@@ -76,4 +76,12 @@ the seed row via a new migration, drop it from `FeatureKeys` / `FrontendFeatureF
 
 | Flag | Type | Owner | Environments (enabled) | Prod default | Expires | Removal condition |
 |------|------|-------|------------------------|--------------|---------|-------------------|
-| `brew-recipe-ai-assistant` | RELEASE | Backend Team | local, dev | Disabled | 2026-12-01 | AI suggest/improve output validated across brew methods and frontend UX polished; then remove the flag, its `requireEnabled` checks, the UI gating, and the seed rows. |
+| `brew-recipe-ai-assistant` | RELEASE | Backend Team | none (suspended, V14) | Disabled | 2026-12-01 | AI suggest/improve output validated across brew methods and frontend UX polished; then remove the flag, its `requireEnabled` checks, the UI gating, and the seed rows. |
+| `auth-require-email-verification` | RELEASE | Juan (product owner) | none (V20; enable per env after SMTP works) | Disabled | 2026-12-31 | Enabled in prod and stable for 2 weeks; then make `EmailVerificationRequiredFilter` unconditional, remove the flag rows, `FeatureKeys`/`FrontendFeatureFlag` entries, and the frontend alias. Tests for both states: `EmailVerificationEnforcementIntegrationTest` (backend), `EmailVerificationGate.test.tsx` (frontend). See [ADR-012](../decisions/ADR-012-require-email-verification.md) (includes lock-out recovery). |
+
+**Suspended (2026-09-08):** owner has paused the AI integration indefinitely (no intent to pay for
+an LLM API subscription right now). Code, port, adapter, and frontend gating stay in place
+untouched; `V14__suspend_ai_recipe_assistant_flag.sql` flips `local`/`dev` to disabled so the
+flow can't be exercised (and can't incur API cost) until the decision is revisited. Re-enable by
+flipping the flag back (new migration or admin update) once ready to resume — no code changes
+needed.

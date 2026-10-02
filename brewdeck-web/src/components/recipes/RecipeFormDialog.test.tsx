@@ -40,6 +40,17 @@ describe('RecipeFormDialog', () => {
     expect(screen.getByRole('option', { name: 'AeroPress' })).toBeInTheDocument();
   });
 
+  it('keeps the select labels above the placeholder option so they do not overlap', () => {
+    mockAll();
+    renderWithTheme(<RecipeFormDialog open onClose={vi.fn()} />);
+    // MUI marks a label moved above the field with data-shrink.
+    expect(screen.getByText('Coffee', { selector: 'label' })).toHaveAttribute('data-shrink', 'true');
+    expect(screen.getByText('Brew Method', { selector: 'label' })).toHaveAttribute(
+      'data-shrink',
+      'true',
+    );
+  });
+
   it('blocks submit and shows required errors when empty', async () => {
     mockAll();
     renderWithTheme(<RecipeFormDialog open onClose={vi.fn()} />);
@@ -118,5 +129,20 @@ describe('RecipeFormDialog', () => {
     fireEvent.click(screen.getByRole('button', { name: /suggest with ai/i }));
     expect(await screen.findByText(/balanced for a medium roast/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/ratio/i)).toHaveValue('1:16');
+  });
+
+  it('groups the fields into Recipe, Brewing, and Notes sections', () => {
+    mockAll();
+    renderWithTheme(<RecipeFormDialog open onClose={vi.fn()} />);
+
+    expect(screen.getByRole('region', { name: 'Recipe' })).toContainElement(
+      screen.getByLabelText(/^Brew Method/),
+    );
+    expect(screen.getByRole('region', { name: 'Brewing' })).toContainElement(
+      screen.getByLabelText('Grind Setting'),
+    );
+    expect(screen.getByRole('region', { name: 'Notes' })).toContainElement(
+      screen.getByLabelText('Steps'),
+    );
   });
 });

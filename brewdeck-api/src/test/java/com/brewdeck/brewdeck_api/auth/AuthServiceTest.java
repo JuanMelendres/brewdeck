@@ -3,11 +3,18 @@ package com.brewdeck.brewdeck_api.auth;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.brewdeck.brewdeck_api.auth.refresh.RefreshTokenService;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitExceededException;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
 import jakarta.persistence.EntityNotFoundException;
-import java.time.LocalDateTime;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,7 +43,12 @@ class AuthServiceTest {
     PasswordEncoder encoder = new BCryptPasswordEncoder();
     authService =
         new AuthService(
-            userRepository, jwtService, encoder, emailVerificationService, refreshTokenService);
+            userRepository,
+            jwtService,
+            encoder,
+            emailVerificationService,
+            refreshTokenService,
+            new RateLimiter(false));
   }
 
   private User stored(String email, String rawPassword) {
@@ -44,7 +56,7 @@ class AuthServiceTest {
         .id(1L)
         .email(email)
         .passwordHash(new BCryptPasswordEncoder().encode(rawPassword))
-        .createdAt(LocalDateTime.now())
+        .createdAt(Instant.now())
         .build();
   }
 
@@ -55,7 +67,7 @@ class AuthServiceTest {
     when(jwtService.generateToken(any(User.class))).thenReturn("jwt-token");
 
     AuthResponse response =
-        authService.register(new RegisterRequest("new@example.com", "password1"));
+        authService.register(new RegisterRequest("new@example.com", "password1")).response();
 
     assertThat(response.token()).isEqualTo("jwt-token");
     assertThat(response.email()).isEqualTo("new@example.com");
@@ -83,7 +95,7 @@ class AuthServiceTest {
 
     // The account is created and a token returned even if verification issuance fails.
     AuthResponse response =
-        authService.register(new RegisterRequest("new@example.com", "password1"));
+        authService.register(new RegisterRequest("new@example.com", "password1")).response();
 
     assertThat(response.token()).isEqualTo("jwt-token");
   }
@@ -94,7 +106,8 @@ class AuthServiceTest {
         .thenReturn(Optional.of(stored("brewer@example.com", "password1")));
     when(jwtService.generateToken(any(User.class))).thenReturn("jwt-token");
 
-    AuthResponse response = authService.login(new LoginRequest("brewer@example.com", "password1"));
+    AuthResponse response =
+        authService.login(new LoginRequest("brewer@example.com", "password1")).response();
 
     assertThat(response.token()).isEqualTo("jwt-token");
   }
@@ -156,6 +169,31 @@ class AuthServiceTest {
   }
 
   @Test
+  void updateTheme_setsPreferenceAndKeepsDisplayName() {
+    User user = stored("brewer@example.com", "password1");
+    user.setDisplayName("Barista Bob");
+    when(userRepository.findByEmail("brewer@example.com")).thenReturn(Optional.of(user));
+    when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+    UserResponse response =
+        authService.updateTheme("brewer@example.com", new UpdateThemeRequest(ThemePreference.DARK));
+
+    assertThat(response.themePreference()).isEqualTo(ThemePreference.DARK);
+    assertThat(response.displayName()).isEqualTo("Barista Bob");
+  }
+
+  @Test
+  void updateTheme_throwsWhenUserMissing() {
+    when(userRepository.findByEmail("ghost@example.com")).thenReturn(Optional.empty());
+
+    assertThatThrownBy(
+            () ->
+                authService.updateTheme(
+                    "ghost@example.com", new UpdateThemeRequest(ThemePreference.LIGHT)))
+        .isInstanceOf(EntityNotFoundException.class);
+  }
+
+  @Test
   void changePassword_reencodesWhenCurrentMatches() {
     User user = stored("brewer@example.com", "password1");
     String originalHash = user.getPasswordHash();
@@ -171,6 +209,18 @@ class AuthServiceTest {
   }
 
   @Test
+  void changePassword_revokesAllRefreshTokensForUser() {
+    User user = stored("brewer@example.com", "password1");
+    when(userRepository.findByEmail("brewer@example.com")).thenReturn(Optional.of(user));
+    when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+    authService.changePassword(
+        "brewer@example.com", new ChangePasswordRequest("password1", "newpassword1"));
+
+    verify(refreshTokenService).revokeAllForUser(1L);
+  }
+
+  @Test
   void changePassword_throwsWhenCurrentWrong() {
     when(userRepository.findByEmail("brewer@example.com"))
         .thenReturn(Optional.of(stored("brewer@example.com", "password1")));
@@ -180,5 +230,88 @@ class AuthServiceTest {
                 authService.changePassword(
                     "brewer@example.com", new ChangePasswordRequest("wrong", "newpassword1")))
         .isInstanceOf(InvalidCurrentPasswordException.class);
+    verify(refreshTokenService, never()).revokeAllForUser(anyLong());
+  }
+
+  @Test
+  void login_throwsBeforeCheckingThePassword_whenTheAccountIsRateLimited() {
+    RateLimiter limiter = org.mockito.Mockito.mock(RateLimiter.class);
+    org.mockito.Mockito.doThrow(new RateLimitExceededException(Duration.ofMinutes(5)))
+        .when(limiter)
+        .requireAllowed(RateLimitRule.LOGIN_EMAIL, "brewer@example.com");
+    AuthService limited =
+        new AuthService(
+            userRepository,
+            jwtService,
+            new BCryptPasswordEncoder(),
+            emailVerificationService,
+            refreshTokenService,
+            limiter);
+    LoginRequest request = new LoginRequest("brewer@example.com", "password1");
+
+    assertThatThrownBy(() -> limited.login(request)).isInstanceOf(RateLimitExceededException.class);
+    org.mockito.Mockito.verifyNoInteractions(userRepository, refreshTokenService);
+  }
+
+  @Test
+  void login_unknownEmail_stillRunsOneBcryptComparison_soTimingMatchesAWrongPassword() {
+    PasswordEncoder encoder = org.mockito.Mockito.spy(new BCryptPasswordEncoder());
+    AuthService service =
+        new AuthService(
+            userRepository,
+            jwtService,
+            encoder,
+            emailVerificationService,
+            refreshTokenService,
+            new RateLimiter(false));
+    when(userRepository.findByEmail("ghost@example.com")).thenReturn(Optional.empty());
+    LoginRequest request = new LoginRequest("ghost@example.com", "password1");
+
+    assertThatThrownBy(() -> service.login(request))
+        .isInstanceOf(org.springframework.security.authentication.BadCredentialsException.class)
+        .hasMessage("Invalid email or password");
+
+    // Exactly one comparison, against a real BCrypt hash (not a cheap early return).
+    org.mockito.Mockito.verify(encoder)
+        .matches(
+            org.mockito.ArgumentMatchers.eq("password1"),
+            org.mockito.ArgumentMatchers.startsWith("$2"));
+    org.mockito.Mockito.verifyNoInteractions(refreshTokenService);
+  }
+
+  @Test
+  void login_unknownEmail_andWrongPassword_failIdentically() {
+    when(userRepository.findByEmail("ghost@example.com")).thenReturn(Optional.empty());
+    when(userRepository.findByEmail("brewer@example.com"))
+        .thenReturn(Optional.of(stored("brewer@example.com", "password1")));
+    LoginRequest unknown = new LoginRequest("ghost@example.com", "password1");
+    LoginRequest wrong = new LoginRequest("brewer@example.com", "not-the-password");
+
+    Throwable unknownError =
+        org.assertj.core.api.Assertions.catchThrowable(() -> authService.login(unknown));
+    Throwable wrongError =
+        org.assertj.core.api.Assertions.catchThrowable(() -> authService.login(wrong));
+
+    assertThat(unknownError).isExactlyInstanceOf(wrongError.getClass());
+    assertThat(unknownError).hasMessage(wrongError.getMessage());
+  }
+
+  @Test
+  void refresh_withoutAnyToken_isRejected() {
+    assertThatThrownBy(() -> authService.refresh(null))
+        .isInstanceOf(com.brewdeck.brewdeck_api.auth.refresh.InvalidRefreshTokenException.class);
+    assertThatThrownBy(() -> authService.refresh("  "))
+        .isInstanceOf(com.brewdeck.brewdeck_api.auth.refresh.InvalidRefreshTokenException.class);
+    org.mockito.Mockito.verifyNoInteractions(refreshTokenService);
+  }
+
+  @Test
+  void logout_withoutAToken_revokesNothing() {
+    when(userRepository.findByEmail("brewer@example.com"))
+        .thenReturn(Optional.of(stored("brewer@example.com", "password1")));
+
+    authService.logout("brewer@example.com", null);
+
+    org.mockito.Mockito.verifyNoInteractions(refreshTokenService);
   }
 }

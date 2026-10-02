@@ -12,9 +12,10 @@ import com.brewdeck.brewdeck_api.coffee.CoffeeRepository;
 import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
 import com.brewdeck.brewdeck_api.method.BrewMethod;
 import com.brewdeck.brewdeck_api.method.BrewMethodRepository;
+import com.brewdeck.brewdeck_api.session.BrewSessionRepository;
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -35,6 +36,7 @@ class RecipeServiceTest {
   @Mock private CoffeeRepository coffeeRepository;
   @Mock private BrewMethodRepository brewMethodRepository;
   @Mock private CurrentUserProvider currentUserProvider;
+  @Mock private BrewSessionRepository brewSessionRepository;
 
   @InjectMocks private RecipeService recipeService;
 
@@ -50,7 +52,7 @@ class RecipeServiceTest {
             .method(method)
             .name("Veracruz AeroPress")
             .favorite(true)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     Pageable pageable = PageRequest.of(0, 10);
@@ -85,7 +87,7 @@ class RecipeServiceTest {
             .method(method)
             .name("Mezcla Veracruz AeroPress")
             .favorite(true)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     RecipeFilter filter = new RecipeFilter(1L, 1L, true, "AeroPress");
@@ -121,7 +123,7 @@ class RecipeServiceTest {
             .method(method)
             .name("Veracruz AeroPress")
             .favorite(false)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
@@ -192,12 +194,12 @@ class RecipeServiceTest {
             .steps(request.steps())
             .expectedTaste(request.expectedTaste())
             .favorite(true)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
     when(coffeeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(coffee));
-    when(brewMethodRepository.findById(1L)).thenReturn(Optional.of(method));
+    when(brewMethodRepository.findVisibleById(1L, 42L)).thenReturn(Optional.of(method));
     when(recipeRepository.save(any(Recipe.class))).thenReturn(savedRecipe);
 
     RecipeResponse result = recipeService.create(request);
@@ -207,7 +209,7 @@ class RecipeServiceTest {
     assertThat(result.favorite()).isTrue();
 
     verify(coffeeRepository).findByIdAndOwnerId(1L, 42L);
-    verify(brewMethodRepository).findById(1L);
+    verify(brewMethodRepository).findVisibleById(1L, 42L);
     verify(recipeRepository).save(any(Recipe.class));
   }
 
@@ -219,7 +221,7 @@ class RecipeServiceTest {
 
     when(currentUserProvider.require()).thenReturn(owner);
     when(coffeeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(coffee));
-    when(brewMethodRepository.findById(1L)).thenReturn(Optional.of(method));
+    when(brewMethodRepository.findVisibleById(1L, 42L)).thenReturn(Optional.of(method));
     when(recipeRepository.save(any(Recipe.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -245,7 +247,7 @@ class RecipeServiceTest {
         .hasMessage("Coffee not found");
 
     verify(coffeeRepository).findByIdAndOwnerId(99L, 42L);
-    verify(brewMethodRepository, never()).findById(anyLong());
+    verify(brewMethodRepository, never()).findVisibleById(anyLong(), anyLong());
     verify(recipeRepository, never()).save(any());
   }
 
@@ -261,7 +263,7 @@ class RecipeServiceTest {
             .method(method)
             .name("Favorite Recipe")
             .favorite(true)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     Pageable pageable = PageRequest.of(0, 10);
@@ -291,7 +293,7 @@ class RecipeServiceTest {
             .method(method)
             .name("Veracruz AeroPress")
             .favorite(false)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     Pageable pageable = PageRequest.of(0, 10);
@@ -321,7 +323,7 @@ class RecipeServiceTest {
             .method(method)
             .name("Veracruz AeroPress")
             .favorite(false)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     Pageable pageable = PageRequest.of(0, 10);
@@ -354,7 +356,7 @@ class RecipeServiceTest {
             .method(oldMethod)
             .name("Old Recipe")
             .favorite(false)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     RecipeRequest request =
@@ -375,7 +377,7 @@ class RecipeServiceTest {
     when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
     when(recipeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(existingRecipe));
     when(coffeeRepository.findByIdAndOwnerId(2L, 42L)).thenReturn(Optional.of(newCoffee));
-    when(brewMethodRepository.findById(2L)).thenReturn(Optional.of(newMethod));
+    when(brewMethodRepository.findVisibleById(2L, 42L)).thenReturn(Optional.of(newMethod));
     when(recipeRepository.save(existingRecipe)).thenReturn(existingRecipe);
 
     RecipeResponse result = recipeService.update(1L, request);
@@ -389,7 +391,7 @@ class RecipeServiceTest {
 
     verify(recipeRepository).findByIdAndOwnerId(1L, 42L);
     verify(coffeeRepository).findByIdAndOwnerId(2L, 42L);
-    verify(brewMethodRepository).findById(2L);
+    verify(brewMethodRepository).findVisibleById(2L, 42L);
     verify(recipeRepository).save(existingRecipe);
   }
 
@@ -407,7 +409,7 @@ class RecipeServiceTest {
 
     verify(recipeRepository).findByIdAndOwnerId(99L, 42L);
     verify(coffeeRepository, never()).findByIdAndOwnerId(anyLong(), anyLong());
-    verify(brewMethodRepository, never()).findById(anyLong());
+    verify(brewMethodRepository, never()).findVisibleById(anyLong(), anyLong());
     verify(recipeRepository, never()).save(any());
   }
 
@@ -421,7 +423,7 @@ class RecipeServiceTest {
             .method(method)
             .name("Existing Recipe")
             .favorite(false)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     RecipeRequest request =
@@ -437,7 +439,7 @@ class RecipeServiceTest {
 
     verify(recipeRepository).findByIdAndOwnerId(1L, 42L);
     verify(coffeeRepository).findByIdAndOwnerId(99L, 42L);
-    verify(brewMethodRepository, never()).findById(anyLong());
+    verify(brewMethodRepository, never()).findVisibleById(anyLong(), anyLong());
     verify(recipeRepository, never()).save(any());
   }
 
@@ -453,7 +455,7 @@ class RecipeServiceTest {
             .method(oldMethod)
             .name("Existing Recipe")
             .favorite(false)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     RecipeRequest request =
@@ -462,7 +464,7 @@ class RecipeServiceTest {
     when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
     when(recipeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(existingRecipe));
     when(coffeeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(coffee));
-    when(brewMethodRepository.findById(99L)).thenReturn(Optional.empty());
+    when(brewMethodRepository.findVisibleById(99L, 42L)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> recipeService.update(1L, request))
         .isInstanceOf(EntityNotFoundException.class)
@@ -470,7 +472,7 @@ class RecipeServiceTest {
 
     verify(recipeRepository).findByIdAndOwnerId(1L, 42L);
     verify(coffeeRepository).findByIdAndOwnerId(1L, 42L);
-    verify(brewMethodRepository).findById(99L);
+    verify(brewMethodRepository).findVisibleById(99L, 42L);
     verify(recipeRepository, never()).save(any());
   }
 
@@ -510,7 +512,7 @@ class RecipeServiceTest {
             .method(method)
             .name("Veracruz AeroPress")
             .favorite(false)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
@@ -550,7 +552,7 @@ class RecipeServiceTest {
             .method(method)
             .name("Veracruz AeroPress")
             .favorite(true)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
@@ -591,7 +593,7 @@ class RecipeServiceTest {
             .name("Veracruz AeroPress")
             .favorite(false)
             .shareToken(null)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
@@ -600,7 +602,7 @@ class RecipeServiceTest {
 
     RecipeResponse response = recipeService.share(1L);
 
-    assertThat(response.shareToken()).isNotBlank();
+    assertThat(response.shareToken()).isNotBlank().hasSize(22);
     assertThat(recipe.getShareToken()).isEqualTo(response.shareToken());
     verify(recipeRepository).save(recipe);
   }
@@ -618,7 +620,7 @@ class RecipeServiceTest {
             .name("Veracruz AeroPress")
             .favorite(false)
             .shareToken("existing-token")
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
@@ -659,7 +661,7 @@ class RecipeServiceTest {
             .name("Veracruz AeroPress")
             .favorite(false)
             .shareToken("existing-token")
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
@@ -685,7 +687,7 @@ class RecipeServiceTest {
             .name("Morning Cup")
             .shareToken("tok-1")
             .favorite(false)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     when(recipeRepository.findByShareToken("tok-1")).thenReturn(Optional.of(recipe));
@@ -708,5 +710,17 @@ class RecipeServiceTest {
   @SuppressWarnings("unchecked")
   private Specification<Recipe> anyRecipeSpecification() {
     return any(Specification.class);
+  }
+
+  @Test
+  void delete_shouldRefuse_whenTheRecipeHasBrewSessions() {
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    when(recipeRepository.existsByIdAndOwnerId(1L, 42L)).thenReturn(true);
+    when(brewSessionRepository.countByRecipeId(1L)).thenReturn(2L);
+
+    assertThatThrownBy(() -> recipeService.delete(1L))
+        .isInstanceOf(com.brewdeck.brewdeck_api.common.error.ResourceInUseException.class)
+        .hasMessage("Recipe is used by 2 brew sessions. Delete or change them first.");
+    verify(recipeRepository, never()).deleteById(anyLong());
   }
 }

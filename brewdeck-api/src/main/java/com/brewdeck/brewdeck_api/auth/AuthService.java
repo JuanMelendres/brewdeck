@@ -1,11 +1,14 @@
 package com.brewdeck.brewdeck_api.auth;
 
-import com.brewdeck.brewdeck_api.auth.refresh.RefreshRequest;
+import com.brewdeck.brewdeck_api.auth.refresh.InvalidRefreshTokenException;
 import com.brewdeck.brewdeck_api.auth.refresh.RefreshTokenService;
 import com.brewdeck.brewdeck_api.auth.verification.EmailVerificationService;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
+import com.brewdeck.brewdeck_api.common.security.SecureTokens;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.Instant;
-import java.time.LocalDateTime;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,22 +26,33 @@ public class AuthService {
   private final PasswordEncoder passwordEncoder;
   private final EmailVerificationService emailVerificationService;
   private final RefreshTokenService refreshTokenService;
+  private final RateLimiter rateLimiter;
+
+  /**
+   * A real hash of a random password with the same encoder (and cost) as stored hashes. Login
+   * checks against it when the email is unknown, so "no such user" costs the same BCrypt work as
+   * "wrong password" and response time does not reveal which emails are registered.
+   */
+  private final String dummyPasswordHash;
 
   public AuthService(
       UserRepository userRepository,
       JwtService jwtService,
       PasswordEncoder passwordEncoder,
       EmailVerificationService emailVerificationService,
-      RefreshTokenService refreshTokenService) {
+      RefreshTokenService refreshTokenService,
+      RateLimiter rateLimiter) {
     this.userRepository = userRepository;
     this.jwtService = jwtService;
     this.passwordEncoder = passwordEncoder;
     this.emailVerificationService = emailVerificationService;
     this.refreshTokenService = refreshTokenService;
+    this.rateLimiter = rateLimiter;
+    this.dummyPasswordHash = passwordEncoder.encode(SecureTokens.newToken());
   }
 
   @Transactional
-  public AuthResponse register(RegisterRequest request) {
+  public AuthSession register(RegisterRequest request) {
     if (userRepository.existsByEmail(request.email())) {
       throw new EmailAlreadyUsedException("Email is already registered");
     }
@@ -46,7 +60,7 @@ public class AuthService {
         User.builder()
             .email(request.email())
             .passwordHash(passwordEncoder.encode(request.password()))
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
     User saved = userRepository.save(user);
     log.info("Registered user id={}", saved.getId());
@@ -60,14 +74,18 @@ public class AuthService {
   }
 
   @Transactional
-  public AuthResponse login(LoginRequest request) {
-    User user =
-        userRepository
-            .findByEmail(request.email())
-            .orElseThrow(() -> new BadCredentialsException(INVALID_CREDENTIALS));
-    if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
+  public AuthSession login(LoginRequest request) {
+    // Per-account limit, checked before the password: rotating IPs does not help an attacker.
+    rateLimiter.requireAllowed(RateLimitRule.LOGIN_EMAIL, request.email());
+    Optional<User> maybeUser = userRepository.findByEmail(request.email());
+    // Always run exactly one BCrypt comparison, against the dummy hash when the user is unknown,
+    // so the two failure cases are indistinguishable by timing as well as by response body.
+    String hashToCheck = maybeUser.map(User::getPasswordHash).orElse(dummyPasswordHash);
+    boolean passwordMatches = passwordEncoder.matches(request.password(), hashToCheck);
+    if (maybeUser.isEmpty() || !passwordMatches) {
       throw new BadCredentialsException(INVALID_CREDENTIALS);
     }
+    User user = maybeUser.get();
     return tokenResponse(user, refreshTokenService.issue(user));
   }
 
@@ -89,6 +107,15 @@ public class AuthService {
   }
 
   @Transactional
+  public UserResponse updateTheme(String email, UpdateThemeRequest request) {
+    User user = requireByEmail(email);
+    user.setThemePreference(request.themePreference());
+    User saved = userRepository.save(user);
+    log.info("Updated theme preference for user id={}", saved.getId());
+    return UserResponse.fromEntity(saved);
+  }
+
+  @Transactional
   public void changePassword(String email, ChangePasswordRequest request) {
     User user = requireByEmail(email);
     if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
@@ -96,6 +123,7 @@ public class AuthService {
     }
     user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
     userRepository.save(user);
+    refreshTokenService.revokeAllForUser(user.getId());
     log.info("Changed password for user id={}", user.getId());
   }
 
@@ -104,15 +132,20 @@ public class AuthService {
   // rotate()'s transaction and roll it back on InvalidRefreshTokenException, undoing the
   // revocation.
   // refresh() has no other DB write of its own (it only rotates, then generates a JWT).
-  public AuthResponse refresh(RefreshRequest request) {
-    RefreshTokenService.RotationResult result = refreshTokenService.rotate(request.refreshToken());
+  public AuthSession refresh(String rawRefreshToken) {
+    if (rawRefreshToken == null || rawRefreshToken.isBlank()) {
+      throw new InvalidRefreshTokenException("Missing refresh token");
+    }
+    RefreshTokenService.RotationResult result = refreshTokenService.rotate(rawRefreshToken);
     return tokenResponse(result.user(), result.rawToken());
   }
 
   @Transactional
-  public void logout(String email, RefreshRequest request) {
+  public void logout(String email, String rawRefreshToken) {
     User user = requireByEmail(email);
-    refreshTokenService.revoke(request.refreshToken(), user.getId());
+    if (rawRefreshToken != null && !rawRefreshToken.isBlank()) {
+      refreshTokenService.revoke(rawRefreshToken, user.getId());
+    }
   }
 
   private User requireByEmail(String email) {
@@ -121,9 +154,10 @@ public class AuthService {
         .orElseThrow(() -> new EntityNotFoundException("User not found"));
   }
 
-  private AuthResponse tokenResponse(User user, String refreshToken) {
+  private AuthSession tokenResponse(User user, String refreshToken) {
     String token = jwtService.generateToken(user);
-    return new AuthResponse(
-        token, jwtService.expiryFor(Instant.now()), user.getEmail(), refreshToken);
+    return new AuthSession(
+        new AuthResponse(token, jwtService.expiryFor(Instant.now()), user.getEmail()),
+        refreshToken);
   }
 }

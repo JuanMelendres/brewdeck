@@ -9,12 +9,13 @@ import com.brewdeck.brewdeck_api.auth.reset.PasswordResetMailPort;
 import com.brewdeck.brewdeck_api.auth.reset.PasswordResetToken;
 import com.brewdeck.brewdeck_api.auth.reset.PasswordResetTokenRepository;
 import com.brewdeck.brewdeck_api.common.PostgresIntegrationTest;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -38,7 +39,7 @@ class PasswordResetIntegrationTest extends PostgresIntegrationTest {
         User.builder()
             .email(email)
             .passwordHash(passwordEncoder.encode("password1"))
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build());
 
     // forgot-password returns 200 and issues a link
@@ -86,6 +87,52 @@ class PasswordResetIntegrationTest extends PostgresIntegrationTest {
   }
 
   @Test
+  void resetPassword_revokesRefreshTokensIssuedBeforeTheReset() throws Exception {
+    String email = "reset-revoke-" + System.nanoTime() + "@example.com";
+    userRepository.save(
+        User.builder()
+            .email(email)
+            .passwordHash(passwordEncoder.encode("password1"))
+            .createdAt(Instant.now())
+            .build());
+
+    // An existing session obtained with the old password.
+    jakarta.servlet.http.Cookie staleRefresh =
+        mockMvc
+            .perform(
+                post("/api/auth/login")
+                    .contentType("application/json")
+                    .content("{\"email\":\"" + email + "\",\"password\":\"password1\"}"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getCookie("brewdeck_refresh");
+
+    mockMvc
+        .perform(
+            post("/api/auth/forgot-password")
+                .contentType("application/json")
+                .content("{\"email\":\"" + email + "\"}"))
+        .andExpect(status().isOk());
+    ArgumentCaptor<String> rawToken = ArgumentCaptor.forClass(String.class);
+    org.mockito.Mockito.verify(mailPort)
+        .sendResetLink(org.mockito.ArgumentMatchers.eq(email), rawToken.capture());
+
+    mockMvc
+        .perform(
+            post("/api/auth/reset-password")
+                .contentType("application/json")
+                .content(
+                    "{\"token\":\"" + rawToken.getValue() + "\",\"newPassword\":\"newpassword1\"}"))
+        .andExpect(status().isNoContent());
+
+    // The pre-reset session can no longer be refreshed.
+    mockMvc
+        .perform(post("/api/auth/refresh").cookie(staleRefresh).header("X-Requested-With", "fetch"))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
   void forgotPassword_unknownEmail_returns200AndSendsNothing() throws Exception {
     mockMvc
         .perform(
@@ -108,7 +155,7 @@ class PasswordResetIntegrationTest extends PostgresIntegrationTest {
             User.builder()
                 .email(email)
                 .passwordHash(passwordEncoder.encode("password1"))
-                .createdAt(LocalDateTime.now())
+                .createdAt(Instant.now())
                 .build());
     // Persist a token whose hash we know, already expired.
     // SHA-256 hex of "expired-raw-token":
@@ -117,8 +164,8 @@ class PasswordResetIntegrationTest extends PostgresIntegrationTest {
         PasswordResetToken.builder()
             .userId(user.getId())
             .tokenHash(sha256Hex(rawExpired))
-            .expiresAt(LocalDateTime.now().minusMinutes(1))
-            .createdAt(LocalDateTime.now().minusMinutes(31))
+            .expiresAt(Instant.now().minus(1, ChronoUnit.MINUTES))
+            .createdAt(Instant.now().minus(31, ChronoUnit.MINUTES))
             .build());
 
     mockMvc

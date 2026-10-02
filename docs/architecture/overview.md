@@ -6,7 +6,7 @@ BrewDeck is a two-tier application: a Spring Boot REST API and a Next.js web cli
 
 | Component | Tech | Responsibility |
 | --------- | ---- | -------------- |
-| `brewdeck-api` | Java 21, Spring Boot 3.5, Spring Data JPA | REST API, business logic, persistence, auth |
+| `brewdeck-api` | Java 21, Spring Boot 4.1, Spring Data JPA | REST API, business logic, persistence, auth |
 | `brewdeck-web` | Next.js 16, React 19, TypeScript, MUI | Web UI, data fetching via TanStack Query |
 | PostgreSQL 16 | Docker Compose | Relational store; schema versioned by Flyway |
 | Anthropic API | Claude (via Java SDK) | Optional, feature-flagged AI recipe suggestions |

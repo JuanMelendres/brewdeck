@@ -3,6 +3,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { ChangePasswordForm } from '@/components/auth/ChangePasswordForm';
 import { ProfileForm } from '@/components/auth/ProfileForm';
+import { ThemeModeSetting } from '@/components/theme/ThemeModeSetting';
 
 export default function AccountPage() {
   return (
@@ -11,6 +12,8 @@ export default function AccountPage() {
         Account
       </Typography>
       <ProfileForm />
+      <Divider />
+      <ThemeModeSetting />
       <Divider />
       <ChangePasswordForm />
     </Stack>

@@ -5,10 +5,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.auth.UserRepository;
 import com.brewdeck.brewdeck_api.common.PostgresIntegrationTest;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 
 @DataJpaTest
@@ -23,7 +24,7 @@ class EmailVerificationTokenRepositoryTest extends PostgresIntegrationTest {
         User.builder()
             .email("verify-" + System.nanoTime() + "@example.com")
             .passwordHash("hash")
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build());
   }
 
@@ -34,8 +35,8 @@ class EmailVerificationTokenRepositoryTest extends PostgresIntegrationTest {
         EmailVerificationToken.builder()
             .userId(user.getId())
             .tokenHash("hash-" + System.nanoTime())
-            .expiresAt(LocalDateTime.now().plusHours(24))
-            .createdAt(LocalDateTime.now())
+            .expiresAt(Instant.now().plus(24, ChronoUnit.HOURS))
+            .createdAt(Instant.now())
             .build());
     String hash = tokenRepository.findAll().get(0).getTokenHash();
 
@@ -50,16 +51,16 @@ class EmailVerificationTokenRepositoryTest extends PostgresIntegrationTest {
         EmailVerificationToken.builder()
             .userId(user.getId())
             .tokenHash("unused-" + System.nanoTime())
-            .expiresAt(LocalDateTime.now().plusHours(24))
-            .createdAt(LocalDateTime.now())
+            .expiresAt(Instant.now().plus(24, ChronoUnit.HOURS))
+            .createdAt(Instant.now())
             .build());
     tokenRepository.save(
         EmailVerificationToken.builder()
             .userId(user.getId())
             .tokenHash("used-" + System.nanoTime())
-            .expiresAt(LocalDateTime.now().plusHours(24))
-            .usedAt(LocalDateTime.now())
-            .createdAt(LocalDateTime.now())
+            .expiresAt(Instant.now().plus(24, ChronoUnit.HOURS))
+            .usedAt(Instant.now())
+            .createdAt(Instant.now())
             .build());
 
     assertThat(tokenRepository.findByUserIdAndUsedAtIsNull(user.getId())).hasSize(1);

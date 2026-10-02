@@ -12,6 +12,7 @@ This is a stable, high-level summary. The living, detailed roadmap is
 | 4 | Frontend (Next.js + React + TypeScript + MUI + TanStack Query + Vitest) | Completed |
 | 5 | Product improvements (analytics widgets, tasting radar, AI suggestions/improve, PDF export, public share links) | Completed |
 | 6 | Auth & multi-user | Completed |
+| 7 | UI/UX refresh (design system, navigation, dashboard, lists, auth screens) | Planned — spike: [ui-ux-refresh-spike](spikes/ui-ux-refresh-spike.md) |
 
 ## Phase 6 breakdown
 
@@ -24,6 +25,10 @@ This is a stable, high-level summary. The living, detailed roadmap is
   - C.4 — Refresh tokens (store + rotation): hashed single-use tokens (Flyway V11), reuse-detection revokes all active tokens, `POST /api/auth/refresh` + `POST /api/auth/logout`, 15m access-token TTL, frontend silent refresh + server-revoking logout. — Done (PR #76)
 
 **Released:** Phase 6 shipped to `master` via PR #77 (develop→master), bundling Slices C.1–C.4 plus the pnpm migration and CI overhaul. All CI green; develop remains the default branch.
+
+## Status
+
+All 6 phases above are Completed — 100% of the current roadmap. Ongoing work past this point is maintenance (CVE/dependency remediation) and follow-ups tracked in [`.claude/project-state.md`](../../.claude/project-state.md) "Immediate Next Steps" (e.g. moving auth tokens off `localStorage` to `httpOnly` cookies). The AI recipe assistant (Phase 5) remains built but feature-flagged off (paused, not removed). "Vision" below is unscheduled future scope, not counted toward this roadmap.
 
 ## Vision (post-roadmap)
 
