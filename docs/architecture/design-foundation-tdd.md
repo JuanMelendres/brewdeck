@@ -261,7 +261,7 @@ Integration, contract, OpenAPI, and Postman tests: no API change.
 
 - ~~OQ-001: ESLint rule or a file-scanning test for VR-003?~~ Answered 2026-10-05: a test (simpler, no false positives on non-style strings).
 - ~~OQ-002: `AppShell` user card radius `14px`?~~ Answered 2026-10-05: `radius.card` (18 px).
-- OQ-003 (from spike §19): there is no logo or brand mark yet (confirmed 2026-10-05); the app keeps its placeholder icon. Designing one is a separate follow-up, out of scope here.
+- OQ-003 (from spike §19): there is no logo or brand mark yet (confirmed 2026-10-05); the app keeps its placeholder icon. Resolved in the [brand mark spike](../product/spikes/brand-mark-spike.md): concept B (bean on a deck), delivered as `BrandMark` + `Wordmark`.
 
 ## 22. Assumptions
 

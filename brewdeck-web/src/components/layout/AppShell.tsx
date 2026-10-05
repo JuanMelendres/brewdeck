@@ -3,7 +3,6 @@
 import CoffeeMakerOutlinedIcon from '@mui/icons-material/CoffeeMakerOutlined';
 import CoffeeOutlinedIcon from '@mui/icons-material/CoffeeOutlined';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import LocalCafeIcon from '@mui/icons-material/LocalCafe';
 import LogoutIcon from '@mui/icons-material/Logout';
 import MenuIcon from '@mui/icons-material/Menu';
 import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined';
@@ -26,6 +25,8 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, type ReactNode } from 'react';
 import { EmailVerificationBanner } from '@/components/auth/EmailVerificationBanner';
+import { BrandMark } from '@/components/ui/BrandMark';
+import { Wordmark } from '@/components/ui/Wordmark';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { radius } from '@/lib/theme/tokens';
 
@@ -73,11 +74,9 @@ function Logo() {
           justifyContent: 'center',
         }}
       >
-        <LocalCafeIcon fontSize="small" />
+        <BrandMark size={22} />
       </Box>
-      <Typography variant="h6" component="span" noWrap>
-        BrewDeck
-      </Typography>
+      <Wordmark />
     </Box>
   );
 }

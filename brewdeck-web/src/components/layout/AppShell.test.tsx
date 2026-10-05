@@ -24,6 +24,14 @@ vi.mock('@/components/auth/EmailVerificationBanner', () => ({
 beforeEach(() => vi.clearAllMocks());
 
 describe('AppShell', () => {
+  it('shows the BrewDeck name next to the brand mark', () => {
+    renderWithTheme(<AppShell>content</AppShell>);
+
+    const [brew] = screen.getAllByText('Brew');
+    expect(brew.parentElement).toHaveTextContent(/^BrewDeck$/);
+    expect(brew.parentElement?.previousElementSibling?.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+  });
+
   it('marks the current page in the navigation', () => {
     pathname.mockReturnValue('/coffees/7');
     renderWithTheme(<AppShell>content</AppShell>);
