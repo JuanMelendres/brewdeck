@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.brewdeck.brewdeck_api.common.error.GlobalExceptionHandler;
+import com.brewdeck.brewdeck_api.common.i18n.TestMessages;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,7 @@ class PasswordResetControllerTest {
   void setUp() {
     mockMvc =
         MockMvcBuilders.standaloneSetup(new PasswordResetController(passwordResetService))
-            .setControllerAdvice(new GlobalExceptionHandler())
+            .setControllerAdvice(new GlobalExceptionHandler(TestMessages.messageSource()))
             .build();
   }
 

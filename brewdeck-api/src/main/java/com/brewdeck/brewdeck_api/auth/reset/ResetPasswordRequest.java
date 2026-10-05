@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Size;
 public record ResetPasswordRequest(
     @NotBlank String token,
     @NotBlank
-        @Size(min = 8, message = "New password must be at least 8 characters")
+        @Size(min = 8, message = "{validation.newPassword.tooShort}")
         @MaxUtf8Bytes(
             value = 72,
             message =

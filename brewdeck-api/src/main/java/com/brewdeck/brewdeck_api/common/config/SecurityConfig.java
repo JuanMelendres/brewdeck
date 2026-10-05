@@ -7,6 +7,7 @@ import com.brewdeck.brewdeck_api.common.ratelimit.AuthRateLimitFilter;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
 import com.brewdeck.brewdeck_api.featureflag.FeatureFlagService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -16,6 +17,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.servlet.LocaleResolver;
 
 @Configuration
 public class SecurityConfig {
@@ -53,7 +55,9 @@ public class SecurityConfig {
   // guidance for stateless APIs. Sonar java:S4502 is a false positive in this context.
   @Bean
   @SuppressWarnings("java:S4502")
-  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+  public SecurityFilterChain securityFilterChain(
+      HttpSecurity http, MessageSource messageSource, LocaleResolver localeResolver)
+      throws Exception {
     http.csrf(AbstractHttpConfigurer::disable)
         .cors(cors -> cors.configurationSource(corsConfigurationSource))
         .sessionManagement(
@@ -86,7 +90,7 @@ public class SecurityConfig {
                     .accessDeniedHandler(accessDeniedHandler))
         // Rate limiting runs first (after CORS) so throttled requests do no auth or DB work.
         .addFilterBefore(
-            new AuthRateLimitFilter(rateLimiter, objectMapper),
+            new AuthRateLimitFilter(rateLimiter, objectMapper, messageSource, localeResolver),
             UsernamePasswordAuthenticationFilter.class)
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         // Needs the principal the JWT filter just set; blocks unverified users when flagged on.

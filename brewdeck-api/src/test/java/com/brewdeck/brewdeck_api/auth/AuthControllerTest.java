@@ -17,6 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.brewdeck.brewdeck_api.auth.refresh.InvalidRefreshTokenException;
 import com.brewdeck.brewdeck_api.auth.refresh.RefreshTokenCookies;
+import com.brewdeck.brewdeck_api.common.i18n.TestMessages;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
 import java.security.Principal;
@@ -51,7 +52,8 @@ class AuthControllerTest {
                     new RefreshTokenCookies(
                         "brewdeck_refresh", "/api/auth", true, "Strict", Duration.ofDays(7))))
             .setControllerAdvice(
-                new com.brewdeck.brewdeck_api.common.error.GlobalExceptionHandler())
+                new com.brewdeck.brewdeck_api.common.error.GlobalExceptionHandler(
+                    TestMessages.messageSource()))
             .build();
   }
 
@@ -128,6 +130,7 @@ class AuthControllerTest {
                 true,
                 Role.USER,
                 null,
+                null,
                 Instant.parse("2026-07-09T00:00:00Z")));
 
     mockMvc
@@ -152,6 +155,7 @@ class AuthControllerTest {
                 true,
                 Role.USER,
                 ThemePreference.DARK,
+                null,
                 Instant.parse("2026-07-09T00:00:00Z")));
 
     mockMvc
@@ -163,6 +167,56 @@ class AuthControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.themePreference").value("DARK"))
         .andExpect(jsonPath("$.displayName").value("Barista Bob"));
+  }
+
+  @Test
+  void updateLanguage_returns200WithTheNewLanguage() throws Exception {
+    Principal principal = () -> "brewer@example.com";
+    when(authService.updateLanguage(eq("brewer@example.com"), any()))
+        .thenReturn(
+            new UserResponse(
+                1L, "brewer@example.com", null, true, Role.USER, null, Language.ES, Instant.now()));
+
+    mockMvc
+        .perform(
+            put("/api/auth/me/language")
+                .principal(principal)
+                .contentType("application/json")
+                .content("{\"language\":\"ES\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.language").value("ES"));
+  }
+
+  @Test
+  void updateLanguage_unknownLanguageReturns400() throws Exception {
+    Principal principal = () -> "brewer@example.com";
+
+    mockMvc
+        .perform(
+            put("/api/auth/me/language")
+                .principal(principal)
+                .contentType("application/json")
+                .content("{\"language\":\"FR\"}"))
+        .andExpect(status().isBadRequest());
+    verify(authService, never()).updateLanguage(anyString(), any());
+  }
+
+  @Test
+  void updateLanguage_returns404WhileSpanishIsOff() throws Exception {
+    Principal principal = () -> "brewer@example.com";
+    when(authService.updateLanguage(eq("brewer@example.com"), any()))
+        .thenThrow(
+            new com.brewdeck.brewdeck_api.featureflag.FeatureDisabledException(
+                "web-i18n-spanish", org.springframework.http.HttpStatus.NOT_FOUND));
+
+    mockMvc
+        .perform(
+            put("/api/auth/me/language")
+                .principal(principal)
+                .contentType("application/json")
+                .content("{\"language\":\"ES\"}"))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.message").value("This feature is not available"));
   }
 
   @Test

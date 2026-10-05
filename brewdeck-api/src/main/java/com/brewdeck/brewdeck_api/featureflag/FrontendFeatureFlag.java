@@ -8,7 +8,8 @@ package com.brewdeck.brewdeck_api.featureflag;
  */
 public enum FrontendFeatureFlag {
   AI_RECIPE_ASSISTANT(FeatureKeys.AI_RECIPE_ASSISTANT, "aiRecipeAssistant"),
-  REQUIRE_EMAIL_VERIFICATION(FeatureKeys.REQUIRE_EMAIL_VERIFICATION, "requireEmailVerification");
+  REQUIRE_EMAIL_VERIFICATION(FeatureKeys.REQUIRE_EMAIL_VERIFICATION, "requireEmailVerification"),
+  I18N_SPANISH(FeatureKeys.I18N_SPANISH, "i18nSpanish");
 
   private final String backendKey;
   private final String frontendAlias;

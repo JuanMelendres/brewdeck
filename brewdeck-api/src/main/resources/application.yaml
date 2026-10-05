@@ -13,6 +13,14 @@ spring:
       mail.smtp.timeout: 5000
       mail.smtp.writetimeout: 5000
 
+  # API messages (errors and Bean Validation) in messages*.properties, chosen by Accept-Language
+  # (ADR-015). No fallback to the JVM locale: a server running in Spanish must still answer English
+  # to a client that asks for nothing or for an unsupported language.
+  messages:
+    basename: messages
+    encoding: UTF-8
+    fallback-to-system-locale: false
+
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local}
 

@@ -95,7 +95,7 @@ public class CoffeeService {
     }
     long recipes = recipeRepository.countByCoffeeId(id);
     if (recipes > 0) {
-      throw ResourceInUseException.of("Coffee", recipes, "recipe", "recipes");
+      throw ResourceInUseException.of(ResourceInUseException.Resource.COFFEE, recipes);
     }
 
     coffeeRepository.deleteById(id);
