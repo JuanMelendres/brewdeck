@@ -16,6 +16,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import type { z } from 'zod';
+import { useTranslations } from 'next-intl';
+import { useFieldError } from '@/i18n/useFieldError';
 import { ApiError } from '@/lib/api/client';
 import { recipeSchema, type RecipeFormValues } from '@/lib/validation/recipeSchema';
 import { useCreateRecipe, useUpdateRecipe } from '@/hooks/useRecipeMutations';
@@ -28,21 +30,21 @@ import { useNotify } from '@/lib/notifications/NotificationProvider';
 
 type RecipeFormInput = z.input<typeof recipeSchema>;
 
-type TextFieldSpec = { name: keyof RecipeFormValues; label: string; multiline?: boolean; number?: boolean };
+type TextFieldSpec = { name: keyof RecipeFormValues; multiline?: boolean; number?: boolean };
 
 // Short brewing parameters sit three to a row on wider screens.
 const BREWING_FIELDS: TextFieldSpec[] = [
-  { name: 'coffeeGrams', label: 'Coffee Grams', number: true },
-  { name: 'waterGrams', label: 'Water Grams', number: true },
-  { name: 'ratio', label: 'Ratio' },
-  { name: 'grindSetting', label: 'Grind Setting' },
-  { name: 'waterTemp', label: 'Water Temp', number: true },
-  { name: 'brewTime', label: 'Brew Time' },
+  { name: 'coffeeGrams', number: true },
+  { name: 'waterGrams', number: true },
+  { name: 'ratio' },
+  { name: 'grindSetting' },
+  { name: 'waterTemp', number: true },
+  { name: 'brewTime' },
 ];
 
 const NOTE_FIELDS: TextFieldSpec[] = [
-  { name: 'steps', label: 'Steps', multiline: true },
-  { name: 'expectedTaste', label: 'Expected Taste', multiline: true },
+  { name: 'steps', multiline: true },
+  { name: 'expectedTaste', multiline: true },
 ];
 
 function toDefaults(recipe?: Recipe): RecipeFormInput {
@@ -73,6 +75,10 @@ export function RecipeFormDialog({
   onClose: () => void;
   initialRationale?: string | null;
 }) {
+  const t = useTranslations('recipes.form');
+  const tf = useTranslations('recipes.fields');
+  const tc = useTranslations('common');
+  const fieldError = useFieldError();
   const isEdit = recipe !== undefined;
   const notify = useNotify();
   const create = useCreateRecipe();
@@ -126,7 +132,7 @@ export function RecipeFormDialog({
           setRationale(data.rationale);
         },
         onError: () =>
-          setSuggestError('AI suggestions are unavailable right now. Please try again later.'),
+          setSuggestError(t('suggestFailed')),
       },
     );
   };
@@ -135,7 +141,7 @@ export function RecipeFormDialog({
     setServerError(null);
     const mutateOptions = {
       onSuccess: () => {
-        notify(isEdit ? 'Recipe updated' : 'Recipe added');
+        notify(isEdit ? t('updated') : t('added'));
         onClose();
       },
       onError: (error: unknown) => {
@@ -144,7 +150,7 @@ export function RecipeFormDialog({
             setError(field as keyof RecipeFormValues, { message }),
           );
         } else {
-          setServerError(error instanceof Error ? error.message : 'Something went wrong');
+          setServerError(error instanceof Error ? error.message : tc('genericError'));
         }
       },
     };
@@ -157,7 +163,7 @@ export function RecipeFormDialog({
 
   const renderTextField = (f: TextFieldSpec) => (
     <TextField
-      label={f.label}
+      label={tf(f.name)}
       required={f.name === 'name'}
       type={f.number ? 'number' : 'text'}
       multiline={f.multiline}
@@ -165,14 +171,14 @@ export function RecipeFormDialog({
       size="small"
       fullWidth
       error={Boolean(errors[f.name])}
-      helperText={errors[f.name]?.message}
+      helperText={fieldError(errors[f.name]?.message)}
       {...register(f.name)}
     />
   );
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>{isEdit ? 'Edit recipe' : 'Add recipe'}</DialogTitle>
+      <DialogTitle>{isEdit ? t('editTitle') : t('addTitle')}</DialogTitle>
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <DialogContent>
           {serverError ? (
@@ -181,8 +187,8 @@ export function RecipeFormDialog({
             </Alert>
           ) : null}
           <Stack spacing={3}>
-            <FormSection title="Recipe">
-              <Grid size={12}>{renderTextField({ name: 'name', label: 'Name' })}</Grid>
+            <FormSection title={t('sectionRecipe')}>
+              <Grid size={12}>{renderTextField({ name: 'name' })}</Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <Controller
                   name="coffeeId"
@@ -192,7 +198,7 @@ export function RecipeFormDialog({
                       select
                       // A native select always shows its first option, so the label must sit above it.
                       slotProps={{ select: { native: true }, inputLabel: { shrink: true } }}
-                      label="Coffee"
+                      label={tf('coffeeId')}
                       required
                       size="small"
                       fullWidth
@@ -200,9 +206,9 @@ export function RecipeFormDialog({
                       value={field.value ?? ''}
                       onChange={field.onChange}
                       error={Boolean(errors.coffeeId)}
-                      helperText={errors.coffeeId?.message}
+                      helperText={fieldError(errors.coffeeId?.message)}
                     >
-                      <option value="">{coffeeOptions.isLoading ? 'Loading…' : 'Select a coffee'}</option>
+                      <option value="">{coffeeOptions.isLoading ? tc('loadingEllipsis') : t('selectCoffee')}</option>
                       {(coffeeOptions.data ?? []).map((option) => (
                         <option key={option.id} value={option.id}>
                           {option.name}
@@ -221,7 +227,7 @@ export function RecipeFormDialog({
                       select
                       // A native select always shows its first option, so the label must sit above it.
                       slotProps={{ select: { native: true }, inputLabel: { shrink: true } }}
-                      label="Brew Method"
+                      label={tf('methodId')}
                       required
                       size="small"
                       fullWidth
@@ -229,9 +235,9 @@ export function RecipeFormDialog({
                       value={field.value ?? ''}
                       onChange={field.onChange}
                       error={Boolean(errors.methodId)}
-                      helperText={errors.methodId?.message}
+                      helperText={fieldError(errors.methodId?.message)}
                     >
-                      <option value="">{methodOptions.isLoading ? 'Loading…' : 'Select a brew method'}</option>
+                      <option value="">{methodOptions.isLoading ? tc('loadingEllipsis') : t('selectMethod')}</option>
                       {(methodOptions.data ?? []).map((option) => (
                         <option key={option.id} value={option.id}>
                           {option.name}
@@ -250,7 +256,7 @@ export function RecipeFormDialog({
                     disabled={!canSuggest}
                     startIcon={suggestion.isPending ? <CircularProgress size={16} /> : undefined}
                   >
-                    Suggest with AI
+                    {t('suggest')}
                   </Button>
                   {suggestError ? <Alert severity="error">{suggestError}</Alert> : null}
                   {rationale ? <Alert severity="info">{rationale}</Alert> : null}
@@ -263,20 +269,20 @@ export function RecipeFormDialog({
                   render={({ field }) => (
                     <FormControlLabel
                       control={<Checkbox checked={Boolean(field.value)} onChange={(e) => field.onChange(e.target.checked)} />}
-                      label="Favorite"
+                      label={tf('favorite')}
                     />
                   )}
                 />
               </Grid>
             </FormSection>
-            <FormSection title="Brewing">
+            <FormSection title={t('sectionBrewing')}>
               {BREWING_FIELDS.map((f) => (
                 <Grid key={f.name} size={{ xs: 12, sm: 6, md: 4 }}>
                   {renderTextField(f)}
                 </Grid>
               ))}
             </FormSection>
-            <FormSection title="Notes">
+            <FormSection title={t('sectionNotes')}>
               {NOTE_FIELDS.map((f) => (
                 <Grid key={f.name} size={12}>
                   {renderTextField(f)}
@@ -287,7 +293,7 @@ export function RecipeFormDialog({
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose} disabled={pending}>
-            Cancel
+            {tc('cancel')}
           </Button>
           <Button
             type="submit"
@@ -295,7 +301,7 @@ export function RecipeFormDialog({
             disabled={pending}
             startIcon={pending ? <CircularProgress size={16} /> : undefined}
           >
-            {isEdit ? 'Save' : 'Create'}
+            {isEdit ? tc('save') : tc('create')}
           </Button>
         </DialogActions>
       </form>

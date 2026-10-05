@@ -293,7 +293,7 @@ describe('RecipeDetailView', () => {
     renderWithTheme(<RecipeDetailView recipeId={1} />);
     fireEvent.click(screen.getByRole('button', { name: /export pdf/i }));
 
-    expect(downloadRecipePdfMock).toHaveBeenCalledWith(recipe);
+    expect(downloadRecipePdfMock).toHaveBeenCalledWith(recipe, 'en');
   });
 
   it('shows an error alert when PDF generation throws', () => {

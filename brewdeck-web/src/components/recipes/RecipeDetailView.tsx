@@ -11,6 +11,7 @@ import Typography from '@mui/material/Typography';
 import NextLink from 'next/link';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 import type { Recipe } from '@/lib/api/types';
 import { ApiError } from '@/lib/api/client';
 import { useRecipe, useRecipeStats } from '@/hooks/useRecipe';
@@ -30,6 +31,9 @@ import { downloadRecipePdf, orDash } from '@/lib/pdf/recipePdf';
 import { formatDate } from '@/lib/format/dates';
 
 export function RecipeDetailView({ recipeId }: { recipeId: number }) {
+  const t = useTranslations('recipes.detail');
+  const tc = useTranslations('common');
+  const locale = useLocale();
   const recipeQuery = useRecipe(recipeId);
   const statsQuery = useRecipeStats(recipeId);
   const historyQuery = useRecipeBrewSessions(recipeId);
@@ -45,7 +49,7 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
   }
 
   if (recipeQuery.isError || !recipeQuery.data) {
-    return <ErrorState message="Could not load recipe." onRetry={() => recipeQuery.refetch()} />;
+    return <ErrorState message={t('loadFailed')} onRetry={() => recipeQuery.refetch()} />;
   }
 
   const recipe = recipeQuery.data;
@@ -73,9 +77,9 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
       },
       onError: (error) => {
         if (error instanceof ApiError && error.status === 422) {
-          setImproveError('Log a rated brew for this recipe first, then try again.');
+          setImproveError(t('improveNeedsHistory'));
         } else {
-          setImproveError('AI improvements are unavailable right now. Please try again later.');
+          setImproveError(t('improveFailed'));
         }
       },
     });
@@ -84,21 +88,21 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
   const onExport = () => {
     setPdfError(null);
     try {
-      downloadRecipePdf(recipe);
+      downloadRecipePdf(recipe, locale);
     } catch {
-      setPdfError('Could not generate the PDF.');
+      setPdfError(t('pdfFailed'));
     }
   };
 
   const details: Array<{ label: string; value: string }> = [
-    { label: 'Coffee', value: recipe.coffeeName },
-    { label: 'Method', value: recipe.methodName },
-    { label: 'Coffee (g)', value: orDash(recipe.coffeeGrams) },
-    { label: 'Water (g)', value: orDash(recipe.waterGrams) },
-    { label: 'Ratio', value: orDash(recipe.ratio) },
-    { label: 'Grind', value: orDash(recipe.grindSetting) },
-    { label: 'Water Temp', value: orDash(recipe.waterTemp) },
-    { label: 'Brew Time', value: orDash(recipe.brewTime) },
+    { label: t('coffee'), value: recipe.coffeeName },
+    { label: t('method'), value: recipe.methodName },
+    { label: t('coffeeGrams'), value: orDash(recipe.coffeeGrams) },
+    { label: t('waterGrams'), value: orDash(recipe.waterGrams) },
+    { label: t('ratio'), value: orDash(recipe.ratio) },
+    { label: t('grind'), value: orDash(recipe.grindSetting) },
+    { label: t('waterTemp'), value: orDash(recipe.waterTemp) },
+    { label: t('brewTime'), value: orDash(recipe.brewTime) },
   ];
 
   let statsBody: ReactNode;
@@ -107,19 +111,19 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
   } else if (statsQuery.isError || !statsQuery.data) {
     statsBody = (
       <ErrorState
-        message="Could not load recipe statistics."
+        message={t('statsFailed')}
         onRetry={() => statsQuery.refetch()}
       />
     );
   } else {
     const stats = statsQuery.data;
     const cards: Array<{ label: string; value: string | number }> = [
-      { label: 'Total Sessions', value: stats.totalSessions },
+      { label: t('totalSessions'), value: stats.totalSessions },
       {
-        label: 'Average Rating',
+        label: t('averageRating'),
         value: stats.averageRating === null ? '—' : stats.averageRating.toFixed(1),
       },
-      { label: 'Last Brewed', value: formatDate(stats.lastBrewedAt) },
+      { label: t('lastBrewed'), value: formatDate(stats.lastBrewedAt, undefined, locale) },
     ];
     statsBody = (
       <Grid container spacing={2}>
@@ -137,10 +141,10 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
     historyBody = <Spinner />;
   } else if (historyQuery.isError || !historyQuery.data) {
     historyBody = (
-      <ErrorState message="Could not load brew history." onRetry={() => historyQuery.refetch()} />
+      <ErrorState message={t('historyFailed')} onRetry={() => historyQuery.refetch()} />
     );
   } else if (historyQuery.data.content.length === 0) {
-    historyBody = <EmptyState message="No brew sessions yet for this recipe." />;
+    historyBody = <EmptyState message={t('historyEmpty')} />;
   } else {
     historyBody = <BrewSessionsTable sessions={historyQuery.data.content} />;
   }
@@ -148,19 +152,19 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
   return (
     <>
       <Button component={NextLink} href="/recipes" size="small" sx={{ mb: 1 }}>
-        ← Back to recipes
+        {t('back')}
       </Button>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
         <Typography variant="h5" component="h1">
           {recipe.name}
         </Typography>
-        {recipe.favorite ? <Chip label="Favorite" color="primary" size="small" /> : null}
+        {recipe.favorite ? <Chip label={tc('favorite')} color="primary" size="small" /> : null}
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
         <FeatureFlag name="aiRecipeAssistant">
-          <Tooltip title={hasRatedHistory ? '' : 'Log a rated brew to enable AI improvements'}>
+          <Tooltip title={hasRatedHistory ? '' : t('improveDisabled')}>
             <span>
               <Button
                 variant="outlined"
@@ -169,16 +173,16 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
                 onClick={onImprove}
                 startIcon={improve.isPending ? <CircularProgress size={16} /> : undefined}
               >
-                Improve with AI
+                {t('improve')}
               </Button>
             </span>
           </Tooltip>
         </FeatureFlag>
         <Button variant="outlined" size="small" onClick={onExport}>
-          Export PDF
+          {t('exportPdf')}
         </Button>
         <Button variant="outlined" size="small" onClick={() => setShareOpen(true)}>
-          Share
+          {t('share')}
         </Button>
       </Box>
       {improveError ? (
@@ -203,7 +207,7 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
       {recipe.steps ? (
         <Box sx={{ mb: 3 }}>
           <Typography variant="subtitle1" gutterBottom>
-            Steps
+            {t('steps')}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'pre-wrap' }}>
             {recipe.steps}
@@ -214,7 +218,7 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
       {recipe.expectedTaste ? (
         <Box sx={{ mb: 3 }}>
           <Typography variant="subtitle1" gutterBottom>
-            Expected taste
+            {t('expectedTaste')}
           </Typography>
           <Typography variant="body2" color="text.secondary">
             {recipe.expectedTaste}
@@ -227,7 +231,7 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
       </Box>
 
       <Typography variant="h6" component="h2" gutterBottom>
-        Brew statistics
+        {t('statsTitle')}
       </Typography>
       {statsBody}
 
@@ -236,7 +240,7 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
       </Box>
 
       <Typography variant="h6" component="h2" gutterBottom sx={{ mt: 3 }}>
-        Brew history
+        {t('historyTitle')}
       </Typography>
       {historyBody}
 

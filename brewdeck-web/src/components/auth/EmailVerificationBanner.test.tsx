@@ -1,8 +1,9 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { UserResponse } from '@/lib/api/types';
 import { EmailVerificationBanner } from './EmailVerificationBanner';
+import { renderWithTheme } from '@/test/renderWithTheme';
 
 const resendMock = vi.fn();
 vi.mock('@/lib/api/auth', () => ({ resendVerification: () => resendMock() }));
@@ -28,20 +29,20 @@ describe('EmailVerificationBanner', () => {
 
   it('renders nothing when the user is verified', () => {
     mockUser = { ...unverified, emailVerified: true };
-    const { container } = render(<EmailVerificationBanner />);
+    const { container } = renderWithTheme(<EmailVerificationBanner />);
     expect(container).toBeEmptyDOMElement();
   });
 
   it('shows the warning when unverified', () => {
     mockUser = unverified;
-    render(<EmailVerificationBanner />);
+    renderWithTheme(<EmailVerificationBanner />);
     expect(screen.getByText(/email is not verified/i)).toBeInTheDocument();
   });
 
   it('resends and shows confirmation', async () => {
     mockUser = unverified;
     resendMock.mockResolvedValue({ message: 'ok' });
-    render(<EmailVerificationBanner />);
+    renderWithTheme(<EmailVerificationBanner />);
     await userEvent.click(screen.getByRole('button', { name: /resend link/i }));
     await waitFor(() => expect(resendMock).toHaveBeenCalled());
     expect(await screen.findByText(/verification email sent/i)).toBeInTheDocument();
@@ -49,7 +50,7 @@ describe('EmailVerificationBanner', () => {
 
   it('hides when dismissed', async () => {
     mockUser = unverified;
-    render(<EmailVerificationBanner />);
+    renderWithTheme(<EmailVerificationBanner />);
     await userEvent.click(screen.getByRole('button', { name: /dismiss/i }));
     await waitFor(() => {
       expect(screen.queryByText(/email is not verified/i)).not.toBeInTheDocument();

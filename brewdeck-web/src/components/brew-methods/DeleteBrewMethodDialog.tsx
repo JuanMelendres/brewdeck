@@ -9,6 +9,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useDeleteBrewMethod } from '@/hooks/useBrewMethodMutations';
 import type { BrewMethod } from '@/lib/api/brewMethods';
 import { useNotify } from '@/lib/notifications/NotificationProvider';
@@ -22,6 +23,8 @@ export function DeleteBrewMethodDialog({
   method: BrewMethod;
   onClose: () => void;
 }) {
+  const t = useTranslations('brewMethods.delete');
+  const tc = useTranslations('common');
   const del = useDeleteBrewMethod();
   const [error, setError] = useState<string | null>(null);
   const notify = useNotify();
@@ -30,17 +33,17 @@ export function DeleteBrewMethodDialog({
     setError(null);
     del.mutate(method.id, {
       onSuccess: () => {
-        notify(`Brew method "${method.name}" deleted`);
+        notify(t('deleted', { name: method.name }));
         onClose();
       },
       // A 409 carries the server's explanation, e.g. "Brew method is used by 2 recipes. ...".
-      onError: (e: unknown) => setError(e instanceof Error ? e.message : 'Something went wrong'),
+      onError: (e: unknown) => setError(e instanceof Error ? e.message : tc('genericError')),
     });
   };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
-      <DialogTitle>Delete brew method</DialogTitle>
+      <DialogTitle>{t('title')}</DialogTitle>
       <DialogContent>
         {error ? (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -48,12 +51,12 @@ export function DeleteBrewMethodDialog({
           </Alert>
         ) : null}
         <DialogContentText>
-          Delete brew method &ldquo;{method.name}&rdquo;? This cannot be undone.
+          {t('confirm', { name: method.name })}
         </DialogContentText>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} disabled={del.isPending}>
-          Cancel
+          {tc('cancel')}
         </Button>
         <Button
           color="error"
@@ -62,7 +65,7 @@ export function DeleteBrewMethodDialog({
           disabled={del.isPending}
           startIcon={del.isPending ? <CircularProgress size={16} /> : undefined}
         >
-          Delete
+          {tc('delete')}
         </Button>
       </DialogActions>
     </Dialog>

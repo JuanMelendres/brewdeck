@@ -8,6 +8,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import { useColorScheme } from '@mui/material/styles';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { toThemePreference, type ThemeMode } from '@/lib/theme/themePreference';
@@ -20,6 +21,8 @@ import { ThemeChoice } from './ThemeChoice';
  * the dialog returns on the next sign-in, because the account value is still null.
  */
 export function ThemeOnboardingDialog() {
+  const t = useTranslations('theme.onboarding');
+  const tc = useTranslations('common');
   const { user, updateTheme } = useAuth();
   const { mode, systemMode, setMode } = useColorScheme();
   const [saving, setSaving] = useState(false);
@@ -47,23 +50,17 @@ export function ThemeOnboardingDialog() {
 
   return (
     <Dialog open={open} aria-labelledby="theme-onboarding-title" maxWidth="xs" fullWidth>
-      <DialogTitle id="theme-onboarding-title">Light or dark?</DialogTitle>
+      <DialogTitle id="theme-onboarding-title">{t('title')}</DialogTitle>
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-        <DialogContentText>
-          Pick how BrewDeck looks. Try both: the app changes as you choose. You can switch any time in
-          Account settings.
-        </DialogContentText>
+        <DialogContentText>{t('body')}</DialogContentText>
         <ThemeChoice value={current} onChange={setMode} disabled={saving || failed} fullWidth />
         {failed ? (
-          <Alert severity="error">
-            Could not save your choice. It applies on this device for now, and we will ask again next
-            time you sign in.
-          </Alert>
+          <Alert severity="error">{t('saveFailed')}</Alert>
         ) : null}
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2.5 }}>
         <Button variant="contained" onClick={onContinue} disabled={saving}>
-          Continue
+          {tc('continue')}
         </Button>
       </DialogActions>
     </Dialog>

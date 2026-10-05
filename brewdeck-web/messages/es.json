@@ -1,0 +1,469 @@
+{
+  "nav": {
+    "main": "Principal",
+    "dashboard": "Inicio",
+    "coffees": "Cafés",
+    "recipes": "Recetas",
+    "favorites": "Favoritas",
+    "brewMethods": "Métodos",
+    "brewSessions": "Preparaciones",
+    "account": "Cuenta",
+    "openNavigation": "Abrir navegación"
+  },
+  "validation": {
+    "emailRequired": "El correo es obligatorio",
+    "emailTooLong": "El correo no debe pasar de 255 caracteres",
+    "emailInvalid": "Escribe un correo válido",
+    "passwordRequired": "La contraseña es obligatoria",
+    "passwordTooShort": "La contraseña debe tener al menos 8 caracteres",
+    "newPasswordTooShort": "La nueva contraseña debe tener al menos 8 caracteres",
+    "passwordTooLong": "La contraseña no debe pasar de 72 bytes (menos caracteres si usa acentos o emojis)",
+    "displayNameTooLong": "El nombre visible no debe pasar de 100 caracteres",
+    "currentPasswordRequired": "La contraseña actual es obligatoria",
+    "currentPasswordIncorrect": "La contraseña actual es incorrecta",
+    "confirmPasswordRequired": "Confirma tu nueva contraseña",
+    "passwordsDoNotMatch": "Las contraseñas no coinciden",
+    "coffee": {
+      "nameRequired": "El nombre es obligatorio",
+      "nameTooLong": "El nombre no debe pasar de 120 caracteres",
+      "brandTooLong": "La marca no debe pasar de 120 caracteres",
+      "originTooLong": "El origen no debe pasar de 120 caracteres",
+      "regionTooLong": "La región no debe pasar de 120 caracteres",
+      "farmTooLong": "La finca no debe pasar de 120 caracteres",
+      "producerTooLong": "El productor no debe pasar de 120 caracteres",
+      "varietyTooLong": "La variedad no debe pasar de 120 caracteres",
+      "processTooLong": "El proceso no debe pasar de 80 caracteres",
+      "roastLevelTooLong": "El tueste no debe pasar de 80 caracteres",
+      "primaryNotesTooLong": "Las notas principales no deben pasar de 255 caracteres",
+      "secondaryNotesTooLong": "Las notas secundarias no deben pasar de 500 caracteres",
+      "descriptionTooLong": "La descripción no debe pasar de 1000 caracteres"
+    },
+    "recipe": {
+      "coffeeRequired": "El café es obligatorio",
+      "methodRequired": "El método es obligatorio",
+      "nameRequired": "El nombre es obligatorio",
+      "nameTooLong": "El nombre no debe pasar de 120 caracteres",
+      "coffeeGramsPositive": "Los gramos de café deben ser mayores que cero",
+      "coffeeGramsTooHigh": "Los gramos de café no deben pasar de 9999.99",
+      "waterGramsPositive": "Los gramos de agua deben ser mayores que cero",
+      "waterGramsTooHigh": "Los gramos de agua no deben pasar de 9999.99",
+      "ratioTooLong": "La proporción no debe pasar de 20 caracteres",
+      "grindSettingTooLong": "La molienda no debe pasar de 120 caracteres",
+      "waterTempTooLow": "La temperatura del agua debe ser de al menos 70 grados Celsius",
+      "waterTempTooHigh": "La temperatura del agua no debe pasar de 100 grados Celsius",
+      "brewTimeTooLong": "El tiempo de preparación no debe pasar de 20 caracteres",
+      "stepsTooLong": "Los pasos no deben pasar de 1000 caracteres",
+      "expectedTasteTooLong": "El sabor esperado no debe pasar de 500 caracteres"
+    },
+    "brewMethod": {
+      "nameRequired": "El nombre es obligatorio",
+      "nameTooLong": "El nombre no debe pasar de 80 caracteres",
+      "descriptionTooLong": "La descripción no debe pasar de 500 caracteres",
+      "duplicateName": "Ya tienes un método con este nombre."
+    },
+    "brewSession": {
+      "recipeRequired": "La receta es obligatoria",
+      "actualGrindTooLong": "La molienda real no debe pasar de 120 caracteres",
+      "actualTempTooLow": "La temperatura real debe ser de al menos 70 grados Celsius",
+      "actualTempTooHigh": "La temperatura real no debe pasar de 100 grados Celsius",
+      "actualTimeTooLong": "El tiempo real no debe pasar de 20 caracteres",
+      "tasteResultTooLong": "El resultado de sabor no debe pasar de 1000 caracteres",
+      "ratingTooLow": "La calificación debe ser de al menos 1",
+      "ratingTooHigh": "La calificación no debe pasar de 10",
+      "adjustmentNotesTooLong": "Las notas de ajuste no deben pasar de 1000 caracteres"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Iniciar sesión",
+      "subtitle": "Qué gusto verte. Tus cafés te esperan.",
+      "forgotPassword": "¿Olvidaste tu contraseña?",
+      "submit": "Iniciar sesión",
+      "noAccount": "¿No tienes cuenta? <link>Regístrate</link>",
+      "failed": "No pudimos iniciar sesión. Revisa tu correo y contraseña."
+    },
+    "register": {
+      "title": "Crea tu cuenta",
+      "subtitle": "Empieza a registrar tus cafés, recetas y preparaciones.",
+      "submit": "Crear cuenta",
+      "haveAccount": "¿Ya tienes cuenta? <link>Inicia sesión</link>",
+      "failed": "No pudimos crear la cuenta. Es posible que ese correo ya esté en uso."
+    },
+    "forgot": {
+      "title": "Restablece tu contraseña",
+      "subtitle": "Escribe tu correo y te enviaremos un enlace para elegir una nueva contraseña.",
+      "sent": "Si ese correo existe, te enviamos un enlace para restablecerla. Revisa tu bandeja de entrada.",
+      "submit": "Enviar enlace",
+      "remembered": "¿Ya la recordaste? <link>Inicia sesión</link>",
+      "failed": "No pudimos enviar el enlace. Inténtalo de nuevo."
+    },
+    "reset": {
+      "title": "Elige una nueva contraseña",
+      "subtitle": "Escríbela dos veces para confirmarla.",
+      "submit": "Restablecer contraseña",
+      "doneTitle": "Contraseña actualizada",
+      "done": "Tu contraseña se restableció.",
+      "invalidLink": "Este enlace no es válido o ya venció.",
+      "failed": "No pudimos restablecer tu contraseña. Inténtalo de nuevo."
+    },
+    "changePassword": {
+      "title": "Cambiar contraseña",
+      "currentPassword": "Contraseña actual",
+      "submit": "Cambiar contraseña",
+      "saved": "Contraseña cambiada.",
+      "failed": "No pudimos cambiar tu contraseña. Inténtalo de nuevo."
+    },
+    "profile": {
+      "title": "Perfil",
+      "displayName": "Nombre visible",
+      "submit": "Guardar perfil",
+      "saved": "Perfil actualizado.",
+      "failed": "No pudimos actualizar tu perfil. Inténtalo de nuevo."
+    },
+    "layout": {
+      "tagline": "Cada taza, a tu punto.",
+      "pitch": "Guarda tus cafés, recetas y preparaciones en un solo lugar, y descubre qué hace tu mejor taza."
+    },
+    "verify": {
+      "title": "Verifica tu correo",
+      "success": "Tu correo quedó verificado.",
+      "continue": "Continuar a la app",
+      "invalidLink": "Este enlace de verificación no es válido o ya venció.",
+      "getNewLink": "Inicia sesión y usa Reenviar correo de verificación para recibir un enlace nuevo."
+    },
+    "verifyRequired": {
+      "title": "Verifica tu correo para continuar",
+      "sentTo": "Enviamos un enlace de verificación a <strong>{email}</strong>. Ábrelo para empezar a usar BrewDeck.",
+      "resent": "Correo de verificación enviado. Revisa tu bandeja de entrada.",
+      "resendFailed": "No pudimos reenviar el correo de verificación. Inténtalo de nuevo.",
+      "stillUnverified": "Tu correo aún no está verificado. Abre el enlace del correo y vuelve a intentarlo.",
+      "resend": "Reenviar correo de verificación",
+      "checkAgain": "Ya verifiqué mi correo"
+    },
+    "verifyBanner": {
+      "notVerified": "Tu correo no está verificado. Busca el enlace de verificación en tu bandeja de entrada.",
+      "resend": "Reenviar enlace"
+    }
+  },
+  "common": {
+    "email": "Correo",
+    "password": "Contraseña",
+    "newPassword": "Nueva contraseña",
+    "confirmNewPassword": "Confirma la nueva contraseña",
+    "logIn": "Iniciar sesión",
+    "logOut": "Cerrar sesión",
+    "dismiss": "Descartar",
+    "continue": "Continuar",
+    "loading": "Cargando",
+    "retry": "Reintentar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "save": "Guardar",
+    "create": "Crear",
+    "genericError": "Algo salió mal",
+    "perPage": "Por página",
+    "editItem": "Editar {name}",
+    "deleteItem": "Eliminar {name}",
+    "outOfFive": "{value}/5",
+    "description": "Descripción",
+    "favorite": "Favorita",
+    "favoriteItem": "Marcar {name} como favorita",
+    "loadingEllipsis": "Cargando…",
+    "grams": "{value} g",
+    "celsius": "{value} °C",
+    "close": "Cerrar",
+    "copy": "Copiar",
+    "name": "Nombre",
+    "actions": "Acciones"
+  },
+  "theme": {
+    "group": "Tema",
+    "light": "Claro",
+    "dark": "Oscuro",
+    "onboarding": {
+      "title": "¿Claro u oscuro?",
+      "body": "Elige cómo se ve BrewDeck. Prueba ambos: la app cambia mientras eliges. Puedes cambiarlo cuando quieras en la configuración de tu cuenta.",
+      "saveFailed": "No pudimos guardar tu elección. Por ahora aplica en este dispositivo, y te volveremos a preguntar la próxima vez que inicies sesión."
+    },
+    "setting": {
+      "title": "Apariencia",
+      "body": "Elige cómo se ve BrewDeck. Tu elección se guarda en tu cuenta.",
+      "saveFailed": "No pudimos guardar tu tema. Por ahora solo aplica en este dispositivo."
+    }
+  },
+  "counts": {
+    "sessions": "<n>{count}</n> {count, plural, one {preparación} other {preparaciones}}",
+    "recipes": "<n>{count}</n> {count, plural, one {receta} other {recetas}}"
+  },
+  "dashboard": {
+    "title": "Inicio",
+    "goodMorning": "Buenos días, {name}",
+    "goodAfternoon": "Buenas tardes, {name}",
+    "goodEvening": "Buenas noches, {name}",
+    "loadFailed": "No pudimos cargar el resumen.",
+    "coffees": "Cafés",
+    "brewMethods": "Métodos",
+    "recipes": "Recetas",
+    "favoriteRecipes": "Recetas favoritas",
+    "brewSessions": "Preparaciones",
+    "averageRating": "Calificación promedio",
+    "topRated": {
+      "title": "Recetas mejor calificadas",
+      "loadFailed": "No pudimos cargar las recetas mejor calificadas.",
+      "empty": "Aún no hay recetas calificadas."
+    },
+    "mostUsed": {
+      "title": "Cafés más usados",
+      "loadFailed": "No pudimos cargar los cafés más usados.",
+      "empty": "Aún no hay cafés usados en recetas."
+    },
+    "mostBrewed": {
+      "title": "Recetas más preparadas",
+      "loadFailed": "No pudimos cargar las recetas más preparadas.",
+      "empty": "Aún no hay preparaciones."
+    },
+    "methodUsage": {
+      "title": "Uso de métodos",
+      "loadFailed": "No pudimos cargar el uso de métodos.",
+      "empty": "Aún no hay métodos."
+    }
+  },
+  "coffees": {
+    "fields": {
+      "name": "Nombre",
+      "brand": "Marca",
+      "roastLevel": "Tueste",
+      "process": "Proceso",
+      "variety": "Variedad",
+      "origin": "Origen",
+      "region": "Región",
+      "farm": "Finca",
+      "producer": "Productor",
+      "notesPrimary": "Notas principales",
+      "notesSecondary": "Notas secundarias",
+      "acidityScore": "Acidez",
+      "bodyScore": "Cuerpo",
+      "sweetnessScore": "Dulzor",
+      "bitternessScore": "Amargor",
+      "description": "Descripción"
+    },
+    "list": {
+      "title": "Cafés",
+      "add": "Agregar café",
+      "loadFailed": "No pudimos cargar los cafés.",
+      "noMatches": "Ningún café coincide con estos filtros.",
+      "empty": "Aún no hay cafés. Agrega los granos que preparas para empezar a crear recetas.",
+      "addFirst": "Agrega tu primer café"
+    },
+    "form": {
+      "addTitle": "Agregar café",
+      "editTitle": "Editar café",
+      "sectionCoffee": "Café",
+      "sectionOrigin": "Origen",
+      "sectionTasting": "Cata",
+      "scoreLabel": "{label} (1-5)",
+      "added": "Café agregado",
+      "updated": "Café actualizado"
+    },
+    "delete": {
+      "title": "Eliminar café",
+      "confirm": "¿Eliminar el café “{name}”? Esta acción no se puede deshacer.",
+      "deleted": "Café \"{name}\" eliminado"
+    },
+    "detail": {
+      "loadFailed": "No pudimos cargar el café.",
+      "back": "← Volver a cafés",
+      "roast": "Tueste",
+      "tastingNotes": "Notas de cata"
+    },
+    "radar": {
+      "title": "Perfil de cata",
+      "empty": "Agrega puntajes de cata para ver el perfil de sabor."
+    }
+  },
+  "recipes": {
+    "fields": {
+      "name": "Nombre",
+      "coffeeId": "Café",
+      "methodId": "Método",
+      "coffeeGrams": "Gramos de café",
+      "waterGrams": "Gramos de agua",
+      "ratio": "Proporción",
+      "grindSetting": "Molienda",
+      "waterTemp": "Temperatura del agua",
+      "brewTime": "Tiempo de preparación",
+      "steps": "Pasos",
+      "expectedTaste": "Sabor esperado",
+      "favorite": "Favorita"
+    },
+    "form": {
+      "addTitle": "Agregar receta",
+      "editTitle": "Editar receta",
+      "sectionRecipe": "Receta",
+      "sectionBrewing": "Preparación",
+      "sectionNotes": "Notas",
+      "selectCoffee": "Elige un café",
+      "selectMethod": "Elige un método",
+      "suggest": "Sugerir con IA",
+      "suggestFailed": "Las sugerencias con IA no están disponibles ahora. Inténtalo más tarde.",
+      "added": "Receta agregada",
+      "updated": "Receta actualizada"
+    },
+    "list": {
+      "title": "Recetas",
+      "add": "Agregar receta",
+      "loadFailed": "No pudimos cargar las recetas.",
+      "noMatches": "Ninguna receta coincide con estos filtros.",
+      "empty": "Aún no hay recetas. Guarda cómo preparas un café para repetir tus mejores tazas.",
+      "addFirst": "Agrega tu primera receta",
+      "favoritesOnly": "Solo favoritas"
+    },
+    "favorites": {
+      "title": "Recetas favoritas",
+      "loadFailed": "No pudimos cargar las recetas favoritas.",
+      "empty": "Aún no hay recetas favoritas. Toca el corazón de una receta para guardarla aquí."
+    },
+    "card": {
+      "dose": "Dosis",
+      "water": "Agua",
+      "ratio": "Proporción",
+      "temp": "Temp.",
+      "grind": "Molienda",
+      "time": "Tiempo",
+      "favoriteAdded": "Se agregó \"{name}\" a favoritas",
+      "favoriteRemoved": "Se quitó \"{name}\" de favoritas",
+      "favoriteFailed": "No pudimos actualizar la favorita. Inténtalo de nuevo."
+    },
+    "delete": {
+      "title": "Eliminar receta",
+      "confirm": "¿Eliminar la receta “{name}”? Esta acción no se puede deshacer.",
+      "deleted": "Receta \"{name}\" eliminada"
+    },
+    "detail": {
+      "loadFailed": "No pudimos cargar la receta.",
+      "back": "← Volver a recetas",
+      "coffee": "Café",
+      "method": "Método",
+      "coffeeGrams": "Café (g)",
+      "waterGrams": "Agua (g)",
+      "ratio": "Proporción",
+      "grind": "Molienda",
+      "waterTemp": "Temperatura del agua",
+      "brewTime": "Tiempo de preparación",
+      "improve": "Mejorar con IA",
+      "improveDisabled": "Registra una preparación calificada para activar las mejoras con IA",
+      "improveNeedsHistory": "Primero registra una preparación calificada de esta receta y vuelve a intentarlo.",
+      "improveFailed": "Las mejoras con IA no están disponibles ahora. Inténtalo más tarde.",
+      "exportPdf": "Exportar PDF",
+      "pdfFailed": "No pudimos generar el PDF.",
+      "share": "Compartir",
+      "steps": "Pasos",
+      "expectedTaste": "Sabor esperado",
+      "statsTitle": "Estadísticas",
+      "statsFailed": "No pudimos cargar las estadísticas.",
+      "totalSessions": "Preparaciones",
+      "averageRating": "Calificación promedio",
+      "lastBrewed": "Última preparación",
+      "historyTitle": "Historial",
+      "historyFailed": "No pudimos cargar el historial.",
+      "historyEmpty": "Aún no hay preparaciones de esta receta."
+    },
+    "share": {
+      "title": "Compartir receta",
+      "linkInfo": "Cualquiera con este enlace puede ver una copia de solo lectura de esta receta.",
+      "publicLink": "Enlace público",
+      "copyFailed": "No pudimos copiarlo; cópialo a mano.",
+      "intro": "Crea un enlace público para que cualquiera vea esta receta. Puedes dejar de compartirla cuando quieras.",
+      "stop": "Dejar de compartir",
+      "create": "Crear enlace"
+    },
+    "public": {
+      "unavailable": "Esta receta no está disponible.",
+      "eyebrow": "BrewDeck · Receta compartida"
+    },
+    "trend": {
+      "title": "Tendencia de calificación",
+      "loadFailed": "No pudimos cargar la tendencia de calificación.",
+      "notEnough": "No hay suficientes preparaciones calificadas para mostrar una tendencia."
+    },
+    "grind": {
+      "empty": "Prepara y califica una sesión para recibir una recomendación de molienda.",
+      "recommended": "Molienda recomendada: <strong>{grind}</strong> — de tu preparación mejor calificada ({rating}/10)."
+    },
+    "pdf": {
+      "subtitle": "Receta",
+      "favorite": "Favorita",
+      "coffee": "Café",
+      "method": "Método",
+      "coffeeGrams": "Café (g)",
+      "waterGrams": "Agua (g)",
+      "ratio": "Proporción",
+      "grind": "Molienda",
+      "waterTemp": "Temperatura del agua",
+      "brewTime": "Tiempo de preparación",
+      "steps": "Pasos",
+      "expectedTaste": "Sabor esperado",
+      "generated": "Generado el {date}"
+    }
+  },
+  "brewMethods": {
+    "list": {
+      "title": "Métodos",
+      "add": "Agregar método",
+      "intro": "Los métodos compartidos están disponibles para todos. Los que agregas son privados.",
+      "loadFailed": "No pudimos cargar los métodos.",
+      "empty": "No se encontraron métodos.",
+      "method": "Método",
+      "type": "Tipo",
+      "shared": "Compartido",
+      "mine": "Mío"
+    },
+    "form": {
+      "addTitle": "Agregar método",
+      "editTitle": "Editar método",
+      "privateNote": "Tus métodos son privados: solo tú puedes verlos y usarlos.",
+      "added": "Método agregado",
+      "updated": "Método actualizado"
+    },
+    "delete": {
+      "title": "Eliminar método",
+      "confirm": "¿Eliminar el método “{name}”? Esta acción no se puede deshacer.",
+      "deleted": "Método \"{name}\" eliminado"
+    }
+  },
+  "brewSessions": {
+    "fields": {
+      "recipeId": "Receta",
+      "actualGrind": "Molienda real",
+      "actualTemp": "Temperatura real",
+      "actualTime": "Tiempo real",
+      "tasteResult": "Resultado de sabor",
+      "rating": "Calificación",
+      "adjustmentNotes": "Notas de ajuste"
+    },
+    "list": {
+      "title": "Preparaciones",
+      "add": "Agregar preparación",
+      "loadFailed": "No pudimos cargar las preparaciones.",
+      "noMatches": "Ninguna preparación coincide con estos filtros.",
+      "empty": "Aún no hay preparaciones. Registra cada una para ver cómo salen tus recetas.",
+      "addFirst": "Registra tu primera preparación",
+      "brewed": "Fecha",
+      "recipe": "Receta",
+      "rating": "Calificación",
+      "temp": "Temp.",
+      "time": "Tiempo",
+      "taste": "Sabor"
+    },
+    "form": {
+      "title": "Agregar preparación",
+      "sectionBrew": "Preparación",
+      "sectionResult": "Resultado",
+      "selectRecipe": "Elige una receta",
+      "logged": "Preparación registrada"
+    }
+  },
+  "meta": {
+    "description": "Tu compañero para preparar café"
+  }
+}

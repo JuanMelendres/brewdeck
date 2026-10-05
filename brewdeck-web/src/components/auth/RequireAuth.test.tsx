@@ -1,6 +1,7 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { RequireAuth } from './RequireAuth';
+import { renderWithTheme } from '@/test/renderWithTheme';
 
 const replaceMock = vi.fn();
 vi.mock('next/navigation', () => ({ useRouter: () => ({ replace: replaceMock }) }));
@@ -13,7 +14,7 @@ describe('RequireAuth', () => {
 
   it('shows a spinner while loading', () => {
     useAuthMock.mockReturnValue({ status: 'loading' });
-    render(
+    renderWithTheme(
       <RequireAuth>
         <div>secret</div>
       </RequireAuth>,
@@ -23,7 +24,7 @@ describe('RequireAuth', () => {
 
   it('redirects to /login when anonymous', () => {
     useAuthMock.mockReturnValue({ status: 'anonymous' });
-    render(
+    renderWithTheme(
       <RequireAuth>
         <div>secret</div>
       </RequireAuth>,
@@ -34,7 +35,7 @@ describe('RequireAuth', () => {
 
   it('renders children when authenticated', () => {
     useAuthMock.mockReturnValue({ status: 'authenticated' });
-    render(
+    renderWithTheme(
       <RequireAuth>
         <div>secret</div>
       </RequireAuth>,

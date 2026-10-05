@@ -1,10 +1,11 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '@/lib/api/client';
 import type { UserResponse } from '@/lib/api/types';
 import { notifyEmailNotVerified } from '@/lib/auth/emailVerificationSignal';
 import { EmailVerificationGate } from './EmailVerificationGate';
+import { renderWithTheme } from '@/test/renderWithTheme';
 
 const resendMock = vi.fn();
 vi.mock('@/lib/api/auth', () => ({ resendVerification: () => resendMock() }));
@@ -33,7 +34,7 @@ const unverified: UserResponse = {
 };
 
 function renderGate() {
-  return render(
+  return renderWithTheme(
     <EmailVerificationGate>
       <p>The app</p>
     </EmailVerificationGate>,

@@ -4,6 +4,7 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import type { ReactNode } from 'react';
+import { useTranslations } from 'next-intl';
 import { useMostBrewedRecipes } from '@/hooks/useMostBrewedRecipes';
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorState } from '@/components/ui/ErrorState';
@@ -11,6 +12,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Count, RankedList } from './RankedList';
 
 export function MostBrewedRecipes() {
+  const t = useTranslations('dashboard.mostBrewed');
   const { data, isLoading, isError, refetch } = useMostBrewedRecipes(5);
 
   let body: ReactNode;
@@ -18,10 +20,10 @@ export function MostBrewedRecipes() {
     body = <Spinner />;
   } else if (isError || !data) {
     body = (
-      <ErrorState message="Could not load most-brewed recipes." onRetry={() => refetch()} />
+      <ErrorState message={t('loadFailed')} onRetry={() => refetch()} />
     );
   } else if (data.length === 0) {
-    body = <EmptyState message="No brew sessions yet." />;
+    body = <EmptyState message={t('empty')} />;
   } else {
     body = (
       <RankedList
@@ -29,7 +31,7 @@ export function MostBrewedRecipes() {
           key: recipe.recipeId,
           label: recipe.recipeName,
           href: `/recipes/${recipe.recipeId}`,
-          badge: <Count value={recipe.totalSessions} singular="session" plural="sessions" />,
+          badge: <Count value={recipe.totalSessions} kind="sessions" />,
         }))}
       />
     );
@@ -39,7 +41,7 @@ export function MostBrewedRecipes() {
     <Card sx={{ height: '100%' }}>
       <CardContent sx={{ p: 3 }}>
         <Typography variant="h6" component="h2" gutterBottom>
-          Most Brewed Recipes
+          {t('title')}
         </Typography>
         {body}
       </CardContent>

@@ -9,6 +9,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useDeleteCoffee } from '@/hooks/useCoffeeMutations';
 import type { Coffee } from '@/lib/api/types';
 import { useNotify } from '@/lib/notifications/NotificationProvider';
@@ -22,6 +23,8 @@ export function DeleteCoffeeDialog({
   coffee: Coffee;
   onClose: () => void;
 }) {
+  const t = useTranslations('coffees.delete');
+  const tc = useTranslations('common');
   const del = useDeleteCoffee();
   const [error, setError] = useState<string | null>(null);
   const notify = useNotify();
@@ -30,16 +33,16 @@ export function DeleteCoffeeDialog({
     setError(null);
     del.mutate(coffee.id, {
       onSuccess: () => {
-        notify(`Coffee "${coffee.name}" deleted`);
+        notify(t('deleted', { name: coffee.name }));
         onClose();
       },
-      onError: (e: unknown) => setError(e instanceof Error ? e.message : 'Something went wrong'),
+      onError: (e: unknown) => setError(e instanceof Error ? e.message : tc('genericError')),
     });
   };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
-      <DialogTitle>Delete coffee</DialogTitle>
+      <DialogTitle>{t('title')}</DialogTitle>
       <DialogContent>
         {error ? (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -47,12 +50,12 @@ export function DeleteCoffeeDialog({
           </Alert>
         ) : null}
         <DialogContentText>
-          Delete coffee &ldquo;{coffee.name}&rdquo;? This cannot be undone.
+          {t('confirm', { name: coffee.name })}
         </DialogContentText>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} disabled={del.isPending}>
-          Cancel
+          {tc('cancel')}
         </Button>
         <Button
           color="error"
@@ -61,7 +64,7 @@ export function DeleteCoffeeDialog({
           disabled={del.isPending}
           startIcon={del.isPending ? <CircularProgress size={16} /> : undefined}
         >
-          Delete
+          {tc('delete')}
         </Button>
       </DialogActions>
     </Dialog>

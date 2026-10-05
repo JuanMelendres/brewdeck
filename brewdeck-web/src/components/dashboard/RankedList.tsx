@@ -5,6 +5,7 @@ import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
 import NextLink from 'next/link';
 import type { ReactNode } from 'react';
+import { useTranslations } from 'next-intl';
 import { radius } from '@/lib/theme/tokens';
 
 export type RankedItem = {
@@ -91,11 +92,8 @@ export function RankedList({ items }: { items: RankedItem[] }) {
   );
 }
 
-/** "1 session" / "9 sessions", with the number in its own element. */
-export function Count({ value, singular, plural }: { value: number; singular: string; plural: string }) {
-  return (
-    <>
-      <span>{value}</span> {value === 1 ? singular : plural}
-    </>
-  );
+/** "1 session" / "9 sessions" (pluralized per language), with the number in its own element. */
+export function Count({ value, kind }: { value: number; kind: 'sessions' | 'recipes' }) {
+  const t = useTranslations('counts');
+  return <>{t.rich(kind, { count: value, n: (chunks) => <span>{chunks}</span> })}</>;
 }
