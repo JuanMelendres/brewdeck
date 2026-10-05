@@ -1,11 +1,12 @@
 'use client';
 
-import LocalCafeIcon from '@mui/icons-material/LocalCafe';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import type { ReactNode } from 'react';
+import { BrandMark } from '@/components/ui/BrandMark';
+import { Wordmark } from '@/components/ui/Wordmark';
 
 /** Split screen for the public auth pages: brand panel on the left, the form in a card on the right. */
 export function AuthLayout({ children }: { children: ReactNode }) {
@@ -23,10 +24,8 @@ export function AuthLayout({ children }: { children: ReactNode }) {
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
-          <LocalCafeIcon />
-          <Typography variant="h6" component="span">
-            BrewDeck
-          </Typography>
+          <BrandMark size={28} />
+          <Wordmark />
         </Box>
         <Box sx={{ maxWidth: 420 }}>
           <Typography variant="h3" component="p" sx={{ mb: 2 }}>

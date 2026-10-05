@@ -155,16 +155,16 @@ Validate next: the owner's review of the canvas, then the simplified 16 px varia
 ## 16. Decision
 
 - Decision: **B · Bean on a deck**, with the simple variant at 16 px. Wordmark in Fraunces with two weights
-  (option 1 or 2, see §12; recommended: option 1). The app is installable on a phone home screen.
+  (option 1: "Brew" 700 + "Deck" 400, chosen 2026-10-05). The app is installable on a phone home screen.
 - Date: 2026-10-05
 - Owner: Juan (product owner)
-- Status: Accepted (wordmark weight variant pending the owner's pick in the canvas)
+- Status: Accepted. Delivered on branch `feat/web-brand-mark`.
 
 ## 17. Next Steps
 
 1. ~~Owner picks a concept.~~ B (§16).
-2. ~~Refine it in the canvas.~~ Done (§12); owner picks wordmark option 1 or 2.
-3. Delivery PR (`feat(web)`):
+2. ~~Refine it in the canvas.~~ Done (§12); wordmark option 1.
+3. ~~Delivery PR (`feat(web)`):~~ Done on `feat/web-brand-mark`:
    - `BrandMark` component (`src/components/ui/BrandMark.tsx`, inline SVG with `currentColor`, named export)
      replacing `LocalCafeIcon` in `AppShell` and `AuthLayout`.
    - `Wordmark` with the chosen weights, next to `BrandMark` in `AppShell` and `AuthLayout`.
@@ -185,11 +185,13 @@ Validate next: the owner's review of the canvas, then the simplified 16 px varia
 
 ## 19. Open Questions
 
-- ~~OQ-001: Should the wordmark change too?~~ Yes, two weights (2026-10-05). Which variant: owner's pick in the canvas.
+- ~~OQ-001: Should the wordmark change too?~~ Yes: option 1, "Brew" 700 + "Deck" 400 (2026-10-05).
 - ~~OQ-002: Is home-screen install wanted?~~ Yes (2026-10-05): manifest + 192/512/maskable icons.
 - OQ-003: How are the PNG and ICO files produced? Options: a one-off script with `sharp` (if already in the
   dependency tree through Next), or Next's code-generated `icon.tsx`/`apple-icon.tsx` (`ImageResponse`). Decide in
-  the delivery PR; committed static files are simplest.
+  the delivery PR; committed static files are simplest. Answered: `brewdeck-web/scripts/generate-brand-icons.mjs`
+  renders every icon from the `BrandMark` geometry and the theme tokens with the `sharp` that Next already ships
+  (no new dependency); its outputs are committed.
 - OQ-004: Does Chrome on Android still prompt to install without a service worker? Assumption: yes, a manifest with
   192/512 icons is enough for "Add to Home screen"; verify on a device.
 
