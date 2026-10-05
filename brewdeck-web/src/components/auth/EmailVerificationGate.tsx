@@ -4,6 +4,7 @@ import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { useTranslations } from 'next-intl';
 import { useEffect, useState, type ReactNode } from 'react';
 import { resendVerification } from '@/lib/api/auth';
 import { rateLimitMessage } from '@/lib/api/errors';
@@ -42,6 +43,8 @@ export function EmailVerificationGate({ children }: { children: ReactNode }) {
 }
 
 function VerifyEmailRequired({ email }: { email: string }) {
+  const t = useTranslations('auth.verifyRequired');
+  const tc = useTranslations('common');
   const { refreshUser, logout } = useAuth();
   const [resend, setResend] = useState<ResendStatus>('idle');
   const [resendError, setResendError] = useState<string | null>(null);
@@ -56,9 +59,7 @@ function VerifyEmailRequired({ email }: { email: string }) {
       setResend('sent');
     } catch (error) {
       setResend('error');
-      setResendError(
-        rateLimitMessage(error) ?? 'Could not resend the verification email. Please try again.',
-      );
+      setResendError(rateLimitMessage(error) ?? t('resendFailed'));
     }
   };
 
@@ -73,29 +74,27 @@ function VerifyEmailRequired({ email }: { email: string }) {
   return (
     <AuthLayout>
       <Typography variant="h4" component="h1" gutterBottom>
-        Verify your email to continue
+        {t('title')}
       </Typography>
       <Typography color="text.secondary" sx={{ mb: 3 }}>
-        We sent a verification link to <strong>{email}</strong>. Open it to start using BrewDeck.
+        {t.rich('sentTo', { email, strong: (chunks) => <strong>{chunks}</strong> })}
       </Typography>
       <Stack spacing={2}>
         {resend === 'sent' ? (
-          <Alert severity="success">Verification email sent. Check your inbox.</Alert>
+          <Alert severity="success">{t('resent')}</Alert>
         ) : null}
         {resend === 'error' && resendError ? <Alert severity="error">{resendError}</Alert> : null}
         {stillUnverified ? (
-          <Alert severity="info">
-            Your email is not verified yet. Open the link in the email, then try again.
-          </Alert>
+          <Alert severity="info">{t('stillUnverified')}</Alert>
         ) : null}
         <Button variant="contained" onClick={onResend} disabled={resend === 'sending'}>
-          Resend verification email
+          {t('resend')}
         </Button>
         <Button variant="outlined" onClick={onCheckAgain} disabled={checking}>
-          I&apos;ve verified my email
+          {t('checkAgain')}
         </Button>
         <Button color="inherit" onClick={() => logout()}>
-          Log out
+          {tc('logOut')}
         </Button>
       </Stack>
     </AuthLayout>

@@ -8,23 +8,101 @@
     "brewMethods": "Métodos",
     "brewSessions": "Preparaciones",
     "account": "Cuenta",
-    "logOut": "Cerrar sesión",
     "openNavigation": "Abrir navegación"
-  },
-  "login": {
-    "title": "Iniciar sesión",
-    "subtitle": "Qué gusto verte. Tus cafés te esperan.",
-    "email": "Correo",
-    "password": "Contraseña",
-    "forgotPassword": "¿Olvidaste tu contraseña?",
-    "submit": "Iniciar sesión",
-    "noAccount": "¿No tienes cuenta? <link>Regístrate</link>",
-    "failed": "No pudimos iniciar sesión. Revisa tu correo y contraseña."
   },
   "validation": {
     "emailRequired": "El correo es obligatorio",
     "emailTooLong": "El correo no debe pasar de 255 caracteres",
     "emailInvalid": "Escribe un correo válido",
-    "passwordRequired": "La contraseña es obligatoria"
+    "passwordRequired": "La contraseña es obligatoria",
+    "passwordTooShort": "La contraseña debe tener al menos 8 caracteres",
+    "newPasswordTooShort": "La nueva contraseña debe tener al menos 8 caracteres",
+    "passwordTooLong": "La contraseña no debe pasar de 72 bytes (menos caracteres si usa acentos o emojis)",
+    "displayNameTooLong": "El nombre visible no debe pasar de 100 caracteres",
+    "currentPasswordRequired": "La contraseña actual es obligatoria",
+    "currentPasswordIncorrect": "La contraseña actual es incorrecta",
+    "confirmPasswordRequired": "Confirma tu nueva contraseña",
+    "passwordsDoNotMatch": "Las contraseñas no coinciden"
+  },
+  "auth": {
+    "login": {
+      "title": "Iniciar sesión",
+      "subtitle": "Qué gusto verte. Tus cafés te esperan.",
+      "forgotPassword": "¿Olvidaste tu contraseña?",
+      "submit": "Iniciar sesión",
+      "noAccount": "¿No tienes cuenta? <link>Regístrate</link>",
+      "failed": "No pudimos iniciar sesión. Revisa tu correo y contraseña."
+    },
+    "register": {
+      "title": "Crea tu cuenta",
+      "subtitle": "Empieza a registrar tus cafés, recetas y preparaciones.",
+      "submit": "Crear cuenta",
+      "haveAccount": "¿Ya tienes cuenta? <link>Inicia sesión</link>",
+      "failed": "No pudimos crear la cuenta. Es posible que ese correo ya esté en uso."
+    },
+    "forgot": {
+      "title": "Restablece tu contraseña",
+      "subtitle": "Escribe tu correo y te enviaremos un enlace para elegir una nueva contraseña.",
+      "sent": "Si ese correo existe, te enviamos un enlace para restablecerla. Revisa tu bandeja de entrada.",
+      "submit": "Enviar enlace",
+      "remembered": "¿Ya la recordaste? <link>Inicia sesión</link>",
+      "failed": "No pudimos enviar el enlace. Inténtalo de nuevo."
+    },
+    "reset": {
+      "title": "Elige una nueva contraseña",
+      "subtitle": "Escríbela dos veces para confirmarla.",
+      "submit": "Restablecer contraseña",
+      "doneTitle": "Contraseña actualizada",
+      "done": "Tu contraseña se restableció.",
+      "invalidLink": "Este enlace no es válido o ya venció.",
+      "failed": "No pudimos restablecer tu contraseña. Inténtalo de nuevo."
+    },
+    "changePassword": {
+      "title": "Cambiar contraseña",
+      "currentPassword": "Contraseña actual",
+      "submit": "Cambiar contraseña",
+      "saved": "Contraseña cambiada.",
+      "failed": "No pudimos cambiar tu contraseña. Inténtalo de nuevo."
+    },
+    "profile": {
+      "title": "Perfil",
+      "displayName": "Nombre visible",
+      "submit": "Guardar perfil",
+      "saved": "Perfil actualizado.",
+      "failed": "No pudimos actualizar tu perfil. Inténtalo de nuevo."
+    },
+    "layout": {
+      "tagline": "Cada taza, a tu punto.",
+      "pitch": "Guarda tus cafés, recetas y preparaciones en un solo lugar, y descubre qué hace tu mejor taza."
+    },
+    "verify": {
+      "title": "Verifica tu correo",
+      "success": "Tu correo quedó verificado.",
+      "continue": "Continuar a la app",
+      "invalidLink": "Este enlace de verificación no es válido o ya venció.",
+      "getNewLink": "Inicia sesión y usa Reenviar correo de verificación para recibir un enlace nuevo."
+    },
+    "verifyRequired": {
+      "title": "Verifica tu correo para continuar",
+      "sentTo": "Enviamos un enlace de verificación a <strong>{email}</strong>. Ábrelo para empezar a usar BrewDeck.",
+      "resent": "Correo de verificación enviado. Revisa tu bandeja de entrada.",
+      "resendFailed": "No pudimos reenviar el correo de verificación. Inténtalo de nuevo.",
+      "stillUnverified": "Tu correo aún no está verificado. Abre el enlace del correo y vuelve a intentarlo.",
+      "resend": "Reenviar correo de verificación",
+      "checkAgain": "Ya verifiqué mi correo"
+    },
+    "verifyBanner": {
+      "notVerified": "Tu correo no está verificado. Busca el enlace de verificación en tu bandeja de entrada.",
+      "resend": "Reenviar enlace"
+    }
+  },
+  "common": {
+    "email": "Correo",
+    "password": "Contraseña",
+    "newPassword": "Nueva contraseña",
+    "confirmNewPassword": "Confirma la nueva contraseña",
+    "logIn": "Iniciar sesión",
+    "logOut": "Cerrar sesión",
+    "dismiss": "Descartar"
   }
 }

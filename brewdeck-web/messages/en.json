@@ -8,23 +8,101 @@
     "brewMethods": "Brew Methods",
     "brewSessions": "Brew Sessions",
     "account": "Account",
-    "logOut": "Log out",
     "openNavigation": "Open navigation"
-  },
-  "login": {
-    "title": "Log in",
-    "subtitle": "Welcome back. Your brews are waiting.",
-    "email": "Email",
-    "password": "Password",
-    "forgotPassword": "Forgot password?",
-    "submit": "Log in",
-    "noAccount": "No account? <link>Register</link>",
-    "failed": "Could not log in. Check your email and password."
   },
   "validation": {
     "emailRequired": "Email is required",
     "emailTooLong": "Email must not exceed 255 characters",
     "emailInvalid": "Enter a valid email",
-    "passwordRequired": "Password is required"
+    "passwordRequired": "Password is required",
+    "passwordTooShort": "Password must be at least 8 characters",
+    "newPasswordTooShort": "New password must be at least 8 characters",
+    "passwordTooLong": "Password must not exceed 72 bytes (fewer characters if it uses accents or emoji)",
+    "displayNameTooLong": "Display name must not exceed 100 characters",
+    "currentPasswordRequired": "Current password is required",
+    "currentPasswordIncorrect": "Current password is incorrect",
+    "confirmPasswordRequired": "Confirm your new password",
+    "passwordsDoNotMatch": "Passwords do not match"
+  },
+  "auth": {
+    "login": {
+      "title": "Log in",
+      "subtitle": "Welcome back. Your brews are waiting.",
+      "forgotPassword": "Forgot password?",
+      "submit": "Log in",
+      "noAccount": "No account? <link>Register</link>",
+      "failed": "Could not log in. Check your email and password."
+    },
+    "register": {
+      "title": "Create your account",
+      "subtitle": "Start logging your coffees, recipes, and brews.",
+      "submit": "Create account",
+      "haveAccount": "Already have an account? <link>Log in</link>",
+      "failed": "Could not register. That email may already be in use."
+    },
+    "forgot": {
+      "title": "Reset your password",
+      "subtitle": "Enter your email and we will send you a link to choose a new password.",
+      "sent": "If that email exists, a reset link has been sent. Check your inbox.",
+      "submit": "Send reset link",
+      "remembered": "Remembered it? <link>Log in</link>",
+      "failed": "Could not send the reset link. Please try again."
+    },
+    "reset": {
+      "title": "Choose a new password",
+      "subtitle": "Enter it twice to confirm.",
+      "submit": "Reset password",
+      "doneTitle": "Password updated",
+      "done": "Your password has been reset.",
+      "invalidLink": "This reset link is invalid or has expired.",
+      "failed": "Could not reset your password. Please try again."
+    },
+    "changePassword": {
+      "title": "Change password",
+      "currentPassword": "Current password",
+      "submit": "Change password",
+      "saved": "Password changed.",
+      "failed": "Could not change your password. Please try again."
+    },
+    "profile": {
+      "title": "Profile",
+      "displayName": "Display name",
+      "submit": "Save profile",
+      "saved": "Profile updated.",
+      "failed": "Could not update your profile. Please try again."
+    },
+    "layout": {
+      "tagline": "Every cup, dialed in.",
+      "pitch": "Keep your coffees, recipes, and brew sessions in one place, and see what makes your best cup."
+    },
+    "verify": {
+      "title": "Verify your email",
+      "success": "Your email has been verified.",
+      "continue": "Continue to the app",
+      "invalidLink": "This verification link is invalid or has expired.",
+      "getNewLink": "Log in and use Resend verification email to get a new link."
+    },
+    "verifyRequired": {
+      "title": "Verify your email to continue",
+      "sentTo": "We sent a verification link to <strong>{email}</strong>. Open it to start using BrewDeck.",
+      "resent": "Verification email sent. Check your inbox.",
+      "resendFailed": "Could not resend the verification email. Please try again.",
+      "stillUnverified": "Your email is not verified yet. Open the link in the email, then try again.",
+      "resend": "Resend verification email",
+      "checkAgain": "I've verified my email"
+    },
+    "verifyBanner": {
+      "notVerified": "Your email is not verified. Please check your inbox for the verification link.",
+      "resend": "Resend link"
+    }
+  },
+  "common": {
+    "email": "Email",
+    "password": "Password",
+    "newPassword": "New password",
+    "confirmNewPassword": "Confirm new password",
+    "logIn": "Log in",
+    "logOut": "Log out",
+    "dismiss": "Dismiss"
   }
 }

@@ -85,6 +85,7 @@ function Logo() {
 /** Logo, links, and the user card: the same content in the desktop sidebar and the mobile drawer. */
 function NavContent({ onNavigate }: { onNavigate?: () => void }) {
   const t = useTranslations('nav');
+  const tc = useTranslations('common');
   const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -157,8 +158,8 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
             </Typography>
           </Box>
         </ButtonBase>
-        <Tooltip title={t('logOut')}>
-          <IconButton aria-label={t('logOut')} onClick={onLogout} size="small">
+        <Tooltip title={tc('logOut')}>
+          <IconButton aria-label={tc('logOut')} onClick={onLogout} size="small">
             <LogoutIcon fontSize="small" />
           </IconButton>
         </Tooltip>

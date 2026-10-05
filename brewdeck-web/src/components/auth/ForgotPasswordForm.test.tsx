@@ -1,8 +1,9 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ForgotPasswordForm } from './ForgotPasswordForm';
 import { ApiError } from '@/lib/api/client';
+import { renderWithTheme } from '@/test/renderWithTheme';
 
 const forgotPasswordMock = vi.fn();
 vi.mock('@/lib/api/auth', () => ({
@@ -13,7 +14,7 @@ describe('ForgotPasswordForm', () => {
   afterEach(() => vi.clearAllMocks());
 
   it('validates the email field', async () => {
-    render(<ForgotPasswordForm />);
+    renderWithTheme(<ForgotPasswordForm />);
     await userEvent.click(screen.getByRole('button', { name: /send reset link/i }));
     expect(await screen.findByText(/email is required/i)).toBeInTheDocument();
     expect(forgotPasswordMock).not.toHaveBeenCalled();
@@ -21,7 +22,7 @@ describe('ForgotPasswordForm', () => {
 
   it('submits the email and shows the generic confirmation', async () => {
     forgotPasswordMock.mockResolvedValue({ message: 'ok' });
-    render(<ForgotPasswordForm />);
+    renderWithTheme(<ForgotPasswordForm />);
     await userEvent.type(screen.getByLabelText(/email/i), 'a@b.com');
     await userEvent.click(screen.getByRole('button', { name: /send reset link/i }));
     await waitFor(() => expect(forgotPasswordMock).toHaveBeenCalledWith({ email: 'a@b.com' }));
@@ -30,7 +31,7 @@ describe('ForgotPasswordForm', () => {
 
   it('shows an error alert on failure', async () => {
     forgotPasswordMock.mockRejectedValue(new Error('network'));
-    render(<ForgotPasswordForm />);
+    renderWithTheme(<ForgotPasswordForm />);
     await userEvent.type(screen.getByLabelText(/email/i), 'a@b.com');
     await userEvent.click(screen.getByRole('button', { name: /send reset link/i }));
     expect(await screen.findByText(/could not send the reset link/i)).toBeInTheDocument();
@@ -40,7 +41,7 @@ describe('ForgotPasswordForm', () => {
     forgotPasswordMock.mockRejectedValue(
       new ApiError(429, 'Too many attempts. Try again in 45 minutes.'),
     );
-    render(<ForgotPasswordForm />);
+    renderWithTheme(<ForgotPasswordForm />);
     await userEvent.type(screen.getByLabelText(/email/i), 'a@b.com');
     await userEvent.click(screen.getByRole('button', { name: /send reset link/i }));
     expect(await screen.findByText('Too many attempts. Try again in 45 minutes.')).toBeInTheDocument();

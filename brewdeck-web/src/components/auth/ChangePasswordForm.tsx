@@ -7,8 +7,10 @@ import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useFieldError } from '@/i18n/useFieldError';
 import { changePassword } from '@/lib/api/auth';
 import { ApiError } from '@/lib/api/client';
 import {
@@ -17,6 +19,9 @@ import {
 } from '@/lib/validation/authSchema';
 
 export function ChangePasswordForm() {
+  const t = useTranslations('auth.changePassword');
+  const tc = useTranslations('common');
+  const fieldError = useFieldError();
   const [formError, setFormError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const {
@@ -46,44 +51,44 @@ export function ChangePasswordForm() {
       }
       if (error instanceof ApiError && error.status === 400) {
         // Server rejected the supplied current password (no field-level errors).
-        setError('currentPassword', { message: 'Current password is incorrect' });
+        setError('currentPassword', { message: 'currentPasswordIncorrect' });
         return;
       }
-      setFormError('Could not change your password. Please try again.');
+      setFormError(t('failed'));
     }
   });
 
   return (
     <Box component="form" onSubmit={onSubmit}>
       <Typography variant="h6" component="h2" gutterBottom>
-        Change password
+        {t('title')}
       </Typography>
       <Stack spacing={2}>
         {formError ? <Alert severity="error">{formError}</Alert> : null}
-        {saved ? <Alert severity="success">Password changed.</Alert> : null}
+        {saved ? <Alert severity="success">{t('saved')}</Alert> : null}
         <TextField
-          label="Current password"
+          label={t('currentPassword')}
           type="password"
           {...register('currentPassword')}
           error={!!errors.currentPassword}
-          helperText={errors.currentPassword?.message}
+          helperText={fieldError(errors.currentPassword?.message)}
         />
         <TextField
-          label="New password"
+          label={tc('newPassword')}
           type="password"
           {...register('newPassword')}
           error={!!errors.newPassword}
-          helperText={errors.newPassword?.message}
+          helperText={fieldError(errors.newPassword?.message)}
         />
         <TextField
-          label="Confirm new password"
+          label={tc('confirmNewPassword')}
           type="password"
           {...register('confirmPassword')}
           error={!!errors.confirmPassword}
-          helperText={errors.confirmPassword?.message}
+          helperText={fieldError(errors.confirmPassword?.message)}
         />
         <Button type="submit" variant="contained" disabled={isSubmitting}>
-          Change password
+          {t('submit')}
         </Button>
       </Stack>
     </Box>

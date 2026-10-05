@@ -4,11 +4,10 @@
  * zone. `timeZone` is only passed by tests; in the app it defaults to the browser's zone.
  */
 
-/**
- * The UI is English-only until i18n lands (UI/UX refresh workstream 8), so dates use English too;
- * the browser locale would mix languages ("30 sept 2026" next to English labels).
- */
-export const UI_LOCALE = 'en-US';
+import { DEFAULT_LOCALE, type AppLocale } from '@/i18n/config';
+
+// Dates follow the app's language (`useLocale()`), never the browser locale, which would mix
+// languages ("30 sept 2026" next to English labels).
 
 const DASH = '—';
 
@@ -21,12 +20,16 @@ function parse(iso: string | null | undefined): Date | null {
 }
 
 /** Date and time in the viewer's zone, e.g. "Sep 30, 2026, 11:27 AM". */
-export function formatDateTime(iso: string | null | undefined, timeZone?: string): string {
+export function formatDateTime(
+  iso: string | null | undefined,
+  timeZone?: string,
+  locale: AppLocale = DEFAULT_LOCALE,
+): string {
   const date = parse(iso);
   if (!date) {
     return DASH;
   }
-  return new Intl.DateTimeFormat(UI_LOCALE, {
+  return new Intl.DateTimeFormat(locale, {
     dateStyle: 'medium',
     timeStyle: 'short',
     timeZone,
@@ -34,12 +37,16 @@ export function formatDateTime(iso: string | null | undefined, timeZone?: string
 }
 
 /** Date only, in the viewer's zone, e.g. "Sep 30, 2026". */
-export function formatDate(iso: string | null | undefined, timeZone?: string): string {
+export function formatDate(
+  iso: string | null | undefined,
+  timeZone?: string,
+  locale: AppLocale = DEFAULT_LOCALE,
+): string {
   const date = parse(iso);
   if (!date) {
     return DASH;
   }
-  return new Intl.DateTimeFormat(UI_LOCALE, { dateStyle: 'medium', timeZone }).format(date);
+  return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeZone }).format(date);
 }
 
 /** Calendar day ("YYYY-MM-DD") of an instant in the viewer's zone, e.g. for chart labels. */

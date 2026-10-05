@@ -1,6 +1,7 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { VerifyEmailView } from './VerifyEmailView';
+import { renderWithTheme } from '@/test/renderWithTheme';
 
 const verifyEmailMock = vi.fn();
 vi.mock('@/lib/api/auth', () => ({ verifyEmail: (t: string) => verifyEmailMock(t) }));
@@ -19,7 +20,7 @@ describe('VerifyEmailView', () => {
 
   it('verifies the token and shows success', async () => {
     verifyEmailMock.mockResolvedValue(undefined);
-    render(<VerifyEmailView />);
+    renderWithTheme(<VerifyEmailView />);
     await waitFor(() => expect(verifyEmailMock).toHaveBeenCalledWith('valid-token'));
     expect(await screen.findByText(/your email has been verified/i)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /continue to the app/i })).toHaveAttribute('href', '/dashboard');
@@ -27,13 +28,13 @@ describe('VerifyEmailView', () => {
 
   it('shows the invalid-link message on failure', async () => {
     verifyEmailMock.mockRejectedValue(new Error('bad'));
-    render(<VerifyEmailView />);
+    renderWithTheme(<VerifyEmailView />);
     expect(await screen.findByText(/invalid or has expired/i)).toBeInTheDocument();
   });
 
   it('shows the invalid-link message when no token is present', async () => {
     tokenValue = null;
-    render(<VerifyEmailView />);
+    renderWithTheme(<VerifyEmailView />);
     expect(await screen.findByText(/invalid or has expired/i)).toBeInTheDocument();
     expect(verifyEmailMock).not.toHaveBeenCalled();
   });

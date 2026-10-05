@@ -19,7 +19,8 @@ import { useFieldError } from '@/i18n/useFieldError';
 import { loginSchema, type LoginFormValues } from '@/lib/validation/authSchema';
 
 export function LoginForm() {
-  const t = useTranslations('login');
+  const t = useTranslations('auth.login');
+  const tc = useTranslations('common');
   const fieldError = useFieldError();
   const { login } = useAuth();
   const router = useRouter();
@@ -51,14 +52,14 @@ export function LoginForm() {
       <Stack spacing={2.25}>
         {formError ? <Alert severity="error">{formError}</Alert> : null}
         <TextField
-          label={t('email')}
+          label={tc('email')}
           type="email"
           {...register('email')}
           error={!!errors.email}
           helperText={fieldError(errors.email?.message)}
         />
         <TextField
-          label={t('password')}
+          label={tc('password')}
           type="password"
           {...register('password')}
           error={!!errors.password}

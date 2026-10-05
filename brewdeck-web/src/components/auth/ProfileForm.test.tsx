@@ -1,8 +1,9 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '@/lib/api/client';
 import { ProfileForm } from './ProfileForm';
+import { renderWithTheme } from '@/test/renderWithTheme';
 
 const updateProfileMock = vi.fn();
 vi.mock('@/lib/auth/AuthProvider', () => ({
@@ -16,14 +17,14 @@ describe('ProfileForm', () => {
   afterEach(() => vi.clearAllMocks());
 
   it('prefills the current display name and email', () => {
-    render(<ProfileForm />);
+    renderWithTheme(<ProfileForm />);
     expect(screen.getByLabelText(/display name/i)).toHaveValue('Old Name');
     expect(screen.getByLabelText(/email/i)).toHaveValue('brewer@example.com');
   });
 
   it('submits a trimmed display name and shows success', async () => {
     updateProfileMock.mockResolvedValue(undefined);
-    render(<ProfileForm />);
+    renderWithTheme(<ProfileForm />);
     const field = screen.getByLabelText(/display name/i);
     await userEvent.clear(field);
     await userEvent.type(field, '  Barista Bob  ');
@@ -36,7 +37,7 @@ describe('ProfileForm', () => {
 
   it('sends null when the display name is cleared', async () => {
     updateProfileMock.mockResolvedValue(undefined);
-    render(<ProfileForm />);
+    renderWithTheme(<ProfileForm />);
     await userEvent.clear(screen.getByLabelText(/display name/i));
     await userEvent.click(screen.getByRole('button', { name: /save profile/i }));
     await waitFor(() => expect(updateProfileMock).toHaveBeenCalledWith({ displayName: null }));
@@ -48,7 +49,7 @@ describe('ProfileForm', () => {
         displayName: 'Display name must not exceed 100 characters',
       }),
     );
-    render(<ProfileForm />);
+    renderWithTheme(<ProfileForm />);
     await userEvent.type(screen.getByLabelText(/display name/i), 'X');
     await userEvent.click(screen.getByRole('button', { name: /save profile/i }));
     expect(await screen.findByText(/must not exceed 100 characters/i)).toBeInTheDocument();

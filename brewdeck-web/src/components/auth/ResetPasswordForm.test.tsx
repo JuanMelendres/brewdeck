@@ -1,8 +1,9 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '@/lib/api/client';
 import { ResetPasswordForm } from './ResetPasswordForm';
+import { renderWithTheme } from '@/test/renderWithTheme';
 
 const resetPasswordMock = vi.fn();
 vi.mock('@/lib/api/auth', () => ({
@@ -21,7 +22,7 @@ describe('ResetPasswordForm', () => {
   });
 
   it('requires a new password of at least 8 characters', async () => {
-    render(<ResetPasswordForm />);
+    renderWithTheme(<ResetPasswordForm />);
     await userEvent.type(screen.getByLabelText(/^new password$/i), 'short');
     await userEvent.type(screen.getByLabelText(/^confirm new password$/i), 'short');
     await userEvent.click(screen.getByRole('button', { name: /reset password/i }));
@@ -30,7 +31,7 @@ describe('ResetPasswordForm', () => {
   });
 
   it('flags mismatched confirmation', async () => {
-    render(<ResetPasswordForm />);
+    renderWithTheme(<ResetPasswordForm />);
     await userEvent.type(screen.getByLabelText(/^new password$/i), 'newpassword1');
     await userEvent.type(screen.getByLabelText(/^confirm new password$/i), 'different1');
     await userEvent.click(screen.getByRole('button', { name: /reset password/i }));
@@ -39,7 +40,7 @@ describe('ResetPasswordForm', () => {
 
   it('submits the token and new password, then shows success', async () => {
     resetPasswordMock.mockResolvedValue(undefined);
-    render(<ResetPasswordForm />);
+    renderWithTheme(<ResetPasswordForm />);
     await userEvent.type(screen.getByLabelText(/^new password$/i), 'newpassword1');
     await userEvent.type(screen.getByLabelText(/^confirm new password$/i), 'newpassword1');
     await userEvent.click(screen.getByRole('button', { name: /reset password/i }));
@@ -55,7 +56,7 @@ describe('ResetPasswordForm', () => {
 
   it('shows invalid-link message on a 400 response', async () => {
     resetPasswordMock.mockRejectedValue(new ApiError(400, 'bad', '/api/auth/reset-password'));
-    render(<ResetPasswordForm />);
+    renderWithTheme(<ResetPasswordForm />);
     await userEvent.type(screen.getByLabelText(/^new password$/i), 'newpassword1');
     await userEvent.type(screen.getByLabelText(/^confirm new password$/i), 'newpassword1');
     await userEvent.click(screen.getByRole('button', { name: /reset password/i }));
