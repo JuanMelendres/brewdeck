@@ -5,6 +5,7 @@ import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import NextLink from 'next/link';
+import { useTranslations } from 'next-intl';
 import { useCoffee } from '@/hooks/useCoffee';
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorState } from '@/components/ui/ErrorState';
@@ -16,6 +17,9 @@ function orDash(value: string | null): string {
 }
 
 export function CoffeeDetailView({ coffeeId }: { coffeeId: number }) {
+  const t = useTranslations('coffees.detail');
+  const tf = useTranslations('coffees.fields');
+  const tc = useTranslations('common');
   const { data: coffee, isLoading, isError, refetch } = useCoffee(coffeeId);
 
   if (isLoading && !coffee) {
@@ -23,24 +27,24 @@ export function CoffeeDetailView({ coffeeId }: { coffeeId: number }) {
   }
 
   if (isError || !coffee) {
-    return <ErrorState message="Could not load coffee." onRetry={() => refetch()} />;
+    return <ErrorState message={t('loadFailed')} onRetry={() => refetch()} />;
   }
 
   const details: Array<{ label: string; value: string }> = [
-    { label: 'Brand', value: orDash(coffee.brand) },
-    { label: 'Origin', value: orDash(coffee.origin) },
-    { label: 'Region', value: orDash(coffee.region) },
-    { label: 'Farm', value: orDash(coffee.farm) },
-    { label: 'Producer', value: orDash(coffee.producer) },
-    { label: 'Variety', value: orDash(coffee.variety) },
-    { label: 'Process', value: orDash(coffee.process) },
-    { label: 'Roast', value: orDash(coffee.roastLevel) },
+    { label: tf('brand'), value: orDash(coffee.brand) },
+    { label: tf('origin'), value: orDash(coffee.origin) },
+    { label: tf('region'), value: orDash(coffee.region) },
+    { label: tf('farm'), value: orDash(coffee.farm) },
+    { label: tf('producer'), value: orDash(coffee.producer) },
+    { label: tf('variety'), value: orDash(coffee.variety) },
+    { label: tf('process'), value: orDash(coffee.process) },
+    { label: t('roast'), value: orDash(coffee.roastLevel) },
   ];
 
   return (
     <>
       <Button component={NextLink} href="/coffees" size="small" sx={{ mb: 1 }}>
-        ← Back to coffees
+        {t('back')}
       </Button>
 
       <Typography variant="h5" component="h1" gutterBottom>
@@ -67,7 +71,7 @@ export function CoffeeDetailView({ coffeeId }: { coffeeId: number }) {
       {coffee.notesPrimary || coffee.notesSecondary ? (
         <Box sx={{ mb: 3 }}>
           <Typography variant="subtitle1" gutterBottom>
-            Tasting notes
+            {t('tastingNotes')}
           </Typography>
           <Typography variant="body2" color="text.secondary">
             {[coffee.notesPrimary, coffee.notesSecondary].filter(Boolean).join(' · ')}
@@ -78,7 +82,7 @@ export function CoffeeDetailView({ coffeeId }: { coffeeId: number }) {
       {coffee.description ? (
         <Box sx={{ mb: 3 }}>
           <Typography variant="subtitle1" gutterBottom>
-            Description
+            {tc('description')}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'pre-wrap' }}>
             {coffee.description}

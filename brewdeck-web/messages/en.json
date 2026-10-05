@@ -22,7 +22,22 @@
     "currentPasswordRequired": "Current password is required",
     "currentPasswordIncorrect": "Current password is incorrect",
     "confirmPasswordRequired": "Confirm your new password",
-    "passwordsDoNotMatch": "Passwords do not match"
+    "passwordsDoNotMatch": "Passwords do not match",
+    "coffee": {
+      "nameRequired": "Name is required",
+      "nameTooLong": "Name must not exceed 120 characters",
+      "brandTooLong": "Brand must not exceed 120 characters",
+      "originTooLong": "Origin must not exceed 120 characters",
+      "regionTooLong": "Region must not exceed 120 characters",
+      "farmTooLong": "Farm must not exceed 120 characters",
+      "producerTooLong": "Producer must not exceed 120 characters",
+      "varietyTooLong": "Variety must not exceed 120 characters",
+      "processTooLong": "Process must not exceed 80 characters",
+      "roastLevelTooLong": "Roast level must not exceed 80 characters",
+      "primaryNotesTooLong": "Primary notes must not exceed 255 characters",
+      "secondaryNotesTooLong": "Secondary notes must not exceed 500 characters",
+      "descriptionTooLong": "Description must not exceed 1000 characters"
+    }
   },
   "auth": {
     "login": {
@@ -106,7 +121,17 @@
     "dismiss": "Dismiss",
     "continue": "Continue",
     "loading": "Loading",
-    "retry": "Retry"
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "save": "Save",
+    "create": "Create",
+    "genericError": "Something went wrong",
+    "perPage": "Per page",
+    "editItem": "Edit {name}",
+    "deleteItem": "Delete {name}",
+    "outOfFive": "{value}/5",
+    "description": "Description"
   },
   "theme": {
     "group": "Theme",
@@ -158,6 +183,59 @@
       "title": "Method Usage",
       "loadFailed": "Could not load method usage.",
       "empty": "No brew methods yet."
+    }
+  },
+  "coffees": {
+    "fields": {
+      "name": "Name",
+      "brand": "Brand",
+      "roastLevel": "Roast Level",
+      "process": "Process",
+      "variety": "Variety",
+      "origin": "Origin",
+      "region": "Region",
+      "farm": "Farm",
+      "producer": "Producer",
+      "notesPrimary": "Primary Notes",
+      "notesSecondary": "Secondary Notes",
+      "acidityScore": "Acidity",
+      "bodyScore": "Body",
+      "sweetnessScore": "Sweetness",
+      "bitternessScore": "Bitterness",
+      "description": "Description"
+    },
+    "list": {
+      "title": "Coffees",
+      "add": "Add Coffee",
+      "loadFailed": "Could not load coffees.",
+      "noMatches": "No coffees match these filters.",
+      "empty": "No coffees yet. Add the beans you brew with to start building recipes.",
+      "addFirst": "Add your first coffee"
+    },
+    "form": {
+      "addTitle": "Add coffee",
+      "editTitle": "Edit coffee",
+      "sectionCoffee": "Coffee",
+      "sectionOrigin": "Origin",
+      "sectionTasting": "Tasting",
+      "scoreLabel": "{label} (1-5)",
+      "added": "Coffee added",
+      "updated": "Coffee updated"
+    },
+    "delete": {
+      "title": "Delete coffee",
+      "confirm": "Delete coffee “{name}”? This cannot be undone.",
+      "deleted": "Coffee \"{name}\" deleted"
+    },
+    "detail": {
+      "loadFailed": "Could not load coffee.",
+      "back": "← Back to coffees",
+      "roast": "Roast",
+      "tastingNotes": "Tasting notes"
+    },
+    "radar": {
+      "title": "Tasting profile",
+      "empty": "Add tasting scores to see the flavor profile."
     }
   }
 }

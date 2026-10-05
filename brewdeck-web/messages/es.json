@@ -22,7 +22,22 @@
     "currentPasswordRequired": "La contraseña actual es obligatoria",
     "currentPasswordIncorrect": "La contraseña actual es incorrecta",
     "confirmPasswordRequired": "Confirma tu nueva contraseña",
-    "passwordsDoNotMatch": "Las contraseñas no coinciden"
+    "passwordsDoNotMatch": "Las contraseñas no coinciden",
+    "coffee": {
+      "nameRequired": "El nombre es obligatorio",
+      "nameTooLong": "El nombre no debe pasar de 120 caracteres",
+      "brandTooLong": "La marca no debe pasar de 120 caracteres",
+      "originTooLong": "El origen no debe pasar de 120 caracteres",
+      "regionTooLong": "La región no debe pasar de 120 caracteres",
+      "farmTooLong": "La finca no debe pasar de 120 caracteres",
+      "producerTooLong": "El productor no debe pasar de 120 caracteres",
+      "varietyTooLong": "La variedad no debe pasar de 120 caracteres",
+      "processTooLong": "El proceso no debe pasar de 80 caracteres",
+      "roastLevelTooLong": "El tueste no debe pasar de 80 caracteres",
+      "primaryNotesTooLong": "Las notas principales no deben pasar de 255 caracteres",
+      "secondaryNotesTooLong": "Las notas secundarias no deben pasar de 500 caracteres",
+      "descriptionTooLong": "La descripción no debe pasar de 1000 caracteres"
+    }
   },
   "auth": {
     "login": {
@@ -106,7 +121,17 @@
     "dismiss": "Descartar",
     "continue": "Continuar",
     "loading": "Cargando",
-    "retry": "Reintentar"
+    "retry": "Reintentar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "save": "Guardar",
+    "create": "Crear",
+    "genericError": "Algo salió mal",
+    "perPage": "Por página",
+    "editItem": "Editar {name}",
+    "deleteItem": "Eliminar {name}",
+    "outOfFive": "{value}/5",
+    "description": "Descripción"
   },
   "theme": {
     "group": "Tema",
@@ -158,6 +183,59 @@
       "title": "Uso de métodos",
       "loadFailed": "No pudimos cargar el uso de métodos.",
       "empty": "Aún no hay métodos."
+    }
+  },
+  "coffees": {
+    "fields": {
+      "name": "Nombre",
+      "brand": "Marca",
+      "roastLevel": "Tueste",
+      "process": "Proceso",
+      "variety": "Variedad",
+      "origin": "Origen",
+      "region": "Región",
+      "farm": "Finca",
+      "producer": "Productor",
+      "notesPrimary": "Notas principales",
+      "notesSecondary": "Notas secundarias",
+      "acidityScore": "Acidez",
+      "bodyScore": "Cuerpo",
+      "sweetnessScore": "Dulzor",
+      "bitternessScore": "Amargor",
+      "description": "Descripción"
+    },
+    "list": {
+      "title": "Cafés",
+      "add": "Agregar café",
+      "loadFailed": "No pudimos cargar los cafés.",
+      "noMatches": "Ningún café coincide con estos filtros.",
+      "empty": "Aún no hay cafés. Agrega los granos que preparas para empezar a crear recetas.",
+      "addFirst": "Agrega tu primer café"
+    },
+    "form": {
+      "addTitle": "Agregar café",
+      "editTitle": "Editar café",
+      "sectionCoffee": "Café",
+      "sectionOrigin": "Origen",
+      "sectionTasting": "Cata",
+      "scoreLabel": "{label} (1-5)",
+      "added": "Café agregado",
+      "updated": "Café actualizado"
+    },
+    "delete": {
+      "title": "Eliminar café",
+      "confirm": "¿Eliminar el café “{name}”? Esta acción no se puede deshacer.",
+      "deleted": "Café \"{name}\" eliminado"
+    },
+    "detail": {
+      "loadFailed": "No pudimos cargar el café.",
+      "back": "← Volver a cafés",
+      "roast": "Tueste",
+      "tastingNotes": "Notas de cata"
+    },
+    "radar": {
+      "title": "Perfil de cata",
+      "empty": "Agrega puntajes de cata para ver el perfil de sabor."
     }
   }
 }
