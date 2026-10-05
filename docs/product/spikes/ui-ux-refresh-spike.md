@@ -219,7 +219,7 @@ The refresh is split into workstreams. Each becomes its own document and PR seri
 
 | # | Workstream | Document | Scope |
 | --- | --- | --- | --- |
-| 1 | Design foundation | TDD (theme architecture) + this POC | Tokens, typography, shape, shadows, component overrides, dark mode |
+| 1 | Design foundation | [TDD](../../architecture/design-foundation-tdd.md) + this POC | Tokens, typography, shape, shadows, component overrides, dark mode |
 | 2 | Navigation | FDD | Icons, active route, logo, user menu with avatar, responsive drawer |
 | 3 | Dashboard | FDD | Greeting header, stat cards with icon and color, method-usage chart, rankings as lists with ratings |
 | 4 | Lists | FDD | Coffee cards or airier tables, roast/process chips, `Rating` stars, skeleton loading, `EmptyState` with icon and CTA |
@@ -231,8 +231,7 @@ The refresh is split into workstreams. Each becomes its own document and PR seri
 
 ## 18. ADR Candidate
 
-- ADR needed: Yes, once the direction is chosen.
-- Suggested title: "ADR-014: UI design system on MUI theme tokens"
+- ADR needed: Yes. Written: [ADR-014: UI design system on MUI theme tokens](../../decisions/ADR-014-ui-design-system-mui-theme-tokens.md).
 - Reason: sets long-term frontend conventions (tokens, fonts, dark mode) that every screen follows.
 
 ## 19. Open Questions
