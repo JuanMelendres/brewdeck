@@ -1,5 +1,7 @@
 # Technical Design Document: Web Design Foundation
 
+Status: Implemented (token refactor on branch `refactor/web-theme-tokens`, 2026-10-05).
+
 Workstream 1 of the Phase 7 UI/UX refresh. Decision record: [ADR-014](../decisions/ADR-014-ui-design-system-mui-theme-tokens.md).
 
 ## 1. Summary
@@ -130,7 +132,7 @@ export const motion = { fast: '150ms', easing: 'ease' } as const;
 
 - Builds `colorSchemes` from `palettes` instead of inline hex.
 - `shape.borderRadius` and the `MuiCard` / `MuiButton` / `MuiOutlinedInput` / `MuiListItemButton` overrides read `radius` and `elevation`.
-- New override: `MuiTableContainer` (or `MuiPaper` outlined) gets `radius.card`, removing the three `'18px'` literals.
+- The three `'18px'` table/skeleton literals become `radius.card` in `sx`. A `MuiTableContainer` override was rejected during implementation: with `component={Paper}` the Paper's own radius class competes with it, and a `MuiPaper` outlined override would also hit every outlined `Card`.
 - Public exports unchanged: `theme`, `THEME_MODE_STORAGE_KEY`.
 
 ### 8.3 Charts
@@ -138,9 +140,10 @@ export const motion = { fast: '150ms', easing: 'ease' } as const;
 `CoffeeTastingRadar` and `RecipeRatingTrend` take their stroke/fill from the theme
 (`theme.vars.palette.primary.main` / `secondary.main`) so they follow the active mode.
 
-Assumption: recharts passes the value straight to the SVG `stroke`/`fill` attribute and browsers resolve
-`var(--mui-palette-…)` there. Validate in the browser in both modes; if not, pass the value through `style`
-instead of the attribute.
+recharts passes the value straight to the SVG `stroke`/`fill` attribute. Headless Chrome resolves `var()` in
+an SVG presentation attribute (checked 2026-10-05). Without a CSS-variables theme (tests rendering without the
+provider) the components fall back to the plain palette value: `(theme.vars ?? theme).palette.primary.main`.
+TODO: confirm in Safari and Firefox.
 
 ### 8.4 Unchanged
 
@@ -263,7 +266,7 @@ Integration, contract, OpenAPI, and Postman tests: no API change.
 ## 22. Assumptions
 
 - Assumption-001: The palette in `theme.ts` today is the accepted design; this work moves values, it does not change them.
-- Assumption-002: Charts can take theme CSS variables (§8.3).
+- Assumption-002: Charts can take theme CSS variables (§8.3); verified in Chrome, Safari and Firefox TODO.
 - Assumption-003: Both fonts load as variable fonts (§15).
 
 ## 23. Implementation Plan

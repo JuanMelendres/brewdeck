@@ -3,6 +3,7 @@
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
+import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import {
   PolarAngleAxis,
@@ -26,6 +27,9 @@ export function CoffeeTastingRadar({
   sweetness,
   bitterness,
 }: CoffeeTastingRadarProps) {
+  const theme = useTheme();
+  // CSS variable so the chart follows the active color scheme; plain palette value without one.
+  const lineColor = (theme.vars ?? theme).palette.primary.main;
   const complete =
     acidity !== null && body !== null && sweetness !== null && bitterness !== null;
 
@@ -53,7 +57,12 @@ export function CoffeeTastingRadar({
               <PolarGrid />
               <PolarAngleAxis dataKey="axis" fontSize={12} />
               <PolarRadiusAxis domain={[0, 5]} tickCount={6} fontSize={10} />
-              <Radar dataKey="score" stroke="#1976d2" fill="#1976d2" fillOpacity={0.4} />
+              <Radar
+                dataKey="score"
+                stroke={lineColor}
+                fill={lineColor}
+                fillOpacity={0.4}
+              />
             </RadarChart>
           </Box>
         ) : (

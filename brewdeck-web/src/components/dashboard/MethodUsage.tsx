@@ -9,6 +9,7 @@ import { useMethodUsage } from '@/hooks/useMethodUsage';
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { radius } from '@/lib/theme/tokens';
 
 export function MethodUsage() {
   const { data, isLoading, isError, refetch } = useMethodUsage();
@@ -34,11 +35,11 @@ export function MethodUsage() {
                 <span>{method.recipeCount}</span> {method.recipeCount === 1 ? 'recipe' : 'recipes'}
               </Typography>
             </Box>
-            <Box aria-hidden sx={{ height: 10, borderRadius: 999, bgcolor: 'background.tint', overflow: 'hidden' }}>
+            <Box aria-hidden sx={{ height: 10, borderRadius: radius.pill, bgcolor: 'background.tint', overflow: 'hidden' }}>
               <Box
                 sx={{
                   height: '100%',
-                  borderRadius: 999,
+                  borderRadius: radius.pill,
                   bgcolor: 'secondary.main',
                   width: `${(method.recipeCount / max) * 100}%`,
                 }}

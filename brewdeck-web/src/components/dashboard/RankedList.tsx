@@ -5,6 +5,7 @@ import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
 import NextLink from 'next/link';
 import type { ReactNode } from 'react';
+import { radius } from '@/lib/theme/tokens';
 
 export type RankedItem = {
   key: string | number;
@@ -35,7 +36,7 @@ export function RankedList({ items }: { items: RankedItem[] }) {
               width: 32,
               height: 32,
               flexShrink: 0,
-              borderRadius: '50%',
+              borderRadius: radius.round,
               bgcolor: 'background.tint',
               color: 'primary.main',
               display: 'flex',
@@ -75,7 +76,7 @@ export function RankedList({ items }: { items: RankedItem[] }) {
               flexShrink: 0,
               px: 1.25,
               py: 0.5,
-              borderRadius: 999,
+              borderRadius: radius.pill,
               bgcolor: 'background.tint',
               color: 'secondary.main',
               fontWeight: 600,

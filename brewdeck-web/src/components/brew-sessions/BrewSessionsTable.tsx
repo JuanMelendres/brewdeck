@@ -14,6 +14,7 @@ import Typography from '@mui/material/Typography';
 import NextLink from 'next/link';
 import type { BrewSession } from '@/lib/api/types';
 import { formatDateTime } from '@/lib/format/dates';
+import { radius } from '@/lib/theme/tokens';
 
 function Muted({ children }: { children: string }) {
   return (
@@ -29,7 +30,7 @@ function orMuted(value: string | number | null) {
 
 export function BrewSessionsTable({ sessions }: { sessions: BrewSession[] }) {
   return (
-    <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: '18px' }}>
+    <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: radius.card }}>
       <Table sx={{ minWidth: 720, '& td, & th': { px: 2.5 }, '& td': { py: 1.75 } }}>
         <TableHead>
           <TableRow>
@@ -68,7 +69,7 @@ export function BrewSessionsTable({ sessions }: { sessions: BrewSession[] }) {
                       gap: 0.5,
                       px: 1.25,
                       py: 0.25,
-                      borderRadius: 999,
+                      borderRadius: radius.pill,
                       bgcolor: 'background.tint',
                       color: 'secondary.main',
                       fontWeight: 600,

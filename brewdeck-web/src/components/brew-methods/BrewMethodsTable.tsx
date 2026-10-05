@@ -13,6 +13,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 import type { BrewMethod } from '@/lib/api/brewMethods';
+import { radius } from '@/lib/theme/tokens';
 
 export function BrewMethodsTable({
   methods,
@@ -24,7 +25,7 @@ export function BrewMethodsTable({
   onDelete?: (method: BrewMethod) => void;
 }) {
   return (
-    <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: '18px' }}>
+    <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: radius.card }}>
       <Table sx={{ minWidth: 560, '& td, & th': { px: 2.5 }, '& td': { py: 1.75 } }}>
         <TableHead>
           <TableRow>

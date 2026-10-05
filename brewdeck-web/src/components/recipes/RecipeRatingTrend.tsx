@@ -3,6 +3,7 @@
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
+import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import type { ReactNode } from 'react';
 import {
@@ -32,6 +33,9 @@ function toTrendPoints(
 }
 
 export function RecipeRatingTrend({ recipeId }: { recipeId: number }) {
+  const theme = useTheme();
+  // CSS variable so the chart follows the active color scheme; plain palette value without one.
+  const lineColor = (theme.vars ?? theme).palette.primary.main;
   const { data, isLoading, isError, refetch } = useRecipeBrewSessions(recipeId);
 
   let body: ReactNode;
@@ -56,7 +60,7 @@ export function RecipeRatingTrend({ recipeId }: { recipeId: number }) {
               <XAxis dataKey="label" fontSize={12} />
               <YAxis domain={[0, 10]} allowDecimals={false} fontSize={12} />
               <Tooltip />
-              <Line type="monotone" dataKey="rating" stroke="#1976d2" strokeWidth={2} />
+              <Line type="monotone" dataKey="rating" stroke={lineColor} strokeWidth={2} />
             </LineChart>
           </ResponsiveContainer>
         </Box>

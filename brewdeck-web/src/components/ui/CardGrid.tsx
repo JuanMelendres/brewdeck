@@ -6,13 +6,14 @@ import CardContent from '@mui/material/CardContent';
 import Grid from '@mui/material/Grid';
 import Skeleton from '@mui/material/Skeleton';
 import type { ReactNode } from 'react';
+import { elevation, motion } from '@/lib/theme/tokens';
 
 /** A small lift on hover for cards in a grid; skipped when the user prefers reduced motion. */
 export const cardHoverSx = {
-  transition: 'transform 150ms ease, box-shadow 150ms ease',
+  transition: `transform ${motion.fast} ${motion.easing}, box-shadow ${motion.fast} ${motion.easing}`,
   '&:hover, &:focus-within': {
     transform: 'translateY(-2px)',
-    boxShadow: '0 2px 4px rgba(43, 29, 20, 0.08), 0 12px 28px rgba(43, 29, 20, 0.1)',
+    boxShadow: elevation.cardHover,
   },
   '@media (prefers-reduced-motion: reduce)': {
     transition: 'none',
