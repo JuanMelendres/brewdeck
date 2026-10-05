@@ -93,9 +93,10 @@ the same delivery.
 
 ### Finding 3: Next 16 file conventions cover the icons
 
-Assumption, to verify against `node_modules/next/dist/docs/` during delivery: `src/app/icon.svg` (plus
-`favicon.ico` for old browsers) and `src/app/apple-icon.png` are picked up and linked automatically, with no
-`<head>` code.
+Verified in the bundled Next 16.3.6 docs (`01-app/03-api-reference/03-file-conventions/01-metadata/`):
+`app/favicon.ico` (root only), `app/icon.(ico|png|svg)`, and `app/apple-icon.(png|jpg)` are linked
+automatically, with no `<head>` code. `app/manifest.ts` returning `MetadataRoute.Manifest` serves the web app
+manifest. There is no `middleware`/`proxy` file, so the manifest and icons are public.
 
 ### Finding 4: Expected small-size behavior (not yet reviewed)
 
@@ -115,7 +116,14 @@ canvas review:
 
 ## 12. Proof of Concept Results
 
-Canvas published 2026-10-05 with the three concepts in both modes and at four sizes. TODO: owner review.
+Canvas published 2026-10-05 with the three concepts in both modes and at four sizes. Owner review: A liked but
+"too generic"; B chosen.
+
+Refinement round (same canvas, 2026-10-05):
+
+- **Simple variant** for 16 px (and optionally 32 px): front card and bean only, bean enlarged, heavier stroke.
+- **Wordmark weights:** option 1 = "Brew" 700 + "Deck" 400; option 2 = "Brew" 300 + "Deck" 700. Both Fraunces.
+- **Home screen:** the mark on an iOS rounded tile and on Android circle and squircle crops (maskable icon).
 
 ## 13. Trade-Off Analysis
 
@@ -146,16 +154,25 @@ Validate next: the owner's review of the canvas, then the simplified 16 px varia
 
 ## 16. Decision
 
-Decision pending (owner review of the canvas).
+- Decision: **B · Bean on a deck**, with the simple variant at 16 px. Wordmark in Fraunces with two weights
+  (option 1 or 2, see §12; recommended: option 1). The app is installable on a phone home screen.
+- Date: 2026-10-05
+- Owner: Juan (product owner)
+- Status: Accepted (wordmark weight variant pending the owner's pick in the canvas)
 
 ## 17. Next Steps
 
-1. Owner picks a concept (or asks for a mix) in the canvas.
-2. Refine it in the canvas: stroke weight, 16 px variant.
+1. ~~Owner picks a concept.~~ B (§16).
+2. ~~Refine it in the canvas.~~ Done (§12); owner picks wordmark option 1 or 2.
 3. Delivery PR (`feat(web)`):
    - `BrandMark` component (`src/components/ui/BrandMark.tsx`, inline SVG with `currentColor`, named export)
      replacing `LocalCafeIcon` in `AppShell` and `AuthLayout`.
-   - `src/app/icon.svg` + regenerated `favicon.ico` + `apple-icon.png`.
+   - `Wordmark` with the chosen weights, next to `BrandMark` in `AppShell` and `AuthLayout`.
+   - `src/app/icon.svg` (full mark) + regenerated `favicon.ico` (simple variant, 16 + 32 px) + `apple-icon.png` (180 px).
+   - Home-screen install: `src/app/manifest.ts` (`name` "BrewDeck", `display: 'standalone'`, `start_url: '/'`,
+     colors imported from `src/lib/theme/tokens.ts` so `noColorLiterals.test.ts` stays green) with 192 and 512 px
+     PNG icons plus a 512 px `maskable` icon (mark inside the central 80 % safe zone). No service worker:
+     offline support is out of scope.
    - Remove the unused scaffold SVGs from `public/`.
    - Tests: `BrandMark` renders with `aria-hidden` next to a visible "BrewDeck" name; existing `AppShell` /
      `AuthLayout` tests stay green.
@@ -168,10 +185,15 @@ Decision pending (owner review of the canvas).
 
 ## 19. Open Questions
 
-- OQ-001: Should the wordmark change too (for example "Brew" and "Deck" in different weights), or stay Fraunces 600?
-- OQ-002: Is a PWA manifest (home-screen install) wanted? It would add 192/512 px icons.
+- ~~OQ-001: Should the wordmark change too?~~ Yes, two weights (2026-10-05). Which variant: owner's pick in the canvas.
+- ~~OQ-002: Is home-screen install wanted?~~ Yes (2026-10-05): manifest + 192/512/maskable icons.
+- OQ-003: How are the PNG and ICO files produced? Options: a one-off script with `sharp` (if already in the
+  dependency tree through Next), or Next's code-generated `icon.tsx`/`apple-icon.tsx` (`ImageResponse`). Decide in
+  the delivery PR; committed static files are simplest.
+- OQ-004: Does Chrome on Android still prompt to install without a service worker? Assumption: yes, a manifest with
+  192/512 icons is enough for "Add to Home screen"; verify on a device.
 
 ## 20. Assumptions
 
 - Assumption-001: BrewDeck stays a personal project for now, so no trademark search is needed.
-- Assumption-002: Next 16 icon file conventions work as in Finding 3.
+- Assumption-002: iOS uses `apple-icon.png` for "Add to Home Screen" and ignores the manifest icons.
