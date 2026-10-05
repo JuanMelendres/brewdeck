@@ -6,6 +6,7 @@ import Button from '@mui/material/Button';
 import TablePagination from '@mui/material/TablePagination';
 import Typography from '@mui/material/Typography';
 import { useState, type ReactNode } from 'react';
+import { useTranslations } from 'next-intl';
 import { useBrewMethods } from '@/hooks/useBrewMethods';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -16,6 +17,8 @@ import { BrewMethodsTable } from './BrewMethodsTable';
 import { DeleteBrewMethodDialog } from './DeleteBrewMethodDialog';
 
 export function BrewMethodsView() {
+  const t = useTranslations('brewMethods.list');
+  const tc = useTranslations('common');
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
 
@@ -29,9 +32,9 @@ export function BrewMethodsView() {
   if (isLoading && !data) {
     body = <TableSkeleton columns={3} />;
   } else if (isError || !data) {
-    body = <ErrorState message="Could not load brew methods." onRetry={() => refetch()} />;
+    body = <ErrorState message={t('loadFailed')} onRetry={() => refetch()} />;
   } else if (data.content.length === 0) {
-    body = <EmptyState icon={<CoffeeMakerOutlinedIcon />} message="No brew methods found." />;
+    body = <EmptyState icon={<CoffeeMakerOutlinedIcon />} message={t('empty')} />;
   } else {
     body = (
       <>
@@ -46,7 +49,7 @@ export function BrewMethodsView() {
           page={page}
           rowsPerPage={size}
           rowsPerPageOptions={[10, 20, 50]}
-          labelRowsPerPage="Per page"
+          labelRowsPerPage={tc('perPage')}
           sx={{ mt: 1 }}
           onPageChange={(_event, newPage) => setPage(newPage)}
           onRowsPerPageChange={(event) => {
@@ -62,14 +65,14 @@ export function BrewMethodsView() {
     <>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, mb: 2 }}>
         <Typography variant="h4" component="h1">
-          Brew Methods
+          {t('title')}
         </Typography>
         <Button variant="contained" onClick={() => setCreateOpen(true)}>
-          Add Method
+          {t('add')}
         </Button>
       </Box>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Shared methods are available to everyone. Methods you add are private to you.
+        {t('intro')}
       </Typography>
       {body}
 

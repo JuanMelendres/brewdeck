@@ -6,7 +6,7 @@ describe('brewSessionSchema', () => {
     const r = brewSessionSchema.safeParse({ recipeId: '' });
     expect(r.success).toBe(false);
     if (!r.success) {
-      expect(r.error.issues.map((i) => i.message)).toContain('Recipe is required');
+      expect(r.error.issues.map((i) => i.message)).toContain('brewSession.recipeRequired');
     }
   });
 
@@ -33,7 +33,7 @@ describe('brewSessionSchema', () => {
     const r = brewSessionSchema.safeParse({ recipeId: '1', rating: '11' });
     expect(r.success).toBe(false);
     if (!r.success) {
-      expect(r.error.issues[0].message).toBe('Rating must not exceed 10');
+      expect(r.error.issues[0].message).toBe('brewSession.ratingTooHigh');
     }
   });
 
@@ -42,7 +42,7 @@ describe('brewSessionSchema', () => {
     expect(r.success).toBe(false);
     if (!r.success) {
       expect(r.error.issues[0].message).toBe(
-        'Actual temperature must be at least 70 degrees Celsius',
+        'brewSession.actualTempTooLow',
       );
     }
   });

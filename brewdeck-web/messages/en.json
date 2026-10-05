@@ -54,6 +54,23 @@
       "brewTimeTooLong": "Brew time must not exceed 20 characters",
       "stepsTooLong": "Steps must not exceed 1000 characters",
       "expectedTasteTooLong": "Expected taste must not exceed 500 characters"
+    },
+    "brewMethod": {
+      "nameRequired": "Name is required",
+      "nameTooLong": "Name must not exceed 80 characters",
+      "descriptionTooLong": "Description must not exceed 500 characters",
+      "duplicateName": "You already have a brew method with this name."
+    },
+    "brewSession": {
+      "recipeRequired": "Recipe is required",
+      "actualGrindTooLong": "Actual grind must not exceed 120 characters",
+      "actualTempTooLow": "Actual temperature must be at least 70 degrees Celsius",
+      "actualTempTooHigh": "Actual temperature must not exceed 100 degrees Celsius",
+      "actualTimeTooLong": "Actual time must not exceed 20 characters",
+      "tasteResultTooLong": "Taste result must not exceed 1000 characters",
+      "ratingTooLow": "Rating must be at least 1",
+      "ratingTooHigh": "Rating must not exceed 10",
+      "adjustmentNotesTooLong": "Adjustment notes must not exceed 1000 characters"
     }
   },
   "auth": {
@@ -155,7 +172,9 @@
     "grams": "{value} g",
     "celsius": "{value}°C",
     "close": "Close",
-    "copy": "Copy"
+    "copy": "Copy",
+    "name": "Name",
+    "actions": "Actions"
   },
   "theme": {
     "group": "Theme",
@@ -385,6 +404,63 @@
       "steps": "Steps",
       "expectedTaste": "Expected taste",
       "generated": "Generated {date}"
+    }
+  },
+  "brewMethods": {
+    "list": {
+      "title": "Brew Methods",
+      "add": "Add Method",
+      "intro": "Shared methods are available to everyone. Methods you add are private to you.",
+      "loadFailed": "Could not load brew methods.",
+      "empty": "No brew methods found.",
+      "method": "Method",
+      "type": "Type",
+      "shared": "Shared",
+      "mine": "Mine"
+    },
+    "form": {
+      "addTitle": "Add brew method",
+      "editTitle": "Edit brew method",
+      "privateNote": "Your methods are private: only you can see and use them.",
+      "added": "Brew method added",
+      "updated": "Brew method updated"
+    },
+    "delete": {
+      "title": "Delete brew method",
+      "confirm": "Delete brew method “{name}”? This cannot be undone.",
+      "deleted": "Brew method \"{name}\" deleted"
+    }
+  },
+  "brewSessions": {
+    "fields": {
+      "recipeId": "Recipe",
+      "actualGrind": "Actual Grind",
+      "actualTemp": "Actual Temp",
+      "actualTime": "Actual Time",
+      "tasteResult": "Taste Result",
+      "rating": "Rating",
+      "adjustmentNotes": "Adjustment Notes"
+    },
+    "list": {
+      "title": "Brew Sessions",
+      "add": "Add Brew Session",
+      "loadFailed": "Could not load brew sessions.",
+      "noMatches": "No brew sessions match these filters.",
+      "empty": "No brew sessions yet. Log each brew to see how your recipes turn out.",
+      "addFirst": "Log your first brew",
+      "brewed": "Brewed",
+      "recipe": "Recipe",
+      "rating": "Rating",
+      "temp": "Temp",
+      "time": "Time",
+      "taste": "Taste"
+    },
+    "form": {
+      "title": "Add brew session",
+      "sectionBrew": "Brew",
+      "sectionResult": "Result",
+      "selectRecipe": "Select a recipe",
+      "logged": "Brew session logged"
     }
   }
 }

@@ -12,6 +12,7 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
+import { useTranslations } from 'next-intl';
 import type { BrewMethod } from '@/lib/api/brewMethods';
 import { radius } from '@/lib/theme/tokens';
 
@@ -24,14 +25,16 @@ export function BrewMethodsTable({
   onEdit?: (method: BrewMethod) => void;
   onDelete?: (method: BrewMethod) => void;
 }) {
+  const t = useTranslations('brewMethods.list');
+  const tc = useTranslations('common');
   return (
     <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: radius.card }}>
       <Table sx={{ minWidth: 560, '& td, & th': { px: 2.5 }, '& td': { py: 1.75 } }}>
         <TableHead>
           <TableRow>
-            <TableCell>Method</TableCell>
-            <TableCell>Type</TableCell>
-            <TableCell align="right">Actions</TableCell>
+            <TableCell>{t('method')}</TableCell>
+            <TableCell>{t('type')}</TableCell>
+            <TableCell align="right">{tc('actions')}</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -47,9 +50,9 @@ export function BrewMethodsTable({
               </TableCell>
               <TableCell>
                 {method.shared ? (
-                  <Chip label="Shared" size="small" variant="outlined" />
+                  <Chip label={t('shared')} size="small" variant="outlined" />
                 ) : (
-                  <Chip label="Mine" size="small" sx={{ bgcolor: 'background.tint', color: 'secondary.main' }} />
+                  <Chip label={t('mine')} size="small" sx={{ bgcolor: 'background.tint', color: 'secondary.main' }} />
                 )}
               </TableCell>
               <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
@@ -57,14 +60,14 @@ export function BrewMethodsTable({
                 {method.shared ? null : (
                   <>
                     <IconButton
-                      aria-label={`Edit ${method.name}`}
+                      aria-label={tc('editItem', { name: method.name })}
                       size="small"
                       onClick={() => onEdit?.(method)}
                     >
                       <EditOutlinedIcon fontSize="small" />
                     </IconButton>
                     <IconButton
-                      aria-label={`Delete ${method.name}`}
+                      aria-label={tc('deleteItem', { name: method.name })}
                       size="small"
                       onClick={() => onDelete?.(method)}
                     >

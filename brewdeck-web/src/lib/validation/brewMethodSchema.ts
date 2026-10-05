@@ -1,13 +1,14 @@
 import { z } from 'zod';
+import { vk } from '@/i18n/validationKey';
 
 // Mirrors BrewMethodRequest on the backend.
 export const brewMethodSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(1, 'Name is required')
-    .max(80, 'Name must not exceed 80 characters'),
-  description: z.string().max(500, 'Description must not exceed 500 characters').optional(),
+    .min(1, vk('brewMethod.nameRequired'))
+    .max(80, vk('brewMethod.nameTooLong')),
+  description: z.string().max(500, vk('brewMethod.descriptionTooLong')).optional(),
 });
 
 export type BrewMethodFormValues = z.infer<typeof brewMethodSchema>;

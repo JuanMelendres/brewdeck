@@ -54,6 +54,23 @@
       "brewTimeTooLong": "El tiempo de preparación no debe pasar de 20 caracteres",
       "stepsTooLong": "Los pasos no deben pasar de 1000 caracteres",
       "expectedTasteTooLong": "El sabor esperado no debe pasar de 500 caracteres"
+    },
+    "brewMethod": {
+      "nameRequired": "El nombre es obligatorio",
+      "nameTooLong": "El nombre no debe pasar de 80 caracteres",
+      "descriptionTooLong": "La descripción no debe pasar de 500 caracteres",
+      "duplicateName": "Ya tienes un método con este nombre."
+    },
+    "brewSession": {
+      "recipeRequired": "La receta es obligatoria",
+      "actualGrindTooLong": "La molienda real no debe pasar de 120 caracteres",
+      "actualTempTooLow": "La temperatura real debe ser de al menos 70 grados Celsius",
+      "actualTempTooHigh": "La temperatura real no debe pasar de 100 grados Celsius",
+      "actualTimeTooLong": "El tiempo real no debe pasar de 20 caracteres",
+      "tasteResultTooLong": "El resultado de sabor no debe pasar de 1000 caracteres",
+      "ratingTooLow": "La calificación debe ser de al menos 1",
+      "ratingTooHigh": "La calificación no debe pasar de 10",
+      "adjustmentNotesTooLong": "Las notas de ajuste no deben pasar de 1000 caracteres"
     }
   },
   "auth": {
@@ -155,7 +172,9 @@
     "grams": "{value} g",
     "celsius": "{value} °C",
     "close": "Cerrar",
-    "copy": "Copiar"
+    "copy": "Copiar",
+    "name": "Nombre",
+    "actions": "Acciones"
   },
   "theme": {
     "group": "Tema",
@@ -385,6 +404,63 @@
       "steps": "Pasos",
       "expectedTaste": "Sabor esperado",
       "generated": "Generado el {date}"
+    }
+  },
+  "brewMethods": {
+    "list": {
+      "title": "Métodos",
+      "add": "Agregar método",
+      "intro": "Los métodos compartidos están disponibles para todos. Los que agregas son privados.",
+      "loadFailed": "No pudimos cargar los métodos.",
+      "empty": "No se encontraron métodos.",
+      "method": "Método",
+      "type": "Tipo",
+      "shared": "Compartido",
+      "mine": "Mío"
+    },
+    "form": {
+      "addTitle": "Agregar método",
+      "editTitle": "Editar método",
+      "privateNote": "Tus métodos son privados: solo tú puedes verlos y usarlos.",
+      "added": "Método agregado",
+      "updated": "Método actualizado"
+    },
+    "delete": {
+      "title": "Eliminar método",
+      "confirm": "¿Eliminar el método “{name}”? Esta acción no se puede deshacer.",
+      "deleted": "Método \"{name}\" eliminado"
+    }
+  },
+  "brewSessions": {
+    "fields": {
+      "recipeId": "Receta",
+      "actualGrind": "Molienda real",
+      "actualTemp": "Temperatura real",
+      "actualTime": "Tiempo real",
+      "tasteResult": "Resultado de sabor",
+      "rating": "Calificación",
+      "adjustmentNotes": "Notas de ajuste"
+    },
+    "list": {
+      "title": "Preparaciones",
+      "add": "Agregar preparación",
+      "loadFailed": "No pudimos cargar las preparaciones.",
+      "noMatches": "Ninguna preparación coincide con estos filtros.",
+      "empty": "Aún no hay preparaciones. Registra cada una para ver cómo salen tus recetas.",
+      "addFirst": "Registra tu primera preparación",
+      "brewed": "Fecha",
+      "recipe": "Receta",
+      "rating": "Calificación",
+      "temp": "Temp.",
+      "time": "Tiempo",
+      "taste": "Sabor"
+    },
+    "form": {
+      "title": "Agregar preparación",
+      "sectionBrew": "Preparación",
+      "sectionResult": "Resultado",
+      "selectRecipe": "Elige una receta",
+      "logged": "Preparación registrada"
     }
   }
 }
