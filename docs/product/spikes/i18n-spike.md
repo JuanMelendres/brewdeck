@@ -161,7 +161,28 @@ Version 4.14.9's peer dependencies (§2). A web report mentions a `cookies()` "o
 
 ## 12. Proof of Concept Results
 
-TODO: POC not executed yet.
+Executed 2026-10-05 on branch `poc/web-i18n` (commit `682948a`, not for merging). Scope:
+
+- `next-intl` 4.14.9 with English and Spanish messages for `LoginForm`, the `AppShell` navigation, and the dashboard date.
+- Locale from the `brewdeck-locale` cookie, else `Accept-Language`, else English.
+- Zod messages for the login schema turned into keys.
+
+| Check | Result |
+| --- | --- |
+| No English flash (Q-003) | **Pass.** `next start` + `curl /login`: cookie `es` → `<html lang="es">` and "Iniciar sesión" in the server HTML; cookie `en` wins over `Accept-Language: es`; no cookie + `es-MX` → Spanish; `fr-FR` or an unknown cookie value → English. Headless Chrome with `--lang=es-MX` stays Spanish after hydration. |
+| R-002 `cookies()` request-scope error | **Not reproduced** on Next 16.3.6: no error in the build or the server log. |
+| Typed keys | **Pass.** A misspelled `t('acount')` fails `pnpm type-check` (TS2345, via `AppConfig` in `src/i18n/appConfig.d.ts`). Spanish key parity is a unit test (`messages.test.ts`). |
+| Zod keys (Finding 5) | **Pass.** Schema messages are keys under `validation`; a `useFieldError()` hook translates them and lets server messages pass through. It needs one `as` cast because Zod messages are plain strings. |
+| Rich text and formatting | `t.rich` renders "¿No tienes cuenta? <link>Regístrate</link>" with the MUI link; `useFormatter().dateTime` replaces `UI_LOCALE` for the dashboard date. |
+| Existing tests | **Pass.** 400 tests green, plus a Spanish `LoginForm` test. The test helper now wraps `NextIntlClientProvider` (English by default, `{ locale: 'es' }` on demand). |
+| Bundle | Client chunks grew from 3080 KB to 3120 KB raw, and from 872 KB to 883 KB gzipped (+11 KB gzip). |
+
+New findings:
+
+- **Every page becomes dynamic.** Reading the cookie and headers in `i18n/request.ts` turns the 14 pages that `next build` prerendered on `develop` into per-request renders (`○` → `ƒ`). That is acceptable: the app already needs a Node server (ADR-013), and the pages fetch their data client-side anyway. A static build would bring back the English flash.
+- **Install-time scripts.** `next-intl` 4.14 depends on `@swc/core` and `@parcel/watcher` (and `@eloqnt/*` packages) for its optional message extractor. pnpm's supply-chain guard blocked their build scripts. The POC keeps them blocked in `pnpm-workspace.yaml`, and build, tests, and runtime work without them.
+- **Test churn.** 16 test files call RTL's `render` directly instead of `renderWithTheme`. They must switch to the provider helper in PR 1 (R-003).
+- **Mixed language until everything is extracted.** With Spanish on, the POC shows the auth brand panel still in English. This confirms the flag: Spanish must stay hidden until PR 4 is complete.
 
 ## 13. Trade-Off Analysis
 
@@ -177,7 +198,7 @@ TODO: POC not executed yet.
 | Risk | Impact | Likelihood | Mitigation |
 | --- | --- | --- | --- |
 | R-001: Strings missed during extraction | Mixed-language screens | Medium | ESLint rule against JSX literals (`react/jsx-no-literals`) in `src/components` after extraction; Spanish typed against the English file so missing keys fail type-check |
-| R-002: `next-intl` `cookies()` request-scope error on Next 16 | Locale read fails on the server | Low–Medium | POC checks it on 16.3; fallback: read the cookie in the root layout and pass `locale` + messages to the provider explicitly |
+| R-002: `next-intl` `cookies()` request-scope error on Next 16 | Locale read fails on the server | Low (not reproduced in the POC on 16.3.6) | POC checks it on 16.3; fallback: read the cookie in the root layout and pass `locale` + messages to the provider explicitly |
 | R-003: Tests break when strings move to message files | Large test churn | Medium | Tests render with an English provider helper (like `renderWithTheme`), so visible text is unchanged |
 | R-004: Backend and frontend validation messages drift | Different wording per layer | Medium | Same keys and wording reviewed together; the backend message is only shown when the client-side check passed |
 | R-005: Spanish quality | Awkward copy | Medium | The owner (native speaker) reviews the Spanish file |
@@ -198,14 +219,18 @@ Validate next: the POC (§11), especially R-002 and the no-flash render.
 
 ## 16. Decision
 
-Decision pending (owner review).
+- Decision: **`next-intl` without locale routing.** The locale comes from the `brewdeck-locale` cookie, else the browser language. The per-user `users.language` preference is the source of truth. The backend uses `Accept-Language` for messages and the stored preference for emails. Flag `web-i18n-spanish`.
+- Date: 2026-10-05
+- Owner: Juan (product owner)
+- Status: Accepted. POC passed (§12). Recorded in [ADR-015](../../decisions/ADR-015-i18n-next-intl-language-preference.md).
 
 ## 17. Next Steps
 
 PR plan (each PR complete, tests included):
 
-1. **`feat(web)`: i18n foundation, English only.**
-   - Add `next-intl` and `messages/en.json`, and extract every UI string and Zod message to keys.
+1. **`feat(web)`: i18n foundation, English only.** Start from the `poc/web-i18n` branch.
+   - Add `next-intl` and `messages/en.json` (with its extractor's build scripts blocked), and extract every UI string and Zod message to keys.
+   - Move the 16 test files that call `render` directly onto the provider helper.
    - `formatDate`/`formatDateTime` take the active locale; `<html lang>` comes from the locale.
    - Add the test render helper and the `react/jsx-no-literals` rule.
    - No visible change, so no flag.
@@ -240,14 +265,16 @@ API docs, `openapi.yaml`, and Postman updated for the new endpoint.
 
 ## 19. Open Questions
 
-- OQ-001: Should Spanish validation messages from the backend use the same wording as the Zod messages, kept by hand, or should the frontend always prefer its own message per field?
-- OQ-002: Recipe PDF: follow the user's language? (Recommended yes; it already uses `formatDate`.)
-- OQ-003: Public share page (`/share/[token]`): viewer's browser language, or the owner's language?
-- OQ-004: Do existing users see the first-login dialog again to pick a language, or default to their browser language until they change it in Account?
+Answered by the owner on 2026-10-05:
+
+- ~~OQ-001: Backend vs Zod wording?~~ The frontend shows its own (Zod) message per field when it has one; the backend message, translated through `Accept-Language`, is the fallback.
+- ~~OQ-002: Recipe PDF?~~ Follows the user's language.
+- ~~OQ-003: Public share page?~~ The viewer's browser language (cookie, else `Accept-Language`). The owner's language is not used.
+- ~~OQ-004: Existing users?~~ No new prompt. They get their browser language until they change it in Account. New users pick language and theme together in the first-login dialog.
 
 ## 20. Assumptions
 
 - Assumption-001: About 250 frontend strings + about 60 Zod messages + about 54 backend messages + 2 emails. A rough count, it sets the PR 1 size.
 - Assumption-002: Spring's default `Accept-Language` resolution covers validation messages (Finding 3).
 - Assumption-003: The `react/jsx-no-literals` rule is usable with the current ESLint flat config.
-- Assumption-004: `next-intl` adds a modest client bundle cost. TODO: measure it in the POC with `pnpm build`.
+- ~~Assumption-004: `next-intl` adds a modest client bundle cost.~~ Measured: +11 KB gzip (§12).
