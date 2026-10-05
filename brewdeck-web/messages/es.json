@@ -1,0 +1,30 @@
+{
+  "nav": {
+    "main": "Principal",
+    "dashboard": "Inicio",
+    "coffees": "Cafés",
+    "recipes": "Recetas",
+    "favorites": "Favoritas",
+    "brewMethods": "Métodos",
+    "brewSessions": "Preparaciones",
+    "account": "Cuenta",
+    "logOut": "Cerrar sesión",
+    "openNavigation": "Abrir navegación"
+  },
+  "login": {
+    "title": "Iniciar sesión",
+    "subtitle": "Qué gusto verte. Tus cafés te esperan.",
+    "email": "Correo",
+    "password": "Contraseña",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "submit": "Iniciar sesión",
+    "noAccount": "¿No tienes cuenta? <link>Regístrate</link>",
+    "failed": "No pudimos iniciar sesión. Revisa tu correo y contraseña."
+  },
+  "validation": {
+    "emailRequired": "El correo es obligatorio",
+    "emailTooLong": "El correo no debe pasar de 255 caracteres",
+    "emailInvalid": "Escribe un correo válido",
+    "passwordRequired": "La contraseña es obligatoria"
+  }
+}

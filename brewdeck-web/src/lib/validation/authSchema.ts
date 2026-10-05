@@ -14,9 +14,10 @@ function newPassword(minMessage: string) {
   return z.string().min(8, minMessage).refine(fitsPasswordByteLimit, PASSWORD_TOO_LONG);
 }
 
+// i18n POC: messages are keys under `validation` in messages/*.json, translated where the form shows them.
 export const loginSchema = z.object({
-  email: z.string().min(1, 'Email is required').max(255, 'Email must not exceed 255 characters').email('Enter a valid email'),
-  password: z.string().min(1, 'Password is required'),
+  email: z.string().min(1, 'emailRequired').max(255, 'emailTooLong').email('emailInvalid'),
+  password: z.string().min(1, 'passwordRequired'),
 });
 
 export const registerSchema = z.object({

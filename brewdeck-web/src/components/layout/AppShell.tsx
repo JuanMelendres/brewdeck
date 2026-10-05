@@ -23,6 +23,7 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useState, type ReactNode } from 'react';
 import { EmailVerificationBanner } from '@/components/auth/EmailVerificationBanner';
 import { BrandMark } from '@/components/ui/BrandMark';
@@ -34,13 +35,13 @@ const DRAWER_WIDTH = 248;
 const MOBILE_NAV_ID = 'mobile-navigation';
 
 const NAV = [
-  { label: 'Dashboard', href: '/dashboard', icon: <SpaceDashboardOutlinedIcon fontSize="small" /> },
-  { label: 'Coffees', href: '/coffees', icon: <CoffeeOutlinedIcon fontSize="small" /> },
-  { label: 'Recipes', href: '/recipes', icon: <MenuBookOutlinedIcon fontSize="small" /> },
-  { label: 'Favorites', href: '/recipes/favorites', icon: <FavoriteBorderIcon fontSize="small" /> },
-  { label: 'Brew Methods', href: '/brew-methods', icon: <CoffeeMakerOutlinedIcon fontSize="small" /> },
-  { label: 'Brew Sessions', href: '/brew-sessions', icon: <TimerOutlinedIcon fontSize="small" /> },
-];
+  { labelKey: 'dashboard', href: '/dashboard', icon: <SpaceDashboardOutlinedIcon fontSize="small" /> },
+  { labelKey: 'coffees', href: '/coffees', icon: <CoffeeOutlinedIcon fontSize="small" /> },
+  { labelKey: 'recipes', href: '/recipes', icon: <MenuBookOutlinedIcon fontSize="small" /> },
+  { labelKey: 'favorites', href: '/recipes/favorites', icon: <FavoriteBorderIcon fontSize="small" /> },
+  { labelKey: 'brewMethods', href: '/brew-methods', icon: <CoffeeMakerOutlinedIcon fontSize="small" /> },
+  { labelKey: 'brewSessions', href: '/brew-sessions', icon: <TimerOutlinedIcon fontSize="small" /> },
+] as const;
 
 const drawerPaperSx = {
   width: DRAWER_WIDTH,
@@ -83,6 +84,7 @@ function Logo() {
 
 /** Logo, links, and the user card: the same content in the desktop sidebar and the mobile drawer. */
 function NavContent({ onNavigate }: { onNavigate?: () => void }) {
+  const t = useTranslations('nav');
   const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -100,7 +102,7 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
         <Logo />
       </Box>
 
-      <nav aria-label="Main">
+      <nav aria-label={t('main')}>
         <List disablePadding sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
           {NAV.map((item) => {
             const selected = item.href === current;
@@ -115,7 +117,7 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
               >
                 <ListItemIcon>{item.icon}</ListItemIcon>
                 <ListItemText
-                  primary={item.label}
+                  primary={t(item.labelKey)}
                   slotProps={{ primary: { sx: { fontWeight: selected ? 600 : 500 } } }}
                 />
               </ListItemButton>
@@ -151,12 +153,12 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
               {name}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              Account
+              {t('account')}
             </Typography>
           </Box>
         </ButtonBase>
-        <Tooltip title="Log out">
-          <IconButton aria-label="Log out" onClick={onLogout} size="small">
+        <Tooltip title={t('logOut')}>
+          <IconButton aria-label={t('logOut')} onClick={onLogout} size="small">
             <LogoutIcon fontSize="small" />
           </IconButton>
         </Tooltip>
@@ -166,6 +168,7 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const t = useTranslations('nav');
   const [mobileOpen, setMobileOpen] = useState(false);
   const closeMobile = () => setMobileOpen(false);
 
@@ -210,7 +213,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Toolbar sx={{ gap: 1 }}>
             <IconButton
               edge="start"
-              aria-label="Open navigation"
+              aria-label={t('openNavigation')}
               aria-controls={MOBILE_NAV_ID}
               aria-expanded={mobileOpen}
               onClick={() => setMobileOpen(true)}
