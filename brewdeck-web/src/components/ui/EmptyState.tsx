@@ -4,6 +4,7 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import type { ReactNode } from 'react';
+import { radius } from '@/lib/theme/tokens';
 
 /**
  * Message for a list or widget with nothing to show. Pass `icon` and `action` for a full-page empty
@@ -44,7 +45,7 @@ export function EmptyState({
           sx={{
             width: 64,
             height: 64,
-            borderRadius: '50%',
+            borderRadius: radius.round,
             bgcolor: 'background.tint',
             color: 'secondary.main',
             display: 'flex',

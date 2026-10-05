@@ -20,6 +20,10 @@ The authoritative, detailed rules live in [`../../CLAUDE.md`](../../CLAUDE.md) a
 - Forms via React Hook Form + Zod; mirror backend limits; map server `validationErrors` back onto fields.
 - Absolute imports via the `@/` alias; group React → third-party → internal.
 - Always handle loading, error, and empty states.
+- Styling goes through the MUI theme ([ADR-014](../decisions/ADR-014-ui-design-system-mui-theme-tokens.md), [design foundation TDD](../architecture/design-foundation-tdd.md)):
+  - Colors come from palette keys (`'primary.main'`, `'background.tint'`) or `theme.vars.palette.*`, never hex/`rgb()` literals. `src/lib/theme/noColorLiterals.test.ts` enforces this for `src/components` and `src/app`.
+  - Radii, shadows, and motion come from `src/lib/theme/tokens.ts` (`radius.card`, `elevation.cardHover`, `motion.fast`). A bare number in `sx.borderRadius` is multiplied by the 12 px base radius.
+  - Every palette change keeps WCAG AA contrast in both modes (`tokens.test.ts`).
 
 ## Cross-cutting
 

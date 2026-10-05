@@ -27,6 +27,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useState, type ReactNode } from 'react';
 import { EmailVerificationBanner } from '@/components/auth/EmailVerificationBanner';
 import { useAuth } from '@/lib/auth/AuthProvider';
+import { radius } from '@/lib/theme/tokens';
 
 const DRAWER_WIDTH = 248;
 const MOBILE_NAV_ID = 'mobile-navigation';
@@ -64,7 +65,7 @@ function Logo() {
         sx={{
           width: 36,
           height: 36,
-          borderRadius: '12px',
+          borderRadius: radius.control,
           bgcolor: 'primary.main',
           color: 'primary.contrastText',
           display: 'flex',
@@ -132,7 +133,7 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
           alignItems: 'center',
           gap: 1,
           p: 1,
-          borderRadius: '14px',
+          borderRadius: radius.card,
           bgcolor: 'background.paper',
         }}
       >
@@ -141,7 +142,7 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
           href="/account"
           aria-current={pathname === '/account' ? 'page' : undefined}
           onClick={onNavigate}
-          sx={{ flexGrow: 1, minWidth: 0, justifyContent: 'flex-start', gap: 1.25, p: 0.5, borderRadius: '10px' }}
+          sx={{ flexGrow: 1, minWidth: 0, justifyContent: 'flex-start', gap: 1.25, p: 0.5, borderRadius: radius.inner }}
         >
           <Avatar sx={{ width: 34, height: 34, bgcolor: 'background.tint', color: 'text.primary', fontWeight: 600 }}>
             {name.charAt(0).toUpperCase()}

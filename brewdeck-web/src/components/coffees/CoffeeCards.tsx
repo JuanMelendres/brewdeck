@@ -13,6 +13,7 @@ import Typography from '@mui/material/Typography';
 import NextLink from 'next/link';
 import { CardGrid, cardHoverSx } from '@/components/ui/CardGrid';
 import type { Coffee } from '@/lib/api/types';
+import { radius } from '@/lib/theme/tokens';
 
 const SCORES: Array<{ key: keyof Coffee; label: string }> = [
   { key: 'acidityScore', label: 'Acidity' },
@@ -119,8 +120,8 @@ function CoffeeCard({
                     {score.value}/5
                   </Typography>
                 </Box>
-                <Box aria-hidden sx={{ height: 6, borderRadius: 999, bgcolor: 'background.tint', overflow: 'hidden' }}>
-                  <Box sx={{ height: '100%', width: `${(score.value / 5) * 100}%`, bgcolor: 'secondary.main', borderRadius: 999 }} />
+                <Box aria-hidden sx={{ height: 6, borderRadius: radius.pill, bgcolor: 'background.tint', overflow: 'hidden' }}>
+                  <Box sx={{ height: '100%', width: `${(score.value / 5) * 100}%`, bgcolor: 'secondary.main', borderRadius: radius.pill }} />
                 </Box>
               </Box>
             ))}

@@ -15,6 +15,7 @@ import { useToggleFavorite } from '@/hooks/useRecipeMutations';
 import { CardGrid, cardHoverSx } from '@/components/ui/CardGrid';
 import type { Recipe } from '@/lib/api/types';
 import { useNotify } from '@/lib/notifications/NotificationProvider';
+import { radius } from '@/lib/theme/tokens';
 
 /** The brewing parameters a card shows, in order; empty ones are left out. */
 function parameters(recipe: Recipe): Array<{ label: string; value: string }> {
@@ -116,7 +117,7 @@ function RecipeCard({
             }}
           >
             {params.map((param) => (
-              <Box key={param.label} sx={{ px: 1.25, py: 1, borderRadius: '10px', bgcolor: 'background.tint' }}>
+              <Box key={param.label} sx={{ px: 1.25, py: 1, borderRadius: radius.inner, bgcolor: 'background.tint' }}>
                 <Typography variant="caption" color="text.secondary" component="p">
                   {param.label}
                 </Typography>
