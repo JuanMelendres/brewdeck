@@ -105,7 +105,7 @@ Status: Planned (added 2026-09-30)
 
 - Spike + POC: design foundation and visual direction — [docs/product/spikes/ui-ux-refresh-spike.md](../docs/product/spikes/ui-ux-refresh-spike.md). Direction chosen 2026-09-30: A (warm café) light + C palette for dark mode.
 - Workstreams after the POC (each gets an FDD, the foundation gets a TDD):
-  1. Design foundation — theme tokens, typography (`next/font`), shape, shadows, component overrides, dark mode — POC Done (PR #173: theme, fonts, AppShell, Dashboard, Login, Account appearance setting); TDD and ADR-014 still TODO
+  1. Design foundation — theme tokens, typography (`next/font`), shape, shadows, component overrides, dark mode — POC Done (PR #173: theme, fonts, AppShell, Dashboard, Login, Account appearance setting); TDD `docs/architecture/design-foundation-tdd.md` + ADR-014 written (PR on `docs/web-design-foundation-tdd`); next: token-consolidation refactor (`tokens.ts`, contrast test, themed charts) per TDD §23
   2. Navigation — icons, active route, logo, user card (POC, PR #173) + responsive mobile drawer with top bar — Done (FDD `docs/product/fdd/navigation-fdd.md`, PR on `feat/web-responsive-navigation`)
   3. Dashboard — greeting, stat cards with icons, method-usage bars, Top Rated as a list (POC, PR #173) + Most Brewed and Most Used on the shared `RankedList` — Done (PR on `feat/web-dashboard-rankings`)
   4. Lists — Coffees as a card grid + `EmptyState` with icon and CTA (PR #182); Recipes and Favorites as cards with a favorite toggle and shared `CardGrid` (PR #183); Brew Sessions and Brew Methods as airier tables with `TableSkeleton`, dates pinned to `UI_LOCALE` (PR #184) — Done
