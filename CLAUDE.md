@@ -106,6 +106,7 @@ Next.js (App Router) + React 19 + TypeScript, MUI, **TanStack Query** (server st
 - **Forms:** React Hook Form + `zodResolver`; Zod schema in `src/lib/validation/`. Map server-400 `validationErrors` back onto fields.
 - **Performance:** memoize heavy work with `useMemo`/`useCallback`; avoid needless inline objects/handlers in hot render paths.
 - **UX:** always handle loading, error, and empty states (reuse `Spinner`, `ErrorState`, `EmptyState`).
+- **i18n:** no hardcoded UI text; use `useTranslations` with keys in `messages/{en,es}.json` (rules in [coding standards](docs/development/coding-standards.md), ADR-015).
 
 ## Validation & Error Handling
 

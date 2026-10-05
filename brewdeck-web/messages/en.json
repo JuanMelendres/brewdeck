@@ -462,5 +462,8 @@
       "selectRecipe": "Select a recipe",
       "logged": "Brew session logged"
     }
+  },
+  "meta": {
+    "description": "Coffee brewing companion"
   }
 }
