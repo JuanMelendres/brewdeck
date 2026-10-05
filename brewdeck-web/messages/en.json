@@ -1,0 +1,30 @@
+{
+  "nav": {
+    "main": "Main",
+    "dashboard": "Dashboard",
+    "coffees": "Coffees",
+    "recipes": "Recipes",
+    "favorites": "Favorites",
+    "brewMethods": "Brew Methods",
+    "brewSessions": "Brew Sessions",
+    "account": "Account",
+    "logOut": "Log out",
+    "openNavigation": "Open navigation"
+  },
+  "login": {
+    "title": "Log in",
+    "subtitle": "Welcome back. Your brews are waiting.",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot password?",
+    "submit": "Log in",
+    "noAccount": "No account? <link>Register</link>",
+    "failed": "Could not log in. Check your email and password."
+  },
+  "validation": {
+    "emailRequired": "Email is required",
+    "emailTooLong": "Email must not exceed 255 characters",
+    "emailInvalid": "Enter a valid email",
+    "passwordRequired": "Password is required"
+  }
+}

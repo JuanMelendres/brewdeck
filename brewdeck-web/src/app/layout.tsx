@@ -1,5 +1,7 @@
 import InitColorSchemeScript from '@mui/material/InitColorSchemeScript';
 import type { Metadata } from 'next';
+import { NextIntlClientProvider } from 'next-intl';
+import { getLocale } from 'next-intl/server';
 import { DM_Sans, Fraunces } from 'next/font/google';
 import type { ReactNode } from 'react';
 import { THEME_MODE_STORAGE_KEY } from '@/lib/theme/theme';
@@ -13,17 +15,20 @@ export const metadata: Metadata = {
   description: 'Coffee brewing companion',
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const locale = await getLocale();
   return (
     // The color-scheme script sets a class on <html> before hydration, so React must not flag it.
-    <html lang="en" className={`${bodyFont.variable} ${displayFont.variable}`} suppressHydrationWarning>
+    <html lang={locale} className={`${bodyFont.variable} ${displayFont.variable}`} suppressHydrationWarning>
       <body>
         <InitColorSchemeScript
           attribute="class"
           defaultMode="light"
           modeStorageKey={THEME_MODE_STORAGE_KEY}
         />
-        <Providers>{children}</Providers>
+        <NextIntlClientProvider>
+          <Providers>{children}</Providers>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

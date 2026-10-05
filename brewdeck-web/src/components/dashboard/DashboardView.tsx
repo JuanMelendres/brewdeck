@@ -9,10 +9,10 @@ import TimerOutlinedIcon from '@mui/icons-material/TimerOutlined';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
+import { useFormatter } from 'next-intl';
 import type { ReactNode } from 'react';
 import { useDashboardSummary } from '@/hooks/useDashboardSummary';
 import { useAuth } from '@/lib/auth/AuthProvider';
-import { UI_LOCALE } from '@/lib/format/dates';
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { StatCard } from './StatCard';
@@ -30,6 +30,7 @@ function greeting(hour: number): string {
 export function DashboardView() {
   const { data, isLoading, isError, refetch } = useDashboardSummary();
   const { user } = useAuth();
+  const format = useFormatter();
 
   if (isLoading) {
     return <Spinner />;
@@ -58,7 +59,7 @@ export function DashboardView() {
     <>
       <Box component="header" sx={{ mb: 3.5 }}>
         <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
-          {now.toLocaleDateString(UI_LOCALE, { weekday: 'long', month: 'long', day: 'numeric' })}
+          {format.dateTime(now, { weekday: 'long', month: 'long', day: 'numeric' })}
         </Typography>
         <Typography variant="h4" component="h1">
           {name ? `${greeting(now.getHours())}, ${name}` : 'Dashboard'}
