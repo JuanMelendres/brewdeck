@@ -14,7 +14,8 @@
     "lint:fix": "eslint --fix",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "icons:generate": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/generate-brand-icons.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
