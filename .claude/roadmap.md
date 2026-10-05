@@ -114,6 +114,7 @@ Status: Planned (added 2026-09-30)
   7. Theme preference — backend: V22 `users.theme_preference` (null = never asked), `themePreference` in `/me`, `PUT /api/auth/me/theme`; frontend: toggle in Account settings + first-login light/dark dialog with live preview — Done (FDD `docs/product/fdd/theme-preference-fdd.md`; backend PR #175, frontend PR on `feat/web-theme-preference`)
   8. Language (i18n) — Spanish + English: translation files (evaluate `next-intl`), locale-aware dates/numbers, translated backend messages and emails, per-user language preference + selector in Account (first-login dialog can ask language and theme together). Needs its own spike. Until then: English-only, dates fixed to `en-US` — TODO
   9. Forms — select-label overlap fix + coffee dialog sections (PR #178) + Recipe and Brew Session dialog sections with a shared `FormSection` — Done (FDD `docs/product/fdd/forms-fdd.md`)
+  10. Brand mark — spike `docs/product/spikes/brand-mark-spike.md` (PR #189): concept B (bean on a deck) chosen 2026-10-05, Fraunces wordmark in two weights, installable on a phone home screen (manifest + icons). Next: delivery PR (`BrandMark`, `Wordmark`, favicon/apple-icon/manifest)
 
 ## Status Summary
 
