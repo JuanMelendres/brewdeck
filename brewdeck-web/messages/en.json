@@ -37,6 +37,23 @@
       "primaryNotesTooLong": "Primary notes must not exceed 255 characters",
       "secondaryNotesTooLong": "Secondary notes must not exceed 500 characters",
       "descriptionTooLong": "Description must not exceed 1000 characters"
+    },
+    "recipe": {
+      "coffeeRequired": "Coffee is required",
+      "methodRequired": "Brew method is required",
+      "nameRequired": "Name is required",
+      "nameTooLong": "Name must not exceed 120 characters",
+      "coffeeGramsPositive": "Coffee grams must be greater than zero",
+      "coffeeGramsTooHigh": "Coffee grams must not exceed 9999.99",
+      "waterGramsPositive": "Water grams must be greater than zero",
+      "waterGramsTooHigh": "Water grams must not exceed 9999.99",
+      "ratioTooLong": "Ratio must not exceed 20 characters",
+      "grindSettingTooLong": "Grind setting must not exceed 120 characters",
+      "waterTempTooLow": "Water temperature must be at least 70 degrees Celsius",
+      "waterTempTooHigh": "Water temperature must not exceed 100 degrees Celsius",
+      "brewTimeTooLong": "Brew time must not exceed 20 characters",
+      "stepsTooLong": "Steps must not exceed 1000 characters",
+      "expectedTasteTooLong": "Expected taste must not exceed 500 characters"
     }
   },
   "auth": {
@@ -131,7 +148,14 @@
     "editItem": "Edit {name}",
     "deleteItem": "Delete {name}",
     "outOfFive": "{value}/5",
-    "description": "Description"
+    "description": "Description",
+    "favorite": "Favorite",
+    "favoriteItem": "Favorite {name}",
+    "loadingEllipsis": "Loading…",
+    "grams": "{value} g",
+    "celsius": "{value}°C",
+    "close": "Close",
+    "copy": "Copy"
   },
   "theme": {
     "group": "Theme",
@@ -236,6 +260,131 @@
     "radar": {
       "title": "Tasting profile",
       "empty": "Add tasting scores to see the flavor profile."
+    }
+  },
+  "recipes": {
+    "fields": {
+      "name": "Name",
+      "coffeeId": "Coffee",
+      "methodId": "Brew Method",
+      "coffeeGrams": "Coffee Grams",
+      "waterGrams": "Water Grams",
+      "ratio": "Ratio",
+      "grindSetting": "Grind Setting",
+      "waterTemp": "Water Temp",
+      "brewTime": "Brew Time",
+      "steps": "Steps",
+      "expectedTaste": "Expected Taste",
+      "favorite": "Favorite"
+    },
+    "form": {
+      "addTitle": "Add recipe",
+      "editTitle": "Edit recipe",
+      "sectionRecipe": "Recipe",
+      "sectionBrewing": "Brewing",
+      "sectionNotes": "Notes",
+      "selectCoffee": "Select a coffee",
+      "selectMethod": "Select a brew method",
+      "suggest": "Suggest with AI",
+      "suggestFailed": "AI suggestions are unavailable right now. Please try again later.",
+      "added": "Recipe added",
+      "updated": "Recipe updated"
+    },
+    "list": {
+      "title": "Recipes",
+      "add": "Add Recipe",
+      "loadFailed": "Could not load recipes.",
+      "noMatches": "No recipes match these filters.",
+      "empty": "No recipes yet. Save how you brew a coffee to repeat your best cups.",
+      "addFirst": "Add your first recipe",
+      "favoritesOnly": "Favorites only"
+    },
+    "favorites": {
+      "title": "Favorite Recipes",
+      "loadFailed": "Could not load favorite recipes.",
+      "empty": "No favorite recipes yet. Tap the heart on a recipe to keep it here."
+    },
+    "card": {
+      "dose": "Dose",
+      "water": "Water",
+      "ratio": "Ratio",
+      "temp": "Temp",
+      "grind": "Grind",
+      "time": "Time",
+      "favoriteAdded": "Added \"{name}\" to favorites",
+      "favoriteRemoved": "Removed \"{name}\" from favorites",
+      "favoriteFailed": "Could not update the favorite. Try again."
+    },
+    "delete": {
+      "title": "Delete recipe",
+      "confirm": "Delete recipe “{name}”? This cannot be undone.",
+      "deleted": "Recipe \"{name}\" deleted"
+    },
+    "detail": {
+      "loadFailed": "Could not load recipe.",
+      "back": "← Back to recipes",
+      "coffee": "Coffee",
+      "method": "Method",
+      "coffeeGrams": "Coffee (g)",
+      "waterGrams": "Water (g)",
+      "ratio": "Ratio",
+      "grind": "Grind",
+      "waterTemp": "Water Temp",
+      "brewTime": "Brew Time",
+      "improve": "Improve with AI",
+      "improveDisabled": "Log a rated brew to enable AI improvements",
+      "improveNeedsHistory": "Log a rated brew for this recipe first, then try again.",
+      "improveFailed": "AI improvements are unavailable right now. Please try again later.",
+      "exportPdf": "Export PDF",
+      "pdfFailed": "Could not generate the PDF.",
+      "share": "Share",
+      "steps": "Steps",
+      "expectedTaste": "Expected taste",
+      "statsTitle": "Brew statistics",
+      "statsFailed": "Could not load recipe statistics.",
+      "totalSessions": "Total Sessions",
+      "averageRating": "Average Rating",
+      "lastBrewed": "Last Brewed",
+      "historyTitle": "Brew history",
+      "historyFailed": "Could not load brew history.",
+      "historyEmpty": "No brew sessions yet for this recipe."
+    },
+    "share": {
+      "title": "Share recipe",
+      "linkInfo": "Anyone with this link can view a read-only copy of this recipe.",
+      "publicLink": "Public link",
+      "copyFailed": "Couldn't copy — copy it manually.",
+      "intro": "Create a public link to let anyone view this recipe. You can stop sharing at any time.",
+      "stop": "Stop sharing",
+      "create": "Create link"
+    },
+    "public": {
+      "unavailable": "This recipe isn't available.",
+      "eyebrow": "BrewDeck · Shared recipe"
+    },
+    "trend": {
+      "title": "Rating trend",
+      "loadFailed": "Could not load rating trend.",
+      "notEnough": "Not enough rated sessions to show a trend."
+    },
+    "grind": {
+      "empty": "Brew and rate a session to get a grind recommendation.",
+      "recommended": "Recommended grind: <strong>{grind}</strong> — from your best-rated session ({rating}/10)."
+    },
+    "pdf": {
+      "subtitle": "Recipe",
+      "favorite": "Favorite",
+      "coffee": "Coffee",
+      "method": "Method",
+      "coffeeGrams": "Coffee (g)",
+      "waterGrams": "Water (g)",
+      "ratio": "Ratio",
+      "grind": "Grind",
+      "waterTemp": "Water Temp",
+      "brewTime": "Brew Time",
+      "steps": "Steps",
+      "expectedTaste": "Expected taste",
+      "generated": "Generated {date}"
     }
   }
 }

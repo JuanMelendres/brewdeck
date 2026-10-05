@@ -37,6 +37,23 @@
       "primaryNotesTooLong": "Las notas principales no deben pasar de 255 caracteres",
       "secondaryNotesTooLong": "Las notas secundarias no deben pasar de 500 caracteres",
       "descriptionTooLong": "La descripción no debe pasar de 1000 caracteres"
+    },
+    "recipe": {
+      "coffeeRequired": "El café es obligatorio",
+      "methodRequired": "El método es obligatorio",
+      "nameRequired": "El nombre es obligatorio",
+      "nameTooLong": "El nombre no debe pasar de 120 caracteres",
+      "coffeeGramsPositive": "Los gramos de café deben ser mayores que cero",
+      "coffeeGramsTooHigh": "Los gramos de café no deben pasar de 9999.99",
+      "waterGramsPositive": "Los gramos de agua deben ser mayores que cero",
+      "waterGramsTooHigh": "Los gramos de agua no deben pasar de 9999.99",
+      "ratioTooLong": "La proporción no debe pasar de 20 caracteres",
+      "grindSettingTooLong": "La molienda no debe pasar de 120 caracteres",
+      "waterTempTooLow": "La temperatura del agua debe ser de al menos 70 grados Celsius",
+      "waterTempTooHigh": "La temperatura del agua no debe pasar de 100 grados Celsius",
+      "brewTimeTooLong": "El tiempo de preparación no debe pasar de 20 caracteres",
+      "stepsTooLong": "Los pasos no deben pasar de 1000 caracteres",
+      "expectedTasteTooLong": "El sabor esperado no debe pasar de 500 caracteres"
     }
   },
   "auth": {
@@ -131,7 +148,14 @@
     "editItem": "Editar {name}",
     "deleteItem": "Eliminar {name}",
     "outOfFive": "{value}/5",
-    "description": "Descripción"
+    "description": "Descripción",
+    "favorite": "Favorita",
+    "favoriteItem": "Marcar {name} como favorita",
+    "loadingEllipsis": "Cargando…",
+    "grams": "{value} g",
+    "celsius": "{value} °C",
+    "close": "Cerrar",
+    "copy": "Copiar"
   },
   "theme": {
     "group": "Tema",
@@ -236,6 +260,131 @@
     "radar": {
       "title": "Perfil de cata",
       "empty": "Agrega puntajes de cata para ver el perfil de sabor."
+    }
+  },
+  "recipes": {
+    "fields": {
+      "name": "Nombre",
+      "coffeeId": "Café",
+      "methodId": "Método",
+      "coffeeGrams": "Gramos de café",
+      "waterGrams": "Gramos de agua",
+      "ratio": "Proporción",
+      "grindSetting": "Molienda",
+      "waterTemp": "Temperatura del agua",
+      "brewTime": "Tiempo de preparación",
+      "steps": "Pasos",
+      "expectedTaste": "Sabor esperado",
+      "favorite": "Favorita"
+    },
+    "form": {
+      "addTitle": "Agregar receta",
+      "editTitle": "Editar receta",
+      "sectionRecipe": "Receta",
+      "sectionBrewing": "Preparación",
+      "sectionNotes": "Notas",
+      "selectCoffee": "Elige un café",
+      "selectMethod": "Elige un método",
+      "suggest": "Sugerir con IA",
+      "suggestFailed": "Las sugerencias con IA no están disponibles ahora. Inténtalo más tarde.",
+      "added": "Receta agregada",
+      "updated": "Receta actualizada"
+    },
+    "list": {
+      "title": "Recetas",
+      "add": "Agregar receta",
+      "loadFailed": "No pudimos cargar las recetas.",
+      "noMatches": "Ninguna receta coincide con estos filtros.",
+      "empty": "Aún no hay recetas. Guarda cómo preparas un café para repetir tus mejores tazas.",
+      "addFirst": "Agrega tu primera receta",
+      "favoritesOnly": "Solo favoritas"
+    },
+    "favorites": {
+      "title": "Recetas favoritas",
+      "loadFailed": "No pudimos cargar las recetas favoritas.",
+      "empty": "Aún no hay recetas favoritas. Toca el corazón de una receta para guardarla aquí."
+    },
+    "card": {
+      "dose": "Dosis",
+      "water": "Agua",
+      "ratio": "Proporción",
+      "temp": "Temp.",
+      "grind": "Molienda",
+      "time": "Tiempo",
+      "favoriteAdded": "Se agregó \"{name}\" a favoritas",
+      "favoriteRemoved": "Se quitó \"{name}\" de favoritas",
+      "favoriteFailed": "No pudimos actualizar la favorita. Inténtalo de nuevo."
+    },
+    "delete": {
+      "title": "Eliminar receta",
+      "confirm": "¿Eliminar la receta “{name}”? Esta acción no se puede deshacer.",
+      "deleted": "Receta \"{name}\" eliminada"
+    },
+    "detail": {
+      "loadFailed": "No pudimos cargar la receta.",
+      "back": "← Volver a recetas",
+      "coffee": "Café",
+      "method": "Método",
+      "coffeeGrams": "Café (g)",
+      "waterGrams": "Agua (g)",
+      "ratio": "Proporción",
+      "grind": "Molienda",
+      "waterTemp": "Temperatura del agua",
+      "brewTime": "Tiempo de preparación",
+      "improve": "Mejorar con IA",
+      "improveDisabled": "Registra una preparación calificada para activar las mejoras con IA",
+      "improveNeedsHistory": "Primero registra una preparación calificada de esta receta y vuelve a intentarlo.",
+      "improveFailed": "Las mejoras con IA no están disponibles ahora. Inténtalo más tarde.",
+      "exportPdf": "Exportar PDF",
+      "pdfFailed": "No pudimos generar el PDF.",
+      "share": "Compartir",
+      "steps": "Pasos",
+      "expectedTaste": "Sabor esperado",
+      "statsTitle": "Estadísticas",
+      "statsFailed": "No pudimos cargar las estadísticas.",
+      "totalSessions": "Preparaciones",
+      "averageRating": "Calificación promedio",
+      "lastBrewed": "Última preparación",
+      "historyTitle": "Historial",
+      "historyFailed": "No pudimos cargar el historial.",
+      "historyEmpty": "Aún no hay preparaciones de esta receta."
+    },
+    "share": {
+      "title": "Compartir receta",
+      "linkInfo": "Cualquiera con este enlace puede ver una copia de solo lectura de esta receta.",
+      "publicLink": "Enlace público",
+      "copyFailed": "No pudimos copiarlo; cópialo a mano.",
+      "intro": "Crea un enlace público para que cualquiera vea esta receta. Puedes dejar de compartirla cuando quieras.",
+      "stop": "Dejar de compartir",
+      "create": "Crear enlace"
+    },
+    "public": {
+      "unavailable": "Esta receta no está disponible.",
+      "eyebrow": "BrewDeck · Receta compartida"
+    },
+    "trend": {
+      "title": "Tendencia de calificación",
+      "loadFailed": "No pudimos cargar la tendencia de calificación.",
+      "notEnough": "No hay suficientes preparaciones calificadas para mostrar una tendencia."
+    },
+    "grind": {
+      "empty": "Prepara y califica una sesión para recibir una recomendación de molienda.",
+      "recommended": "Molienda recomendada: <strong>{grind}</strong> — de tu preparación mejor calificada ({rating}/10)."
+    },
+    "pdf": {
+      "subtitle": "Receta",
+      "favorite": "Favorita",
+      "coffee": "Café",
+      "method": "Método",
+      "coffeeGrams": "Café (g)",
+      "waterGrams": "Agua (g)",
+      "ratio": "Proporción",
+      "grind": "Molienda",
+      "waterTemp": "Temperatura del agua",
+      "brewTime": "Tiempo de preparación",
+      "steps": "Pasos",
+      "expectedTaste": "Sabor esperado",
+      "generated": "Generado el {date}"
     }
   }
 }
