@@ -1,5 +1,5 @@
 // Regenerates the app icons from the BrandMark geometry and the theme palette.
-// Run from brewdeck-web/: `node scripts/generate-brand-icons.mjs` (Node 24+, which loads the .ts imports).
+// Run from brewdeck-web/: `pnpm icons:generate` (Node 24+, which loads the .ts imports).
 // Outputs are committed; rerun only when the mark or the palette changes.
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
