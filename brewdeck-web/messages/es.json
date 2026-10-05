@@ -103,6 +103,61 @@
     "confirmNewPassword": "Confirma la nueva contraseña",
     "logIn": "Iniciar sesión",
     "logOut": "Cerrar sesión",
-    "dismiss": "Descartar"
+    "dismiss": "Descartar",
+    "continue": "Continuar",
+    "loading": "Cargando",
+    "retry": "Reintentar"
+  },
+  "theme": {
+    "group": "Tema",
+    "light": "Claro",
+    "dark": "Oscuro",
+    "onboarding": {
+      "title": "¿Claro u oscuro?",
+      "body": "Elige cómo se ve BrewDeck. Prueba ambos: la app cambia mientras eliges. Puedes cambiarlo cuando quieras en la configuración de tu cuenta.",
+      "saveFailed": "No pudimos guardar tu elección. Por ahora aplica en este dispositivo, y te volveremos a preguntar la próxima vez que inicies sesión."
+    },
+    "setting": {
+      "title": "Apariencia",
+      "body": "Elige cómo se ve BrewDeck. Tu elección se guarda en tu cuenta.",
+      "saveFailed": "No pudimos guardar tu tema. Por ahora solo aplica en este dispositivo."
+    }
+  },
+  "counts": {
+    "sessions": "<n>{count}</n> {count, plural, one {preparación} other {preparaciones}}",
+    "recipes": "<n>{count}</n> {count, plural, one {receta} other {recetas}}"
+  },
+  "dashboard": {
+    "title": "Inicio",
+    "goodMorning": "Buenos días, {name}",
+    "goodAfternoon": "Buenas tardes, {name}",
+    "goodEvening": "Buenas noches, {name}",
+    "loadFailed": "No pudimos cargar el resumen.",
+    "coffees": "Cafés",
+    "brewMethods": "Métodos",
+    "recipes": "Recetas",
+    "favoriteRecipes": "Recetas favoritas",
+    "brewSessions": "Preparaciones",
+    "averageRating": "Calificación promedio",
+    "topRated": {
+      "title": "Recetas mejor calificadas",
+      "loadFailed": "No pudimos cargar las recetas mejor calificadas.",
+      "empty": "Aún no hay recetas calificadas."
+    },
+    "mostUsed": {
+      "title": "Cafés más usados",
+      "loadFailed": "No pudimos cargar los cafés más usados.",
+      "empty": "Aún no hay cafés usados en recetas."
+    },
+    "mostBrewed": {
+      "title": "Recetas más preparadas",
+      "loadFailed": "No pudimos cargar las recetas más preparadas.",
+      "empty": "Aún no hay preparaciones."
+    },
+    "methodUsage": {
+      "title": "Uso de métodos",
+      "loadFailed": "No pudimos cargar el uso de métodos.",
+      "empty": "Aún no hay métodos."
+    }
   }
 }

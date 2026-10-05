@@ -5,6 +5,7 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Grid from '@mui/material/Grid';
 import Skeleton from '@mui/material/Skeleton';
+import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { elevation, motion } from '@/lib/theme/tokens';
 
@@ -47,8 +48,9 @@ export function CardGrid<T>({
 
 /** Placeholder cards shown while the first page of a card grid loads. */
 export function CardGridSkeleton({ count = 6 }: { count?: number }) {
+  const t = useTranslations('common');
   return (
-    <Box role="status" aria-label="Loading">
+    <Box role="status" aria-label={t('loading')}>
       <Grid container spacing={2.5}>
         {Array.from({ length: count }, (_, index) => (
           <Grid key={index} size={itemSize}>

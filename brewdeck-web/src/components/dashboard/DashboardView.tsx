@@ -9,7 +9,7 @@ import TimerOutlinedIcon from '@mui/icons-material/TimerOutlined';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
-import { useFormatter } from 'next-intl';
+import { useFormatter, useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { useDashboardSummary } from '@/hooks/useDashboardSummary';
 import { useAuth } from '@/lib/auth/AuthProvider';
@@ -21,35 +21,36 @@ import { MostBrewedRecipes } from './MostBrewedRecipes';
 import { MethodUsage } from './MethodUsage';
 import { MostUsedCoffees } from './MostUsedCoffees';
 
-function greeting(hour: number): string {
-  if (hour < 12) return 'Good morning';
-  if (hour < 19) return 'Good afternoon';
-  return 'Good evening';
+function greetingKey(hour: number) {
+  if (hour < 12) return 'goodMorning';
+  if (hour < 19) return 'goodAfternoon';
+  return 'goodEvening';
 }
 
 export function DashboardView() {
   const { data, isLoading, isError, refetch } = useDashboardSummary();
   const { user } = useAuth();
   const format = useFormatter();
+  const t = useTranslations('dashboard');
 
   if (isLoading) {
     return <Spinner />;
   }
 
   if (isError || !data) {
-    return <ErrorState message="Could not load dashboard summary." onRetry={() => refetch()} />;
+    return <ErrorState message={t('loadFailed')} onRetry={() => refetch()} />;
   }
 
   const now = new Date();
   const name = user?.displayName;
   const cards: Array<{ label: string; value: string | number; icon: ReactNode }> = [
-    { label: 'Coffees', value: data.totalCoffees, icon: <CoffeeOutlinedIcon fontSize="small" /> },
-    { label: 'Brew Methods', value: data.totalBrewMethods, icon: <CoffeeMakerOutlinedIcon fontSize="small" /> },
-    { label: 'Recipes', value: data.totalRecipes, icon: <MenuBookOutlinedIcon fontSize="small" /> },
-    { label: 'Favorite Recipes', value: data.favoriteRecipes, icon: <FavoriteBorderIcon fontSize="small" /> },
-    { label: 'Brew Sessions', value: data.totalBrewSessions, icon: <TimerOutlinedIcon fontSize="small" /> },
+    { label: t('coffees'), value: data.totalCoffees, icon: <CoffeeOutlinedIcon fontSize="small" /> },
+    { label: t('brewMethods'), value: data.totalBrewMethods, icon: <CoffeeMakerOutlinedIcon fontSize="small" /> },
+    { label: t('recipes'), value: data.totalRecipes, icon: <MenuBookOutlinedIcon fontSize="small" /> },
+    { label: t('favoriteRecipes'), value: data.favoriteRecipes, icon: <FavoriteBorderIcon fontSize="small" /> },
+    { label: t('brewSessions'), value: data.totalBrewSessions, icon: <TimerOutlinedIcon fontSize="small" /> },
     {
-      label: 'Average Rating',
+      label: t('averageRating'),
       value: data.averageSessionRating === null ? '—' : data.averageSessionRating.toFixed(1),
       icon: <StarRoundedIcon fontSize="small" />,
     },
@@ -62,7 +63,7 @@ export function DashboardView() {
           {format.dateTime(now, { weekday: 'long', month: 'long', day: 'numeric' })}
         </Typography>
         <Typography variant="h4" component="h1">
-          {name ? `${greeting(now.getHours())}, ${name}` : 'Dashboard'}
+          {name ? t(greetingKey(now.getHours()), { name }) : t('title')}
         </Typography>
       </Box>
       <Grid container spacing={2}>

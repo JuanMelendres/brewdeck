@@ -103,6 +103,61 @@
     "confirmNewPassword": "Confirm new password",
     "logIn": "Log in",
     "logOut": "Log out",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "continue": "Continue",
+    "loading": "Loading",
+    "retry": "Retry"
+  },
+  "theme": {
+    "group": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "onboarding": {
+      "title": "Light or dark?",
+      "body": "Pick how BrewDeck looks. Try both: the app changes as you choose. You can switch any time in Account settings.",
+      "saveFailed": "Could not save your choice. It applies on this device for now, and we will ask again next time you sign in."
+    },
+    "setting": {
+      "title": "Appearance",
+      "body": "Choose how BrewDeck looks. Your choice is saved to your account.",
+      "saveFailed": "Could not save your theme. It applies on this device only for now."
+    }
+  },
+  "counts": {
+    "sessions": "<n>{count}</n> {count, plural, one {session} other {sessions}}",
+    "recipes": "<n>{count}</n> {count, plural, one {recipe} other {recipes}}"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "goodMorning": "Good morning, {name}",
+    "goodAfternoon": "Good afternoon, {name}",
+    "goodEvening": "Good evening, {name}",
+    "loadFailed": "Could not load dashboard summary.",
+    "coffees": "Coffees",
+    "brewMethods": "Brew Methods",
+    "recipes": "Recipes",
+    "favoriteRecipes": "Favorite Recipes",
+    "brewSessions": "Brew Sessions",
+    "averageRating": "Average Rating",
+    "topRated": {
+      "title": "Top Rated Recipes",
+      "loadFailed": "Could not load top-rated recipes.",
+      "empty": "No rated recipes yet."
+    },
+    "mostUsed": {
+      "title": "Most Used Coffees",
+      "loadFailed": "Could not load most-used coffees.",
+      "empty": "No coffees used in recipes yet."
+    },
+    "mostBrewed": {
+      "title": "Most Brewed Recipes",
+      "loadFailed": "Could not load most-brewed recipes.",
+      "empty": "No brew sessions yet."
+    },
+    "methodUsage": {
+      "title": "Method Usage",
+      "loadFailed": "Could not load method usage.",
+      "empty": "No brew methods yet."
+    }
   }
 }

@@ -5,22 +5,25 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import type { ReactNode } from 'react';
+import { useTranslations } from 'next-intl';
 import { useMethodUsage } from '@/hooks/useMethodUsage';
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { radius } from '@/lib/theme/tokens';
+import { Count } from './RankedList';
 
 export function MethodUsage() {
+  const t = useTranslations('dashboard.methodUsage');
   const { data, isLoading, isError, refetch } = useMethodUsage();
 
   let body: ReactNode;
   if (isLoading && !data) {
     body = <Spinner />;
   } else if (isError || !data) {
-    body = <ErrorState message="Could not load method usage." onRetry={() => refetch()} />;
+    body = <ErrorState message={t('loadFailed')} onRetry={() => refetch()} />;
   } else if (data.length === 0) {
-    body = <EmptyState message="No brew methods yet." />;
+    body = <EmptyState message={t('empty')} />;
   } else {
     const max = Math.max(...data.map((method) => method.recipeCount), 1);
     body = (
@@ -32,7 +35,7 @@ export function MethodUsage() {
                 {method.methodName}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                <span>{method.recipeCount}</span> {method.recipeCount === 1 ? 'recipe' : 'recipes'}
+                <Count value={method.recipeCount} kind="recipes" />
               </Typography>
             </Box>
             <Box aria-hidden sx={{ height: 10, borderRadius: radius.pill, bgcolor: 'background.tint', overflow: 'hidden' }}>
@@ -55,7 +58,7 @@ export function MethodUsage() {
     <Card sx={{ height: '100%' }}>
       <CardContent sx={{ p: 3 }}>
         <Typography variant="h6" component="h2" gutterBottom>
-          Method Usage
+          {t('title')}
         </Typography>
         {body}
       </CardContent>

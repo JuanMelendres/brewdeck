@@ -2,6 +2,7 @@
 
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
+import { useTranslations } from 'next-intl';
 
 export function ErrorState({
   message,
@@ -10,13 +11,14 @@ export function ErrorState({
   message: string;
   onRetry?: () => void;
 }) {
+  const t = useTranslations('common');
   return (
     <Alert
       severity="error"
       action={
         onRetry ? (
           <Button color="inherit" size="small" onClick={onRetry}>
-            Retry
+            {t('retry')}
           </Button>
         ) : undefined
       }
