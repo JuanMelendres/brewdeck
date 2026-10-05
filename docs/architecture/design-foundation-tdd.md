@@ -124,8 +124,7 @@ export const elevation = {
 export const motion = { fast: '150ms', easing: 'ease' } as const;
 ```
 
-`AppShell`'s `14px` (user card) folds into `radius.card` or `radius.control`; decide visually in the
-implementation PR (OQ-002).
+`AppShell`'s `14px` (user card) becomes `radius.card` (OQ-002).
 
 ### 8.2 `src/lib/theme/theme.ts` (changed)
 
@@ -219,7 +218,7 @@ green unchanged (spike Q-005). A failing behavioral test means markup changed an
 
 ### Static check
 
-- VR-003 via a lint rule or a test that scans `src/components/**/*.tsx` for color literals (OQ-001).
+- VR-003: a test scans `src/components/**/*.tsx` (excluding tests) for hex and `rgb()` literals (OQ-001).
 
 ### Manual
 
@@ -257,9 +256,9 @@ Integration, contract, OpenAPI, and Postman tests: no API change.
 
 ## 21. Open Questions
 
-- OQ-001: Enforce VR-003 through an ESLint rule (`no-restricted-syntax` on hex in `sx`) or a test that scans files? Recommendation: test, since it is simpler and has no false positives in non-style strings like IDs.
-- OQ-002: `AppShell` user card radius `14px`: fold into `card` (18) or `control` (12)?
-- OQ-003 (from spike §19): is there a logo or brand mark? The app still uses a placeholder icon.
+- ~~OQ-001: ESLint rule or a file-scanning test for VR-003?~~ Answered 2026-10-05: a test (simpler, no false positives on non-style strings).
+- ~~OQ-002: `AppShell` user card radius `14px`?~~ Answered 2026-10-05: `radius.card` (18 px).
+- OQ-003 (from spike §19): there is no logo or brand mark yet (confirmed 2026-10-05); the app keeps its placeholder icon. Designing one is a separate follow-up, out of scope here.
 
 ## 22. Assumptions
 
@@ -274,6 +273,6 @@ Integration, contract, OpenAPI, and Postman tests: no API change.
 3. Build `theme.ts` from tokens; add the table-container radius override.
 4. Replace radius, shadow, and motion literals in the components listed in §6.
 5. Theme the two charts; check them in the browser in both modes.
-6. Add the VR-003 check (OQ-001).
+6. Add the VR-003 check as a test (OQ-001).
 7. Add the styling rules from §7 to `docs/development/coding-standards.md`.
 8. `pnpm test`, `pnpm type-check`, `pnpm lint`, `pnpm build`; manual check list (§17).
