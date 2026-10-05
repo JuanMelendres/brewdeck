@@ -19,7 +19,9 @@ function mockAll() {
   } as never);
 }
 
-beforeEach(() => createMutate.mockReset());
+beforeEach(() => {
+  createMutate.mockReset();
+});
 afterEach(() => vi.restoreAllMocks());
 
 describe('BrewSessionFormDialog', () => {

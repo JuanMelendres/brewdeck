@@ -11,7 +11,7 @@ import IconButton from '@mui/material/IconButton';
 import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
 import NextLink from 'next/link';
-import { CardGrid } from '@/components/ui/CardGrid';
+import { CardGrid, cardHoverSx } from '@/components/ui/CardGrid';
 import type { Coffee } from '@/lib/api/types';
 
 const SCORES: Array<{ key: keyof Coffee; label: string }> = [
@@ -61,7 +61,7 @@ function CoffeeCard({
   });
 
   return (
-    <Card component="article" sx={{ height: '100%', transition: 'box-shadow 150ms ease' }}>
+    <Card component="article" sx={{ height: '100%', ...cardHoverSx }}>
       <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, p: 2.5, '&:last-child': { pb: 2.5 } }}>
         <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
           <Box sx={{ flexGrow: 1, minWidth: 0 }}>

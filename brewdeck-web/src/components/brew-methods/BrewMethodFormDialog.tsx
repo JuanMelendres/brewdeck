@@ -17,6 +17,7 @@ import { ApiError } from '@/lib/api/client';
 import { brewMethodSchema, type BrewMethodFormValues } from '@/lib/validation/brewMethodSchema';
 import { useCreateBrewMethod, useUpdateBrewMethod } from '@/hooks/useBrewMethodMutations';
 import type { BrewMethod } from '@/lib/api/brewMethods';
+import { useNotify } from '@/lib/notifications/NotificationProvider';
 
 const DUPLICATE_NAME = 'You already have a brew method with this name.';
 
@@ -37,6 +38,7 @@ export function BrewMethodFormDialog({
   onClose: () => void;
 }) {
   const isEdit = method !== undefined;
+  const notify = useNotify();
   const create = useCreateBrewMethod();
   const update = useUpdateBrewMethod();
   const [serverError, setServerError] = useState<string | null>(null);
@@ -56,7 +58,10 @@ export function BrewMethodFormDialog({
   const onSubmit = (data: BrewMethodFormValues) => {
     setServerError(null);
     const options = {
-      onSuccess: () => onClose(),
+      onSuccess: () => {
+        notify(isEdit ? 'Brew method updated' : 'Brew method added');
+        onClose();
+      },
       onError: (error: unknown) => {
         if (error instanceof ApiError && error.validationErrors) {
           Object.entries(error.validationErrors).forEach(([field, message]) =>

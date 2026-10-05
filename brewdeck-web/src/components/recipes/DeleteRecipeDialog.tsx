@@ -11,6 +11,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import { useState } from 'react';
 import { useDeleteRecipe } from '@/hooks/useRecipeMutations';
 import type { Recipe } from '@/lib/api/types';
+import { useNotify } from '@/lib/notifications/NotificationProvider';
 
 export function DeleteRecipeDialog({
   open,
@@ -23,11 +24,15 @@ export function DeleteRecipeDialog({
 }) {
   const del = useDeleteRecipe();
   const [error, setError] = useState<string | null>(null);
+  const notify = useNotify();
 
   const onConfirm = () => {
     setError(null);
     del.mutate(recipe.id, {
-      onSuccess: () => onClose(),
+      onSuccess: () => {
+        notify(`Recipe "${recipe.name}" deleted`);
+        onClose();
+      },
       onError: (e: unknown) => setError(e instanceof Error ? e.message : 'Something went wrong'),
     });
   };
