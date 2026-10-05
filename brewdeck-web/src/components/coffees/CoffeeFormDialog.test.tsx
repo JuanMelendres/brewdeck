@@ -4,6 +4,7 @@ import { renderWithTheme } from '@/test/renderWithTheme';
 import { CoffeeFormDialog } from './CoffeeFormDialog';
 import * as mutations from '@/hooks/useCoffeeMutations';
 import { ApiError } from '@/lib/api/client';
+import { NotificationProvider } from '@/lib/notifications/NotificationProvider';
 
 const createMutate = vi.fn();
 const updateMutate = vi.fn();
@@ -78,5 +79,24 @@ describe('CoffeeFormDialog', () => {
     const tasting = screen.getByRole('region', { name: 'Tasting' });
     expect(tasting).toContainElement(screen.getByRole('slider', { name: /acidity/i }));
     expect(tasting).toContainElement(screen.getByLabelText('Description'));
+  });
+
+  it('confirms a created coffee with a notification', async () => {
+    mockHooks();
+    createMutate.mockImplementation((_body: unknown, options: { onSuccess: () => void }) => options.onSuccess());
+    const onClose = vi.fn();
+    renderWithTheme(
+      <NotificationProvider>
+        <CoffeeFormDialog open onClose={onClose} />
+      </NotificationProvider>,
+    );
+
+    fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: 'Mezcla' } });
+    fireEvent.click(screen.getByRole('button', { name: /create/i }));
+
+    // The test keeps the dialog open (onClose is a mock), so the modal hides the toast from
+    // role queries; find it by text instead.
+    expect(await screen.findByText('Coffee added')).toBeInTheDocument();
+    expect(onClose).toHaveBeenCalled();
   });
 });

@@ -11,6 +11,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import { useState } from 'react';
 import { useDeleteBrewMethod } from '@/hooks/useBrewMethodMutations';
 import type { BrewMethod } from '@/lib/api/brewMethods';
+import { useNotify } from '@/lib/notifications/NotificationProvider';
 
 export function DeleteBrewMethodDialog({
   open,
@@ -23,11 +24,15 @@ export function DeleteBrewMethodDialog({
 }) {
   const del = useDeleteBrewMethod();
   const [error, setError] = useState<string | null>(null);
+  const notify = useNotify();
 
   const onConfirm = () => {
     setError(null);
     del.mutate(method.id, {
-      onSuccess: () => onClose(),
+      onSuccess: () => {
+        notify(`Brew method "${method.name}" deleted`);
+        onClose();
+      },
       // A 409 carries the server's explanation, e.g. "Brew method is used by 2 recipes. ...".
       onError: (e: unknown) => setError(e instanceof Error ? e.message : 'Something went wrong'),
     });

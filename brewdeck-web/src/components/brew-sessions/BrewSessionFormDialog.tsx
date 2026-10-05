@@ -22,6 +22,7 @@ import {
 import { useCreateBrewSession } from '@/hooks/useBrewSessionMutations';
 import { useRecipeOptions } from '@/hooks/useResourceOptions';
 import { FormSection } from '@/components/ui/FormSection';
+import { useNotify } from '@/lib/notifications/NotificationProvider';
 
 type BrewSessionFormInput = z.input<typeof brewSessionSchema>;
 
@@ -66,6 +67,7 @@ export function BrewSessionFormDialog({
   onClose: () => void;
 }) {
   const create = useCreateBrewSession();
+  const notify = useNotify();
   const recipeOptions = useRecipeOptions();
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -85,7 +87,10 @@ export function BrewSessionFormDialog({
   const onSubmit = (data: BrewSessionFormValues) => {
     setServerError(null);
     create.mutate(data, {
-      onSuccess: () => onClose(),
+      onSuccess: () => {
+        notify('Brew session logged');
+        onClose();
+      },
       onError: (error: unknown) => {
         if (error instanceof ApiError && error.validationErrors) {
           Object.entries(error.validationErrors).forEach(([field, message]) =>

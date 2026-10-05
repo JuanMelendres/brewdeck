@@ -21,6 +21,7 @@ import { coffeeSchema, type CoffeeFormValues } from '@/lib/validation/coffeeSche
 import { useCreateCoffee, useUpdateCoffee } from '@/hooks/useCoffeeMutations';
 import { FormSection } from '@/components/ui/FormSection';
 import type { Coffee } from '@/lib/api/types';
+import { useNotify } from '@/lib/notifications/NotificationProvider';
 
 type TextFieldSpec = { name: keyof CoffeeFormValues; label: string; full?: boolean };
 
@@ -90,6 +91,7 @@ export function CoffeeFormDialog({
   onClose: () => void;
 }) {
   const isEdit = coffee !== undefined;
+  const notify = useNotify();
   const create = useCreateCoffee();
   const update = useUpdateCoffee();
   const [serverError, setServerError] = useState<string | null>(null);
@@ -110,7 +112,10 @@ export function CoffeeFormDialog({
   const onSubmit = (data: CoffeeFormValues) => {
     setServerError(null);
     const options = {
-      onSuccess: () => onClose(),
+      onSuccess: () => {
+        notify(isEdit ? 'Coffee updated' : 'Coffee added');
+        onClose();
+      },
       onError: (error: unknown) => {
         if (error instanceof ApiError && error.validationErrors) {
           Object.entries(error.validationErrors).forEach(([field, message]) =>

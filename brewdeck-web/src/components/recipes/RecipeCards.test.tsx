@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderWithTheme } from '@/test/renderWithTheme';
 import { RecipeCards } from './RecipeCards';
 import type { Recipe } from '@/lib/api/types';
+import { NotificationProvider } from '@/lib/notifications/NotificationProvider';
 
 const toggleMutate = vi.fn();
 vi.mock('@/hooks/useRecipeMutations', () => ({
@@ -16,7 +17,9 @@ const base: Recipe = {
   favorite: true, createdAt: '2026-01-01T00:00:00', updatedAt: null, shareToken: null,
 };
 
-beforeEach(() => toggleMutate.mockReset());
+beforeEach(() => {
+  toggleMutate.mockReset();
+});
 
 describe('RecipeCards', () => {
   it('renders a card with the coffee, method, and the parameters that are set', () => {
@@ -45,7 +48,7 @@ describe('RecipeCards', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Favorite Mezcla AeroPress' }));
 
-    expect(toggleMutate).toHaveBeenCalledWith({ id: 1, favorite: false });
+    expect(toggleMutate).toHaveBeenCalledWith({ id: 1, favorite: false }, expect.any(Object));
   });
 
   it('calls onEdit and onDelete with the card recipe', () => {
@@ -58,5 +61,31 @@ describe('RecipeCards', () => {
 
     expect(onEdit).toHaveBeenCalledWith(base);
     expect(onDelete).toHaveBeenCalledWith(base);
+  });
+
+  it('confirms a favorite change with a notification', () => {
+    toggleMutate.mockImplementation((_vars: unknown, options: { onSuccess: () => void }) => options.onSuccess());
+    renderWithTheme(
+      <NotificationProvider>
+        <RecipeCards recipes={[{ ...base, favorite: false }]} />
+      </NotificationProvider>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Favorite Mezcla AeroPress' }));
+
+    expect(screen.getByRole('status')).toHaveTextContent('Added "Mezcla AeroPress" to favorites');
+  });
+
+  it('reports a failed favorite change as an error', () => {
+    toggleMutate.mockImplementation((_vars: unknown, options: { onError: () => void }) => options.onError());
+    renderWithTheme(
+      <NotificationProvider>
+        <RecipeCards recipes={[base]} />
+      </NotificationProvider>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Favorite Mezcla AeroPress' }));
+
+    expect(screen.getByRole('alert')).toHaveTextContent(/could not update the favorite/i);
   });
 });

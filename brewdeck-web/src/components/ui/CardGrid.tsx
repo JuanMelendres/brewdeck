@@ -7,6 +7,19 @@ import Grid from '@mui/material/Grid';
 import Skeleton from '@mui/material/Skeleton';
 import type { ReactNode } from 'react';
 
+/** A small lift on hover for cards in a grid; skipped when the user prefers reduced motion. */
+export const cardHoverSx = {
+  transition: 'transform 150ms ease, box-shadow 150ms ease',
+  '&:hover, &:focus-within': {
+    transform: 'translateY(-2px)',
+    boxShadow: '0 2px 4px rgba(43, 29, 20, 0.08), 0 12px 28px rgba(43, 29, 20, 0.1)',
+  },
+  '@media (prefers-reduced-motion: reduce)': {
+    transition: 'none',
+    '&:hover, &:focus-within': { transform: 'none' },
+  },
+} as const;
+
 /** One column on phones, two from sm, three from lg. Page sizes of 12, 24, and 48 fill it evenly. */
 const itemSize = { xs: 12, sm: 6, lg: 4 };
 

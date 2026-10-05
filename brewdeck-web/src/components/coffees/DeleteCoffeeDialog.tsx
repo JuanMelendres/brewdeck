@@ -11,6 +11,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import { useState } from 'react';
 import { useDeleteCoffee } from '@/hooks/useCoffeeMutations';
 import type { Coffee } from '@/lib/api/types';
+import { useNotify } from '@/lib/notifications/NotificationProvider';
 
 export function DeleteCoffeeDialog({
   open,
@@ -23,11 +24,15 @@ export function DeleteCoffeeDialog({
 }) {
   const del = useDeleteCoffee();
   const [error, setError] = useState<string | null>(null);
+  const notify = useNotify();
 
   const onConfirm = () => {
     setError(null);
     del.mutate(coffee.id, {
-      onSuccess: () => onClose(),
+      onSuccess: () => {
+        notify(`Coffee "${coffee.name}" deleted`);
+        onClose();
+      },
       onError: (e: unknown) => setError(e instanceof Error ? e.message : 'Something went wrong'),
     });
   };

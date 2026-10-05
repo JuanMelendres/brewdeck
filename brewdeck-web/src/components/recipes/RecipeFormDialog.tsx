@@ -24,6 +24,7 @@ import { useSuggestRecipe } from '@/hooks/useSuggestRecipe';
 import { FeatureFlag } from '@/components/ui/FeatureFlag';
 import { FormSection } from '@/components/ui/FormSection';
 import type { Recipe } from '@/lib/api/types';
+import { useNotify } from '@/lib/notifications/NotificationProvider';
 
 type RecipeFormInput = z.input<typeof recipeSchema>;
 
@@ -73,6 +74,7 @@ export function RecipeFormDialog({
   initialRationale?: string | null;
 }) {
   const isEdit = recipe !== undefined;
+  const notify = useNotify();
   const create = useCreateRecipe();
   const update = useUpdateRecipe();
   const coffeeOptions = useCoffeeOptions();
@@ -132,7 +134,10 @@ export function RecipeFormDialog({
   const onSubmit = (data: RecipeFormValues) => {
     setServerError(null);
     const mutateOptions = {
-      onSuccess: () => onClose(),
+      onSuccess: () => {
+        notify(isEdit ? 'Recipe updated' : 'Recipe added');
+        onClose();
+      },
       onError: (error: unknown) => {
         if (error instanceof ApiError && error.validationErrors) {
           Object.entries(error.validationErrors).forEach(([field, message]) =>

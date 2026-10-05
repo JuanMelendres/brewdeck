@@ -12,8 +12,9 @@ import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
 import NextLink from 'next/link';
 import { useToggleFavorite } from '@/hooks/useRecipeMutations';
-import { CardGrid } from '@/components/ui/CardGrid';
+import { CardGrid, cardHoverSx } from '@/components/ui/CardGrid';
 import type { Recipe } from '@/lib/api/types';
+import { useNotify } from '@/lib/notifications/NotificationProvider';
 
 /** The brewing parameters a card shows, in order; empty ones are left out. */
 function parameters(recipe: Recipe): Array<{ label: string; value: string }> {
@@ -59,10 +60,22 @@ function RecipeCard({
   onDelete?: (recipe: Recipe) => void;
 }) {
   const toggleFavorite = useToggleFavorite();
+  const notify = useNotify();
+  const onToggleFavorite = () => {
+    const favorite = !recipe.favorite;
+    toggleFavorite.mutate(
+      { id: recipe.id, favorite },
+      {
+        onSuccess: () =>
+          notify(favorite ? `Added "${recipe.name}" to favorites` : `Removed "${recipe.name}" from favorites`),
+        onError: () => notify('Could not update the favorite. Try again.', 'error'),
+      },
+    );
+  };
   const params = parameters(recipe);
 
   return (
-    <Card component="article" sx={{ height: '100%' }}>
+    <Card component="article" sx={{ height: '100%', ...cardHoverSx }}>
       <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, p: 2.5, '&:last-child': { pb: 2.5 } }}>
         <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
           <Box sx={{ flexGrow: 1, minWidth: 0 }}>
@@ -80,7 +93,7 @@ function RecipeCard({
             aria-label={`Favorite ${recipe.name}`}
             aria-pressed={recipe.favorite}
             disabled={toggleFavorite.isPending}
-            onClick={() => toggleFavorite.mutate({ id: recipe.id, favorite: !recipe.favorite })}
+            onClick={onToggleFavorite}
             sx={{ color: recipe.favorite ? 'secondary.main' : undefined }}
           >
             {recipe.favorite ? <FavoriteIcon fontSize="small" /> : <FavoriteBorderIcon fontSize="small" />}
