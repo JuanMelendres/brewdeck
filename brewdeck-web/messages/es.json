@@ -183,7 +183,9 @@
     "onboarding": {
       "title": "¿Claro u oscuro?",
       "body": "Elige cómo se ve BrewDeck. Prueba ambos: la app cambia mientras eliges. Puedes cambiarlo cuando quieras en la configuración de tu cuenta.",
-      "saveFailed": "No pudimos guardar tu elección. Por ahora aplica en este dispositivo, y te volveremos a preguntar la próxima vez que inicies sesión."
+      "saveFailed": "No pudimos guardar tu elección. Por ahora aplica en este dispositivo, y te volveremos a preguntar la próxima vez que inicies sesión.",
+      "setupTitle": "Configura BrewDeck",
+      "setupBody": "Elige tu idioma y cómo se ve BrewDeck. Pruébalos: la app cambia mientras eliges. Puedes cambiarlos cuando quieras en la configuración de tu cuenta."
     },
     "setting": {
       "title": "Apariencia",
@@ -465,5 +467,15 @@
   },
   "meta": {
     "description": "Tu compañero para preparar café"
+  },
+  "language": {
+    "group": "Idioma",
+    "en": "English",
+    "es": "Español",
+    "setting": {
+      "title": "Idioma",
+      "body": "Elige el idioma de BrewDeck. Tu elección se guarda en tu cuenta.",
+      "saveFailed": "No pudimos guardar tu idioma. Por ahora solo aplica en este dispositivo."
+    }
   }
 }

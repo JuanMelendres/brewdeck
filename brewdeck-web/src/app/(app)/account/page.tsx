@@ -5,6 +5,8 @@ import { useTranslations } from 'next-intl';
 import { ChangePasswordForm } from '@/components/auth/ChangePasswordForm';
 import { ProfileForm } from '@/components/auth/ProfileForm';
 import { ThemeModeSetting } from '@/components/theme/ThemeModeSetting';
+import { LanguageSetting } from '@/components/language/LanguageSetting';
+import { FeatureFlag } from '@/components/ui/FeatureFlag';
 
 export default function AccountPage() {
   const t = useTranslations('nav');
@@ -16,6 +18,10 @@ export default function AccountPage() {
       <ProfileForm />
       <Divider />
       <ThemeModeSetting />
+      <FeatureFlag name="i18nSpanish">
+        <Divider />
+        <LanguageSetting />
+      </FeatureFlag>
       <Divider />
       <ChangePasswordForm />
     </Stack>

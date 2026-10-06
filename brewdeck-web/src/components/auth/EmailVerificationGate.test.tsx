@@ -17,7 +17,7 @@ vi.mock('@/lib/auth/AuthProvider', () => ({
   useAuth: () => ({ user: mockUser, refreshUser: refreshUserMock, logout: logoutMock }),
 }));
 
-let mockFlags = { aiRecipeAssistant: false, requireEmailVerification: false };
+let mockFlags = { aiRecipeAssistant: false, requireEmailVerification: false, i18nSpanish: false };
 let mockFlagStatus: 'loading' | 'ready' | 'error' = 'ready';
 vi.mock('@/lib/featureFlags/FeatureFlagProvider', () => ({
   useFeatureFlags: () => ({ flags: mockFlags, status: mockFlagStatus }),
@@ -29,7 +29,7 @@ const unverified: UserResponse = {
   displayName: null,
   emailVerified: false,
   role: 'USER',
-  themePreference: null,
+  themePreference: null, language: null,
   createdAt: '',
 };
 
@@ -45,7 +45,7 @@ describe('EmailVerificationGate', () => {
   afterEach(() => {
     vi.clearAllMocks();
     mockUser = null;
-    mockFlags = { aiRecipeAssistant: false, requireEmailVerification: false };
+    mockFlags = { aiRecipeAssistant: false, requireEmailVerification: false, i18nSpanish: false };
     mockFlagStatus = 'ready';
   });
 
@@ -57,7 +57,7 @@ describe('EmailVerificationGate', () => {
 
   it('blocks an unverified user when the flag is on', () => {
     mockUser = unverified;
-    mockFlags = { ...mockFlags, requireEmailVerification: true };
+    mockFlags = { ...mockFlags, requireEmailVerification: true, i18nSpanish: false };
     renderGate();
 
     expect(
@@ -69,7 +69,7 @@ describe('EmailVerificationGate', () => {
 
   it('lets a verified user through when the flag is on', () => {
     mockUser = { ...unverified, emailVerified: true };
-    mockFlags = { ...mockFlags, requireEmailVerification: true };
+    mockFlags = { ...mockFlags, requireEmailVerification: true, i18nSpanish: false };
     renderGate();
     expect(screen.getByText('The app')).toBeInTheDocument();
   });
@@ -95,7 +95,7 @@ describe('EmailVerificationGate', () => {
 
   it('resends the verification email', async () => {
     mockUser = unverified;
-    mockFlags = { ...mockFlags, requireEmailVerification: true };
+    mockFlags = { ...mockFlags, requireEmailVerification: true, i18nSpanish: false };
     resendMock.mockResolvedValue({ message: 'Verification email sent.' });
     renderGate();
 
@@ -107,7 +107,7 @@ describe('EmailVerificationGate', () => {
 
   it('shows the rate-limit message when resending too often', async () => {
     mockUser = unverified;
-    mockFlags = { ...mockFlags, requireEmailVerification: true };
+    mockFlags = { ...mockFlags, requireEmailVerification: true, i18nSpanish: false };
     resendMock.mockRejectedValue(new ApiError(429, 'Too many attempts. Try again in 40 minutes.'));
     renderGate();
 
@@ -120,7 +120,7 @@ describe('EmailVerificationGate', () => {
 
   it('re-checks the account when the user says they verified', async () => {
     mockUser = unverified;
-    mockFlags = { ...mockFlags, requireEmailVerification: true };
+    mockFlags = { ...mockFlags, requireEmailVerification: true, i18nSpanish: false };
     refreshUserMock.mockResolvedValue(undefined);
     renderGate();
 
@@ -132,7 +132,7 @@ describe('EmailVerificationGate', () => {
 
   it('logs out', async () => {
     mockUser = unverified;
-    mockFlags = { ...mockFlags, requireEmailVerification: true };
+    mockFlags = { ...mockFlags, requireEmailVerification: true, i18nSpanish: false };
     renderGate();
 
     await userEvent.click(screen.getByRole('button', { name: /log out/i }));

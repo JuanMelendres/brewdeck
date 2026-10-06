@@ -35,7 +35,7 @@ afterEach(() => vi.restoreAllMocks());
 describe('FeatureFlagProvider', () => {
   it('exposes enabled flags once the API resolves', async () => {
     mockAuth('authenticated', 7);
-    vi.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue({ aiRecipeAssistant: true, requireEmailVerification: false });
+    vi.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue({ aiRecipeAssistant: true, requireEmailVerification: false, i18nSpanish: false });
 
     renderProvider();
 
@@ -66,7 +66,7 @@ describe('FeatureFlagProvider', () => {
     mockAuth('anonymous', null);
     const spy = vi.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue({
       aiRecipeAssistant: true,
-      requireEmailVerification: false,
+      requireEmailVerification: false, i18nSpanish: false
     });
 
     renderProvider();

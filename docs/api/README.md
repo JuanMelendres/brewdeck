@@ -130,6 +130,7 @@ DELETE /api/brew-sessions/{id}
 ## Public (no auth) (`/api/public`)
 ```
 GET    /api/public/recipes/{token}
+GET    /api/public/ui-config        200 ({"languages":["en"]}, plus "es" while web-i18n-spanish is on; read by the Next server)
 ```
 
 ## Dashboard & system

@@ -7,9 +7,10 @@ import {
   logout as logoutApi,
   register as registerApi,
   updateProfile as updateProfileApi,
+  updateLanguage as updateLanguageApi,
   updateTheme as updateThemeApi,
 } from '@/lib/api/auth';
-import type { ThemePreference, UserResponse } from '@/lib/api/types';
+import type { Language, ThemePreference, UserResponse } from '@/lib/api/types';
 import { refreshSession } from '@/lib/api/client';
 import { clearTokens, getToken, purgeLegacyTokenStorage, setToken } from './tokenStore';
 
@@ -24,6 +25,7 @@ type AuthContextValue = {
   register: (body: Credentials) => Promise<void>;
   updateProfile: (body: { displayName: string | null }) => Promise<void>;
   updateTheme: (themePreference: ThemePreference) => Promise<void>;
+  updateLanguage: (language: Language) => Promise<void>;
   refreshUser: () => Promise<void>;
   logout: () => Promise<void>;
 };
@@ -83,6 +85,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
       updateTheme: async (themePreference) => {
         const updated = await updateThemeApi({ themePreference });
+        setUser(updated);
+      },
+      updateLanguage: async (language) => {
+        const updated = await updateLanguageApi({ language });
         setUser(updated);
       },
       refreshUser: async () => {

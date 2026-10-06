@@ -8,20 +8,20 @@ describe('normalizeFeatureFlags', () => {
   it('defaults unknown or missing flags to false', () => {
     expect(normalizeFeatureFlags(undefined)).toEqual({
       aiRecipeAssistant: false,
-      requireEmailVerification: false,
+      requireEmailVerification: false, i18nSpanish: false
     });
     expect(normalizeFeatureFlags({})).toEqual({
       aiRecipeAssistant: false,
-      requireEmailVerification: false,
+      requireEmailVerification: false, i18nSpanish: false
     });
   });
 
   it('passes through explicit values', () => {
     expect(normalizeFeatureFlags({ aiRecipeAssistant: true })).toEqual({
       aiRecipeAssistant: true,
-      requireEmailVerification: false,
+      requireEmailVerification: false, i18nSpanish: false
     });
-    expect(normalizeFeatureFlags({ requireEmailVerification: true }).requireEmailVerification).toBe(
+    expect(normalizeFeatureFlags({ requireEmailVerification: true, i18nSpanish: false }).requireEmailVerification).toBe(
       true,
     );
   });
@@ -36,6 +36,6 @@ describe('fetchFeatureFlags', () => {
     const flags = await fetchFeatureFlags();
 
     expect(spy).toHaveBeenCalledWith('/api/feature-flags');
-    expect(flags).toEqual({ aiRecipeAssistant: true, requireEmailVerification: false });
+    expect(flags).toEqual({ aiRecipeAssistant: true, requireEmailVerification: false, i18nSpanish: false });
   });
 });

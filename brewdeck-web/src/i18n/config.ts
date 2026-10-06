@@ -5,15 +5,16 @@ export const DEFAULT_LOCALE: AppLocale = 'en';
 export const LOCALE_COOKIE = 'brewdeck-locale';
 
 /**
- * Languages users can actually get. Spanish messages ship with the app but stay off until the
- * `web-i18n-spanish` flag rollout (ADR-015, PR 4), so no screen shows up half-translated.
+ * The locale to render: a saved choice, else the browser language, limited to the locales the
+ * backend has enabled (Spanish only while the `web-i18n-spanish` flag is on, ADR-015).
  */
-export const ENABLED_LOCALES: readonly AppLocale[] = ['en'];
-
-/** The locale to render: a saved choice, else the browser language, limited to enabled locales. */
-export function resolveLocale(saved: string | undefined, acceptLanguage: string | null | undefined): AppLocale {
+export function resolveLocale(
+  saved: string | undefined,
+  acceptLanguage: string | null | undefined,
+  enabled: readonly AppLocale[],
+): AppLocale {
   const wanted = isLocale(saved) ? saved : localeFromAcceptLanguage(acceptLanguage);
-  return ENABLED_LOCALES.includes(wanted) ? wanted : DEFAULT_LOCALE;
+  return enabled.includes(wanted) ? wanted : DEFAULT_LOCALE;
 }
 
 export function isLocale(value: unknown): value is AppLocale {

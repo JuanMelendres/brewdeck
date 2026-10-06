@@ -8,7 +8,7 @@ import { renderWithTheme } from '@/test/renderWithTheme';
 const updateProfileMock = vi.fn();
 vi.mock('@/lib/auth/AuthProvider', () => ({
   useAuth: () => ({
-    user: { id: 1, email: 'brewer@example.com', displayName: 'Old Name', emailVerified: true, role: 'USER', themePreference: null, createdAt: '' },
+    user: { id: 1, email: 'brewer@example.com', displayName: 'Old Name', emailVerified: true, role: 'USER', themePreference: null, language: null, createdAt: '' },
     updateProfile: updateProfileMock,
   }),
 }));

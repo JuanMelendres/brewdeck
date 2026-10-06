@@ -342,5 +342,14 @@ paths:
       summary: Public read-only recipe by share token
       parameters: [{ name: token, in: path, required: true, schema: { type: string } }]
       responses: { "200": { description: OK }, "404": { description: Unknown or revoked token } }
+  /api/public/ui-config:
+    get:
+      tags: [Public]
+      security: []
+      summary: UI languages users can choose
+      description: >-
+        {"languages": ["en"]}, plus "es" while the web-i18n-spanish flag is on (ADR-015). The web
+        server reads it to pick the render language before a user is known. Exposes no other flags.
+      responses: { "200": { description: OK } }
   /api/dashboard/summary:
     get: { tags: [Dashboard], summary: Dashboard summary, responses: { "200": { description: OK } } }
