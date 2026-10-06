@@ -4,7 +4,7 @@
     "dashboard": "Inicio",
     "coffees": "Cafés",
     "recipes": "Recetas",
-    "favorites": "Favoritas",
+    "favorites": "Favoritos",
     "brewMethods": "Métodos",
     "brewSessions": "Preparaciones",
     "account": "Cuenta",
@@ -332,8 +332,8 @@
       "temp": "Temp.",
       "grind": "Molienda",
       "time": "Tiempo",
-      "favoriteAdded": "Se agregó \"{name}\" a favoritas",
-      "favoriteRemoved": "Se quitó \"{name}\" de favoritas",
+      "favoriteAdded": "Se agregó \"{name}\" a favoritos",
+      "favoriteRemoved": "Se quitó \"{name}\" de favoritos",
       "favoriteFailed": "No pudimos actualizar la favorita. Inténtalo de nuevo."
     },
     "delete": {
