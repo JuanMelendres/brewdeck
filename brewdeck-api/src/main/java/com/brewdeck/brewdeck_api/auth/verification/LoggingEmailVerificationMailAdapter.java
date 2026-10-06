@@ -1,6 +1,7 @@
 package com.brewdeck.brewdeck_api.auth.verification;
 
 import com.brewdeck.brewdeck_api.auth.reset.MailProperties;
+import java.util.Locale;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -25,7 +26,7 @@ public class LoggingEmailVerificationMailAdapter implements EmailVerificationMai
   }
 
   @Override
-  public void sendVerificationLink(String email, String rawToken) {
+  public void sendVerificationLink(String email, String rawToken, Locale locale) {
     log.info(
         "Email verification link for {}: {}/verify-email?token={}",
         email,

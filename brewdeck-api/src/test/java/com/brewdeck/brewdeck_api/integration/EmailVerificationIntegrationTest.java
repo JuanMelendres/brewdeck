@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.integration;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -59,7 +60,7 @@ class EmailVerificationIntegrationTest extends PostgresIntegrationTest {
     // The verification token was mailed on registration; capture it.
     ArgumentCaptor<String> rawToken = ArgumentCaptor.forClass(String.class);
     org.mockito.Mockito.verify(mailPort)
-        .sendVerificationLink(org.mockito.ArgumentMatchers.eq(email), rawToken.capture());
+        .sendVerificationLink(org.mockito.ArgumentMatchers.eq(email), rawToken.capture(), any());
     String verifyToken = rawToken.getValue();
 
     mockMvc

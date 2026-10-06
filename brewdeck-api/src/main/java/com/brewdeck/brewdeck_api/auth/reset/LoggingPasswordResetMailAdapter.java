@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.auth.reset;
 
+import java.util.Locale;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -24,7 +25,7 @@ public class LoggingPasswordResetMailAdapter implements PasswordResetMailPort {
   }
 
   @Override
-  public void sendResetLink(String email, String rawToken) {
+  public void sendResetLink(String email, String rawToken, Locale locale) {
     log.info(
         "Password reset link for {}: {}/reset-password?token={}",
         email,

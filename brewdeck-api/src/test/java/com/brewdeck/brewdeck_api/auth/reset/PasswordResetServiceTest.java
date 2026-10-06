@@ -69,7 +69,7 @@ class PasswordResetServiceTest {
     service.requestReset(new ForgotPasswordRequest("ghost@example.com"));
 
     verify(tokenRepository, never()).save(any());
-    verify(mailPort, never()).sendResetLink(anyString(), anyString());
+    verify(mailPort, never()).sendResetLink(anyString(), anyString(), any());
   }
 
   @Test
@@ -83,12 +83,26 @@ class PasswordResetServiceTest {
         ArgumentCaptor.forClass(PasswordResetToken.class);
     verify(tokenRepository).save(tokenCaptor.capture());
     ArgumentCaptor<String> rawCaptor = ArgumentCaptor.forClass(String.class);
-    verify(mailPort).sendResetLink(eq("brewer@example.com"), rawCaptor.capture());
+    verify(mailPort).sendResetLink(eq("brewer@example.com"), rawCaptor.capture(), any());
 
     PasswordResetToken saved = tokenCaptor.getValue();
     // Stored value is a 64-char hex hash, never the raw token.
     assertThat(saved.getTokenHash()).hasSize(64).isNotEqualTo(rawCaptor.getValue());
     assertThat(saved.getExpiresAt()).isAfter(Instant.now());
+  }
+
+  @Test
+  void requestReset_writesInTheUsersSavedLanguage() {
+    User spanish = user();
+    spanish.setLanguage(com.brewdeck.brewdeck_api.auth.Language.ES);
+    when(userRepository.findByEmail("brewer@example.com")).thenReturn(Optional.of(spanish));
+    when(tokenRepository.findByUserIdAndUsedAtIsNull(1L)).thenReturn(List.of());
+
+    service.requestReset(new ForgotPasswordRequest("brewer@example.com"));
+
+    verify(mailPort)
+        .sendResetLink(
+            eq("brewer@example.com"), anyString(), eq(java.util.Locale.forLanguageTag("es")));
   }
 
   @Test
