@@ -1,6 +1,7 @@
 package com.brewdeck.brewdeck_api.auth.reset;
 
 import com.brewdeck.brewdeck_api.auth.User;
+import com.brewdeck.brewdeck_api.auth.UserLocale;
 import com.brewdeck.brewdeck_api.auth.UserRepository;
 import com.brewdeck.brewdeck_api.auth.refresh.RefreshTokenService;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
@@ -71,7 +72,7 @@ public class PasswordResetService {
             .createdAt(now)
             .build());
 
-    mailPort.sendResetLink(user.getEmail(), rawToken);
+    mailPort.sendResetLink(user.getEmail(), rawToken, UserLocale.of(user));
     log.info("Password reset link issued for user id={}", user.getId());
   }
 

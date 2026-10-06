@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.integration;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -52,7 +53,7 @@ class PasswordResetIntegrationTest extends PostgresIntegrationTest {
 
     ArgumentCaptor<String> rawToken = ArgumentCaptor.forClass(String.class);
     org.mockito.Mockito.verify(mailPort)
-        .sendResetLink(org.mockito.ArgumentMatchers.eq(email), rawToken.capture());
+        .sendResetLink(org.mockito.ArgumentMatchers.eq(email), rawToken.capture(), any());
     String token = rawToken.getValue();
 
     // reset-password succeeds (204)
@@ -116,7 +117,7 @@ class PasswordResetIntegrationTest extends PostgresIntegrationTest {
         .andExpect(status().isOk());
     ArgumentCaptor<String> rawToken = ArgumentCaptor.forClass(String.class);
     org.mockito.Mockito.verify(mailPort)
-        .sendResetLink(org.mockito.ArgumentMatchers.eq(email), rawToken.capture());
+        .sendResetLink(org.mockito.ArgumentMatchers.eq(email), rawToken.capture(), any());
 
     mockMvc
         .perform(
@@ -144,7 +145,8 @@ class PasswordResetIntegrationTest extends PostgresIntegrationTest {
     org.mockito.Mockito.verify(mailPort, org.mockito.Mockito.never())
         .sendResetLink(
             org.mockito.ArgumentMatchers.contains("nobody-"),
-            org.mockito.ArgumentMatchers.anyString());
+            org.mockito.ArgumentMatchers.anyString(),
+            any());
   }
 
   @Test

@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.integration;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -115,7 +116,7 @@ class RateLimitIntegrationTest extends PostgresIntegrationTest {
         .andExpect(status().isTooManyRequests());
 
     verify(mailPort, times(RateLimitRule.FORGOT_PASSWORD_EMAIL.limit()))
-        .sendResetLink(org.mockito.ArgumentMatchers.eq(email), anyString());
+        .sendResetLink(org.mockito.ArgumentMatchers.eq(email), anyString(), any());
   }
 
   @Test
@@ -128,7 +129,8 @@ class RateLimitIntegrationTest extends PostgresIntegrationTest {
 
     post("/api/auth/forgot-password", freshIp(), "{\"email\":\"" + unknown + "\"}")
         .andExpect(status().isTooManyRequests());
-    verify(mailPort, never()).sendResetLink(org.mockito.ArgumentMatchers.eq(unknown), anyString());
+    verify(mailPort, never())
+        .sendResetLink(org.mockito.ArgumentMatchers.eq(unknown), anyString(), any());
   }
 
   @Test

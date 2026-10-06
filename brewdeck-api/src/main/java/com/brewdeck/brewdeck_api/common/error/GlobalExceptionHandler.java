@@ -7,7 +7,7 @@ import com.brewdeck.brewdeck_api.auth.InvalidCurrentPasswordException;
 import com.brewdeck.brewdeck_api.auth.refresh.InvalidRefreshTokenException;
 import com.brewdeck.brewdeck_api.auth.reset.InvalidResetTokenException;
 import com.brewdeck.brewdeck_api.auth.verification.InvalidVerificationTokenException;
-import com.brewdeck.brewdeck_api.common.i18n.LocaleConfig;
+import com.brewdeck.brewdeck_api.common.i18n.RequestLocale;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitExceededException;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitMessages;
 import com.brewdeck.brewdeck_api.featureflag.FeatureDisabledException;
@@ -15,11 +15,9 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.util.LinkedHashMap;
-import java.util.Locale;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.http.HttpHeaders;
@@ -46,18 +44,7 @@ public class GlobalExceptionHandler {
 
   /** A message from messages*.properties in the request's language (ADR-015). */
   private String message(String key, Object... args) {
-    return messageSource.getMessage(key, args, requestLocale());
-  }
-
-  /**
-   * The locale the DispatcherServlet resolved for this request. Outside a request there is none,
-   * and {@link LocaleContextHolder#getLocale()} would fall back to the JVM's locale, so use
-   * English.
-   */
-  private static Locale requestLocale() {
-    return LocaleContextHolder.getLocaleContext() == null
-        ? LocaleConfig.DEFAULT_LOCALE
-        : LocaleContextHolder.getLocale();
+    return messageSource.getMessage(key, args, RequestLocale.current());
   }
 
   @ExceptionHandler(EntityNotFoundException.class)
@@ -207,7 +194,8 @@ public class GlobalExceptionHandler {
     ErrorResponse errorResponse =
         buildErrorResponse(
             HttpStatus.TOO_MANY_REQUESTS,
-            RateLimitMessages.tooManyAttempts(messageSource, requestLocale(), retryAfterSeconds),
+            RateLimitMessages.tooManyAttempts(
+                messageSource, RequestLocale.current(), retryAfterSeconds),
             sanitize(request.getRequestURI()),
             null);
 

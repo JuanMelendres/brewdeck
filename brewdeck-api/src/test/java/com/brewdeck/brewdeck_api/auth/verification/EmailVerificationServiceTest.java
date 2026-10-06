@@ -61,7 +61,7 @@ class EmailVerificationServiceTest {
         ArgumentCaptor.forClass(EmailVerificationToken.class);
     verify(tokenRepository).save(tokenCaptor.capture());
     ArgumentCaptor<String> rawCaptor = ArgumentCaptor.forClass(String.class);
-    verify(mailPort).sendVerificationLink(eq("brewer@example.com"), rawCaptor.capture());
+    verify(mailPort).sendVerificationLink(eq("brewer@example.com"), rawCaptor.capture(), any());
 
     EmailVerificationToken saved = tokenCaptor.getValue();
     assertThat(saved.getTokenHash()).hasSize(64).isNotEqualTo(rawCaptor.getValue());
@@ -73,7 +73,7 @@ class EmailVerificationServiceTest {
     when(tokenRepository.findByUserIdAndUsedAtIsNull(1L)).thenReturn(List.of());
     org.mockito.Mockito.doThrow(new RuntimeException("smtp down"))
         .when(mailPort)
-        .sendVerificationLink(anyString(), anyString());
+        .sendVerificationLink(anyString(), anyString(), any());
 
     // Must not propagate — registration/resend rely on this.
     service.issueFor(user(false));
@@ -189,7 +189,7 @@ class EmailVerificationServiceTest {
     service.resendFor("brewer@example.com");
 
     verify(tokenRepository, never()).save(any());
-    verify(mailPort, never()).sendVerificationLink(anyString(), anyString());
+    verify(mailPort, never()).sendVerificationLink(anyString(), anyString(), any());
   }
 
   @Test
@@ -200,7 +200,7 @@ class EmailVerificationServiceTest {
     service.resendFor("brewer@example.com");
 
     verify(tokenRepository).save(any(EmailVerificationToken.class));
-    verify(mailPort).sendVerificationLink(eq("brewer@example.com"), anyString());
+    verify(mailPort).sendVerificationLink(eq("brewer@example.com"), anyString(), any());
   }
 
   @Test

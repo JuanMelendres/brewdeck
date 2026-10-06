@@ -1,6 +1,7 @@
 package com.brewdeck.brewdeck_api.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -124,7 +125,7 @@ class EmailVerificationEnforcementIntegrationTest extends PostgresIntegrationTes
     // Use the link from the resent email: once verified, the very next request goes through.
     ArgumentCaptor<String> token = ArgumentCaptor.forClass(String.class);
     org.mockito.Mockito.verify(mailPort, org.mockito.Mockito.atLeastOnce())
-        .sendVerificationLink(org.mockito.ArgumentMatchers.eq(email), token.capture());
+        .sendVerificationLink(org.mockito.ArgumentMatchers.eq(email), token.capture(), any());
     mockMvc
         .perform(
             post("/api/auth/verify-email")
