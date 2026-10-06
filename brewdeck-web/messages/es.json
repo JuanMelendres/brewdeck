@@ -4,7 +4,7 @@
     "dashboard": "Inicio",
     "coffees": "Cafés",
     "recipes": "Recetas",
-    "favorites": "Favoritas",
+    "favorites": "Favoritos",
     "brewMethods": "Métodos",
     "brewSessions": "Preparaciones",
     "account": "Cuenta",
@@ -67,7 +67,7 @@
       "actualTempTooLow": "La temperatura real debe ser de al menos 70 grados Celsius",
       "actualTempTooHigh": "La temperatura real no debe pasar de 100 grados Celsius",
       "actualTimeTooLong": "El tiempo real no debe pasar de 20 caracteres",
-      "tasteResultTooLong": "El resultado de sabor no debe pasar de 1000 caracteres",
+      "tasteResultTooLong": "El sabor en taza no debe pasar de 1000 caracteres",
       "ratingTooLow": "La calificación debe ser de al menos 1",
       "ratingTooHigh": "La calificación no debe pasar de 10",
       "adjustmentNotesTooLong": "Las notas de ajuste no deben pasar de 1000 caracteres"
@@ -76,7 +76,7 @@
   "auth": {
     "login": {
       "title": "Iniciar sesión",
-      "subtitle": "Qué gusto verte. Tus cafés te esperan.",
+      "subtitle": "Qué bueno verte de nuevo. Tus cafés te esperan.",
       "forgotPassword": "¿Olvidaste tu contraseña?",
       "submit": "Iniciar sesión",
       "noAccount": "¿No tienes cuenta? <link>Regístrate</link>",
@@ -121,7 +121,7 @@
       "failed": "No pudimos actualizar tu perfil. Inténtalo de nuevo."
     },
     "layout": {
-      "tagline": "Cada taza, a tu punto.",
+      "tagline": "Cada taza, en su punto.",
       "pitch": "Guarda tus cafés, recetas y preparaciones en un solo lugar, y descubre qué hace tu mejor taza."
     },
     "verify": {
@@ -332,8 +332,8 @@
       "temp": "Temp.",
       "grind": "Molienda",
       "time": "Tiempo",
-      "favoriteAdded": "Se agregó \"{name}\" a favoritas",
-      "favoriteRemoved": "Se quitó \"{name}\" de favoritas",
+      "favoriteAdded": "Se agregó \"{name}\" a favoritos",
+      "favoriteRemoved": "Se quitó \"{name}\" de favoritos",
       "favoriteFailed": "No pudimos actualizar la favorita. Inténtalo de nuevo."
     },
     "delete": {
@@ -439,7 +439,7 @@
       "actualGrind": "Molienda real",
       "actualTemp": "Temperatura real",
       "actualTime": "Tiempo real",
-      "tasteResult": "Resultado de sabor",
+      "tasteResult": "Sabor en taza",
       "rating": "Calificación",
       "adjustmentNotes": "Notas de ajuste"
     },
