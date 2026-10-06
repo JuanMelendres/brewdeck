@@ -16,5 +16,11 @@ public final class FeatureKeys {
    */
   public static final String REQUIRE_EMAIL_VERIFICATION = "auth-require-email-verification";
 
+  /**
+   * Lets users choose Spanish and serves the Spanish web UI (ADR-015). RELEASE flag, on in local
+   * and dev only until every screen is translated and reviewed.
+   */
+  public static final String I18N_SPANISH = "web-i18n-spanish";
+
   private FeatureKeys() {}
 }

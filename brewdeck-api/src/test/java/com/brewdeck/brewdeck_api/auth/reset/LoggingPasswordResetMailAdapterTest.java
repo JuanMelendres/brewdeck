@@ -2,6 +2,7 @@ package com.brewdeck.brewdeck_api.auth.reset;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 
+import java.util.Locale;
 import org.junit.jupiter.api.Test;
 
 class LoggingPasswordResetMailAdapterTest {
@@ -13,7 +14,7 @@ class LoggingPasswordResetMailAdapterTest {
             new MailProperties(
                 false, "http://localhost:3000", "BrewDeck <no-reply@brewdeck.local>"));
 
-    assertThatCode(() -> adapter.sendResetLink("brewer@example.com", "raw-token"))
+    assertThatCode(() -> adapter.sendResetLink("brewer@example.com", "raw-token", Locale.ENGLISH))
         .doesNotThrowAnyException();
   }
 }

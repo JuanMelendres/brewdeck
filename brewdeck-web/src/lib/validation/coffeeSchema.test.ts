@@ -6,7 +6,7 @@ describe('coffeeSchema', () => {
     const result = coffeeSchema.safeParse({ name: '' });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.issues[0].message).toBe('Name is required');
+      expect(result.error.issues[0].message).toBe('coffee.nameRequired');
     }
   });
 
@@ -19,7 +19,7 @@ describe('coffeeSchema', () => {
     const result = coffeeSchema.safeParse({ name: 'A'.repeat(121) });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.issues[0].message).toBe('Name must not exceed 120 characters');
+      expect(result.error.issues[0].message).toBe('coffee.nameTooLong');
     }
   });
 });

@@ -1,6 +1,7 @@
 package com.brewdeck.brewdeck_api.auth.verification;
 
 import com.brewdeck.brewdeck_api.auth.User;
+import com.brewdeck.brewdeck_api.auth.UserLocale;
 import com.brewdeck.brewdeck_api.auth.UserRepository;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
@@ -55,7 +56,7 @@ public class EmailVerificationService {
 
     // Best-effort: a mail failure must not fail registration or resend.
     try {
-      mailPort.sendVerificationLink(user.getEmail(), rawToken);
+      mailPort.sendVerificationLink(user.getEmail(), rawToken, UserLocale.of(user));
     } catch (RuntimeException e) {
       log.warn("Failed to send verification email for user id={}: {}", user.getId(), e.toString());
     }

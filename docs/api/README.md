@@ -14,9 +14,10 @@ in [`architecture/api-design.md`](../architecture/api-design.md).
 ```
 POST  /api/auth/register            201
 POST  /api/auth/login               200
-GET   /api/auth/me                  200 (401 without token; includes emailVerified, role: USER|ADMIN, themePreference: LIGHT|DARK|null)
+GET   /api/auth/me                  200 (401 without token; includes emailVerified, role: USER|ADMIN, themePreference: LIGHT|DARK|null, language: EN|ES|null)
 PATCH /api/auth/me                  200 (update display name)
 PUT   /api/auth/me/theme            200 (set themePreference LIGHT|DARK; 400 if missing or unknown)
+PUT   /api/auth/me/language         200 (set language EN|ES; 400 if missing or unknown; 404 while the web-i18n-spanish flag is off)
 POST  /api/auth/change-password     204 (400 if current password wrong; revokes all refresh tokens)
 POST  /api/auth/forgot-password     200 (always; no user enumeration)
 POST  /api/auth/reset-password      204 (400 if token invalid/expired/used; revokes all refresh tokens)
@@ -30,6 +31,10 @@ POST  /api/auth/logout              204 (authenticated; revokes the presented re
 > account. Over the limit you get `429` with `Retry-After` (seconds) and a message such as
 > `"Too many attempts. Try again in 3 minutes."`. See
 > [ADR-011](../decisions/ADR-011-in-memory-auth-rate-limiting.md) for the limits.
+
+> Error and validation messages follow `Accept-Language`: Spanish (`es`, `es-MX`, ...) or English.
+> Any other language, or no header, gets English (ADR-015). Keys live in
+> `brewdeck-api/src/main/resources/messages*.properties`.
 
 > Emails are case-insensitive. `register`, `login`, and `forgot-password` trim and lowercase the
 > address, and responses return that normalized form. Registering `Juan@x.com` when

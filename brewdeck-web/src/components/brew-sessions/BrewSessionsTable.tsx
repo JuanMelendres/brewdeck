@@ -12,8 +12,10 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 import NextLink from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
 import type { BrewSession } from '@/lib/api/types';
 import { formatDateTime } from '@/lib/format/dates';
+import { radius } from '@/lib/theme/tokens';
 
 function Muted({ children }: { children: string }) {
   return (
@@ -28,23 +30,26 @@ function orMuted(value: string | number | null) {
 }
 
 export function BrewSessionsTable({ sessions }: { sessions: BrewSession[] }) {
+  const t = useTranslations('brewSessions.list');
+  const tc = useTranslations('common');
+  const locale = useLocale();
   return (
-    <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: '18px' }}>
+    <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: radius.card }}>
       <Table sx={{ minWidth: 720, '& td, & th': { px: 2.5 }, '& td': { py: 1.75 } }}>
         <TableHead>
           <TableRow>
-            <TableCell>Brewed</TableCell>
-            <TableCell>Recipe</TableCell>
-            <TableCell>Rating</TableCell>
-            <TableCell>Temp</TableCell>
-            <TableCell>Time</TableCell>
-            <TableCell>Taste</TableCell>
+            <TableCell>{t('brewed')}</TableCell>
+            <TableCell>{t('recipe')}</TableCell>
+            <TableCell>{t('rating')}</TableCell>
+            <TableCell>{t('temp')}</TableCell>
+            <TableCell>{t('time')}</TableCell>
+            <TableCell>{t('taste')}</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {sessions.map((session) => (
             <TableRow key={session.id} hover>
-              <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatDateTime(session.brewedAt)}</TableCell>
+              <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatDateTime(session.brewedAt, undefined, locale)}</TableCell>
               <TableCell>
                 <Link
                   component={NextLink}
@@ -68,7 +73,7 @@ export function BrewSessionsTable({ sessions }: { sessions: BrewSession[] }) {
                       gap: 0.5,
                       px: 1.25,
                       py: 0.25,
-                      borderRadius: 999,
+                      borderRadius: radius.pill,
                       bgcolor: 'background.tint',
                       color: 'secondary.main',
                       fontWeight: 600,
@@ -82,7 +87,7 @@ export function BrewSessionsTable({ sessions }: { sessions: BrewSession[] }) {
                   </Box>
                 )}
               </TableCell>
-              <TableCell>{session.actualTemp === null ? <Muted>—</Muted> : `${session.actualTemp}°C`}</TableCell>
+              <TableCell>{session.actualTemp === null ? <Muted>—</Muted> : tc('celsius', { value: session.actualTemp })}</TableCell>
               <TableCell>{orMuted(session.actualTime)}</TableCell>
               <TableCell sx={{ maxWidth: 280 }}>
                 {session.tasteResult ? (

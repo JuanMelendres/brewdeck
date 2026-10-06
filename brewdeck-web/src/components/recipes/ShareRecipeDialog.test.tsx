@@ -1,10 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ShareRecipeDialog } from './ShareRecipeDialog';
 import type { Recipe } from '@/lib/api/types';
 import * as recipesApi from '@/lib/api/recipes';
+import { renderWithTheme } from '@/test/renderWithTheme';
 
 function baseRecipe(overrides: Partial<Recipe> = {}): Recipe {
   return {
@@ -32,7 +33,7 @@ function baseRecipe(overrides: Partial<Recipe> = {}): Recipe {
 
 function renderDialog(recipe: Recipe) {
   const client = new QueryClient();
-  return render(
+  return renderWithTheme(
     <QueryClientProvider client={client}>
       <ShareRecipeDialog open recipe={recipe} onClose={() => {}} />
     </QueryClientProvider>,

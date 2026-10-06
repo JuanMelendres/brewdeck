@@ -279,6 +279,55 @@
      ]
     },
     {
+     "name": "PUT - Update language (me)",
+     "request": {
+      "method": "PUT",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{authToken}}"
+       }
+      ],
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"language\": \"ES\"\n}"
+      },
+      "url": {
+       "raw": "{{baseURL}}/api/auth/me/language",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "auth",
+        "me",
+        "language"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 200', function () {",
+         "  pm.response.to.have.status(200);",
+         "});",
+         "pm.test('Language is saved', function () {",
+         "  pm.expect(pm.response.json().language).to.eql('ES');",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
      "name": "POST - Change password",
      "request": {
       "method": "POST",

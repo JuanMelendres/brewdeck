@@ -5,6 +5,7 @@ import { ApiError } from '@/lib/api/client';
 import { DeleteCoffeeDialog } from './DeleteCoffeeDialog';
 import * as mutations from '@/hooks/useCoffeeMutations';
 import type { Coffee } from '@/lib/api/types';
+import { NotificationProvider } from '@/lib/notifications/NotificationProvider';
 
 const deleteMutate = vi.fn();
 
@@ -37,5 +38,25 @@ describe('DeleteCoffeeDialog', () => {
     fireEvent.click(screen.getByRole('button', { name: /^delete$/i }));
 
     expect(await screen.findByText('Coffee is used by 3 recipes. Delete or change them first.')).toBeInTheDocument();
+  });
+
+  it('confirms the deletion with a notification and closes', () => {
+    vi.spyOn(mutations, 'useDeleteCoffee').mockReturnValue({
+      mutate: (_id: number, options: { onSuccess: () => void }) => options.onSuccess(),
+      isPending: false,
+    } as never);
+    const onClose = vi.fn();
+    renderWithTheme(
+      <NotificationProvider>
+        <DeleteCoffeeDialog open coffee={coffee} onClose={onClose} />
+      </NotificationProvider>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /^delete$/i }));
+
+    // The test keeps the dialog open (onClose is a mock), so the modal hides the toast from
+    // role queries; find it by text instead.
+    expect(screen.getByText('Coffee "Mezcla" deleted')).toBeInTheDocument();
+    expect(onClose).toHaveBeenCalled();
   });
 });

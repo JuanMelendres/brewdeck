@@ -5,6 +5,8 @@ import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
 import NextLink from 'next/link';
 import type { ReactNode } from 'react';
+import { useTranslations } from 'next-intl';
+import { radius } from '@/lib/theme/tokens';
 
 export type RankedItem = {
   key: string | number;
@@ -35,7 +37,7 @@ export function RankedList({ items }: { items: RankedItem[] }) {
               width: 32,
               height: 32,
               flexShrink: 0,
-              borderRadius: '50%',
+              borderRadius: radius.round,
               bgcolor: 'background.tint',
               color: 'primary.main',
               display: 'flex',
@@ -75,7 +77,7 @@ export function RankedList({ items }: { items: RankedItem[] }) {
               flexShrink: 0,
               px: 1.25,
               py: 0.5,
-              borderRadius: 999,
+              borderRadius: radius.pill,
               bgcolor: 'background.tint',
               color: 'secondary.main',
               fontWeight: 600,
@@ -90,11 +92,8 @@ export function RankedList({ items }: { items: RankedItem[] }) {
   );
 }
 
-/** "1 session" / "9 sessions", with the number in its own element. */
-export function Count({ value, singular, plural }: { value: number; singular: string; plural: string }) {
-  return (
-    <>
-      <span>{value}</span> {value === 1 ? singular : plural}
-    </>
-  );
+/** "1 session" / "9 sessions" (pluralized per language), with the number in its own element. */
+export function Count({ value, kind }: { value: number; kind: 'sessions' | 'recipes' }) {
+  const t = useTranslations('counts');
+  return <>{t.rich(kind, { count: value, n: (chunks) => <span>{chunks}</span> })}</>;
 }

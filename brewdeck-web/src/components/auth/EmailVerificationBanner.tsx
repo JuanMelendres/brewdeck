@@ -2,11 +2,15 @@
 
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { resendVerification } from '@/lib/api/auth';
 import { useAuth } from '@/lib/auth/AuthProvider';
 
 export function EmailVerificationBanner() {
+  const t = useTranslations('auth.verifyBanner');
+  const tv = useTranslations('auth.verifyRequired');
+  const tc = useTranslations('common');
   const { user } = useAuth();
   const [dismissed, setDismissed] = useState(false);
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
@@ -32,21 +36,21 @@ export function EmailVerificationBanner() {
         <>
           {status !== 'sent' && (
             <Button color="inherit" size="small" onClick={onResend} disabled={status === 'sending'}>
-              Resend link
+              {t('resend')}
             </Button>
           )}
           <Button color="inherit" size="small" onClick={() => setDismissed(true)}>
-            Dismiss
+            {tc('dismiss')}
           </Button>
         </>
       }
       sx={{ mb: 2 }}
     >
       {status === 'sent'
-        ? 'Verification email sent. Check your inbox.'
+        ? tv('resent')
         : status === 'error'
-          ? 'Could not resend the verification email. Please try again.'
-          : 'Your email is not verified. Please check your inbox for the verification link.'}
+          ? tv('resendFailed')
+          : t('notVerified')}
     </Alert>
   );
 }

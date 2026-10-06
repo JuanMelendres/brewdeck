@@ -5,7 +5,22 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Grid from '@mui/material/Grid';
 import Skeleton from '@mui/material/Skeleton';
+import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
+import { elevation, motion } from '@/lib/theme/tokens';
+
+/** A small lift on hover for cards in a grid; skipped when the user prefers reduced motion. */
+export const cardHoverSx = {
+  transition: `transform ${motion.fast} ${motion.easing}, box-shadow ${motion.fast} ${motion.easing}`,
+  '&:hover, &:focus-within': {
+    transform: 'translateY(-2px)',
+    boxShadow: elevation.cardHover,
+  },
+  '@media (prefers-reduced-motion: reduce)': {
+    transition: 'none',
+    '&:hover, &:focus-within': { transform: 'none' },
+  },
+} as const;
 
 /** One column on phones, two from sm, three from lg. Page sizes of 12, 24, and 48 fill it evenly. */
 const itemSize = { xs: 12, sm: 6, lg: 4 };
@@ -33,8 +48,9 @@ export function CardGrid<T>({
 
 /** Placeholder cards shown while the first page of a card grid loads. */
 export function CardGridSkeleton({ count = 6 }: { count?: number }) {
+  const t = useTranslations('common');
   return (
-    <Box role="status" aria-label="Loading">
+    <Box role="status" aria-label={t('loading')}>
       <Grid container spacing={2.5}>
         {Array.from({ length: count }, (_, index) => (
           <Grid key={index} size={itemSize}>

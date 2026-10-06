@@ -101,19 +101,20 @@ Released to master: Phase 6 shipped develop→master via PR #77 (Slices C.1 #73,
 
 ## Phase 7 — UI/UX Refresh
 
-Status: Planned (added 2026-09-30)
+Status: In progress (added 2026-09-30) — workstreams 1–7, 9, 10 done; 8 (i18n) spike in progress
 
 - Spike + POC: design foundation and visual direction — [docs/product/spikes/ui-ux-refresh-spike.md](../docs/product/spikes/ui-ux-refresh-spike.md). Direction chosen 2026-09-30: A (warm café) light + C palette for dark mode.
 - Workstreams after the POC (each gets an FDD, the foundation gets a TDD):
-  1. Design foundation — theme tokens, typography (`next/font`), shape, shadows, component overrides, dark mode — POC Done (PR #173: theme, fonts, AppShell, Dashboard, Login, Account appearance setting); TDD and ADR-014 still TODO
+  1. Design foundation — theme tokens, typography (`next/font`), shape, shadows, component overrides, dark mode — POC Done (PR #173: theme, fonts, AppShell, Dashboard, Login, Account appearance setting); TDD `docs/architecture/design-foundation-tdd.md` + ADR-014 written (PR on `docs/web-design-foundation-tdd`); token refactor (`src/lib/theme/tokens.ts`, WCAG AA contrast test, no-color-literal test, themed charts) on `refactor/web-theme-tokens` — Done
   2. Navigation — icons, active route, logo, user card (POC, PR #173) + responsive mobile drawer with top bar — Done (FDD `docs/product/fdd/navigation-fdd.md`, PR on `feat/web-responsive-navigation`)
   3. Dashboard — greeting, stat cards with icons, method-usage bars, Top Rated as a list (POC, PR #173) + Most Brewed and Most Used on the shared `RankedList` — Done (PR on `feat/web-dashboard-rankings`)
-  4. Lists — In progress: Coffees as a card grid + `EmptyState` with icon and CTA (PR #182); Recipes and Favorites as cards with a favorite toggle, shared `CardGrid`/`CardGridSkeleton` (PR on `feat/web-recipe-list-cards`); next: Brew Sessions and Brew Methods as airier tables
+  4. Lists — Coffees as a card grid + `EmptyState` with icon and CTA (PR #182); Recipes and Favorites as cards with a favorite toggle and shared `CardGrid` (PR #183); Brew Sessions and Brew Methods as airier tables with `TableSkeleton`, dates pinned to `UI_LOCALE` (PR #184) — Done
   5. Auth screens — split layout with brand panel on login (POC, PR #173), register, forgot/reset password, verify email, and the verification-required screen — Done (PR on `feat/web-auth-screens`)
-  6. Micro-interactions — hover transitions, snackbars after mutations — TODO
+  6. Micro-interactions — `NotificationProvider` toasts after create/edit/delete and favorite changes (errors as alerts), hover lift on list cards with reduced-motion support — Done (PR on `feat/web-feedback-snackbars`)
   7. Theme preference — backend: V22 `users.theme_preference` (null = never asked), `themePreference` in `/me`, `PUT /api/auth/me/theme`; frontend: toggle in Account settings + first-login light/dark dialog with live preview — Done (FDD `docs/product/fdd/theme-preference-fdd.md`; backend PR #175, frontend PR on `feat/web-theme-preference`)
-  8. Language (i18n) — Spanish + English: translation files (evaluate `next-intl`), locale-aware dates/numbers, translated backend messages and emails, per-user language preference + selector in Account (first-login dialog can ask language and theme together). Needs its own spike. Until then: English-only, dates fixed to `en-US` — TODO
+  8. Language (i18n) — Spanish + English: translation files (evaluate `next-intl`), locale-aware dates/numbers, translated backend messages and emails, per-user language preference + selector in Account (first-login dialog can ask language and theme together). Needs its own spike. Until then: English-only, dates fixed to `en-US` — In progress: spike + ADR-015 (#203); PR 1 foundation (English only, all strings extracted, Spanish messages included but not served) on `feat/web-i18n-foundation`; PR 2 backend (language preference + localized API messages) on `feat/api-language-preference`
   9. Forms — select-label overlap fix + coffee dialog sections (PR #178) + Recipe and Brew Session dialog sections with a shared `FormSection` — Done (FDD `docs/product/fdd/forms-fdd.md`)
+  10. Brand mark — spike `docs/product/spikes/brand-mark-spike.md` (PR #189): concept B (bean on a deck) chosen 2026-10-05, Fraunces wordmark in two weights, installable on a phone home screen (manifest + icons). wordmark option 1 (Brew 700 / Deck 400); delivered on `feat/web-brand-mark` (`BrandMark`, `Wordmark`, favicon/icon.svg/apple-icon, manifest + 192/512/maskable icons) — Done
 
 ## Status Summary
 

@@ -20,6 +20,16 @@ The authoritative, detailed rules live in [`../../CLAUDE.md`](../../CLAUDE.md) a
 - Forms via React Hook Form + Zod; mirror backend limits; map server `validationErrors` back onto fields.
 - Absolute imports via the `@/` alias; group React → third-party → internal.
 - Always handle loading, error, and empty states.
+- Styling goes through the MUI theme ([ADR-014](../decisions/ADR-014-ui-design-system-mui-theme-tokens.md), [design foundation TDD](../architecture/design-foundation-tdd.md)):
+  - Colors come from palette keys (`'primary.main'`, `'background.tint'`) or `theme.vars.palette.*`, never hex/`rgb()` literals. `src/lib/theme/noColorLiterals.test.ts` enforces this for `src/components` and `src/app`.
+  - Radii, shadows, and motion come from `src/lib/theme/tokens.ts` (`radius.card`, `elevation.cardHover`, `motion.fast`). A bare number in `sx.borderRadius` is multiplied by the 12 px base radius.
+  - Every palette change keeps WCAG AA contrast in both modes (`tokens.test.ts`).
+- User-facing text goes through `next-intl` ([ADR-015](../decisions/ADR-015-i18n-next-intl-language-preference.md)):
+  - Strings live in `brewdeck-web/messages/en.json` and `es.json`, which keep the same keys (`src/i18n/messages.test.ts`). Use `useTranslations('<namespace>')` in components; keys are type-checked against the English file.
+  - `react/jsx-no-literals` rejects JSX text in `src/components` and `src/app`. Props such as `label`, `aria-label`, and `message` take translated values too.
+  - Zod messages are keys wrapped in `vk('…')` (`src/i18n/validationKey.ts`); forms show them with `useFieldError()`.
+  - Dates use the app language: `useFormatter()`, or `formatDate`/`formatDateTime` with `useLocale()`. Never the browser locale.
+  - Tests render through `renderWithTheme` (English by default, `{ locale: 'es' }` on demand).
 
 ## Cross-cutting
 

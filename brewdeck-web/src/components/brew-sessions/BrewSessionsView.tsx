@@ -6,6 +6,7 @@ import Button from '@mui/material/Button';
 import TablePagination from '@mui/material/TablePagination';
 import Typography from '@mui/material/Typography';
 import { useState, type ReactNode } from 'react';
+import { useTranslations } from 'next-intl';
 import { useBrewSessions } from '@/hooks/useBrewSessions';
 import { useDebounce } from '@/hooks/useDebounce';
 import { ErrorState } from '@/components/ui/ErrorState';
@@ -17,6 +18,8 @@ import { BrewSessionFormDialog } from './BrewSessionFormDialog';
 import type { BrewSessionFilters as Filters } from '@/lib/api/types';
 
 export function BrewSessionsView() {
+  const t = useTranslations('brewSessions.list');
+  const tc = useTranslations('common');
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
   const [filters, setFilters] = useState<Filters>({});
@@ -39,16 +42,16 @@ export function BrewSessionsView() {
   if (isLoading && !data) {
     body = <TableSkeleton columns={6} />;
   } else if (isError || !data) {
-    body = <ErrorState message="Could not load brew sessions." onRetry={() => refetch()} />;
+    body = <ErrorState message={t('loadFailed')} onRetry={() => refetch()} />;
   } else if (data.content.length === 0) {
     const filtered = debouncedFilters.rating !== undefined;
     body = filtered ? (
-      <EmptyState message="No brew sessions match these filters." />
+      <EmptyState message={t('noMatches')} />
     ) : (
       <EmptyState
         icon={<TimerOutlinedIcon />}
-        message="No brew sessions yet. Log each brew to see how your recipes turn out."
-        action={{ label: 'Log your first brew', onClick: () => setCreateOpen(true) }}
+        message={t('empty')}
+        action={{ label: t('addFirst'), onClick: () => setCreateOpen(true) }}
       />
     );
   } else {
@@ -61,7 +64,7 @@ export function BrewSessionsView() {
           page={page}
           rowsPerPage={size}
           rowsPerPageOptions={[10, 20, 50]}
-          labelRowsPerPage="Per page"
+          labelRowsPerPage={tc('perPage')}
           sx={{ mt: 1 }}
           onPageChange={(_event, newPage) => setPage(newPage)}
           onRowsPerPageChange={(event) => {
@@ -77,10 +80,10 @@ export function BrewSessionsView() {
     <>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, mb: 2 }}>
         <Typography variant="h4" component="h1">
-          Brew Sessions
+          {t('title')}
         </Typography>
         <Button variant="contained" onClick={() => setCreateOpen(true)}>
-          Add Brew Session
+          {t('add')}
         </Button>
       </Box>
       <BrewSessionFilters value={filters} onChange={handleFiltersChange} />

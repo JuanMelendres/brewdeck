@@ -10,6 +10,15 @@ name: Dependabot Auto-Merge
 # #159 had moved vitest, and left develop with a broken pnpm lockfile. A branch that is
 # behind gets "@dependabot rebase" instead; the rebase re-triggers this workflow, and the
 # checks run again on the real base.
+#
+# Dependabot only obeys commands from users with push access, so the comment is posted with
+# DEPENDABOT_REBASE_TOKEN: a fine-grained PAT of the repo owner (this repo only, Pull requests
+# read/write), stored as a *Dependabot* secret because Dependabot-triggered runs cannot read
+# Actions secrets. Without it the comment comes from github-actions[bot], Dependabot ignores
+# it, and the PR waits for a manual "@dependabot rebase" (#199, 2026-10-05). Do not switch to
+# the update-branch API: it merges develop into the branch textually, which broke #199's
+# pnpm lockfile, and its GITHUB_TOKEN push would neither re-run the checks nor keep the
+# branch Dependabot's.
 on:
   pull_request:
     branches: [develop]
@@ -56,6 +65,8 @@ jobs:
       - name: Wait for relevant checks, then merge eligible updates
         if: steps.eligibility.outputs.eligible == 'true'
         uses: actions/github-script@v9
+        env:
+          REBASE_TOKEN: ${{ secrets.DEPENDABOT_REBASE_TOKEN }}
         with:
           script: |
             const ecosystem = "${{ steps.metadata.outputs.package-ecosystem }}";
@@ -137,7 +148,15 @@ jobs:
                 `Branch is ${comparison.behind_by} commit(s) behind ${baseRef}; asking Dependabot to rebase ` +
                   "instead of merging. The rebase re-runs the checks and this workflow.",
               );
-              await github.rest.issues.createComment({
+              const rebaseToken = process.env.REBASE_TOKEN;
+              if (!rebaseToken) {
+                core.warning(
+                  "DEPENDABOT_REBASE_TOKEN is not set: Dependabot ignores this comment, so the PR " +
+                    "needs a manual \"@dependabot rebase\" from someone with push access.",
+                );
+              }
+              const commenter = rebaseToken ? getOctokit(rebaseToken) : github;
+              await commenter.rest.issues.createComment({
                 owner,
                 repo,
                 issue_number: pull_number,

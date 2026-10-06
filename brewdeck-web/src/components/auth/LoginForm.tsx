@@ -10,13 +10,18 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { rateLimitMessage } from '@/lib/api/errors';
 import { useAuth } from '@/lib/auth/AuthProvider';
+import { useFieldError } from '@/i18n/useFieldError';
 import { loginSchema, type LoginFormValues } from '@/lib/validation/authSchema';
 
 export function LoginForm() {
+  const t = useTranslations('auth.login');
+  const tc = useTranslations('common');
+  const fieldError = useFieldError();
   const { login } = useAuth();
   const router = useRouter();
   const [formError, setFormError] = useState<string | null>(null);
@@ -32,47 +37,50 @@ export function LoginForm() {
       await login(values);
       router.push('/dashboard');
     } catch (error) {
-      setFormError(rateLimitMessage(error) ?? 'Could not log in. Check your email and password.');
+      setFormError(rateLimitMessage(error) ?? t('failed'));
     }
   });
 
   return (
     <Box component="form" onSubmit={onSubmit}>
       <Typography variant="h4" component="h1">
-        Log in
+        {t('title')}
       </Typography>
       <Typography color="text.secondary" sx={{ mt: 0.5, mb: 3 }}>
-        Welcome back. Your brews are waiting.
+        {t('subtitle')}
       </Typography>
       <Stack spacing={2.25}>
         {formError ? <Alert severity="error">{formError}</Alert> : null}
         <TextField
-          label="Email"
+          label={tc('email')}
           type="email"
           {...register('email')}
           error={!!errors.email}
-          helperText={errors.email?.message}
+          helperText={fieldError(errors.email?.message)}
         />
         <TextField
-          label="Password"
+          label={tc('password')}
           type="password"
           {...register('password')}
           error={!!errors.password}
-          helperText={errors.password?.message}
+          helperText={fieldError(errors.password?.message)}
         />
         <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
           <Link component={NextLink} href="/forgot-password" variant="body2" underline="hover">
-            Forgot password?
+            {t('forgotPassword')}
           </Link>
         </Box>
         <Button type="submit" variant="contained" size="large" disabled={isSubmitting}>
-          Log in
+          {t('submit')}
         </Button>
         <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
-          No account?{' '}
-          <Link component={NextLink} href="/register" underline="hover" sx={{ fontWeight: 600 }}>
-            Register
-          </Link>
+          {t.rich('noAccount', {
+            link: (chunks) => (
+              <Link component={NextLink} href="/register" underline="hover" sx={{ fontWeight: 600 }}>
+                {chunks}
+              </Link>
+            ),
+          })}
         </Typography>
       </Stack>
     </Box>

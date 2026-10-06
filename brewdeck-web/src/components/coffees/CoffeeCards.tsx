@@ -11,15 +11,12 @@ import IconButton from '@mui/material/IconButton';
 import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
 import NextLink from 'next/link';
-import { CardGrid } from '@/components/ui/CardGrid';
+import { useTranslations } from 'next-intl';
+import { CardGrid, cardHoverSx } from '@/components/ui/CardGrid';
 import type { Coffee } from '@/lib/api/types';
+import { radius } from '@/lib/theme/tokens';
 
-const SCORES: Array<{ key: keyof Coffee; label: string }> = [
-  { key: 'acidityScore', label: 'Acidity' },
-  { key: 'bodyScore', label: 'Body' },
-  { key: 'sweetnessScore', label: 'Sweetness' },
-  { key: 'bitternessScore', label: 'Bitterness' },
-];
+const SCORES = ['acidityScore', 'bodyScore', 'sweetnessScore', 'bitternessScore'] as const;
 
 function present(value: string | null): value is string {
   return value !== null && value.trim() !== '';
@@ -53,15 +50,17 @@ function CoffeeCard({
   onEdit?: (coffee: Coffee) => void;
   onDelete?: (coffee: Coffee) => void;
 }) {
+  const t = useTranslations('coffees.fields');
+  const tc = useTranslations('common');
   const place = [coffee.origin, coffee.region].filter(present).join(' · ');
   const chips = [coffee.roastLevel, coffee.process].filter(present);
-  const scores = SCORES.flatMap(({ key, label }) => {
+  const scores = SCORES.flatMap((key) => {
     const value = coffee[key];
-    return typeof value === 'number' ? [{ label, value }] : [];
+    return typeof value === 'number' ? [{ label: t(key), value }] : [];
   });
 
   return (
-    <Card component="article" sx={{ height: '100%', transition: 'box-shadow 150ms ease' }}>
+    <Card component="article" sx={{ height: '100%', ...cardHoverSx }}>
       <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, p: 2.5, '&:last-child': { pb: 2.5 } }}>
         <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
           <Box sx={{ flexGrow: 1, minWidth: 0 }}>
@@ -76,10 +75,10 @@ function CoffeeCard({
               </Typography>
             ) : null}
           </Box>
-          <IconButton size="small" aria-label={`Edit ${coffee.name}`} onClick={() => onEdit?.(coffee)}>
+          <IconButton size="small" aria-label={tc('editItem', { name: coffee.name })} onClick={() => onEdit?.(coffee)}>
             <EditOutlinedIcon fontSize="small" />
           </IconButton>
-          <IconButton size="small" aria-label={`Delete ${coffee.name}`} onClick={() => onDelete?.(coffee)}>
+          <IconButton size="small" aria-label={tc('deleteItem', { name: coffee.name })} onClick={() => onDelete?.(coffee)}>
             <DeleteOutlinedIcon fontSize="small" />
           </IconButton>
         </Box>
@@ -116,11 +115,11 @@ function CoffeeCard({
                     {score.label}
                   </Typography>
                   <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                    {score.value}/5
+                    {tc('outOfFive', { value: score.value })}
                   </Typography>
                 </Box>
-                <Box aria-hidden sx={{ height: 6, borderRadius: 999, bgcolor: 'background.tint', overflow: 'hidden' }}>
-                  <Box sx={{ height: '100%', width: `${(score.value / 5) * 100}%`, bgcolor: 'secondary.main', borderRadius: 999 }} />
+                <Box aria-hidden sx={{ height: 6, borderRadius: radius.pill, bgcolor: 'background.tint', overflow: 'hidden' }}>
+                  <Box sx={{ height: '100%', width: `${(score.value / 5) * 100}%`, bgcolor: 'secondary.main', borderRadius: radius.pill }} />
                 </Box>
               </Box>
             ))}

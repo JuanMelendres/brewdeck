@@ -12,6 +12,9 @@ import com.brewdeck.brewdeck_api.auth.refresh.RefreshTokenService;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitExceededException;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
+import com.brewdeck.brewdeck_api.featureflag.FeatureDisabledException;
+import com.brewdeck.brewdeck_api.featureflag.FeatureFlagService;
+import com.brewdeck.brewdeck_api.featureflag.FeatureKeys;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.Duration;
 import java.time.Instant;
@@ -21,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -35,6 +39,7 @@ class AuthServiceTest {
       emailVerificationService;
 
   @Mock private RefreshTokenService refreshTokenService;
+  @Mock private FeatureFlagService featureFlagService;
 
   private AuthService authService;
 
@@ -48,7 +53,8 @@ class AuthServiceTest {
             encoder,
             emailVerificationService,
             refreshTokenService,
-            new RateLimiter(false));
+            new RateLimiter(false),
+            featureFlagService);
   }
 
   private User stored(String email, String rawPassword) {
@@ -194,6 +200,34 @@ class AuthServiceTest {
   }
 
   @Test
+  void updateLanguage_setsLanguageWhenSpanishIsEnabled() {
+    User user = stored("brewer@example.com", "password1");
+    when(userRepository.findByEmail("brewer@example.com")).thenReturn(Optional.of(user));
+    when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+    UserResponse response =
+        authService.updateLanguage("brewer@example.com", new UpdateLanguageRequest(Language.ES));
+
+    assertThat(response.language()).isEqualTo(Language.ES);
+    org.mockito.Mockito.verify(featureFlagService).requireEnabled(FeatureKeys.I18N_SPANISH);
+  }
+
+  @Test
+  void updateLanguage_writesNothingWhenTheFlagIsOff() {
+    org.mockito.Mockito.doThrow(
+            new FeatureDisabledException(FeatureKeys.I18N_SPANISH, HttpStatus.NOT_FOUND))
+        .when(featureFlagService)
+        .requireEnabled(FeatureKeys.I18N_SPANISH);
+
+    assertThatThrownBy(
+            () ->
+                authService.updateLanguage(
+                    "brewer@example.com", new UpdateLanguageRequest(Language.ES)))
+        .isInstanceOf(FeatureDisabledException.class);
+    org.mockito.Mockito.verifyNoInteractions(userRepository);
+  }
+
+  @Test
   void changePassword_reencodesWhenCurrentMatches() {
     User user = stored("brewer@example.com", "password1");
     String originalHash = user.getPasswordHash();
@@ -246,7 +280,8 @@ class AuthServiceTest {
             new BCryptPasswordEncoder(),
             emailVerificationService,
             refreshTokenService,
-            limiter);
+            limiter,
+            featureFlagService);
     LoginRequest request = new LoginRequest("brewer@example.com", "password1");
 
     assertThatThrownBy(() -> limited.login(request)).isInstanceOf(RateLimitExceededException.class);
@@ -263,7 +298,8 @@ class AuthServiceTest {
             encoder,
             emailVerificationService,
             refreshTokenService,
-            new RateLimiter(false));
+            new RateLimiter(false),
+            featureFlagService);
     when(userRepository.findByEmail("ghost@example.com")).thenReturn(Optional.empty());
     LoginRequest request = new LoginRequest("ghost@example.com", "password1");
 

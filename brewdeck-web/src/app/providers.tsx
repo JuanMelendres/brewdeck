@@ -7,6 +7,7 @@ import type { ReactNode } from 'react';
 import { THEME_MODE_STORAGE_KEY, theme } from '@/lib/theme/theme';
 import { AuthProvider } from '@/lib/auth/AuthProvider';
 import { FeatureFlagProvider } from '@/lib/featureFlags/FeatureFlagProvider';
+import { NotificationProvider } from '@/lib/notifications/NotificationProvider';
 import { QueryProvider } from '@/lib/query/provider';
 
 export function Providers({ children }: { children: ReactNode }) {
@@ -16,7 +17,9 @@ export function Providers({ children }: { children: ReactNode }) {
         <CssBaseline />
         <QueryProvider>
           <AuthProvider>
-            <FeatureFlagProvider>{children}</FeatureFlagProvider>
+            <FeatureFlagProvider>
+              <NotificationProvider>{children}</NotificationProvider>
+            </FeatureFlagProvider>
           </AuthProvider>
         </QueryProvider>
       </ThemeProvider>

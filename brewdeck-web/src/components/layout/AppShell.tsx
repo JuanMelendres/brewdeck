@@ -3,7 +3,6 @@
 import CoffeeMakerOutlinedIcon from '@mui/icons-material/CoffeeMakerOutlined';
 import CoffeeOutlinedIcon from '@mui/icons-material/CoffeeOutlined';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import LocalCafeIcon from '@mui/icons-material/LocalCafe';
 import LogoutIcon from '@mui/icons-material/Logout';
 import MenuIcon from '@mui/icons-material/Menu';
 import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined';
@@ -24,21 +23,25 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useState, type ReactNode } from 'react';
 import { EmailVerificationBanner } from '@/components/auth/EmailVerificationBanner';
+import { BrandMark } from '@/components/ui/BrandMark';
+import { Wordmark } from '@/components/ui/Wordmark';
 import { useAuth } from '@/lib/auth/AuthProvider';
+import { radius } from '@/lib/theme/tokens';
 
 const DRAWER_WIDTH = 248;
 const MOBILE_NAV_ID = 'mobile-navigation';
 
 const NAV = [
-  { label: 'Dashboard', href: '/dashboard', icon: <SpaceDashboardOutlinedIcon fontSize="small" /> },
-  { label: 'Coffees', href: '/coffees', icon: <CoffeeOutlinedIcon fontSize="small" /> },
-  { label: 'Recipes', href: '/recipes', icon: <MenuBookOutlinedIcon fontSize="small" /> },
-  { label: 'Favorites', href: '/recipes/favorites', icon: <FavoriteBorderIcon fontSize="small" /> },
-  { label: 'Brew Methods', href: '/brew-methods', icon: <CoffeeMakerOutlinedIcon fontSize="small" /> },
-  { label: 'Brew Sessions', href: '/brew-sessions', icon: <TimerOutlinedIcon fontSize="small" /> },
-];
+  { labelKey: 'dashboard', href: '/dashboard', icon: <SpaceDashboardOutlinedIcon fontSize="small" /> },
+  { labelKey: 'coffees', href: '/coffees', icon: <CoffeeOutlinedIcon fontSize="small" /> },
+  { labelKey: 'recipes', href: '/recipes', icon: <MenuBookOutlinedIcon fontSize="small" /> },
+  { labelKey: 'favorites', href: '/recipes/favorites', icon: <FavoriteBorderIcon fontSize="small" /> },
+  { labelKey: 'brewMethods', href: '/brew-methods', icon: <CoffeeMakerOutlinedIcon fontSize="small" /> },
+  { labelKey: 'brewSessions', href: '/brew-sessions', icon: <TimerOutlinedIcon fontSize="small" /> },
+] as const;
 
 const drawerPaperSx = {
   width: DRAWER_WIDTH,
@@ -64,7 +67,7 @@ function Logo() {
         sx={{
           width: 36,
           height: 36,
-          borderRadius: '12px',
+          borderRadius: radius.control,
           bgcolor: 'primary.main',
           color: 'primary.contrastText',
           display: 'flex',
@@ -72,17 +75,17 @@ function Logo() {
           justifyContent: 'center',
         }}
       >
-        <LocalCafeIcon fontSize="small" />
+        <BrandMark size={22} />
       </Box>
-      <Typography variant="h6" component="span" noWrap>
-        BrewDeck
-      </Typography>
+      <Wordmark />
     </Box>
   );
 }
 
 /** Logo, links, and the user card: the same content in the desktop sidebar and the mobile drawer. */
 function NavContent({ onNavigate }: { onNavigate?: () => void }) {
+  const t = useTranslations('nav');
+  const tc = useTranslations('common');
   const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -100,7 +103,7 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
         <Logo />
       </Box>
 
-      <nav aria-label="Main">
+      <nav aria-label={t('main')}>
         <List disablePadding sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
           {NAV.map((item) => {
             const selected = item.href === current;
@@ -115,7 +118,7 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
               >
                 <ListItemIcon>{item.icon}</ListItemIcon>
                 <ListItemText
-                  primary={item.label}
+                  primary={t(item.labelKey)}
                   slotProps={{ primary: { sx: { fontWeight: selected ? 600 : 500 } } }}
                 />
               </ListItemButton>
@@ -132,7 +135,7 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
           alignItems: 'center',
           gap: 1,
           p: 1,
-          borderRadius: '14px',
+          borderRadius: radius.card,
           bgcolor: 'background.paper',
         }}
       >
@@ -141,7 +144,7 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
           href="/account"
           aria-current={pathname === '/account' ? 'page' : undefined}
           onClick={onNavigate}
-          sx={{ flexGrow: 1, minWidth: 0, justifyContent: 'flex-start', gap: 1.25, p: 0.5, borderRadius: '10px' }}
+          sx={{ flexGrow: 1, minWidth: 0, justifyContent: 'flex-start', gap: 1.25, p: 0.5, borderRadius: radius.inner }}
         >
           <Avatar sx={{ width: 34, height: 34, bgcolor: 'background.tint', color: 'text.primary', fontWeight: 600 }}>
             {name.charAt(0).toUpperCase()}
@@ -151,12 +154,12 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
               {name}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              Account
+              {t('account')}
             </Typography>
           </Box>
         </ButtonBase>
-        <Tooltip title="Log out">
-          <IconButton aria-label="Log out" onClick={onLogout} size="small">
+        <Tooltip title={tc('logOut')}>
+          <IconButton aria-label={tc('logOut')} onClick={onLogout} size="small">
             <LogoutIcon fontSize="small" />
           </IconButton>
         </Tooltip>
@@ -166,6 +169,7 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const t = useTranslations('nav');
   const [mobileOpen, setMobileOpen] = useState(false);
   const closeMobile = () => setMobileOpen(false);
 
@@ -210,7 +214,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Toolbar sx={{ gap: 1 }}>
             <IconButton
               edge="start"
-              aria-label="Open navigation"
+              aria-label={t('openNavigation')}
               aria-controls={MOBILE_NAV_ID}
               aria-expanded={mobileOpen}
               onClick={() => setMobileOpen(true)}

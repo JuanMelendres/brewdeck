@@ -10,13 +10,18 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { rateLimitMessage } from '@/lib/api/errors';
+import { useFieldError } from '@/i18n/useFieldError';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { registerSchema, type RegisterFormValues } from '@/lib/validation/authSchema';
 
 export function RegisterForm() {
+  const t = useTranslations('auth.register');
+  const tc = useTranslations('common');
+  const fieldError = useFieldError();
   const { register: registerAccount } = useAuth();
   const router = useRouter();
   const [formError, setFormError] = useState<string | null>(null);
@@ -32,42 +37,45 @@ export function RegisterForm() {
       await registerAccount(values);
       router.push('/dashboard');
     } catch (error) {
-      setFormError(rateLimitMessage(error) ?? 'Could not register. That email may already be in use.');
+      setFormError(rateLimitMessage(error) ?? t('failed'));
     }
   });
 
   return (
     <Box component="form" onSubmit={onSubmit}>
       <Typography variant="h4" component="h1">
-        Create your account
+        {t('title')}
       </Typography>
       <Typography color="text.secondary" sx={{ mt: 0.5, mb: 3 }}>
-        Start logging your coffees, recipes, and brews.
+        {t('subtitle')}
       </Typography>
       <Stack spacing={2.25}>
         {formError ? <Alert severity="error">{formError}</Alert> : null}
         <TextField
-          label="Email"
+          label={tc('email')}
           type="email"
           {...register('email')}
           error={!!errors.email}
-          helperText={errors.email?.message}
+          helperText={fieldError(errors.email?.message)}
         />
         <TextField
-          label="Password"
+          label={tc('password')}
           type="password"
           {...register('password')}
           error={!!errors.password}
-          helperText={errors.password?.message}
+          helperText={fieldError(errors.password?.message)}
         />
         <Button type="submit" variant="contained" size="large" disabled={isSubmitting}>
-          Create account
+          {t('submit')}
         </Button>
         <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
-          Already have an account?{' '}
-          <Link component={NextLink} href="/login" underline="hover" sx={{ fontWeight: 600 }}>
-            Log in
-          </Link>
+          {t.rich('haveAccount', {
+            link: (chunks) => (
+              <Link component={NextLink} href="/login" underline="hover" sx={{ fontWeight: 600 }}>
+                {chunks}
+              </Link>
+            ),
+          })}
         </Typography>
       </Stack>
     </Box>

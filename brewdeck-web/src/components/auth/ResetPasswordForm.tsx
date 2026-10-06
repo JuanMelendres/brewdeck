@@ -9,13 +9,18 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import NextLink from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useFieldError } from '@/i18n/useFieldError';
 import { resetPassword } from '@/lib/api/auth';
 import { ApiError } from '@/lib/api/client';
 import { resetPasswordSchema, type ResetPasswordFormValues } from '@/lib/validation/authSchema';
 
 export function ResetPasswordForm() {
+  const t = useTranslations('auth.reset');
+  const tc = useTranslations('common');
+  const fieldError = useFieldError();
   const searchParams = useSearchParams();
   const token = searchParams.get('token') ?? '';
   const [done, setDone] = useState(false);
@@ -29,7 +34,7 @@ export function ResetPasswordForm() {
   const onSubmit = handleSubmit(async (values) => {
     setFormError(null);
     if (!token) {
-      setFormError('This reset link is invalid or has expired.');
+      setFormError(t('invalidLink'));
       return;
     }
     try {
@@ -37,10 +42,10 @@ export function ResetPasswordForm() {
       setDone(true);
     } catch (error) {
       if (error instanceof ApiError && error.status === 400) {
-        setFormError('This reset link is invalid or has expired.');
+        setFormError(t('invalidLink'));
         return;
       }
-      setFormError('Could not reset your password. Please try again.');
+      setFormError(t('failed'));
     }
   });
 
@@ -48,11 +53,11 @@ export function ResetPasswordForm() {
     return (
       <Stack spacing={3}>
         <Typography variant="h4" component="h1">
-          Password updated
+          {t('doneTitle')}
         </Typography>
-        <Alert severity="success">Your password has been reset.</Alert>
+        <Alert severity="success">{t('done')}</Alert>
         <Button component={NextLink} href="/login" variant="contained" size="large">
-          Log in
+          {tc('logIn')}
         </Button>
       </Stack>
     );
@@ -61,29 +66,29 @@ export function ResetPasswordForm() {
   return (
     <Box component="form" onSubmit={onSubmit}>
       <Typography variant="h4" component="h1">
-        Choose a new password
+        {t('title')}
       </Typography>
       <Typography color="text.secondary" sx={{ mt: 0.5, mb: 3 }}>
-        Enter it twice to confirm.
+        {t('subtitle')}
       </Typography>
       <Stack spacing={2.25}>
         {formError ? <Alert severity="error">{formError}</Alert> : null}
         <TextField
-          label="New password"
+          label={tc('newPassword')}
           type="password"
           {...register('newPassword')}
           error={!!errors.newPassword}
-          helperText={errors.newPassword?.message}
+          helperText={fieldError(errors.newPassword?.message)}
         />
         <TextField
-          label="Confirm new password"
+          label={tc('confirmNewPassword')}
           type="password"
           {...register('confirmPassword')}
           error={!!errors.confirmPassword}
-          helperText={errors.confirmPassword?.message}
+          helperText={fieldError(errors.confirmPassword?.message)}
         />
         <Button type="submit" variant="contained" size="large" disabled={isSubmitting}>
-          Reset password
+          {t('submit')}
         </Button>
       </Stack>
     </Box>

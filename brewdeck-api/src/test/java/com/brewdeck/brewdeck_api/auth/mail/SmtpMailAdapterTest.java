@@ -9,9 +9,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.brewdeck.brewdeck_api.auth.reset.MailProperties;
+import com.brewdeck.brewdeck_api.common.i18n.TestMessages;
 import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
+import java.util.Locale;
 import java.util.Properties;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,7 +33,8 @@ class SmtpMailAdapterTest {
           mailSender,
           new MailProperties(
               true, "https://brewdeck.example", "BrewDeck <no-reply@brewdeck.example>"),
-          new SyncTaskExecutor());
+          new SyncTaskExecutor(),
+          TestMessages.messageSource());
 
   @BeforeEach
   void realMimeMessages() {
@@ -79,7 +82,7 @@ class SmtpMailAdapterTest {
 
   @Test
   void verificationEmail_hasSubjectRecipientSenderAndLink() throws Exception {
-    adapter.sendVerificationLink("brewer@example.com", "tok_ABC-123");
+    adapter.sendVerificationLink("brewer@example.com", "tok_ABC-123", Locale.ENGLISH);
 
     MimeMessage message = sentMessage();
     assertThat(message.getSubject()).isEqualTo("Verify your BrewDeck email");
@@ -91,7 +94,7 @@ class SmtpMailAdapterTest {
 
   @Test
   void resetEmail_linksToTheResetPage() throws Exception {
-    adapter.sendResetLink("brewer@example.com", "reset_TOKEN");
+    adapter.sendResetLink("brewer@example.com", "reset_TOKEN", Locale.ENGLISH);
 
     MimeMessage message = sentMessage();
     assertThat(message.getSubject()).isEqualTo("Reset your BrewDeck password");
@@ -104,7 +107,7 @@ class SmtpMailAdapterTest {
   void insideATransaction_mailWaitsForCommit() {
     TransactionSynchronizationManager.initSynchronization();
 
-    adapter.sendVerificationLink("brewer@example.com", "tok");
+    adapter.sendVerificationLink("brewer@example.com", "tok", Locale.ENGLISH);
 
     verify(mailSender, never()).send(any(MimeMessage.class));
     TransactionSynchronizationManager.getSynchronizations()
@@ -116,7 +119,7 @@ class SmtpMailAdapterTest {
   void rolledBackTransaction_sendsNothing() {
     TransactionSynchronizationManager.initSynchronization();
 
-    adapter.sendResetLink("brewer@example.com", "tok");
+    adapter.sendResetLink("brewer@example.com", "tok", Locale.ENGLISH);
     TransactionSynchronizationManager.getSynchronizations()
         .forEach(sync -> sync.afterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK));
 
@@ -128,8 +131,20 @@ class SmtpMailAdapterTest {
     doThrow(new MailSendException("smtp down")).when(mailSender).send(any(MimeMessage.class));
 
     // Must not propagate: the request already succeeded.
-    adapter.sendVerificationLink("brewer@example.com", "tok");
+    adapter.sendVerificationLink("brewer@example.com", "tok", Locale.ENGLISH);
 
     verify(mailSender).send(any(MimeMessage.class));
+  }
+
+  @Test
+  void spanishUser_getsTheEmailInSpanishWithAccentsIntact() throws Exception {
+    adapter.sendResetLink("brewer@example.com", "tok_ES", Locale.forLanguageTag("es"));
+
+    MimeMessage message = sentMessage();
+    assertThat(message.getSubject()).isEqualTo("Restablece tu contraseña de BrewDeck");
+    assertThat(plainText(message))
+        .contains("Elige una nueva aquí (válido por 30 minutos):")
+        .contains("https://brewdeck.example/reset-password?token=tok_ES")
+        .contains("Si no fuiste tú, ignora este correo.");
   }
 }

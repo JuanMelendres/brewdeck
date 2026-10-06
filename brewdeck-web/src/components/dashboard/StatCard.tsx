@@ -5,6 +5,7 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import type { ReactNode } from 'react';
+import { radius } from '@/lib/theme/tokens';
 
 export function StatCard({
   label,
@@ -24,7 +25,7 @@ export function StatCard({
             sx={{
               width: 36,
               height: 36,
-              borderRadius: '10px',
+              borderRadius: radius.inner,
               bgcolor: 'background.tint',
               color: 'secondary.main',
               display: 'flex',

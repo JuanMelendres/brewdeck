@@ -1,6 +1,7 @@
 package com.brewdeck.brewdeck_api.integration;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -95,7 +96,7 @@ class EmailNormalizationIntegrationTest extends PostgresIntegrationTest {
                 .content("{\"email\":\"" + local.toUpperCase() + "@EXAMPLE.COM\"}"))
         .andExpect(status().isOk());
 
-    verify(mailPort).sendResetLink(eq(local + "@example.com"), anyString());
+    verify(mailPort).sendResetLink(eq(local + "@example.com"), anyString(), any());
   }
 
   @Test

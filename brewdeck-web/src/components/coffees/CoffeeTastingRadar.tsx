@@ -3,6 +3,7 @@
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
+import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import {
   PolarAngleAxis,
@@ -11,6 +12,7 @@ import {
   Radar,
   RadarChart,
 } from 'recharts';
+import { useTranslations } from 'next-intl';
 import { EmptyState } from '@/components/ui/EmptyState';
 
 type CoffeeTastingRadarProps = {
@@ -26,21 +28,26 @@ export function CoffeeTastingRadar({
   sweetness,
   bitterness,
 }: CoffeeTastingRadarProps) {
+  const t = useTranslations('coffees.radar');
+  const tf = useTranslations('coffees.fields');
+  const theme = useTheme();
+  // CSS variable so the chart follows the active color scheme; plain palette value without one.
+  const lineColor = (theme.vars ?? theme).palette.primary.main;
   const complete =
     acidity !== null && body !== null && sweetness !== null && bitterness !== null;
 
   const data = [
-    { axis: 'Acidity', score: acidity },
-    { axis: 'Body', score: body },
-    { axis: 'Sweetness', score: sweetness },
-    { axis: 'Bitterness', score: bitterness },
+    { axis: tf('acidityScore'), score: acidity },
+    { axis: tf('bodyScore'), score: body },
+    { axis: tf('sweetnessScore'), score: sweetness },
+    { axis: tf('bitternessScore'), score: bitterness },
   ];
 
   return (
     <Card variant="outlined">
       <CardContent>
         <Typography variant="h6" component="h2" gutterBottom>
-          Tasting profile
+          {t('title')}
         </Typography>
         {complete ? (
           <Box sx={{ display: 'flex', justifyContent: 'center' }}>
@@ -53,11 +60,16 @@ export function CoffeeTastingRadar({
               <PolarGrid />
               <PolarAngleAxis dataKey="axis" fontSize={12} />
               <PolarRadiusAxis domain={[0, 5]} tickCount={6} fontSize={10} />
-              <Radar dataKey="score" stroke="#1976d2" fill="#1976d2" fillOpacity={0.4} />
+              <Radar
+                dataKey="score"
+                stroke={lineColor}
+                fill={lineColor}
+                fillOpacity={0.4}
+              />
             </RadarChart>
           </Box>
         ) : (
-          <EmptyState message="Add tasting scores to see the flavor profile." />
+          <EmptyState message={t('empty')} />
         )}
       </CardContent>
     </Card>

@@ -6,31 +6,29 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record CoffeeRequest(
-    @NotBlank(message = "Coffee name is required")
-        @Size(max = 120, message = "Coffee name must not exceed 120 characters")
+    @NotBlank(message = "{validation.coffeeName.required}")
+        @Size(max = 120, message = "{validation.coffeeName.tooLong}")
         String name,
-    @Size(max = 120, message = "Brand must not exceed 120 characters") String brand,
-    @Size(max = 120, message = "Origin must not exceed 120 characters") String origin,
-    @Size(max = 120, message = "Region must not exceed 120 characters") String region,
-    @Size(max = 120, message = "Farm must not exceed 120 characters") String farm,
-    @Size(max = 120, message = "Producer must not exceed 120 characters") String producer,
-    @Size(max = 120, message = "Variety must not exceed 120 characters") String variety,
-    @Size(max = 80, message = "Process must not exceed 80 characters") String process,
-    @Size(max = 80, message = "Roast level must not exceed 80 characters") String roastLevel,
-    @Size(max = 255, message = "Primary notes must not exceed 255 characters") String notesPrimary,
-    @Size(max = 500, message = "Secondary notes must not exceed 500 characters")
-        String notesSecondary,
-    @Min(value = 1, message = "Acidity score must be at least 1")
-        @Max(value = 5, message = "Acidity score must not exceed 5")
+    @Size(max = 120, message = "{validation.brand.tooLong}") String brand,
+    @Size(max = 120, message = "{validation.origin.tooLong}") String origin,
+    @Size(max = 120, message = "{validation.region.tooLong}") String region,
+    @Size(max = 120, message = "{validation.farm.tooLong}") String farm,
+    @Size(max = 120, message = "{validation.producer.tooLong}") String producer,
+    @Size(max = 120, message = "{validation.variety.tooLong}") String variety,
+    @Size(max = 80, message = "{validation.process.tooLong}") String process,
+    @Size(max = 80, message = "{validation.roastLevel.tooLong}") String roastLevel,
+    @Size(max = 255, message = "{validation.notesPrimary.tooLong}") String notesPrimary,
+    @Size(max = 500, message = "{validation.notesSecondary.tooLong}") String notesSecondary,
+    @Min(value = 1, message = "{validation.acidityScore.min}")
+        @Max(value = 5, message = "{validation.acidityScore.max}")
         Integer acidityScore,
-    @Min(value = 1, message = "Body score must be at least 1")
-        @Max(value = 5, message = "Body score must not exceed 5")
+    @Min(value = 1, message = "{validation.bodyScore.min}")
+        @Max(value = 5, message = "{validation.bodyScore.max}")
         Integer bodyScore,
-    @Min(value = 1, message = "Sweetness score must be at least 1")
-        @Max(value = 5, message = "Sweetness score must not exceed 5")
+    @Min(value = 1, message = "{validation.sweetnessScore.min}")
+        @Max(value = 5, message = "{validation.sweetnessScore.max}")
         Integer sweetnessScore,
-    @Min(value = 1, message = "Bitterness score must be at least 1")
-        @Max(value = 5, message = "Bitterness score must not exceed 5")
+    @Min(value = 1, message = "{validation.bitternessScore.min}")
+        @Max(value = 5, message = "{validation.bitternessScore.max}")
         Integer bitternessScore,
-    @Size(max = 1000, message = "Description must not exceed 1000 characters")
-        String description) {}
+    @Size(max = 1000, message = "{validation.description.tooLong}") String description) {}

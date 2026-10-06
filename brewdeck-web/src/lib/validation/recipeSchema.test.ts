@@ -9,9 +9,9 @@ describe('recipeSchema', () => {
     expect(r.success).toBe(false);
     if (!r.success) {
       const messages = r.error.issues.map((i) => i.message);
-      expect(messages).toContain('Coffee is required');
-      expect(messages).toContain('Brew method is required');
-      expect(messages).toContain('Name is required');
+      expect(messages).toContain('recipe.coffeeRequired');
+      expect(messages).toContain('recipe.methodRequired');
+      expect(messages).toContain('recipe.nameRequired');
     }
   });
 
@@ -38,7 +38,7 @@ describe('recipeSchema', () => {
     const r = recipeSchema.safeParse({ ...valid, waterTemp: '60' });
     expect(r.success).toBe(false);
     if (!r.success) {
-      expect(r.error.issues[0].message).toBe('Water temperature must be at least 70 degrees Celsius');
+      expect(r.error.issues[0].message).toBe('recipe.waterTempTooLow');
     }
   });
 
@@ -48,8 +48,8 @@ describe('recipeSchema', () => {
     expect(r.success).toBe(false);
     if (!r.success) {
       expect(r.error.issues.map((issue) => issue.message)).toEqual([
-        'Coffee grams must not exceed 9999.99',
-        'Water grams must not exceed 9999.99',
+        'recipe.coffeeGramsTooHigh',
+        'recipe.waterGramsTooHigh',
       ]);
     }
   });

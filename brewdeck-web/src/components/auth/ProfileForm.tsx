@@ -7,13 +7,18 @@ import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useFieldError } from '@/i18n/useFieldError';
 import { ApiError } from '@/lib/api/client';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { profileSchema, type ProfileFormValues } from '@/lib/validation/authSchema';
 
 export function ProfileForm() {
+  const t = useTranslations('auth.profile');
+  const tc = useTranslations('common');
+  const fieldError = useFieldError();
   const { user, updateProfile } = useAuth();
   const [formError, setFormError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -41,27 +46,27 @@ export function ProfileForm() {
         }
         return;
       }
-      setFormError('Could not update your profile. Please try again.');
+      setFormError(t('failed'));
     }
   });
 
   return (
     <Box component="form" onSubmit={onSubmit}>
       <Typography variant="h6" component="h2" gutterBottom>
-        Profile
+        {t('title')}
       </Typography>
       <Stack spacing={2}>
         {formError ? <Alert severity="error">{formError}</Alert> : null}
-        {saved ? <Alert severity="success">Profile updated.</Alert> : null}
-        <TextField label="Email" value={user?.email ?? ''} disabled />
+        {saved ? <Alert severity="success">{t('saved')}</Alert> : null}
+        <TextField label={tc('email')} value={user?.email ?? ''} disabled />
         <TextField
-          label="Display name"
+          label={t('displayName')}
           {...register('displayName')}
           error={!!errors.displayName}
-          helperText={errors.displayName?.message}
+          helperText={fieldError(errors.displayName?.message)}
         />
         <Button type="submit" variant="contained" disabled={isSubmitting}>
-          Save profile
+          {t('submit')}
         </Button>
       </Stack>
     </Box>

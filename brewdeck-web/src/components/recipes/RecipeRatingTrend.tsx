@@ -3,6 +3,7 @@
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
+import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import type { ReactNode } from 'react';
 import {
@@ -14,6 +15,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { useTranslations } from 'next-intl';
 import { useRecipeBrewSessions } from '@/hooks/useRecipeBrewSessions';
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorState } from '@/components/ui/ErrorState';
@@ -32,19 +34,23 @@ function toTrendPoints(
 }
 
 export function RecipeRatingTrend({ recipeId }: { recipeId: number }) {
+  const t = useTranslations('recipes.trend');
+  const theme = useTheme();
+  // CSS variable so the chart follows the active color scheme; plain palette value without one.
+  const lineColor = (theme.vars ?? theme).palette.primary.main;
   const { data, isLoading, isError, refetch } = useRecipeBrewSessions(recipeId);
 
   let body: ReactNode;
   if (isLoading && !data) {
     body = <Spinner />;
   } else if (isError || !data) {
-    body = <ErrorState message="Could not load rating trend." onRetry={() => refetch()} />;
+    body = <ErrorState message={t('loadFailed')} onRetry={() => refetch()} />;
   } else {
     const points = toTrendPoints(data.content);
     if (points.length < 2) {
       body = (
         <Typography variant="body2" color="text.secondary">
-          Not enough rated sessions to show a trend.
+          {t('notEnough')}
         </Typography>
       );
     } else {
@@ -56,7 +62,7 @@ export function RecipeRatingTrend({ recipeId }: { recipeId: number }) {
               <XAxis dataKey="label" fontSize={12} />
               <YAxis domain={[0, 10]} allowDecimals={false} fontSize={12} />
               <Tooltip />
-              <Line type="monotone" dataKey="rating" stroke="#1976d2" strokeWidth={2} />
+              <Line type="monotone" dataKey="rating" stroke={lineColor} strokeWidth={2} />
             </LineChart>
           </ResponsiveContainer>
         </Box>
@@ -68,7 +74,7 @@ export function RecipeRatingTrend({ recipeId }: { recipeId: number }) {
     <Card variant="outlined">
       <CardContent>
         <Typography variant="h6" component="h2" gutterBottom>
-          Rating trend
+          {t('title')}
         </Typography>
         {body}
       </CardContent>

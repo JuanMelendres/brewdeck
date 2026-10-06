@@ -36,3 +36,9 @@ describe('date formatting', () => {
     expect(formatDate('2026-09-30T17:27:25Z', 'UTC')).toBe('Sep 30, 2026');
   });
 });
+
+describe('dates in Spanish', () => {
+  it('formats with the given app language', () => {
+    expect(formatDate('2026-09-30T17:27:25Z', 'UTC', 'es')).toBe('30 sept 2026');
+  });
+});

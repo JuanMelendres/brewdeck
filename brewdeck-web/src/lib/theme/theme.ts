@@ -1,6 +1,7 @@
 'use client';
 
 import { createTheme } from '@mui/material/styles';
+import { baseRadius, elevation, palettes, radius } from './tokens';
 
 declare module '@mui/material/styles' {
   interface TypeBackground {
@@ -23,31 +24,15 @@ const heading = { fontFamily: displayFont, fontWeight: 600, letterSpacing: '-0.0
 
 /**
  * Light mode = "warm café" (direction A), dark mode = "dark premium" (direction C).
- * Decided in docs/product/spikes/ui-ux-refresh-spike.md (§16, Appendix A).
+ * Decided in docs/product/spikes/ui-ux-refresh-spike.md (§16); values live in ./tokens.ts.
  */
 export const theme = createTheme({
   cssVariables: { colorSchemeSelector: 'class' },
   colorSchemes: {
-    light: {
-      palette: {
-        primary: { main: '#5B3A29', contrastText: '#FFF8EF' },
-        secondary: { main: '#8A5A36', contrastText: '#FFF8EF' },
-        background: { default: '#F6EFE6', paper: '#FFFBF6', sidebar: '#EFE4D6', tint: '#F1E3D3' },
-        text: { primary: '#2B1D14', secondary: '#6B5646' },
-        divider: '#E8DCCD',
-      },
-    },
-    dark: {
-      palette: {
-        primary: { main: '#D4A55A', contrastText: '#1A130E' },
-        secondary: { main: '#E2B86E', contrastText: '#1A130E' },
-        background: { default: '#14100D', paper: '#1E1814', sidebar: '#0F0C0A', tint: '#251D17' },
-        text: { primary: '#F3EAE0', secondary: '#A89888' },
-        divider: '#2A221C',
-      },
-    },
+    light: { palette: palettes.light },
+    dark: { palette: palettes.dark },
   },
-  shape: { borderRadius: 12 },
+  shape: { borderRadius: baseRadius },
   typography: {
     fontFamily: bodyFont,
     h1: heading,
@@ -64,15 +49,15 @@ export const theme = createTheme({
     },
     MuiButton: {
       defaultProps: { disableElevation: true },
-      styleOverrides: { root: { borderRadius: 12, paddingInline: 18 } },
+      styleOverrides: { root: { borderRadius: radius.control, paddingInline: 18 } },
     },
     MuiCard: {
       styleOverrides: {
         root: ({ theme }) => ({
-          borderRadius: 18,
+          borderRadius: radius.card,
           border: 'none',
           backgroundImage: 'none',
-          boxShadow: '0 1px 2px rgba(43, 29, 20, 0.06), 0 8px 24px rgba(43, 29, 20, 0.05)',
+          boxShadow: elevation.card,
           ...theme.applyStyles('dark', {
             border: `1px solid ${theme.vars.palette.divider}`,
             boxShadow: 'none',
@@ -97,7 +82,7 @@ export const theme = createTheme({
       styleOverrides: { root: { fontWeight: 600 } },
     },
     MuiOutlinedInput: {
-      styleOverrides: { root: { borderRadius: 12 } },
+      styleOverrides: { root: { borderRadius: radius.control } },
     },
     MuiDrawer: {
       styleOverrides: {
@@ -113,7 +98,7 @@ export const theme = createTheme({
     MuiListItemButton: {
       styleOverrides: {
         root: ({ theme }) => ({
-          borderRadius: 12,
+          borderRadius: radius.control,
           '&.Mui-selected, &.Mui-selected:hover': {
             backgroundColor: theme.vars.palette.primary.main,
             color: theme.vars.palette.primary.contrastText,

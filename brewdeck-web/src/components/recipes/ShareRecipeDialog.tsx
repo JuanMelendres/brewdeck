@@ -11,6 +11,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import type { Recipe } from '@/lib/api/types';
 import { useShareRecipe, useUnshareRecipe } from '@/hooks/useShareRecipe';
 
@@ -23,6 +24,8 @@ export function ShareRecipeDialog({
   recipe: Recipe;
   onClose: () => void;
 }) {
+  const t = useTranslations('recipes.share');
+  const tc = useTranslations('common');
   const share = useShareRecipe(recipe.id);
   const unshare = useUnshareRecipe(recipe.id);
   const [copyError, setCopyError] = useState(false);
@@ -41,41 +44,37 @@ export function ShareRecipeDialog({
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Share recipe</DialogTitle>
+      <DialogTitle>{t('title')}</DialogTitle>
       <DialogContent>
         {recipe.shareToken ? (
           <Stack spacing={2} sx={{ mt: 1 }}>
-            <DialogContentText>
-              Anyone with this link can view a read-only copy of this recipe.
-            </DialogContentText>
+            <DialogContentText>{t('linkInfo')}</DialogContentText>
             <TextField
-              label="Public link"
+              label={t('publicLink')}
               value={link}
               slotProps={{ input: { readOnly: true } }}
               fullWidth
             />
             {copyError ? (
-              <Alert severity="error">Couldn&apos;t copy — copy it manually.</Alert>
+              <Alert severity="error">{t('copyFailed')}</Alert>
             ) : null}
           </Stack>
         ) : (
-          <DialogContentText sx={{ mt: 1 }}>
-            Create a public link to let anyone view this recipe. You can stop sharing at any time.
-          </DialogContentText>
+          <DialogContentText sx={{ mt: 1 }}>{t('intro')}</DialogContentText>
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Close</Button>
+        <Button onClick={onClose}>{tc('close')}</Button>
         {recipe.shareToken ? (
           <>
-            <Button onClick={onCopy}>Copy</Button>
+            <Button onClick={onCopy}>{tc('copy')}</Button>
             <Button
               color="error"
               onClick={() => unshare.mutate()}
               disabled={unshare.isPending}
               startIcon={unshare.isPending ? <CircularProgress size={16} /> : undefined}
             >
-              Stop sharing
+              {t('stop')}
             </Button>
           </>
         ) : (
@@ -85,7 +84,7 @@ export function ShareRecipeDialog({
             disabled={share.isPending}
             startIcon={share.isPending ? <CircularProgress size={16} /> : undefined}
           >
-            Create link
+            {t('create')}
           </Button>
         )}
       </DialogActions>
