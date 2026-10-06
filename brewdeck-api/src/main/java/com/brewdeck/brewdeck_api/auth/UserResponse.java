@@ -9,6 +9,7 @@ public record UserResponse(
     boolean emailVerified,
     Role role,
     ThemePreference themePreference,
+    Language language,
     Instant createdAt) {
   public static UserResponse fromEntity(User user) {
     return new UserResponse(
@@ -18,6 +19,7 @@ public record UserResponse(
         user.isEmailVerified(),
         user.getRole(),
         user.getThemePreference(),
+        user.getLanguage(),
         user.getCreatedAt());
   }
 }

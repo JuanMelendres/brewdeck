@@ -4,6 +4,7 @@ import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import TablePagination from '@mui/material/TablePagination';
 import Typography from '@mui/material/Typography';
 import { useState, type ReactNode } from 'react';
+import { useTranslations } from 'next-intl';
 import { useFavoriteRecipes } from '@/hooks/useFavoriteRecipes';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { CardGridSkeleton } from '@/components/ui/CardGrid';
@@ -14,6 +15,8 @@ import { DeleteRecipeDialog } from './DeleteRecipeDialog';
 import type { Recipe } from '@/lib/api/types';
 
 export function FavoriteRecipesView() {
+  const t = useTranslations('recipes.favorites');
+  const tc = useTranslations('common');
   const [page, setPage] = useState(0);
   // Multiples of 12 fill the 1-, 2-, and 3-column card grids evenly.
   const [size, setSize] = useState(12);
@@ -27,12 +30,12 @@ export function FavoriteRecipesView() {
   if (isLoading && !data) {
     body = <CardGridSkeleton />;
   } else if (isError || !data) {
-    body = <ErrorState message="Could not load favorite recipes." onRetry={() => refetch()} />;
+    body = <ErrorState message={t('loadFailed')} onRetry={() => refetch()} />;
   } else if (data.content.length === 0) {
     body = (
       <EmptyState
         icon={<FavoriteBorderIcon />}
-        message="No favorite recipes yet. Tap the heart on a recipe to keep it here."
+        message={t('empty')}
       />
     );
   } else {
@@ -49,7 +52,7 @@ export function FavoriteRecipesView() {
           page={page}
           rowsPerPage={size}
           rowsPerPageOptions={[12, 24, 48]}
-          labelRowsPerPage="Per page"
+          labelRowsPerPage={tc('perPage')}
           sx={{ mt: 1 }}
           onPageChange={(_event, newPage) => setPage(newPage)}
           onRowsPerPageChange={(event) => {
@@ -64,7 +67,7 @@ export function FavoriteRecipesView() {
   return (
     <>
       <Typography variant="h4" component="h1" sx={{ mb: 2 }}>
-        Favorite Recipes
+        {t('title')}
       </Typography>
       {body}
 

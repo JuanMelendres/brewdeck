@@ -11,6 +11,7 @@ import IconButton from '@mui/material/IconButton';
 import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
 import NextLink from 'next/link';
+import { useTranslations } from 'next-intl';
 import { useToggleFavorite } from '@/hooks/useRecipeMutations';
 import { CardGrid, cardHoverSx } from '@/components/ui/CardGrid';
 import type { Recipe } from '@/lib/api/types';
@@ -18,14 +19,16 @@ import { useNotify } from '@/lib/notifications/NotificationProvider';
 import { radius } from '@/lib/theme/tokens';
 
 /** The brewing parameters a card shows, in order; empty ones are left out. */
-function parameters(recipe: Recipe): Array<{ label: string; value: string }> {
+function useParameters(recipe: Recipe): Array<{ label: string; value: string }> {
+  const t = useTranslations('recipes.card');
+  const tc = useTranslations('common');
   const items: Array<{ label: string; value: string | null }> = [
-    { label: 'Dose', value: recipe.coffeeGrams === null ? null : `${recipe.coffeeGrams} g` },
-    { label: 'Water', value: recipe.waterGrams === null ? null : `${recipe.waterGrams} g` },
-    { label: 'Ratio', value: recipe.ratio },
-    { label: 'Temp', value: recipe.waterTemp === null ? null : `${recipe.waterTemp}°C` },
-    { label: 'Grind', value: recipe.grindSetting },
-    { label: 'Time', value: recipe.brewTime },
+    { label: t('dose'), value: recipe.coffeeGrams === null ? null : tc('grams', { value: recipe.coffeeGrams }) },
+    { label: t('water'), value: recipe.waterGrams === null ? null : tc('grams', { value: recipe.waterGrams }) },
+    { label: t('ratio'), value: recipe.ratio },
+    { label: t('temp'), value: recipe.waterTemp === null ? null : tc('celsius', { value: recipe.waterTemp }) },
+    { label: t('grind'), value: recipe.grindSetting },
+    { label: t('time'), value: recipe.brewTime },
   ];
   return items.filter((item): item is { label: string; value: string } =>
     item.value !== null && item.value.trim() !== '',
@@ -60,6 +63,8 @@ function RecipeCard({
   onEdit?: (recipe: Recipe) => void;
   onDelete?: (recipe: Recipe) => void;
 }) {
+  const t = useTranslations('recipes.card');
+  const tc = useTranslations('common');
   const toggleFavorite = useToggleFavorite();
   const notify = useNotify();
   const onToggleFavorite = () => {
@@ -68,12 +73,12 @@ function RecipeCard({
       { id: recipe.id, favorite },
       {
         onSuccess: () =>
-          notify(favorite ? `Added "${recipe.name}" to favorites` : `Removed "${recipe.name}" from favorites`),
-        onError: () => notify('Could not update the favorite. Try again.', 'error'),
+          notify(favorite ? t('favoriteAdded', { name: recipe.name }) : t('favoriteRemoved', { name: recipe.name })),
+        onError: () => notify(t('favoriteFailed'), 'error'),
       },
     );
   };
-  const params = parameters(recipe);
+  const params = useParameters(recipe);
 
   return (
     <Card component="article" sx={{ height: '100%', ...cardHoverSx }}>
@@ -91,7 +96,7 @@ function RecipeCard({
           </Box>
           <IconButton
             size="small"
-            aria-label={`Favorite ${recipe.name}`}
+            aria-label={tc('favoriteItem', { name: recipe.name })}
             aria-pressed={recipe.favorite}
             disabled={toggleFavorite.isPending}
             onClick={onToggleFavorite}
@@ -99,10 +104,10 @@ function RecipeCard({
           >
             {recipe.favorite ? <FavoriteIcon fontSize="small" /> : <FavoriteBorderIcon fontSize="small" />}
           </IconButton>
-          <IconButton size="small" aria-label={`Edit ${recipe.name}`} onClick={() => onEdit?.(recipe)}>
+          <IconButton size="small" aria-label={tc('editItem', { name: recipe.name })} onClick={() => onEdit?.(recipe)}>
             <EditOutlinedIcon fontSize="small" />
           </IconButton>
-          <IconButton size="small" aria-label={`Delete ${recipe.name}`} onClick={() => onDelete?.(recipe)}>
+          <IconButton size="small" aria-label={tc('deleteItem', { name: recipe.name })} onClick={() => onDelete?.(recipe)}>
             <DeleteOutlinedIcon fontSize="small" />
           </IconButton>
         </Box>

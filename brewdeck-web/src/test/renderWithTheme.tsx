@@ -1,12 +1,21 @@
 import { render } from '@testing-library/react';
 import { ThemeProvider } from '@mui/material/styles';
+import { NextIntlClientProvider } from 'next-intl';
 import type { ReactElement } from 'react';
+import en from '../../messages/en.json';
+import es from '../../messages/es.json';
+import type { AppLocale } from '@/i18n/config';
 import { THEME_MODE_STORAGE_KEY, theme } from '@/lib/theme/theme';
 
-export function renderWithTheme(ui: ReactElement) {
+const MESSAGES = { en, es } as const;
+
+/** Renders with the app theme and translations (English unless a test asks for another locale). */
+export function renderWithTheme(ui: ReactElement, { locale = 'en' }: { locale?: AppLocale } = {}) {
   return render(
-    <ThemeProvider theme={theme} defaultMode="light" modeStorageKey={THEME_MODE_STORAGE_KEY}>
-      {ui}
-    </ThemeProvider>,
+    <NextIntlClientProvider locale={locale} messages={MESSAGES[locale]}>
+      <ThemeProvider theme={theme} defaultMode="light" modeStorageKey={THEME_MODE_STORAGE_KEY}>
+        {ui}
+      </ThemeProvider>
+    </NextIntlClientProvider>,
   );
 }

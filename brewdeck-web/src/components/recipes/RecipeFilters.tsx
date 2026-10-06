@@ -5,6 +5,7 @@ import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import TextField from '@mui/material/TextField';
 import type { ChangeEvent } from 'react';
+import { useTranslations } from 'next-intl';
 import type { RecipeFilters as Filters } from '@/lib/api/types';
 
 export function RecipeFilters({
@@ -14,6 +15,8 @@ export function RecipeFilters({
   value: Filters;
   onChange: (next: Filters) => void;
 }) {
+  const t = useTranslations('recipes.list');
+  const tf = useTranslations('recipes.fields');
   const handleName = (event: ChangeEvent<HTMLInputElement>) => {
     onChange({ ...value, name: event.target.value });
   };
@@ -24,10 +27,10 @@ export function RecipeFilters({
 
   return (
     <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap', mb: 2 }}>
-      <TextField label="Name" size="small" value={value.name ?? ''} onChange={handleName} />
+      <TextField label={tf('name')} size="small" value={value.name ?? ''} onChange={handleName} />
       <FormControlLabel
         control={<Checkbox checked={value.favorite ?? false} onChange={handleFavorite} />}
-        label="Favorites only"
+        label={t('favoritesOnly')}
       />
     </Box>
   );

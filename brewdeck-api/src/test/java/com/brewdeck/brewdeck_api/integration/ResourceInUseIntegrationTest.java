@@ -60,6 +60,22 @@ class ResourceInUseIntegrationTest extends PostgresIntegrationTest {
   }
 
   @Test
+  void inUseMessage_followsTheRequestLanguage() throws Exception {
+    Coffee coffee = coffee();
+    recipe(coffee, sharedMethod());
+    recipe(coffee, sharedMethod());
+
+    mockMvc
+        .perform(
+            delete("/api/coffees/{id}", coffee.getId())
+                .header(org.springframework.http.HttpHeaders.ACCEPT_LANGUAGE, "es"))
+        .andExpect(status().isConflict())
+        .andExpect(
+            jsonPath("$.message")
+                .value("El café se usa en 2 recetas. Elimínalas o cámbialas primero."));
+  }
+
+  @Test
   void recipeWithBrewSessions_cannotBeDeleted() throws Exception {
     Recipe recipe = recipe(coffee(), sharedMethod());
     brewSessionRepository.save(

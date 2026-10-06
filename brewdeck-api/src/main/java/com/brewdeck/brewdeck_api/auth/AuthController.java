@@ -60,6 +60,17 @@ public class AuthController {
     return ResponseEntity.ok(authService.updateTheme(principal.getName(), request));
   }
 
+  @PutMapping("/me/language")
+  @Operation(
+      summary = "Set the authenticated user's UI language",
+      description =
+          "Separate from PATCH /me so a language-only update never touches the display name. "
+              + "Returns 404 while the web-i18n-spanish flag is off.")
+  public ResponseEntity<UserResponse> updateLanguage(
+      Principal principal, @Valid @RequestBody UpdateLanguageRequest request) {
+    return ResponseEntity.ok(authService.updateLanguage(principal.getName(), request));
+  }
+
   @PostMapping("/change-password")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(summary = "Change the authenticated user's password")

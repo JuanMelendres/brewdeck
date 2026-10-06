@@ -126,7 +126,7 @@ public class BrewMethodService {
   private void requireUnused(BrewMethod method) {
     long recipes = recipeRepository.countByMethodId(method.getId());
     if (recipes > 0) {
-      throw ResourceInUseException.of("Brew method", recipes, "recipe", "recipes");
+      throw ResourceInUseException.of(ResourceInUseException.Resource.BREW_METHOD, recipes);
     }
   }
 

@@ -1,8 +1,9 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { PublicRecipeView } from './PublicRecipeView';
 import * as hook from '@/hooks/usePublicRecipe';
 import type { PublicRecipe } from '@/lib/api/types';
+import { renderWithTheme } from '@/test/renderWithTheme';
 
 function mockHook(value: Partial<ReturnType<typeof hook.usePublicRecipe>>) {
   vi.spyOn(hook, 'usePublicRecipe').mockReturnValue(
@@ -29,19 +30,19 @@ describe('PublicRecipeView', () => {
 
   it('shows a spinner while loading', () => {
     mockHook({ isLoading: true, data: undefined, isError: false });
-    render(<PublicRecipeView token="tok-1" />);
+    renderWithTheme(<PublicRecipeView token="tok-1" />);
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
   });
 
   it('shows the unavailable empty state on error (404)', () => {
     mockHook({ isLoading: false, data: undefined, isError: true });
-    render(<PublicRecipeView token="tok-1" />);
+    renderWithTheme(<PublicRecipeView token="tok-1" />);
     expect(screen.getByText(/isn't available/i)).toBeInTheDocument();
   });
 
   it('renders the recipe card on success', () => {
     mockHook({ isLoading: false, data: sample, isError: false });
-    render(<PublicRecipeView token="tok-1" />);
+    renderWithTheme(<PublicRecipeView token="tok-1" />);
     expect(screen.getByRole('heading', { name: /morning cup/i })).toBeInTheDocument();
     expect(screen.getByText('Ethiopia')).toBeInTheDocument();
     expect(screen.getByText('V60')).toBeInTheDocument();

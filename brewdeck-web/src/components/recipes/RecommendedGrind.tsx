@@ -1,24 +1,26 @@
 'use client';
 
 import Alert from '@mui/material/Alert';
+import { useTranslations } from 'next-intl';
 import { useRecipeBrewSessions } from '@/hooks/useRecipeBrewSessions';
 import type { BrewSession } from '@/lib/api/types';
 import { compareInstants } from '@/lib/format/dates';
 
-function bestRatedWithGrind(sessions: BrewSession[]): BrewSession | null {
+type RatedWithGrind = BrewSession & { rating: number; actualGrind: string };
+
+function bestRatedWithGrind(sessions: BrewSession[]): RatedWithGrind | null {
   const candidates = sessions.filter(
-    (session) => session.rating !== null && (session.actualGrind ?? '').trim() !== '',
+    (session): session is RatedWithGrind =>
+      session.rating !== null && (session.actualGrind ?? '').trim() !== '',
   );
   if (candidates.length === 0) {
     return null;
   }
   return candidates.reduce((best, session) => {
-    const rating = session.rating ?? 0;
-    const bestRating = best.rating ?? 0;
-    if (rating > bestRating) {
+    if (session.rating > best.rating) {
       return session;
     }
-    if (rating === bestRating && compareInstants(session.brewedAt, best.brewedAt) > 0) {
+    if (session.rating === best.rating && compareInstants(session.brewedAt, best.brewedAt) > 0) {
       return session;
     }
     return best;
@@ -26,6 +28,7 @@ function bestRatedWithGrind(sessions: BrewSession[]): BrewSession | null {
 }
 
 export function RecommendedGrind({ recipeId }: { recipeId: number }) {
+  const t = useTranslations('recipes.grind');
   const { data, isLoading } = useRecipeBrewSessions(recipeId);
 
   if (isLoading && !data) {
@@ -37,15 +40,18 @@ export function RecommendedGrind({ recipeId }: { recipeId: number }) {
   if (!best) {
     return (
       <Alert severity="info" variant="outlined">
-        Brew and rate a session to get a grind recommendation.
+        {t('empty')}
       </Alert>
     );
   }
 
   return (
     <Alert severity="success" variant="outlined">
-      Recommended grind: <strong>{best.actualGrind}</strong> — from your best-rated session (
-      {best.rating}/10).
+      {t.rich('recommended', {
+        grind: best.actualGrind,
+        rating: best.rating,
+        strong: (chunks) => <strong>{chunks}</strong>,
+      })}
     </Alert>
   );
 }

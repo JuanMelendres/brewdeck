@@ -12,6 +12,7 @@ import {
   Radar,
   RadarChart,
 } from 'recharts';
+import { useTranslations } from 'next-intl';
 import { EmptyState } from '@/components/ui/EmptyState';
 
 type CoffeeTastingRadarProps = {
@@ -27,6 +28,8 @@ export function CoffeeTastingRadar({
   sweetness,
   bitterness,
 }: CoffeeTastingRadarProps) {
+  const t = useTranslations('coffees.radar');
+  const tf = useTranslations('coffees.fields');
   const theme = useTheme();
   // CSS variable so the chart follows the active color scheme; plain palette value without one.
   const lineColor = (theme.vars ?? theme).palette.primary.main;
@@ -34,17 +37,17 @@ export function CoffeeTastingRadar({
     acidity !== null && body !== null && sweetness !== null && bitterness !== null;
 
   const data = [
-    { axis: 'Acidity', score: acidity },
-    { axis: 'Body', score: body },
-    { axis: 'Sweetness', score: sweetness },
-    { axis: 'Bitterness', score: bitterness },
+    { axis: tf('acidityScore'), score: acidity },
+    { axis: tf('bodyScore'), score: body },
+    { axis: tf('sweetnessScore'), score: sweetness },
+    { axis: tf('bitternessScore'), score: bitterness },
   ];
 
   return (
     <Card variant="outlined">
       <CardContent>
         <Typography variant="h6" component="h2" gutterBottom>
-          Tasting profile
+          {t('title')}
         </Typography>
         {complete ? (
           <Box sx={{ display: 'flex', justifyContent: 'center' }}>
@@ -66,7 +69,7 @@ export function CoffeeTastingRadar({
             </RadarChart>
           </Box>
         ) : (
-          <EmptyState message="Add tasting scores to see the flavor profile." />
+          <EmptyState message={t('empty')} />
         )}
       </CardContent>
     </Card>

@@ -3,6 +3,7 @@
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import type { ChangeEvent } from 'react';
+import { useTranslations } from 'next-intl';
 import type { BrewSessionFilters as Filters } from '@/lib/api/types';
 
 export function BrewSessionFilters({
@@ -12,6 +13,7 @@ export function BrewSessionFilters({
   value: Filters;
   onChange: (next: Filters) => void;
 }) {
+  const t = useTranslations('brewSessions.fields');
   const handleRating = (event: ChangeEvent<HTMLInputElement>) => {
     const raw = event.target.value;
     onChange({ ...value, rating: raw === '' ? undefined : Number(raw) });
@@ -20,7 +22,7 @@ export function BrewSessionFilters({
   return (
     <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap', mb: 2 }}>
       <TextField
-        label="Rating"
+        label={t('rating')}
         type="number"
         size="small"
         value={value.rating ?? ''}

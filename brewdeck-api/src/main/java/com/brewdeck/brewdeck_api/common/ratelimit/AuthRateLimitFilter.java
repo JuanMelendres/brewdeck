@@ -9,11 +9,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Map;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.LocaleResolver;
 
 /**
  * Per-client-IP limits on the public auth endpoints, applied before any controller work. Not a
@@ -37,10 +39,20 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
 
   private final RateLimiter rateLimiter;
   private final ObjectMapper objectMapper;
+  private final MessageSource messageSource;
+  // This filter runs before the DispatcherServlet sets the request locale, so it resolves it
+  // itself.
+  private final LocaleResolver localeResolver;
 
-  public AuthRateLimitFilter(RateLimiter rateLimiter, ObjectMapper objectMapper) {
+  public AuthRateLimitFilter(
+      RateLimiter rateLimiter,
+      ObjectMapper objectMapper,
+      MessageSource messageSource,
+      LocaleResolver localeResolver) {
     this.rateLimiter = rateLimiter;
     this.objectMapper = objectMapper;
+    this.messageSource = messageSource;
+    this.localeResolver = localeResolver;
   }
 
   @Override
@@ -65,7 +77,8 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
             Instant.now(),
             HttpStatus.TOO_MANY_REQUESTS.value(),
             HttpStatus.TOO_MANY_REQUESTS.getReasonPhrase(),
-            RateLimitMessages.tooManyAttempts(retryAfterSeconds),
+            RateLimitMessages.tooManyAttempts(
+                messageSource, localeResolver.resolveLocale(request), retryAfterSeconds),
             request.getRequestURI(),
             null);
     response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());

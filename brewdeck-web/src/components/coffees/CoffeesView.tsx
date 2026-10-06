@@ -6,6 +6,7 @@ import Button from '@mui/material/Button';
 import TablePagination from '@mui/material/TablePagination';
 import Typography from '@mui/material/Typography';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useCoffees } from '@/hooks/useCoffees';
 import { useDebounce } from '@/hooks/useDebounce';
 import { ErrorState } from '@/components/ui/ErrorState';
@@ -18,6 +19,8 @@ import { DeleteCoffeeDialog } from './DeleteCoffeeDialog';
 import type { Coffee, CoffeeFilters as Filters } from '@/lib/api/types';
 
 export function CoffeesView() {
+  const t = useTranslations('coffees.list');
+  const tc = useTranslations('common');
   const [page, setPage] = useState(0);
   // Multiples of 12 fill the 1-, 2-, and 3-column card grids evenly.
   const [size, setSize] = useState(12);
@@ -43,16 +46,16 @@ export function CoffeesView() {
   if (isLoading && !data) {
     body = <CardGridSkeleton />;
   } else if (isError || !data) {
-    body = <ErrorState message="Could not load coffees." onRetry={() => refetch()} />;
+    body = <ErrorState message={t('loadFailed')} onRetry={() => refetch()} />;
   } else if (data.content.length === 0) {
     const filtered = Object.values(debouncedFilters).some((value) => value !== undefined && value !== '');
     body = filtered ? (
-      <EmptyState message="No coffees match these filters." />
+      <EmptyState message={t('noMatches')} />
     ) : (
       <EmptyState
         icon={<CoffeeOutlinedIcon />}
-        message="No coffees yet. Add the beans you brew with to start building recipes."
-        action={{ label: 'Add your first coffee', onClick: () => setCreateOpen(true) }}
+        message={t('empty')}
+        action={{ label: t('addFirst'), onClick: () => setCreateOpen(true) }}
       />
     );
   } else {
@@ -69,7 +72,7 @@ export function CoffeesView() {
           page={page}
           rowsPerPage={size}
           rowsPerPageOptions={[12, 24, 48]}
-          labelRowsPerPage="Per page"
+          labelRowsPerPage={tc('perPage')}
           sx={{ mt: 1 }}
           onPageChange={(_event, newPage) => setPage(newPage)}
           onRowsPerPageChange={(event) => {
@@ -85,10 +88,10 @@ export function CoffeesView() {
     <>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, mb: 2 }}>
         <Typography variant="h4" component="h1">
-          Coffees
+          {t('title')}
         </Typography>
         <Button variant="contained" onClick={() => setCreateOpen(true)}>
-          Add Coffee
+          {t('add')}
         </Button>
       </Box>
       <CoffeeFilters value={filters} onChange={handleFiltersChange} />

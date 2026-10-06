@@ -12,7 +12,7 @@ This is a stable, high-level summary. The living, detailed roadmap is
 | 4 | Frontend (Next.js + React + TypeScript + MUI + TanStack Query + Vitest) | Completed |
 | 5 | Product improvements (analytics widgets, tasting radar, AI suggestions/improve, PDF export, public share links) | Completed |
 | 6 | Auth & multi-user | Completed |
-| 7 | UI/UX refresh (design system, navigation, dashboard, lists, auth screens) | Planned — spike: [ui-ux-refresh-spike](spikes/ui-ux-refresh-spike.md) |
+| 7 | UI/UX refresh (design system, navigation, dashboard, lists, auth screens, brand mark, i18n) | In progress — visual workstreams done; i18n (workstream 8) pending |
 
 ## Phase 6 breakdown
 
@@ -26,9 +26,28 @@ This is a stable, high-level summary. The living, detailed roadmap is
 
 **Released:** Phase 6 shipped to `master` via PR #77 (develop→master), bundling Slices C.1–C.4 plus the pnpm migration and CI overhaul. All CI green; develop remains the default branch.
 
+## Phase 7 breakdown
+
+Spike: [ui-ux-refresh-spike](spikes/ui-ux-refresh-spike.md). Decision record: [ADR-014](../decisions/ADR-014-ui-design-system-mui-theme-tokens.md).
+
+| # | Workstream | Status |
+| --- | --- | --- |
+| 1 | Design foundation: theme tokens, fonts, dark mode ([TDD](../architecture/design-foundation-tdd.md)) | Done (#173, #187, #188) |
+| 2 | Navigation: icons, active route, mobile drawer ([FDD](fdd/navigation-fdd.md)) | Done (#177) |
+| 3 | Dashboard: greeting, stat cards, rankings | Done (#181) |
+| 4 | Lists: card grids, airier tables, skeletons, empty states | Done (#182, #183, #184) |
+| 5 | Auth screens: split layout with brand panel | Done (#180) |
+| 6 | Micro-interactions: toasts, card hover | Done (#186) |
+| 7 | Theme preference: per-user light/dark, first-login dialog ([FDD](fdd/theme-preference-fdd.md)) | Done (#175, #176) |
+| 8 | Language (i18n): Spanish + English | Spike in progress |
+| 9 | Forms: sectioned dialogs, select-label fix ([FDD](fdd/forms-fdd.md)) | Done (#178, #179) |
+| 10 | Brand mark: logo, wordmark, app icons, home-screen install ([spike](spikes/brand-mark-spike.md)) | Done (#189, #190) |
+
+**Released:** workstreams 2–5, 7, and 9 shipped to `master` in #185; the rest go out in the next release.
+
 ## Status
 
-All 6 phases above are Completed — 100% of the current roadmap. Ongoing work past this point is maintenance (CVE/dependency remediation) and follow-ups tracked in [`.claude/project-state.md`](../../.claude/project-state.md) "Immediate Next Steps" (e.g. moving auth tokens off `localStorage` to `httpOnly` cookies). The AI recipe assistant (Phase 5) remains built but feature-flagged off (paused, not removed). "Vision" below is unscheduled future scope, not counted toward this roadmap.
+Phases 1–6 are Completed; Phase 7 is in progress (only i18n remains). Ongoing work past this point is maintenance (CVE/dependency remediation) and follow-ups tracked in [`.claude/project-state.md`](../../.claude/project-state.md) "Immediate Next Steps" (e.g. moving auth tokens off `localStorage` to `httpOnly` cookies). The AI recipe assistant (Phase 5) remains built but feature-flagged off (paused, not removed). "Vision" below is unscheduled future scope, not counted toward this roadmap.
 
 ## Vision (post-roadmap)
 

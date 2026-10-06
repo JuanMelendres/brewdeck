@@ -13,7 +13,7 @@ public record ChangePasswordRequest(
                 "Password must not exceed 72 bytes (fewer characters if it uses accents or emoji)")
         String currentPassword,
     @NotBlank
-        @Size(min = 8, message = "New password must be at least 8 characters")
+        @Size(min = 8, message = "{validation.newPassword.tooShort}")
         @MaxUtf8Bytes(
             value = 72,
             message =

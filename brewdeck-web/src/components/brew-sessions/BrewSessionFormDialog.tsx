@@ -14,6 +14,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import type { z } from 'zod';
+import { useTranslations } from 'next-intl';
+import { useFieldError } from '@/i18n/useFieldError';
 import { ApiError } from '@/lib/api/client';
 import {
   brewSessionSchema,
@@ -28,21 +30,20 @@ type BrewSessionFormInput = z.input<typeof brewSessionSchema>;
 
 type TextFieldSpec = {
   name: keyof BrewSessionFormValues;
-  label: string;
   multiline?: boolean;
   number?: boolean;
 };
 
 // What was actually brewed, three short parameters to a row on wider screens.
 const BREW_FIELDS: TextFieldSpec[] = [
-  { name: 'actualGrind', label: 'Actual Grind' },
-  { name: 'actualTemp', label: 'Actual Temp', number: true },
-  { name: 'actualTime', label: 'Actual Time' },
+  { name: 'actualGrind' },
+  { name: 'actualTemp', number: true },
+  { name: 'actualTime' },
 ];
 
 const RESULT_NOTE_FIELDS: TextFieldSpec[] = [
-  { name: 'tasteResult', label: 'Taste Result', multiline: true },
-  { name: 'adjustmentNotes', label: 'Adjustment Notes', multiline: true },
+  { name: 'tasteResult', multiline: true },
+  { name: 'adjustmentNotes', multiline: true },
 ];
 
 function toDefaults(recipeId?: number): BrewSessionFormInput {
@@ -66,6 +67,10 @@ export function BrewSessionFormDialog({
   recipeId?: number;
   onClose: () => void;
 }) {
+  const t = useTranslations('brewSessions.form');
+  const tf = useTranslations('brewSessions.fields');
+  const tc = useTranslations('common');
+  const fieldError = useFieldError();
   const create = useCreateBrewSession();
   const notify = useNotify();
   const recipeOptions = useRecipeOptions();
@@ -88,7 +93,7 @@ export function BrewSessionFormDialog({
     setServerError(null);
     create.mutate(data, {
       onSuccess: () => {
-        notify('Brew session logged');
+        notify(t('logged'));
         onClose();
       },
       onError: (error: unknown) => {
@@ -97,7 +102,7 @@ export function BrewSessionFormDialog({
             setError(field as keyof BrewSessionFormValues, { message }),
           );
         } else {
-          setServerError(error instanceof Error ? error.message : 'Something went wrong');
+          setServerError(error instanceof Error ? error.message : tc('genericError'));
         }
       },
     });
@@ -105,21 +110,21 @@ export function BrewSessionFormDialog({
 
   const renderTextField = (f: TextFieldSpec) => (
     <TextField
-      label={f.label}
+      label={tf(f.name)}
       type={f.number ? 'number' : 'text'}
       multiline={f.multiline}
       minRows={f.multiline ? 3 : undefined}
       size="small"
       fullWidth
       error={Boolean(errors[f.name])}
-      helperText={errors[f.name]?.message}
+      helperText={fieldError(errors[f.name]?.message)}
       {...register(f.name)}
     />
   );
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>Add brew session</DialogTitle>
+      <DialogTitle>{t('title')}</DialogTitle>
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <DialogContent>
           {serverError ? (
@@ -128,7 +133,7 @@ export function BrewSessionFormDialog({
             </Alert>
           ) : null}
           <Stack spacing={3}>
-            <FormSection title="Brew">
+            <FormSection title={t('sectionBrew')}>
               <Grid size={12}>
                 <Controller
                   name="recipeId"
@@ -138,7 +143,7 @@ export function BrewSessionFormDialog({
                       select
                       // A native select always shows its first option, so the label must sit above it.
                       slotProps={{ select: { native: true }, inputLabel: { shrink: true } }}
-                      label="Recipe"
+                      label={tf('recipeId')}
                       required
                       size="small"
                       fullWidth
@@ -146,10 +151,10 @@ export function BrewSessionFormDialog({
                       value={field.value ?? ''}
                       onChange={field.onChange}
                       error={Boolean(errors.recipeId)}
-                      helperText={errors.recipeId?.message}
+                      helperText={fieldError(errors.recipeId?.message)}
                     >
                       <option value="">
-                        {recipeOptions.isLoading ? 'Loading…' : 'Select a recipe'}
+                        {recipeOptions.isLoading ? tc('loadingEllipsis') : t('selectRecipe')}
                       </option>
                       {(recipeOptions.data ?? []).map((option) => (
                         <option key={option.id} value={option.id}>
@@ -166,9 +171,9 @@ export function BrewSessionFormDialog({
                 </Grid>
               ))}
             </FormSection>
-            <FormSection title="Result">
+            <FormSection title={t('sectionResult')}>
               <Grid size={{ xs: 12, sm: 4 }}>
-                {renderTextField({ name: 'rating', label: 'Rating', number: true })}
+                {renderTextField({ name: 'rating', number: true })}
               </Grid>
               {RESULT_NOTE_FIELDS.map((f) => (
                 <Grid key={f.name} size={12}>
@@ -180,7 +185,7 @@ export function BrewSessionFormDialog({
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose} disabled={pending}>
-            Cancel
+            {tc('cancel')}
           </Button>
           <Button
             type="submit"
@@ -188,7 +193,7 @@ export function BrewSessionFormDialog({
             disabled={pending}
             startIcon={pending ? <CircularProgress size={16} /> : undefined}
           >
-            Create
+            {tc('create')}
           </Button>
         </DialogActions>
       </form>

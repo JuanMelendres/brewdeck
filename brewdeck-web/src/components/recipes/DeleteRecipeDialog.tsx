@@ -9,6 +9,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useDeleteRecipe } from '@/hooks/useRecipeMutations';
 import type { Recipe } from '@/lib/api/types';
 import { useNotify } from '@/lib/notifications/NotificationProvider';
@@ -22,6 +23,8 @@ export function DeleteRecipeDialog({
   recipe: Recipe;
   onClose: () => void;
 }) {
+  const t = useTranslations('recipes.delete');
+  const tc = useTranslations('common');
   const del = useDeleteRecipe();
   const [error, setError] = useState<string | null>(null);
   const notify = useNotify();
@@ -30,16 +33,16 @@ export function DeleteRecipeDialog({
     setError(null);
     del.mutate(recipe.id, {
       onSuccess: () => {
-        notify(`Recipe "${recipe.name}" deleted`);
+        notify(t('deleted', { name: recipe.name }));
         onClose();
       },
-      onError: (e: unknown) => setError(e instanceof Error ? e.message : 'Something went wrong'),
+      onError: (e: unknown) => setError(e instanceof Error ? e.message : tc('genericError')),
     });
   };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
-      <DialogTitle>Delete recipe</DialogTitle>
+      <DialogTitle>{t('title')}</DialogTitle>
       <DialogContent>
         {error ? (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -47,12 +50,12 @@ export function DeleteRecipeDialog({
           </Alert>
         ) : null}
         <DialogContentText>
-          Delete recipe &ldquo;{recipe.name}&rdquo;? This cannot be undone.
+          {t('confirm', { name: recipe.name })}
         </DialogContentText>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} disabled={del.isPending}>
-          Cancel
+          {tc('cancel')}
         </Button>
         <Button
           color="error"
@@ -61,7 +64,7 @@ export function DeleteRecipeDialog({
           disabled={del.isPending}
           startIcon={del.isPending ? <CircularProgress size={16} /> : undefined}
         >
-          Delete
+          {tc('delete')}
         </Button>
       </DialogActions>
     </Dialog>
