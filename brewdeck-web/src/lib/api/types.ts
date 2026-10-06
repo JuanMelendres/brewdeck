@@ -149,9 +149,12 @@ export type UserResponse = {
   role: UserRole;
   /** `null` until the user picks a theme; the app then shows its one-time theme dialog. */
   themePreference: ThemePreference | null;
+  /** Chosen UI language; null until the user picks one (the app then follows the browser). */
+  language: Language | null;
   createdAt: string;
 };
 
 export type UserRole = 'USER' | 'ADMIN';
 
 export type ThemePreference = 'LIGHT' | 'DARK';
+export type Language = 'EN' | 'ES';
