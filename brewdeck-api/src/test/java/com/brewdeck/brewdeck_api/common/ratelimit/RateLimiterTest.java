@@ -3,12 +3,15 @@ package com.brewdeck.brewdeck_api.common.ratelimit;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.brewdeck.brewdeck_api.common.i18n.TestMessages;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.util.Locale;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.MessageSource;
 
 class RateLimiterTest {
 
@@ -102,9 +105,17 @@ class RateLimiterTest {
 
   @Test
   void messageUsesWholeMinutes() {
-    assertThat(RateLimitMessages.tooManyAttempts(30))
+    MessageSource messages = TestMessages.messageSource();
+    assertThat(RateLimitMessages.tooManyAttempts(messages, Locale.ENGLISH, 30))
         .isEqualTo("Too many attempts. Try again in a minute.");
-    assertThat(RateLimitMessages.tooManyAttempts(61))
+    assertThat(RateLimitMessages.tooManyAttempts(messages, Locale.ENGLISH, 61))
         .isEqualTo("Too many attempts. Try again in 2 minutes.");
+  }
+
+  @Test
+  void messageIsInTheRequestLanguage() {
+    MessageSource messages = TestMessages.messageSource();
+    assertThat(RateLimitMessages.tooManyAttempts(messages, Locale.forLanguageTag("es"), 61))
+        .isEqualTo("Demasiados intentos. Inténtalo de nuevo en 2 minutos.");
   }
 }

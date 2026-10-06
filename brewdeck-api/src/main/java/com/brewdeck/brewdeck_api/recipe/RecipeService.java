@@ -109,7 +109,7 @@ public class RecipeService {
     // Brew sessions are the user's history; never delete them implicitly.
     long sessions = brewSessionRepository.countByRecipeId(id);
     if (sessions > 0) {
-      throw ResourceInUseException.of("Recipe", sessions, "brew session", "brew sessions");
+      throw ResourceInUseException.of(ResourceInUseException.Resource.RECIPE, sessions);
     }
 
     recipeRepository.deleteById(id);

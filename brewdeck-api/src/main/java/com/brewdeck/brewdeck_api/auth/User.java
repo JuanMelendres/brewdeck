@@ -35,6 +35,10 @@ public class User {
   @Column(name = "theme_preference", length = 10)
   private ThemePreference themePreference;
 
+  @Enumerated(EnumType.STRING)
+  @Column(length = 5)
+  private Language language;
+
   @Column(name = "email_verified", nullable = false)
   private boolean emailVerified;
 

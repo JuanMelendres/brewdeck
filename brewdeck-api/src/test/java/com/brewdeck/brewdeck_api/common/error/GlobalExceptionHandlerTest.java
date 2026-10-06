@@ -2,6 +2,7 @@ package com.brewdeck.brewdeck_api.common.error;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.brewdeck.brewdeck_api.common.i18n.TestMessages;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.system.CapturedOutput;
@@ -16,7 +17,8 @@ import org.springframework.web.server.ResponseStatusException;
 @ExtendWith(OutputCaptureExtension.class)
 class GlobalExceptionHandlerTest {
 
-  private final GlobalExceptionHandler handler = new GlobalExceptionHandler();
+  private final GlobalExceptionHandler handler =
+      new GlobalExceptionHandler(TestMessages.messageSource());
 
   private MockHttpServletRequest request(String method, String uri) {
     return new MockHttpServletRequest(method, uri);

@@ -7,6 +7,7 @@ import com.brewdeck.brewdeck_api.auth.InvalidCurrentPasswordException;
 import com.brewdeck.brewdeck_api.auth.refresh.InvalidRefreshTokenException;
 import com.brewdeck.brewdeck_api.auth.reset.InvalidResetTokenException;
 import com.brewdeck.brewdeck_api.auth.verification.InvalidVerificationTokenException;
+import com.brewdeck.brewdeck_api.common.i18n.LocaleConfig;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitExceededException;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitMessages;
 import com.brewdeck.brewdeck_api.featureflag.FeatureDisabledException;
@@ -14,8 +15,11 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.http.HttpHeaders;
@@ -33,6 +37,28 @@ import org.springframework.web.util.HtmlUtils;
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
+
+  private final MessageSource messageSource;
+
+  public GlobalExceptionHandler(MessageSource messageSource) {
+    this.messageSource = messageSource;
+  }
+
+  /** A message from messages*.properties in the request's language (ADR-015). */
+  private String message(String key, Object... args) {
+    return messageSource.getMessage(key, args, requestLocale());
+  }
+
+  /**
+   * The locale the DispatcherServlet resolved for this request. Outside a request there is none,
+   * and {@link LocaleContextHolder#getLocale()} would fall back to the JVM's locale, so use
+   * English.
+   */
+  private static Locale requestLocale() {
+    return LocaleContextHolder.getLocaleContext() == null
+        ? LocaleConfig.DEFAULT_LOCALE
+        : LocaleContextHolder.getLocale();
+  }
 
   @ExceptionHandler(EntityNotFoundException.class)
   public ResponseEntity<ErrorResponse> handleEntityNotFoundException(
@@ -63,7 +89,7 @@ public class GlobalExceptionHandler {
     ErrorResponse errorResponse =
         buildErrorResponse(
             HttpStatus.BAD_REQUEST,
-            "Validation failed",
+            message("error.validationFailed"),
             sanitize(request.getRequestURI()),
             validationErrors);
 
@@ -76,7 +102,7 @@ public class GlobalExceptionHandler {
     ErrorResponse errorResponse =
         buildErrorResponse(
             HttpStatus.BAD_REQUEST,
-            "Malformed request body",
+            message("error.malformedBody"),
             sanitize(request.getRequestURI()),
             null);
 
@@ -89,7 +115,7 @@ public class GlobalExceptionHandler {
     ErrorResponse errorResponse =
         buildErrorResponse(
             HttpStatus.BAD_REQUEST,
-            "Invalid value for parameter '" + sanitize(exception.getName()) + "'",
+            message("error.invalidParameter", sanitize(exception.getName())),
             sanitize(request.getRequestURI()),
             null);
 
@@ -102,7 +128,7 @@ public class GlobalExceptionHandler {
     ErrorResponse errorResponse =
         buildErrorResponse(
             HttpStatus.BAD_REQUEST,
-            "Invalid sort property '" + sanitize(exception.getPropertyName()) + "'",
+            message("error.invalidSort", sanitize(exception.getPropertyName())),
             sanitize(request.getRequestURI()),
             null);
 
@@ -115,7 +141,7 @@ public class GlobalExceptionHandler {
     ErrorResponse errorResponse =
         buildErrorResponse(
             HttpStatus.UNAUTHORIZED,
-            "Invalid email or password",
+            message("error.badCredentials"),
             sanitize(request.getRequestURI()),
             null);
 
@@ -128,7 +154,7 @@ public class GlobalExceptionHandler {
     ErrorResponse errorResponse =
         buildErrorResponse(
             HttpStatus.UNAUTHORIZED,
-            "Refresh token is invalid or has expired",
+            message("error.invalidRefreshToken"),
             sanitize(request.getRequestURI()),
             null);
 
@@ -141,7 +167,7 @@ public class GlobalExceptionHandler {
     ErrorResponse errorResponse =
         buildErrorResponse(
             HttpStatus.BAD_REQUEST,
-            "Verification token is invalid or has expired",
+            message("error.invalidVerificationToken"),
             sanitize(request.getRequestURI()),
             null);
 
@@ -154,7 +180,7 @@ public class GlobalExceptionHandler {
     ErrorResponse errorResponse =
         buildErrorResponse(
             HttpStatus.BAD_REQUEST,
-            "Reset token is invalid or has expired",
+            message("error.invalidResetToken"),
             sanitize(request.getRequestURI()),
             null);
 
@@ -167,7 +193,7 @@ public class GlobalExceptionHandler {
     ErrorResponse errorResponse =
         buildErrorResponse(
             HttpStatus.BAD_REQUEST,
-            "Current password is incorrect",
+            message("error.currentPasswordIncorrect"),
             sanitize(request.getRequestURI()),
             null);
 
@@ -181,7 +207,7 @@ public class GlobalExceptionHandler {
     ErrorResponse errorResponse =
         buildErrorResponse(
             HttpStatus.TOO_MANY_REQUESTS,
-            RateLimitMessages.tooManyAttempts(retryAfterSeconds),
+            RateLimitMessages.tooManyAttempts(messageSource, requestLocale(), retryAfterSeconds),
             sanitize(request.getRequestURI()),
             null);
 
@@ -196,7 +222,7 @@ public class GlobalExceptionHandler {
     ErrorResponse errorResponse =
         buildErrorResponse(
             HttpStatus.FORBIDDEN,
-            "Insufficient permissions",
+            message("error.forbidden"),
             sanitize(request.getRequestURI()),
             null);
 
@@ -222,7 +248,7 @@ public class GlobalExceptionHandler {
     ErrorResponse errorResponse =
         buildErrorResponse(
             HttpStatus.CONFLICT,
-            sanitize(exception.getMessage()),
+            message(exception.getMessageKey(), exception.getCount()),
             sanitize(request.getRequestURI()),
             null);
 
@@ -235,7 +261,7 @@ public class GlobalExceptionHandler {
     ErrorResponse errorResponse =
         buildErrorResponse(
             HttpStatus.CONFLICT,
-            "Data integrity violation",
+            message("error.dataIntegrity"),
             sanitize(request.getRequestURI()),
             null);
 
@@ -248,7 +274,7 @@ public class GlobalExceptionHandler {
     ErrorResponse errorResponse =
         buildErrorResponse(
             HttpStatus.SERVICE_UNAVAILABLE,
-            "AI suggestion service is unavailable",
+            message("error.aiUnavailable"),
             sanitize(request.getRequestURI()),
             null);
 
@@ -261,7 +287,7 @@ public class GlobalExceptionHandler {
     ErrorResponse errorResponse =
         buildErrorResponse(
             HttpStatus.UNPROCESSABLE_ENTITY,
-            "Recipe has no rated brew sessions to improve from",
+            message("error.noRatedHistory"),
             sanitize(request.getRequestURI()),
             null);
 
@@ -277,8 +303,8 @@ public class GlobalExceptionHandler {
     HttpStatus status = exception.getStatus();
     String message =
         status == HttpStatus.SERVICE_UNAVAILABLE
-            ? "This feature is temporarily unavailable"
-            : "This feature is not available";
+            ? message("error.featureUnavailable")
+            : message("error.featureNotAvailable");
     ErrorResponse errorResponse =
         buildErrorResponse(status, message, sanitize(request.getRequestURI()), null);
 
@@ -304,7 +330,7 @@ public class GlobalExceptionHandler {
     ErrorResponse errorResponse =
         buildErrorResponse(
             HttpStatus.INTERNAL_SERVER_ERROR,
-            "Unexpected error occurred",
+            message("error.unexpected"),
             sanitize(request.getRequestURI()),
             null);
 
@@ -358,6 +384,8 @@ public class GlobalExceptionHandler {
       return null;
     }
 
-    return HtmlUtils.htmlEscape(value);
+    // With an encoding, only markup characters (<>&"') are escaped; accents and symbols such as
+    // "é" or "°" stay readable instead of becoming "&eacute;" (Spanish messages, ADR-015).
+    return HtmlUtils.htmlEscape(value, "UTF-8");
   }
 }
