@@ -1,3 +1,4 @@
+import { DEFAULT_LOCALE } from '@/i18n/config';
 import { API_BASE_URL } from '@/config/env';
 import { EMAIL_NOT_VERIFIED, notifyEmailNotVerified } from '@/lib/auth/emailVerificationSignal';
 import { clearTokens, getToken, setToken } from '@/lib/auth/tokenStore';
@@ -30,6 +31,16 @@ export class ApiError extends Error {
  * cannot add a custom header without a CORS preflight, so its presence proves a same-origin call.
  */
 export const CSRF_HEADER: Record<string, string> = { 'X-Requested-With': 'fetch' };
+
+/**
+ * The app's active language, which the server render writes to `<html lang>`. Sent as
+ * `Accept-Language` so API messages and emails match the UI (ADR-015); otherwise the browser
+ * would send its own language and a Spanish browser would get Spanish messages in an English UI.
+ */
+export function appLanguage(): string {
+  const lang = typeof document === 'undefined' ? '' : document.documentElement.lang;
+  return lang || DEFAULT_LOCALE;
+}
 
 /** Web Locks name shared by every tab of this origin. */
 const REFRESH_LOCK = 'brewdeck-refresh';
@@ -98,6 +109,7 @@ export async function apiFetch<T>(
     headers: {
       'Content-Type': 'application/json',
       ...CSRF_HEADER,
+      'Accept-Language': appLanguage(),
       ...authHeader,
       ...init?.headers,
     },

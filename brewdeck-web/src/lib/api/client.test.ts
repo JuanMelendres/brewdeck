@@ -36,6 +36,30 @@ afterEach(() => {
 });
 
 describe('apiFetch', () => {
+  it('sends the app language, not the browser language, as Accept-Language', async () => {
+    document.documentElement.lang = 'es';
+    mockFetchOnce({}, { ok: true, status: 200 });
+
+    try {
+      await apiFetch('/api/thing');
+    } finally {
+      document.documentElement.lang = '';
+    }
+
+    const [, init] = vi.mocked(fetch).mock.calls[0] as unknown as [string, RequestInit];
+    expect(init.headers).toMatchObject({ 'Accept-Language': 'es' });
+  });
+
+  it('falls back to English when the page has no language', async () => {
+    document.documentElement.lang = '';
+    mockFetchOnce({}, { ok: true, status: 200 });
+
+    await apiFetch('/api/thing');
+
+    const [, init] = vi.mocked(fetch).mock.calls[0] as unknown as [string, RequestInit];
+    expect(init.headers).toMatchObject({ 'Accept-Language': 'en' });
+  });
+
   it('returns parsed JSON on a 2xx response', async () => {
     mockFetchOnce({ value: 42 }, { ok: true, status: 200 });
 
