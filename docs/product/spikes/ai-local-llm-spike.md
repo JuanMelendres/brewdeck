@@ -204,7 +204,7 @@ Decision pending (owner review).
    - Method-aware validation, a per-user rate limit, and provenance fields.
    - Unit tests with a stubbed Ollama, plus a manual run on the real model.
 3. Re-enable `brew-recipe-ai-assistant` in `local` only, and try it in the app.
-4. Separate fix: method-aware temperature limits for Cold Brew (Finding 7).
+4. ~~Separate fix for Cold Brew (Finding 7).~~ Done: brew temperatures accept 0–100 °C (`fix/cold-brew-temperature`).
 5. Later, only if needed: the Jackson 3 migration, then Spring AI; production hosting; the
    chat assistant and RAG.
 
