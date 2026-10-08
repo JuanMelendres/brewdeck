@@ -18,7 +18,9 @@ public enum RateLimitRule {
   RESET_PASSWORD_IP(10, Duration.ofMinutes(15)),
   VERIFY_EMAIL_IP(10, Duration.ofMinutes(15)),
   // Authenticated, keyed by the account email: stops a user from flooding their own inbox.
-  RESEND_VERIFICATION_EMAIL(3, Duration.ofHours(1));
+  RESEND_VERIFICATION_EMAIL(3, Duration.ofHours(1)),
+  // AI suggest/improve, keyed by user id: a local model costs CPU time, a hosted one money.
+  AI_ASSISTANT_USER(10, Duration.ofMinutes(1));
 
   private final int limit;
   private final Duration window;

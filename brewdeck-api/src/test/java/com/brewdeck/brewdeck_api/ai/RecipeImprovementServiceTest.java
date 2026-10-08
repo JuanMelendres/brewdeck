@@ -11,6 +11,8 @@ import static org.mockito.Mockito.when;
 import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
 import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.coffee.Coffee;
+import com.brewdeck.brewdeck_api.common.i18n.TestMessages;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
 import com.brewdeck.brewdeck_api.featureflag.FeatureDisabledException;
 import com.brewdeck.brewdeck_api.featureflag.FeatureFlagService;
 import com.brewdeck.brewdeck_api.featureflag.FeatureKeys;
@@ -46,9 +48,17 @@ class RecipeImprovementServiceTest {
         recipeRepository,
         brewSessionRepository,
         port,
-        new AiProperties(true, "claude-haiku-4-5", 20, 1024),
+        new AiProperties(
+            true,
+            "claude",
+            "claude-haiku-4-5",
+            20,
+            1024,
+            new AiProperties.Ollama("http://localhost:11434", "qwen3:8b", 90, 1024)),
         currentUserProvider,
-        featureFlagService);
+        featureFlagService,
+        new RateLimiter(false),
+        new SuggestionGuardrails(TestMessages.messageSource()));
   }
 
   private Recipe sampleRecipe() {
