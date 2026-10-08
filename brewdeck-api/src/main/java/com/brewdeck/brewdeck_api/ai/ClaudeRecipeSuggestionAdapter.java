@@ -18,14 +18,15 @@ public class ClaudeRecipeSuggestionAdapter implements RecipeSuggestionPort {
 
   private static final String SYSTEM_PROMPT =
       "You are an expert barista. Given a coffee and a brew method, return brewing parameters"
-          + " as structured data only. Water temperature is in degrees Celsius, between 70 and 100."
+          + " as structured data only. Water temperature is in degrees Celsius, between 0 and 100:"
+          + " hot methods usually use 85 to 96, cold brew uses cold water."
           + " Keep steps and rationale concise.";
 
   private static final String IMPROVE_SYSTEM_PROMPT =
       "You are an expert barista tuning an existing coffee recipe using its brew history."
           + " Given the current parameters and recent rated brews, return improved brewing"
           + " parameters as structured data only. Water temperature is in degrees Celsius,"
-          + " between 70 and 100. Keep steps concise, and use the rationale to explain what you"
+          + " between 0 and 100 (cold brew uses cold water). Keep steps concise, and use the rationale to explain what you"
           + " changed and why.";
 
   private final AnthropicClient client;

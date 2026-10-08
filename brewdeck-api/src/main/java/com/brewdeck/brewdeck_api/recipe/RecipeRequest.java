@@ -24,7 +24,7 @@ public record RecipeRequest(
         BigDecimal waterGrams,
     @Size(max = 20, message = "{validation.ratio.tooLong}") String ratio,
     @Size(max = 120, message = "{validation.grindSetting.tooLong}") String grindSetting,
-    @Min(value = 70, message = "{validation.waterTemp.min}")
+    @Min(value = 0, message = "{validation.waterTemp.min}")
         @Max(value = 100, message = "{validation.waterTemp.max}")
         Integer waterTemp,
     @Size(max = 20, message = "{validation.brewTime.tooLong}") String brewTime,

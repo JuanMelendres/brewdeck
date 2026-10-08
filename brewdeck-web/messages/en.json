@@ -49,7 +49,7 @@
       "waterGramsTooHigh": "Water grams must not exceed 9999.99",
       "ratioTooLong": "Ratio must not exceed 20 characters",
       "grindSettingTooLong": "Grind setting must not exceed 120 characters",
-      "waterTempTooLow": "Water temperature must be at least 70 degrees Celsius",
+      "waterTempTooLow": "Water temperature must be at least 0 degrees Celsius",
       "waterTempTooHigh": "Water temperature must not exceed 100 degrees Celsius",
       "brewTimeTooLong": "Brew time must not exceed 20 characters",
       "stepsTooLong": "Steps must not exceed 1000 characters",
@@ -64,7 +64,7 @@
     "brewSession": {
       "recipeRequired": "Recipe is required",
       "actualGrindTooLong": "Actual grind must not exceed 120 characters",
-      "actualTempTooLow": "Actual temperature must be at least 70 degrees Celsius",
+      "actualTempTooLow": "Actual temperature must be at least 0 degrees Celsius",
       "actualTempTooHigh": "Actual temperature must not exceed 100 degrees Celsius",
       "actualTimeTooLong": "Actual time must not exceed 20 characters",
       "tasteResultTooLong": "Taste result must not exceed 1000 characters",
