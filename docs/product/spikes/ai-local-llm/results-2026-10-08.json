@@ -1,0 +1,455 @@
+{
+ "ranAt": "2026-10-08",
+ "machine": "Apple M4, 24 GB RAM, Ollama 0.40.1 (native, Metal)",
+ "results": [
+  {
+   "model": "llama3.2:3b",
+   "scenario": "s1-v60",
+   "seconds": 5.6,
+   "tokens_per_s": 36.1,
+   "valid": true,
+   "issues": [],
+   "data": {
+    "coffeeGrams": 17,
+    "waterGrams": 300,
+    "ratio": ":[",
+    "grindSetting": ":[",
+    "waterTemp": 92,
+    "brewTime": ":",
+    "steps": "1. Calienta el agua a 92°C. 2. Prepara la cafetera con 17 gramos de café. 3. Coloca el filtro en la cafetera y vierte el agua en un ritmo constante. 4. Deja que el café se filtre durante 2 minutos y 30 segundos.",
+    "rationale": "Para el V60, es importante mantener un ritmo constante para evitar el exceso de gravedad y preservar la claridad y el aroma del café."
+   }
+  },
+  {
+   "model": "llama3.2:3b",
+   "scenario": "s2-aeropress",
+   "seconds": 6.2,
+   "tokens_per_s": 36.5,
+   "valid": true,
+   "issues": [],
+   "data": {
+    "coffeeGrams": 17,
+    "waterGrams": 240,
+    "ratio": "P:G = 1:14",
+    "grindSetting": "Fino",
+    "waterTemp": 85,
+    "brewTime": "T = 1:45",
+    "steps": "1. Calentar el agua a 85°C. 2. Macinar el café fino. 3. Agregar el café a la AeroPress. 4. Presionar el plunger hasta el límite de tiempo.",
+    "rationale": "Para una taza dulce y limpia, es necesario encontrar el equilibrio perfecto entre el café y el agua. La proporción de 1:14 garantiza una extracción adecuada. La gravedad fina del café es ideal para la AeroPress. El tiempo de extracción de 1:45 asegura una extracción justa sin sobrecalentar el café."
+   }
+  },
+  {
+   "model": "llama3.2:3b",
+   "scenario": "s3-espresso",
+   "seconds": 5.0,
+   "tokens_per_s": 36.5,
+   "valid": true,
+   "issues": [
+    "water/coffee 16.0 outside 1.5-3"
+   ],
+   "data": {
+    "coffeeGrams": 17.5,
+    "waterGrams": 280,
+    "ratio": "For espresso, un ratio de 1:15 a 1:17 es recomendable.",
+    "grindSetting": "Grind el café a un tamaño finamente rallado.",
+    "waterTemp": 90,
+    "brewTime": "One shot, 20-30 segundos.",
+    "steps": "1. Calienta el agua a 90°C. 2. Preparar el café con un grano de 17.5 gramos. 3. Extracción a presión durante 20-30 segundos.",
+    "rationale": "Para un double shot, duplica los ingredientes y ajusta el tiempo de extracción según sea necesario."
+   }
+  },
+  {
+   "model": "llama3.2:3b",
+   "scenario": "s4-frenchpress",
+   "seconds": 7.1,
+   "tokens_per_s": 36.4,
+   "valid": true,
+   "issues": [],
+   "data": {
+    "coffeeGrams": 17,
+    "waterGrams": 240,
+    "ratio": ":",
+    "grindSetting": ":",
+    "waterTemp": 96,
+    "brewTime": ":",
+    "steps": "1. Caliente el agua a 96°C.2. Mezcla el café y el agua en un tazón.3. Agita suavemente durante 2 minutos.4. Deja reposar durante 4 minutos.5. Presiona suavemente el café para separar el líquido del grano.",
+    "rationale": "Para un French Press, es importante calentar el agua a una temperatura moderada para evitar sobrecalentar el café. Mezclar el café y el agua en un tazón permite una uniforme saturación. Agitar suavemente evita la formación de burbujas que pueden afectar la calidad del café. Dejar reposar permite que el café se extraiga completamente. Finalmente, presionar suavemente separa el líquido del grano y permite disfrutar del café."
+   }
+  },
+  {
+   "model": "llama3.2:3b",
+   "scenario": "s5-chemex",
+   "seconds": 7.0,
+   "tokens_per_s": 36.1,
+   "valid": true,
+   "issues": [
+    "water/coffee 20.0 outside 14-18"
+   ],
+   "data": {
+    "coffeeGrams": 30,
+    "waterGrams": 600,
+    "ratio": "Well above 1:20",
+    "grindSetting": "Fine",
+    "waterTemp": 85,
+    "brewTime": "Now, 4:00-4:30 min",
+    "steps": "1. Calienta el agua a 85°C. 2. Mezcla el café con el agua en una proporción de 1:20. 3. Vierte el agua sobre el café en el Chemex. 4. Deja que el café se infunde durante 4:00-4:30 min.",
+    "rationale": "Para un Chemex, se recomienda un ratio de 1:20 para evitar un sabor demasiado intenso. La temperatura del agua debe ser de 85°C para aprovechar al máximo las notas cítricas de la Geisha El Triunfo. El tiempo de infusión debe ser de 4:00-4:30 min para equilibrar la acidez y el sabor del café."
+   }
+  },
+  {
+   "model": "llama3.2:3b",
+   "scenario": "s6-coldbrew",
+   "seconds": 5.2,
+   "tokens_per_s": 35.6,
+   "valid": true,
+   "issues": [
+    "water/coffee 1.6 outside 4-12"
+   ],
+   "data": {
+    "coffeeGrams": 425,
+    "waterGrams": 680,
+    "ratio": "osmosis ratio",
+    "grindSetting": "coarse",
+    "waterTemp": 75,
+    "brewTime": "12-24 horas",
+    "steps": "1. Mezcla el café y el agua en un recipiente. 2. Deja reposar en el refrigerador durante 12-24 horas. 3. Vierte el líquido en un recipiente separado.",
+    "rationale": "Para el Pluma Hidalgo, se requiere un ratio de 1:15.5. La grana debe ser gruesa para evitar el exceso de extracción. La temperatura del agua debe ser de 75°C para evitar el exceso de acidez."
+   }
+  },
+  {
+   "model": "llama3.2:3b",
+   "scenario": "i1-v60-sour",
+   "seconds": 6.4,
+   "tokens_per_s": 35.7,
+   "valid": true,
+   "issues": [],
+   "data": {
+    "coffeeGrams": 15,
+    "waterGrams": 250,
+    "ratio": "F:1-16.7",
+    "grindSetting": "F:medium-fine",
+    "waterTemp": 90,
+    "brewTime": "2:15",
+    "steps": "[{\"step\": \"bloom\", \"gramCoffee\": 40, \"time\": 30}, {\"step\": \"pour\", \"gramWater\": 250}]",
+    "rationale": "Se ajusta el grano para 22 clicks, se reduce la temperatura para 90°C y se ajusta el tiempo de infusión para 2:15. La razón se mantiene en 1:16.7. El objetivo es equilibrar la acidez y la cuerpo, evitando la acidez excesiva y la falta de cuerpo."
+   }
+  },
+  {
+   "model": "llama3.2:3b",
+   "scenario": "i2-fp-bitter",
+   "seconds": 31.3,
+   "tokens_per_s": 33.7,
+   "valid": false,
+   "issues": [
+    "not JSON",
+    "hit the 1024-token cap (runaway)"
+   ],
+   "data": null
+  },
+  {
+   "model": "llama3.1:8b",
+   "scenario": "s1-v60",
+   "seconds": 19.9,
+   "tokens_per_s": 14.5,
+   "valid": true,
+   "issues": [
+    "water/coffee 11.3 outside 14-18"
+   ],
+   "data": {
+    "coffeeGrams": 30,
+    "waterGrams": 340,
+    "ratio": "> 1:11.3",
+    "grindSetting": "Medium-coarse",
+    "waterTemp": 93,
+    "brewTime": "> 3:30",
+    "steps": "1. Calentar el agua a 93°C. 2. Moler el café a un ajuste medio-grueso. 3. Colocar el filtro en la cafetera V60. 4. Ebullición: 3:30. 5. Servir inmediatamente.",
+    "rationale": "El café Finca La Pastoría es de origen mexicano, con un proceso de lavado y un tostado ligero. Se busca resaltar su alta acidez y aroma. La proporción de agua y café es alta para enfatizar la claridad y la acidez. La temperatura del agua es óptima para este tipo de café. El ajuste de molienda es medio-grueso para permitir una extracción adecuada. El tiempo de ebullición es prolongado para extraer los sabores y aromas del café."
+   }
+  },
+  {
+   "model": "llama3.1:8b",
+   "scenario": "s2-aeropress",
+   "seconds": 15.8,
+   "tokens_per_s": 14.3,
+   "valid": true,
+   "issues": [],
+   "data": {
+    "coffeeGrams": 17,
+    "waterGrams": 240,
+    "ratio": "1:14",
+    "grindSetting": "Fine",
+    "waterTemp": 93,
+    "brewTime": "1:45",
+    "steps": "Pesar 17g de café Pluma Hidalgo. Calentar 240g de agua a 93°C. Moler el café a un ajuste fino. Iniciar el proceso de inmersión en el AeroPress. Esperar 1:45 minutos. Presionar suavemente para separar las partículas de café.",
+    "rationale": "El Pluma Hidalgo es un café de Oaxaca con un sabor suave y limpio. Para resaltar estos características, se utilizará un ajuste de molienda fino y una temperatura de agua baja. El ratio de 1:14 permitirá una extracción suave y equilibrada."
+   }
+  },
+  {
+   "model": "llama3.1:8b",
+   "scenario": "s3-espresso",
+   "seconds": 13.1,
+   "tokens_per_s": 14.4,
+   "valid": true,
+   "issues": [],
+   "data": {
+    "coffeeGrams": 14,
+    "waterGrams": 28,
+    "ratio": ">= 1:2",
+    "grindSetting": "Fine",
+    "waterTemp": 93,
+    "brewTime": "20-30 segundos",
+    "steps": "1. Calentar el agua a 93°C. 2. Moler el café con ajuste fino. 3. Colocar el café en el portafilter. 4. Realizar un doble disparo con un tiempo de extracción de 20-30 segundos.",
+    "rationale": "La naturaleza del proceso natural requiere un ajuste de molienda fino para evitar la extracción excesiva. El doble disparo se ajusta a la nota del usuario."
+   }
+  },
+  {
+   "model": "llama3.1:8b",
+   "scenario": "s4-frenchpress",
+   "seconds": 23.0,
+   "tokens_per_s": 13.9,
+   "valid": true,
+   "issues": [
+    "water/coffee 11.7 outside 12-17"
+   ],
+   "data": {
+    "coffeeGrams": 30,
+    "waterGrams": 350,
+    "ratio": ">= 1:11.67",
+    "grindSetting": "Coarse",
+    "waterTemp": 93,
+    "brewTime": "3:30 - 4:00",
+    "steps": "1. Pesar 30g de Sierra Mazateca. 2. Calentar 350g de agua a 93°C. 3. Moler la café con una muela para obtener un ajuste grueso. 4. Colocar la cafetera con el filtro en la superficie plana. 5. Agregar la mezcla de café molido a la cafetera. 6. Agregar el agua caliente a la cafetera. 7. Dejar reposar durante 3:30 - 4:00 minutos. 8. Presionar la cafetera para separar la mezcla de café de la bebida.",
+    "rationale": "El café Sierra Mazateca es un café oscuro con un proceso de melaza. Necesita una temperatura de agua alta para extraer su sabor. El método de French Press es ideal para producir un café rico y con cuerpo, lo que se alinea con las características del café. La relación de 1:11.67 es adecuada para este método y el tipo de café."
+   }
+  },
+  {
+   "model": "llama3.1:8b",
+   "scenario": "s5-chemex",
+   "seconds": 19.2,
+   "tokens_per_s": 13.9,
+   "valid": true,
+   "issues": [],
+   "data": {
+    "coffeeGrams": 32.5,
+    "waterGrams": 475,
+    "ratio": ".15",
+    "grindSetting": "Fine",
+    "waterTemp": 95,
+    "brewTime": "4:15",
+    "steps": "Calentar el agua a 95°C. Moler el café con un ajuste fino. Colocar una capa de café en el Chemex. Verter agua caliente en un patrón circular. Esperar 45 segundos. Verter el resto del agua en un patrón circular. Esperar 3 minutos y 15 segundos. Servir caliente.",
+    "rationale": "La naturaleza del café Geisha El Triunfo requiere una extracción suave para resaltar su acidez y dulzura. La temperatura del agua debe estar dentro del rango óptimo para evitar la amargor. La relación de café a agua es ajustada para lograr un equilibrio entre la acidez y la dulzura. El tiempo de infusión es ajustado para extraer los sabores deseados sin sobrecargar la bebida."
+   }
+  },
+  {
+   "model": "llama3.1:8b",
+   "scenario": "s6-coldbrew",
+   "seconds": 12.0,
+   "tokens_per_s": 14.1,
+   "valid": true,
+   "issues": [
+    "water/coffee 666.7 outside 4-12",
+    "ratio 'There is no ratio for cold brew, so we'll use a general guideline of 1:6 to 1:12' disagrees with grams (666.7)"
+   ],
+   "data": {
+    "coffeeGrams": 1.5,
+    "waterGrams": 1000,
+    "ratio": "There is no ratio for cold brew, so we'll use a general guideline of 1:6 to 1:12",
+    "grindSetting": "Coarse",
+    "waterTemp": 80,
+    "brewTime": ">= 12 hours",
+    "steps": "Coloca la cafeína en un recipiente con agua fría. Deja reposar durante al menos 12 horas. Filtre y disfruta.",
+    "rationale": "El frio ayuda a extraer los sabores y la cafeína sin amargar. La costra gruesa facilita el flujo del agua fría."
+   }
+  },
+  {
+   "model": "llama3.1:8b",
+   "scenario": "i1-v60-sour",
+   "seconds": 14.8,
+   "tokens_per_s": 13.6,
+   "valid": true,
+   "issues": [],
+   "data": {
+    "coffeeGrams": 15,
+    "waterGrams": 270,
+    "ratio": "1:18",
+    "grindSetting": "21 clicks",
+    "waterTemp": 95,
+    "brewTime": "2:40",
+    "steps": "bloom 40 g 30 s, pour to 270 g",
+    "rationale": "Se ajustó la proporción de agua para compensar la acidez excesiva. Se redujo la temperatura del agua para evitar la astringencia. Se ajustó la molienda para encontrar el equilibrio entre claridad y cuerpo. Se aumentó el tiempo de infusión para permitir una extracción más completa."
+   }
+  },
+  {
+   "model": "llama3.1:8b",
+   "scenario": "i2-fp-bitter",
+   "seconds": 15.1,
+   "tokens_per_s": 13.8,
+   "valid": true,
+   "issues": [],
+   "data": {
+    "coffeeGrams": 32.5,
+    "waterGrams": 420,
+    "ratio": "1:13",
+    "grindSetting": "medium-coarse",
+    "waterTemp": 94,
+    "brewTime": "4:45",
+    "steps": "pour, stir, steep, press",
+    "rationale": "Se ajustaron los parámetros para mejorar la acidez y reducir la amargura. Se aumentó la cantidad de café para mantener la riqueza del cuerpo, pero se redujo la cantidad de agua para aumentar la concentración de solubles. Se ajustó la temperatura del agua para evitar el amargor. Se seleccionó un ajuste de molienda más grueso para evitar la turbiedad y el amargor."
+   }
+  },
+  {
+   "model": "qwen3:8b",
+   "scenario": "s1-v60",
+   "seconds": 23.8,
+   "tokens_per_s": 13.2,
+   "valid": true,
+   "issues": [
+    "water/coffee 9.0 outside 14-18"
+   ],
+   "data": {
+    "coffeeGrams": 25,
+    "waterGrams": 225,
+    "ratio": "1:9",
+    "grindSetting": "Fine",
+    "waterTemp": 88,
+    "brewTime": "2:30",
+    "steps": "1. Calienta el agua a 88°C. 2. Vierte 25g de café molido finamente en el V60. 3. Vierte 50g de agua caliente de forma uniforme para saturar el café. 4. Deja reposar 30 segundos. 5. Vierte el resto del agua en tres etapas, manteniendo un flujo constante. 6. Finaliza cuando el agua alcanza el nivel del filtro.",
+    "rationale": "El café Finca La Pastoría tiene un alto nivel de acidez y una baja cuerpo, lo que requiere una extracción suave y controlada. La temperatura del agua más baja (88°C) ayuda a preservar la acidez y el aroma. El ratio 1:9 y la molienda fina permiten una extracción equilibrada que resalta los sabores ácidos y dulces, mientras que el tiempo de infusión controlado evita el desarrollo de amargos."
+   }
+  },
+  {
+   "model": "qwen3:8b",
+   "scenario": "s2-aeropress",
+   "seconds": 20.1,
+   "tokens_per_s": 13.2,
+   "valid": true,
+   "issues": [],
+   "data": {
+    "coffeeGrams": 18,
+    "waterGrams": 220,
+    "ratio": "1:12.2",
+    "grindSetting": "medium fine",
+    "waterTemp": 82,
+    "brewTime": "2:30",
+    "steps": "1. Calienta el agua a 82°C. 2. Vierte el agua en el Aeropress hasta cubrir la molienda. 3. Deja reposar durante 30 segundos. 4. Aplica presión suave durante 1 minuto. 5. Vierte el café en una taza caliente para preservar la temperatura.",
+    "rationale": "La Pluma Hidalgo tiene un perfil dulce y limpio, por lo que se busca un equilibrio entre acidez y cuerpo. El agua a 82°C ayuda a extraer los sabores dulces sin exceso de amargor. La proporción 1:12.2 y el tiempo de infusión permiten resaltar su dulzura y limpieza sin saturar el sabor."
+   }
+  },
+  {
+   "model": "qwen3:8b",
+   "scenario": "s3-espresso",
+   "seconds": 20.2,
+   "tokens_per_s": 13.3,
+   "valid": true,
+   "issues": [],
+   "data": {
+    "coffeeGrams": 18,
+    "waterGrams": 45,
+    "ratio": "1:2.5",
+    "grindSetting": "fine",
+    "waterTemp": 92,
+    "brewTime": "25-30 segundos",
+    "steps": "Precalienta el grupo en 92°C. Ajusta el molino a una molienda fina para lograr una extracción equilibrada. Usa 18g de café para un doble shot. Vierte 45g de agua caliente en el portafiltro. Presiona suavemente para asegurar el contacto del agua con el café. Inicia la extracción y monitorea el tiempo para asegurar una extracción completa sin sobreextracción.",
+    "rationale": "El Coatepec tiene un cuerpo medio-alto y una acidez baja, lo que requiere una extracción equilibrada. La molienda fina y la temperatura de agua alta ayudan a extraer los sabores dulces y el cuerpo. El tiempo de extracción corto evita el amargor excesivo."
+   }
+  },
+  {
+   "model": "qwen3:8b",
+   "scenario": "s4-frenchpress",
+   "seconds": 20.4,
+   "tokens_per_s": 13.3,
+   "valid": true,
+   "issues": [
+    "water/coffee 10.0 outside 12-17"
+   ],
+   "data": {
+    "coffeeGrams": 30,
+    "waterGrams": 300,
+    "ratio": "1:10",
+    "grindSetting": "Coarse",
+    "waterTemp": 92,
+    "brewTime": "4-5 minutos",
+    "steps": "1. Calienta el agua a 92°C. 2. Vierte el agua caliente sobre el café molido en la prensa francesa. 3. Agita suavemente para asegurar el contacto del agua con el café. 4. Deja reposar durante 4-5 minutos. 5. Presiona la prensa para separar el café de la agua.",
+    "rationale": "El café Sierra Mazateca, con su cuerpo alto y amargor medio, se beneficia de una extracción moderada. El agua a 92°C asegura una extracción equilibrada sin sobreextracción. La proporción 1:10 y el molido grueso son ideales para el método de prensa francesa, que favorece el cuerpo y la complejidad del sabor."
+   }
+  },
+  {
+   "model": "qwen3:8b",
+   "scenario": "s5-chemex",
+   "seconds": 21.7,
+   "tokens_per_s": 13.2,
+   "valid": true,
+   "issues": [
+    "water/coffee 40.0 outside 14-18",
+    "ratio '1:4' disagrees with grams (40.0)"
+   ],
+   "data": {
+    "coffeeGrams": 30,
+    "waterGrams": 1200,
+    "ratio": "1:4",
+    "grindSetting": "medium fine",
+    "waterTemp": 92,
+    "brewTime": "3.5 - 4.5 minutos",
+    "steps": "1. Calienta el agua a 92°C. 2. Filtra el café en el Chemex usando un filtro de papel. 3. Vierte agua caliente en forma constante en tres etapas, asegurando una extracción equilibrada. 4. Deja reposar durante 3.5 a 4.5 minutos. 5. Sirve en tazas individuales.",
+    "rationale": "El Geisha El Triunfo tiene un perfil alto en acidez y dulzura, por lo que se requiere una extracción limpia y controlada. El ratio 1:4 y la temperatura de agua 92°C ayudan a resaltar su acidez brillante y su dulzura sin sobreextraer. La molienda media fina y el tiempo de infusión adecuado aseguran una bebida equilibrada y fresca."
+   }
+  },
+  {
+   "model": "qwen3:8b",
+   "scenario": "s6-coldbrew",
+   "seconds": 20.3,
+   "tokens_per_s": 12.8,
+   "valid": true,
+   "issues": [
+    "water/coffee 20.0 outside 4-12",
+    "waterTemp 15 outside 70-100"
+   ],
+   "data": {
+    "coffeeGrams": 75,
+    "waterGrams": 1500,
+    "ratio": "1:20",
+    "grindSetting": "coarse",
+    "waterTemp": 15,
+    "brewTime": "12-18 horas",
+    "steps": "1. Precalienta agua a 15°C. 2. Tamiza el café en un filtro grueso. 3. Vierte el agua fría lentamente sobre el café, asegurando una saturación uniforme. 4. Deja reposar durante 12-18 horas en un lugar fresco y oscuro. 5. Filtra la mezcla para obtener el concentrado.",
+    "rationale": "Pluma Hidalgo tiene un perfil equilibrado con acidez moderada y cuerpo medio. El proceso washed sugiere una textura limpia y suave. El cold brew permite resaltar su dulzura y suavidad, minimizando la amargura. La relación 1:20 y la temperatura baja favorecen una extracción lenta y equilibrada."
+   }
+  },
+  {
+   "model": "qwen3:8b",
+   "scenario": "i1-v60-sour",
+   "seconds": 20.4,
+   "tokens_per_s": 13.1,
+   "valid": true,
+   "issues": [],
+   "data": {
+    "coffeeGrams": 15,
+    "waterGrams": 250,
+    "ratio": "1:16.7",
+    "grindSetting": "How to adjust grind: 21.5 clicks (between 21 and 22)",
+    "waterTemp": 93,
+    "brewTime": "2:30",
+    "steps": "bloom 40 g 30 s, pour to 250 g",
+    "rationale": "Se ajustó la molienda a 21.5 clicks para equilibrar el acidez excesiva y mejorar el cuerpo. Se aumentó la temperatura del agua a 93°C para intensificar el desarrollo de sabores y reducir la acidez agresiva. El tiempo de infusión se mantuvo en 2:30 para preservar la claridad y el aroma, mientras se optimiza el equilibrio entre acidez, cuerpo y dulzura."
+   }
+  },
+  {
+   "model": "qwen3:8b",
+   "scenario": "i2-fp-bitter",
+   "seconds": 17.9,
+   "tokens_per_s": 12.6,
+   "valid": true,
+   "issues": [],
+   "data": {
+    "coffeeGrams": 30,
+    "waterGrams": 450,
+    "ratio": "1:15",
+    "grindSetting": "medium-coarse",
+    "waterTemp": 95,
+    "brewTime": "5:00",
+    "steps": "pour, stir, steep, press",
+    "rationale": "Se ajustó el grano a medio-grueso para reducir la extracción excesiva que causaba amargor y sabor agresivo. Se redujo la temperatura del agua a 95°C para equilibrar la extracción y evitar el desarrollo de compuestos amargos. El tiempo de infusión se mantuvo en 5 minutos para preservar el cuerpo y la dulzura del café, mientras se evitaba la sobreextracción que generaba amargor y turbidez."
+   }
+  }
+ ]
+}
