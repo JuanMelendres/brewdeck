@@ -30,7 +30,7 @@ export const recipeSchema = z.object({
   waterTemp: optionalNumber(
     z.coerce
       .number()
-      .min(70, vk('recipe.waterTempTooLow'))
+      .min(0, vk('recipe.waterTempTooLow'))
       .max(100, vk('recipe.waterTempTooHigh')),
   ),
   brewTime: z.string().max(20, vk('recipe.brewTimeTooLong')).optional(),

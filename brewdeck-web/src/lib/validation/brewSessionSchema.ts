@@ -14,7 +14,7 @@ export const brewSessionSchema = z.object({
   actualTemp: optionalNumber(
     z.coerce
       .number()
-      .min(70, vk('brewSession.actualTempTooLow'))
+      .min(0, vk('brewSession.actualTempTooLow'))
       .max(100, vk('brewSession.actualTempTooHigh')),
   ),
   actualTime: z.string().max(20, vk('brewSession.actualTimeTooLong')).optional(),

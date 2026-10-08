@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Size;
 public record BrewSessionRequest(
     @NotNull(message = "{validation.recipeId.required}") Long recipeId,
     @Size(max = 120, message = "{validation.actualGrind.tooLong}") String actualGrind,
-    @Min(value = 70, message = "{validation.actualTemp.min}")
+    @Min(value = 0, message = "{validation.actualTemp.min}")
         @Max(value = 100, message = "{validation.actualTemp.max}")
         Integer actualTemp,
     @Size(max = 20, message = "{validation.actualTime.tooLong}") String actualTime,

@@ -49,7 +49,7 @@
       "waterGramsTooHigh": "Los gramos de agua no deben pasar de 9999.99",
       "ratioTooLong": "La proporción no debe pasar de 20 caracteres",
       "grindSettingTooLong": "La molienda no debe pasar de 120 caracteres",
-      "waterTempTooLow": "La temperatura del agua debe ser de al menos 70 grados Celsius",
+      "waterTempTooLow": "La temperatura del agua debe ser de al menos 0 grados Celsius",
       "waterTempTooHigh": "La temperatura del agua no debe pasar de 100 grados Celsius",
       "brewTimeTooLong": "El tiempo de preparación no debe pasar de 20 caracteres",
       "stepsTooLong": "Los pasos no deben pasar de 1000 caracteres",
@@ -64,7 +64,7 @@
     "brewSession": {
       "recipeRequired": "La receta es obligatoria",
       "actualGrindTooLong": "La molienda real no debe pasar de 120 caracteres",
-      "actualTempTooLow": "La temperatura real debe ser de al menos 70 grados Celsius",
+      "actualTempTooLow": "La temperatura real debe ser de al menos 0 grados Celsius",
       "actualTempTooHigh": "La temperatura real no debe pasar de 100 grados Celsius",
       "actualTimeTooLong": "El tiempo real no debe pasar de 20 caracteres",
       "tasteResultTooLong": "El sabor en taza no debe pasar de 1000 caracteres",

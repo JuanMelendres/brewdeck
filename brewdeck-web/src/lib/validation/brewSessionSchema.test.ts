@@ -37,8 +37,12 @@ describe('brewSessionSchema', () => {
     }
   });
 
-  it('rejects an actual temperature below 70', () => {
-    const r = brewSessionSchema.safeParse({ recipeId: '1', actualTemp: '60' });
+  it('accepts cold water for cold brew', () => {
+    expect(brewSessionSchema.safeParse({ recipeId: '1', actualTemp: '4' }).success).toBe(true);
+  });
+
+  it('rejects an actual temperature below 0', () => {
+    const r = brewSessionSchema.safeParse({ recipeId: '1', actualTemp: '-1' });
     expect(r.success).toBe(false);
     if (!r.success) {
       expect(r.error.issues[0].message).toBe(

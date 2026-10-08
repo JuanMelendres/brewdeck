@@ -511,7 +511,7 @@ class RecipeControllerTest {
             BigDecimal.valueOf(230),
             "1:15",
             "Timemore S3 - 5.5",
-            69,
+            -1,
             "2:30",
             "Bloom 30s, stir gently, press slowly.",
             "Clean, aromatic, spicy, balanced.",
@@ -525,7 +525,7 @@ class RecipeControllerTest {
         .andExpect(status().isBadRequest())
         .andExpect(
             jsonPath("$.validationErrors.waterTemp")
-                .value("Water temperature must be at least 70 degrees Celsius"));
+                .value("Water temperature must be at least 0 degrees Celsius"));
   }
 
   @Test
