@@ -2,6 +2,8 @@ package com.brewdeck.brewdeck_api.ai;
 
 import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
 import com.brewdeck.brewdeck_api.coffee.Coffee;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
 import com.brewdeck.brewdeck_api.featureflag.FeatureFlagService;
 import com.brewdeck.brewdeck_api.featureflag.FeatureKeys;
 import com.brewdeck.brewdeck_api.method.BrewMethod;
@@ -36,14 +38,19 @@ public class RecipeImprovementService {
   private final AiProperties aiProperties;
   private final CurrentUserProvider currentUserProvider;
   private final FeatureFlagService featureFlagService;
+  private final RateLimiter rateLimiter;
+  private final SuggestionGuardrails guardrails;
 
   public SuggestedRecipeResponse improve(Long recipeId) {
     // Release gate before any work: see RecipeSuggestionService for the flag-vs-provider rationale.
     featureFlagService.requireEnabled(FeatureKeys.AI_RECIPE_ASSISTANT);
+    Long ownerId = currentUserProvider.require().getId();
+    // Each call ties up the model for many seconds (local) or costs money (hosted).
+    rateLimiter.requireAllowed(RateLimitRule.AI_ASSISTANT_USER, String.valueOf(ownerId));
 
     Recipe recipe =
         recipeRepository
-            .findByIdAndOwnerId(recipeId, currentUserProvider.require().getId())
+            .findByIdAndOwnerId(recipeId, ownerId)
             .orElseThrow(() -> new EntityNotFoundException(RECIPE_NOT_FOUND));
 
     List<BrewSession> sessions =
@@ -89,12 +96,13 @@ public class RecipeImprovementService {
             recipe.getSteps(),
             history);
 
-    SuggestedRecipe suggested = suggestionPort.improve(context);
+    SuggestedRecipe suggested = guardrails.apply(method.getName(), suggestionPort.improve(context));
     log.info(
-        "Generated recipe improvement recipeId={} ratedSessions={} model={}",
+        "Generated recipe improvement recipeId={} ratedSessions={} model={} promptVersion={}",
         recipeId,
         history.size(),
-        aiProperties.model());
+        aiProperties.activeModel(),
+        RecipePrompts.VERSION);
 
     return new SuggestedRecipeResponse(
         suggested.coffeeGrams(),

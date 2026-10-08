@@ -74,9 +74,16 @@ app:
 brewdeck:
   ai:
     enabled: ${AI_ENABLED:false}
+    # claude (paid API, ADR-006) or ollama (local open-weight model, ADR-016).
+    provider: ${AI_PROVIDER:claude}
     model: claude-haiku-4-5
     timeout-seconds: 20
     max-tokens: 1024
+    ollama:
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+      model: ${OLLAMA_MODEL:qwen3:8b}
+      timeout-seconds: ${OLLAMA_TIMEOUT_SECONDS:90}
+      max-tokens: 1024
   auth:
     secret: ${BREWDECK_JWT_SECRET:dev-only-insecure-secret-change-me-at-least-32-bytes}
     token-ttl: ${AUTH_TOKEN_TTL:PT15M}

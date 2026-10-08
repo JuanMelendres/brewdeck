@@ -11,8 +11,12 @@ General settings live in the root `.env.example`; auth, mail, and hardening sett
 | `SPRING_PROFILES_ACTIVE` | `local` | Active Spring profile |
 | `SERVER_PORT` | `8080` | HTTP port |
 | `CORS_ALLOWED_ORIGINS` | `http://localhost:3000` | Comma-separated origins allowed to call `/api/**` from a browser. Only `Authorization` and `Content-Type` request headers are accepted; no credentials/cookies |
-| `AI_ENABLED` | `false` | Toggles AI recipe suggestions/improve |
-| `ANTHROPIC_API_KEY` | *(blank)* | Anthropic key; required only when `AI_ENABLED=true` |
+| `AI_ENABLED` | `false` (`true` in the `local` profile) | Toggles AI recipe suggestions/improve |
+| `AI_PROVIDER` | `claude` (`ollama` in the `local` profile) | `ollama` = free local model (ADR-016), `claude` = paid API (ADR-006) |
+| `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama server; keep it on a private network, never public |
+| `OLLAMA_MODEL` | `qwen3:8b` | Model Ollama serves (see the local LLM spike) |
+| `OLLAMA_TIMEOUT_SECONDS` | `90` | Read timeout per AI call; local models take 15–25 s |
+| `ANTHROPIC_API_KEY` | *(blank)* | Anthropic key; required only when `AI_PROVIDER=claude` and `AI_ENABLED=true` |
 | `BREWDECK_JWT_SECRET` | dev-only placeholder; **required in `prod`** | HMAC key for access tokens (≥ 32 bytes) |
 | `AUTH_TOKEN_TTL` | `PT15M` | Access-token lifetime (ISO-8601) |
 | `AUTH_REFRESH_TTL` | `P7D` | Refresh-token lifetime (ISO-8601); also the refresh cookie's `Max-Age` |
@@ -71,6 +75,6 @@ The `mailpit` service (SMTP on `1025`, web UI on `8025`) catches local emails.
 ## Rules
 
 - Keep `.env.example` files in sync with the code; never commit real secrets.
-- The AI feature must stay off (`AI_ENABLED=false`, blank key) in CI and by default.
+- CI never calls a model: the tests stub the AI adapters. Outside `local`, AI stays off by default (`AI_ENABLED=false`, and the `brew-recipe-ai-assistant` flag is off).
 
 > `Assumption`: `DB_URL`/`DB_USER`/`DB_PASSWORD` are documented in the README but not present in the root `.env.example`; confirm the exact Spring property bindings if you change defaults.

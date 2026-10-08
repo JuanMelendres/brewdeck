@@ -3,6 +3,8 @@ package com.brewdeck.brewdeck_api.ai;
 import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
 import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.coffee.CoffeeRepository;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
 import com.brewdeck.brewdeck_api.featureflag.FeatureFlagService;
 import com.brewdeck.brewdeck_api.featureflag.FeatureKeys;
 import com.brewdeck.brewdeck_api.method.BrewMethod;
@@ -32,6 +34,8 @@ public class RecipeSuggestionService {
   private final AiProperties aiProperties;
   private final FeatureFlagService featureFlagService;
   private final CurrentUserProvider currentUserProvider;
+  private final RateLimiter rateLimiter;
+  private final SuggestionGuardrails guardrails;
 
   public SuggestedRecipeResponse suggest(SuggestRecipeRequest request) {
     // Release gate: the AI assistant is the source of truth here, not the frontend hiding buttons.
@@ -40,10 +44,12 @@ public class RecipeSuggestionService {
     // (The provider-availability concern — is a real model wired — remains the port's job: the
     // disabled adapter still throws AiUnavailable -> 503 when the flag is on but AI is not.)
     featureFlagService.requireEnabled(FeatureKeys.AI_RECIPE_ASSISTANT);
+    Long ownerId = currentUserProvider.require().getId();
+    // Each call ties up the model for many seconds (local) or costs money (hosted).
+    rateLimiter.requireAllowed(RateLimitRule.AI_ASSISTANT_USER, String.valueOf(ownerId));
 
     // Both lookups are scoped to the caller: another user's coffee or private method is a 404,
     // so their data can never reach the AI prompt.
-    Long ownerId = currentUserProvider.require().getId();
     Coffee coffee =
         coffeeRepository
             .findByIdAndOwnerId(request.coffeeId(), ownerId)
@@ -67,12 +73,13 @@ public class RecipeSuggestionService {
             method.getDescription(),
             request.notes());
 
-    SuggestedRecipe suggested = suggestionPort.suggest(context);
+    SuggestedRecipe suggested = guardrails.apply(method.getName(), suggestionPort.suggest(context));
     log.info(
-        "Generated recipe suggestion coffeeId={} methodId={} model={}",
+        "Generated recipe suggestion coffeeId={} methodId={} model={} promptVersion={}",
         request.coffeeId(),
         request.methodId(),
-        aiProperties.model());
+        aiProperties.activeModel(),
+        RecipePrompts.VERSION);
 
     return new SuggestedRecipeResponse(
         suggested.coffeeGrams(),

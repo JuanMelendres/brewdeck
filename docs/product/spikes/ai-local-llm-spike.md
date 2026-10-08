@@ -193,7 +193,10 @@ Validate next, in the adapter PR:
 
 ## 12. Decision
 
-Decision pending (owner review).
+- Decision: `qwen3:8b` on native Ollama behind `OllamaRecipeSuggestionAdapter`, with method-aware guardrails, a per-user rate limit, and plain HTTP instead of Spring AI.
+- Date: 2026-10-08
+- Owner: Juan (product owner)
+- Status: Accepted. Recorded in [ADR-016](../../decisions/ADR-016-local-llm-ollama.md); delivered on `feat/api-ollama-adapter`.
 
 ## 13. Next Steps
 
