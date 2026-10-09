@@ -15,6 +15,8 @@ export type SuggestedRecipe = {
   brewTime: string | null;
   steps: string | null;
   rationale: string;
+  aiModel: string;
+  aiPromptVersion: string;
 };
 
 export function suggestRecipe(body: SuggestRecipeInput): Promise<SuggestedRecipe> {

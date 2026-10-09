@@ -68,7 +68,36 @@ describe('RecipeFormDialog', () => {
     fireEvent.click(screen.getByRole('button', { name: /create/i }));
     await waitFor(() => expect(createMutate).toHaveBeenCalledTimes(1));
     expect(createMutate.mock.calls[0][0]).toEqual(
-      expect.objectContaining({ coffeeId: 1, methodId: 2, name: 'My Recipe' }),
+      expect.objectContaining({ coffeeId: 1, methodId: 2, name: 'My Recipe', aiModel: null }),
+    );
+  });
+
+  it('saves the AI model and prompt version when the recipe came from a suggestion', async () => {
+    mockAll();
+    suggestMutate.mockImplementation((_body, opts) => {
+      opts.onSuccess({
+        coffeeGrams: 15,
+        waterGrams: 240,
+        ratio: '1:16',
+        grindSetting: 'Medium-fine',
+        waterTemp: 92,
+        brewTime: '2:30',
+        steps: 'Bloom then pour.',
+        rationale: 'Balanced for a medium roast.',
+        aiModel: 'qwen3:8b',
+        aiPromptVersion: '2026-10-09',
+      });
+    });
+    renderWithTheme(<RecipeFormDialog open onClose={vi.fn()} />);
+    fireEvent.change(screen.getByRole('combobox', { name: /coffee/i }), { target: { value: '1' } });
+    fireEvent.change(screen.getByRole('combobox', { name: /brew method/i }), { target: { value: '2' } });
+    fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: 'AI Recipe' } });
+    fireEvent.click(screen.getByRole('button', { name: /suggest with ai/i }));
+    expect(await screen.findByText(/balanced for a medium roast/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /create/i }));
+    await waitFor(() => expect(createMutate).toHaveBeenCalledTimes(1));
+    expect(createMutate.mock.calls[0][0]).toEqual(
+      expect.objectContaining({ aiModel: 'qwen3:8b', aiPromptVersion: '2026-10-09' }),
     );
   });
 
@@ -103,6 +132,8 @@ describe('RecipeFormDialog', () => {
         brewTime: '2:30',
         steps: 'Bloom then pour.',
         rationale: 'Balanced for a medium roast.',
+        aiModel: 'qwen3:8b',
+        aiPromptVersion: '2026-10-09',
       });
     });
     const recipe = {

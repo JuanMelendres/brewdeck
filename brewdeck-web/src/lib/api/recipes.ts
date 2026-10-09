@@ -69,11 +69,17 @@ export function getRecipeStats(id: number): Promise<RecipeStats> {
   return apiFetch<RecipeStats>(`/api/recipes/${id}/stats`);
 }
 
-export function createRecipe(body: RecipeFormValues): Promise<Recipe> {
+/** Form values plus the AI provenance the form carries when a suggestion was used. */
+export type RecipeRequestBody = RecipeFormValues & {
+  aiModel?: string | null;
+  aiPromptVersion?: string | null;
+};
+
+export function createRecipe(body: RecipeRequestBody): Promise<Recipe> {
   return apiFetch<Recipe>('/api/recipes', { method: 'POST', body: JSON.stringify(body) });
 }
 
-export function updateRecipe(id: number, body: RecipeFormValues): Promise<Recipe> {
+export function updateRecipe(id: number, body: RecipeRequestBody): Promise<Recipe> {
   return apiFetch<Recipe>(`/api/recipes/${id}`, { method: 'PUT', body: JSON.stringify(body) });
 }
 

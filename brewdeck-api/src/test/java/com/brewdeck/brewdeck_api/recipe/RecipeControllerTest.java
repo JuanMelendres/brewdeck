@@ -353,6 +353,8 @@ class RecipeControllerTest {
             true,
             Instant.now(),
             null,
+            null,
+            null,
             null);
 
     when(recipeService.markAsFavorite(1L)).thenReturn(response);
@@ -386,6 +388,8 @@ class RecipeControllerTest {
             "Clean, aromatic, spicy, balanced.",
             false,
             Instant.now(),
+            null,
+            null,
             null,
             null);
 
@@ -434,6 +438,8 @@ class RecipeControllerTest {
         "Clean, aromatic, spicy, balanced.",
         true,
         Instant.now(),
+        null,
+        null,
         null,
         null);
   }
@@ -708,6 +714,8 @@ class RecipeControllerTest {
         false,
         java.time.Instant.now(),
         null,
-        token);
+        token,
+        null,
+        null);
   }
 }
