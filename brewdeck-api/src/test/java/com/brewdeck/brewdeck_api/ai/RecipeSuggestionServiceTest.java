@@ -147,5 +147,7 @@ class RecipeSuggestionServiceTest {
     assertThat(result.coffeeGrams()).isEqualByComparingTo("15");
     assertThat(result.waterTemp()).isEqualTo(92);
     assertThat(result.rationale()).isEqualTo("Balanced extraction for a medium roast.");
+    assertThat(result.aiModel()).isEqualTo("claude-haiku-4-5");
+    assertThat(result.aiPromptVersion()).isEqualTo(RecipePrompts.VERSION);
   }
 }

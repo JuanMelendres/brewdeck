@@ -176,6 +176,8 @@ public class RecipeService {
     recipe.setSteps(request.steps());
     recipe.setExpectedTaste(request.expectedTaste());
     recipe.setFavorite(Boolean.TRUE.equals(request.favorite()));
+    recipe.setAiModel(request.aiModel());
+    recipe.setAiPromptVersion(request.aiPromptVersion());
   }
 
   @Transactional

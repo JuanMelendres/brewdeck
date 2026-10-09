@@ -73,6 +73,8 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
             waterTemp: data.waterTemp ?? recipe.waterTemp,
             brewTime: data.brewTime ?? recipe.brewTime,
             steps: data.steps ?? recipe.steps,
+            aiModel: data.aiModel,
+            aiPromptVersion: data.aiPromptVersion,
           },
           rationale: data.rationale,
         });
@@ -162,6 +164,14 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
           {recipe.name}
         </Typography>
         {recipe.favorite ? <Chip label={tc('favorite')} color="primary" size="small" /> : null}
+        {recipe.aiModel ? (
+          <Chip
+            label={t('aiSuggested', { model: recipe.aiModel })}
+            title={recipe.aiPromptVersion ?? undefined}
+            variant="outlined"
+            size="small"
+          />
+        ) : null}
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>

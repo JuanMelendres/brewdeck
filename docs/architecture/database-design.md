@@ -27,6 +27,7 @@ PostgreSQL 16, schema versioned by Flyway (`brewdeck-api/src/main/resources/db/m
 | V19 | Index foreign keys: `recipes(coffee_id)`, `recipes(method_id)`, `brew_sessions(recipe_id, brewed_at DESC)`. `SchemaIndexesIntegrationTest` fails if any FK column lacks a leading index |
 | V20 | Seed `auth-require-email-verification` flag (disabled everywhere, ADR-012) |
 | V21 | All timestamp columns `TIMESTAMP` → `TIMESTAMPTZ`; existing rows read in `${legacy_timezone}` (`BREWDECK_LEGACY_TIMEZONE`, default `UTC`). Fails on an invalid zone and if any zone-less timestamp column remains |
+| V27 | Nullable `ai_model` (80) and `ai_prompt_version` (20) on `recipes`: AI provenance of a saved suggestion |
 
 ## Entity relationships
 
@@ -58,7 +59,7 @@ Coffee profiles. Key columns: `name` (required), `brand`, `origin`, `region`, `f
 Brewing methods. `name` (required, unique), `description`, `created_at`. Seeded in V2.
 
 ### recipes
-Brewing recipes. FKs: `coffee_id → coffees(id)`, `method_id → brew_methods(id)` (both required). Params: `coffee_grams`, `water_grams`, `ratio`, `grind_setting`, `water_temp`, `brew_time`, `steps`, `expected_taste`, `favorite` (default false), `share_token` (nullable, unique when set), `owner_id → users(id)` (required, stamped on create), timestamps.
+Brewing recipes. FKs: `coffee_id → coffees(id)`, `method_id → brew_methods(id)` (both required). Params: `coffee_grams`, `water_grams`, `ratio`, `grind_setting`, `water_temp`, `brew_time`, `steps`, `expected_taste`, `favorite` (default false), `share_token` (nullable, unique when set), `ai_model` / `ai_prompt_version` (nullable; model and prompt version when the recipe came from the AI assistant), `owner_id → users(id)` (required, stamped on create), timestamps.
 
 ### brew_sessions
 Brew logs. FKs: `recipe_id → recipes(id)` (required), `owner_id → users(id)` (required, stamped on create). `brewed_at`, actuals (`actual_grind`, `actual_temp`, `actual_time`), `taste_result`, `rating`, `adjustment_notes`.

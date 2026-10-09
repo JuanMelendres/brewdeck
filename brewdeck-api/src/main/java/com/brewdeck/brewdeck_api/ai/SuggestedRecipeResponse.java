@@ -10,4 +10,7 @@ public record SuggestedRecipeResponse(
     Integer waterTemp,
     String brewTime,
     String steps,
-    String rationale) {}
+    String rationale,
+    // Provenance (ADR-016): the web app saves these with a recipe built from this suggestion.
+    String aiModel,
+    String aiPromptVersion) {}

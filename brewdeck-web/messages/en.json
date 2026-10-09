@@ -368,7 +368,8 @@
       "lastBrewed": "Last Brewed",
       "historyTitle": "Brew history",
       "historyFailed": "Could not load brew history.",
-      "historyEmpty": "No brew sessions yet for this recipe."
+      "historyEmpty": "No brew sessions yet for this recipe.",
+      "aiSuggested": "AI-suggested ({model})"
     },
     "share": {
       "title": "Share recipe",

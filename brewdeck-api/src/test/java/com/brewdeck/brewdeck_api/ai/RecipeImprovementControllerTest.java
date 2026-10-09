@@ -46,7 +46,9 @@ class RecipeImprovementControllerTest {
                 92,
                 "2:15",
                 "Grind finer.",
-                "Finer grind improves sweetness."));
+                "Finer grind improves sweetness.",
+                "qwen3:8b",
+                "2026-10-09"));
 
     mockMvc
         .perform(post("/api/recipes/5/improve"))

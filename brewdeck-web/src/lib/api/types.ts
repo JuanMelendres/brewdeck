@@ -76,6 +76,9 @@ export type Recipe = {
   createdAt: string;
   updatedAt: string | null;
   shareToken: string | null;
+  /** Set when the recipe came from the AI assistant: model and prompt version used. */
+  aiModel?: string | null;
+  aiPromptVersion?: string | null;
 };
 
 export type PublicRecipe = {

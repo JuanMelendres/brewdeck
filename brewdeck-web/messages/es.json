@@ -368,7 +368,8 @@
       "lastBrewed": "Última preparación",
       "historyTitle": "Historial",
       "historyFailed": "No pudimos cargar el historial.",
-      "historyEmpty": "Aún no hay preparaciones de esta receta."
+      "historyEmpty": "Aún no hay preparaciones de esta receta.",
+      "aiSuggested": "Sugerida por IA ({model})"
     },
     "share": {
       "title": "Compartir receta",

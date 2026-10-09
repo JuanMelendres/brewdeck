@@ -112,6 +112,8 @@ public class RecipeImprovementService {
         suggested.waterTemp(),
         suggested.brewTime(),
         suggested.steps(),
-        suggested.rationale());
+        suggested.rationale(),
+        aiProperties.activeModel(),
+        RecipePrompts.VERSION);
   }
 }
