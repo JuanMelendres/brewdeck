@@ -407,6 +407,10 @@
       "steps": "Pasos",
       "expectedTaste": "Sabor esperado",
       "generated": "Generado el {date}"
+    },
+    "ai": {
+      "waiting": "Pensando… suele tardar unos 20 segundos.",
+      "waitingLong": "Sigue trabajando. La IA corre en esta computadora y puede tardar hasta un minuto y medio."
     }
   },
   "brewMethods": {

@@ -17,6 +17,8 @@ import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import type { z } from 'zod';
 import { useTranslations } from 'next-intl';
+import { rateLimitMessage } from '@/lib/api/errors';
+import { AiWaitHint } from './AiWaitHint';
 import { useFieldError } from '@/i18n/useFieldError';
 import { ApiError } from '@/lib/api/client';
 import { recipeSchema, type RecipeFormValues } from '@/lib/validation/recipeSchema';
@@ -137,8 +139,7 @@ export function RecipeFormDialog({
           setRationale(data.rationale);
           setProvenance({ aiModel: data.aiModel, aiPromptVersion: data.aiPromptVersion });
         },
-        onError: () =>
-          setSuggestError(t('suggestFailed')),
+        onError: (error) => setSuggestError(rateLimitMessage(error) ?? t('suggestFailed')),
       },
     );
   };
@@ -264,6 +265,7 @@ export function RecipeFormDialog({
                   >
                     {t('suggest')}
                   </Button>
+                  <AiWaitHint active={suggestion.isPending} />
                   {suggestError ? <Alert severity="error">{suggestError}</Alert> : null}
                   {rationale ? <Alert severity="info">{rationale}</Alert> : null}
                 </Grid>
