@@ -12,6 +12,10 @@ import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
 import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.coffee.CoffeeRepository;
+import com.brewdeck.brewdeck_api.common.i18n.TestMessages;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitExceededException;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
+import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
 import com.brewdeck.brewdeck_api.featureflag.FeatureDisabledException;
 import com.brewdeck.brewdeck_api.featureflag.FeatureFlagService;
 import com.brewdeck.brewdeck_api.featureflag.FeatureKeys;
@@ -41,9 +45,17 @@ class RecipeSuggestionServiceTest {
         coffeeRepository,
         brewMethodRepository,
         port,
-        new AiProperties(true, "claude-haiku-4-5", 20, 1024),
+        new AiProperties(
+            true,
+            "claude",
+            "claude-haiku-4-5",
+            20,
+            1024,
+            new AiProperties.Ollama("http://localhost:11434", "qwen3:8b", 90, 1024)),
         featureFlagService,
-        currentUserProvider);
+        currentUserProvider,
+        new RateLimiter(false),
+        new SuggestionGuardrails(TestMessages.messageSource()));
   }
 
   @Test
@@ -56,6 +68,35 @@ class RecipeSuggestionServiceTest {
 
     assertThatThrownBy(() -> service.suggest(new SuggestRecipeRequest(1L, 2L, null)))
         .isInstanceOf(FeatureDisabledException.class);
+    verify(port, never()).suggest(any());
+  }
+
+  @Test
+  void suggest_isRateLimitedPerUser_beforeCallingTheModel() {
+    when(currentUserProvider.require()).thenReturn(User.builder().id(42L).build());
+    RateLimiter limiter = org.mockito.Mockito.mock(RateLimiter.class);
+    doThrow(new RateLimitExceededException(java.time.Duration.ofSeconds(30)))
+        .when(limiter)
+        .requireAllowed(RateLimitRule.AI_ASSISTANT_USER, "42");
+    RecipeSuggestionService limited =
+        new RecipeSuggestionService(
+            coffeeRepository,
+            brewMethodRepository,
+            port,
+            new AiProperties(
+                true,
+                "ollama",
+                "claude-haiku-4-5",
+                20,
+                1024,
+                new AiProperties.Ollama("http://localhost:11434", "qwen3:8b", 90, 1024)),
+            featureFlagService,
+            currentUserProvider,
+            limiter,
+            new SuggestionGuardrails(TestMessages.messageSource()));
+
+    assertThatThrownBy(() -> limited.suggest(new SuggestRecipeRequest(1L, 2L, null)))
+        .isInstanceOf(RateLimitExceededException.class);
     verify(port, never()).suggest(any());
   }
 

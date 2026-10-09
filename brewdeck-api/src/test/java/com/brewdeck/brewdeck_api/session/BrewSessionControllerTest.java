@@ -242,7 +242,7 @@ class BrewSessionControllerTest {
   @Test
   void create_shouldReturnBadRequest_whenActualTempIsTooLow() throws Exception {
     BrewSessionRequest request =
-        new BrewSessionRequest(1L, "Timemore S3 - 5.5", 69, "2:30", "Balanced", 9, "Repeat.");
+        new BrewSessionRequest(1L, "Timemore S3 - 5.5", -1, "2:30", "Balanced", 9, "Repeat.");
 
     mockMvc
         .perform(
@@ -252,7 +252,7 @@ class BrewSessionControllerTest {
         .andExpect(status().isBadRequest())
         .andExpect(
             jsonPath("$.validationErrors.actualTemp")
-                .value("Actual temperature must be at least 70 degrees Celsius"));
+                .value("Actual temperature must be at least 0 degrees Celsius"));
   }
 
   @Test

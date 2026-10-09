@@ -2153,6 +2153,44 @@
      ]
     },
     {
+     "name": "GET - UI languages (public)",
+     "request": {
+      "auth": {
+       "type": "noauth"
+      },
+      "method": "GET",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/public/ui-config",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "public",
+        "ui-config"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 200', function () {",
+         "  pm.response.to.have.status(200);",
+         "});",
+         "pm.test('English is always available', function () {",
+         "  pm.expect(pm.response.json().languages).to.include('en');",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
      "name": "DELETE - Delete recipe",
      "request": {
       "method": "DELETE",

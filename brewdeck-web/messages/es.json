@@ -4,7 +4,7 @@
     "dashboard": "Inicio",
     "coffees": "Cafés",
     "recipes": "Recetas",
-    "favorites": "Favoritas",
+    "favorites": "Favoritos",
     "brewMethods": "Métodos",
     "brewSessions": "Preparaciones",
     "account": "Cuenta",
@@ -49,7 +49,7 @@
       "waterGramsTooHigh": "Los gramos de agua no deben pasar de 9999.99",
       "ratioTooLong": "La proporción no debe pasar de 20 caracteres",
       "grindSettingTooLong": "La molienda no debe pasar de 120 caracteres",
-      "waterTempTooLow": "La temperatura del agua debe ser de al menos 70 grados Celsius",
+      "waterTempTooLow": "La temperatura del agua debe ser de al menos 0 grados Celsius",
       "waterTempTooHigh": "La temperatura del agua no debe pasar de 100 grados Celsius",
       "brewTimeTooLong": "El tiempo de preparación no debe pasar de 20 caracteres",
       "stepsTooLong": "Los pasos no deben pasar de 1000 caracteres",
@@ -64,10 +64,10 @@
     "brewSession": {
       "recipeRequired": "La receta es obligatoria",
       "actualGrindTooLong": "La molienda real no debe pasar de 120 caracteres",
-      "actualTempTooLow": "La temperatura real debe ser de al menos 70 grados Celsius",
+      "actualTempTooLow": "La temperatura real debe ser de al menos 0 grados Celsius",
       "actualTempTooHigh": "La temperatura real no debe pasar de 100 grados Celsius",
       "actualTimeTooLong": "El tiempo real no debe pasar de 20 caracteres",
-      "tasteResultTooLong": "El resultado de sabor no debe pasar de 1000 caracteres",
+      "tasteResultTooLong": "El sabor en taza no debe pasar de 1000 caracteres",
       "ratingTooLow": "La calificación debe ser de al menos 1",
       "ratingTooHigh": "La calificación no debe pasar de 10",
       "adjustmentNotesTooLong": "Las notas de ajuste no deben pasar de 1000 caracteres"
@@ -76,7 +76,7 @@
   "auth": {
     "login": {
       "title": "Iniciar sesión",
-      "subtitle": "Qué gusto verte. Tus cafés te esperan.",
+      "subtitle": "Qué bueno verte de nuevo. Tus cafés te esperan.",
       "forgotPassword": "¿Olvidaste tu contraseña?",
       "submit": "Iniciar sesión",
       "noAccount": "¿No tienes cuenta? <link>Regístrate</link>",
@@ -121,7 +121,7 @@
       "failed": "No pudimos actualizar tu perfil. Inténtalo de nuevo."
     },
     "layout": {
-      "tagline": "Cada taza, a tu punto.",
+      "tagline": "Cada taza, en su punto.",
       "pitch": "Guarda tus cafés, recetas y preparaciones en un solo lugar, y descubre qué hace tu mejor taza."
     },
     "verify": {
@@ -183,7 +183,9 @@
     "onboarding": {
       "title": "¿Claro u oscuro?",
       "body": "Elige cómo se ve BrewDeck. Prueba ambos: la app cambia mientras eliges. Puedes cambiarlo cuando quieras en la configuración de tu cuenta.",
-      "saveFailed": "No pudimos guardar tu elección. Por ahora aplica en este dispositivo, y te volveremos a preguntar la próxima vez que inicies sesión."
+      "saveFailed": "No pudimos guardar tu elección. Por ahora aplica en este dispositivo, y te volveremos a preguntar la próxima vez que inicies sesión.",
+      "setupTitle": "Configura BrewDeck",
+      "setupBody": "Elige tu idioma y cómo se ve BrewDeck. Pruébalos: la app cambia mientras eliges. Puedes cambiarlos cuando quieras en la configuración de tu cuenta."
     },
     "setting": {
       "title": "Apariencia",
@@ -330,8 +332,8 @@
       "temp": "Temp.",
       "grind": "Molienda",
       "time": "Tiempo",
-      "favoriteAdded": "Se agregó \"{name}\" a favoritas",
-      "favoriteRemoved": "Se quitó \"{name}\" de favoritas",
+      "favoriteAdded": "Se agregó \"{name}\" a favoritos",
+      "favoriteRemoved": "Se quitó \"{name}\" de favoritos",
       "favoriteFailed": "No pudimos actualizar la favorita. Inténtalo de nuevo."
     },
     "delete": {
@@ -437,7 +439,7 @@
       "actualGrind": "Molienda real",
       "actualTemp": "Temperatura real",
       "actualTime": "Tiempo real",
-      "tasteResult": "Resultado de sabor",
+      "tasteResult": "Sabor en taza",
       "rating": "Calificación",
       "adjustmentNotes": "Notas de ajuste"
     },
@@ -465,5 +467,15 @@
   },
   "meta": {
     "description": "Tu compañero para preparar café"
+  },
+  "language": {
+    "group": "Idioma",
+    "en": "English",
+    "es": "Español",
+    "setting": {
+      "title": "Idioma",
+      "body": "Elige el idioma de BrewDeck. Tu elección se guarda en tu cuenta.",
+      "saveFailed": "No pudimos guardar tu idioma. Por ahora solo aplica en este dispositivo."
+    }
   }
 }

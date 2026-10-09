@@ -1,5 +1,5 @@
 import { apiFetch } from './client';
-import type { AuthResponse, ThemePreference, UserResponse } from './types';
+import type { AuthResponse, Language, ThemePreference, UserResponse } from './types';
 
 export function register(body: { email: string; password: string }): Promise<AuthResponse> {
   return apiFetch<AuthResponse>('/api/auth/register', {
@@ -22,6 +22,13 @@ export function getMe(): Promise<UserResponse> {
 export function updateProfile(body: { displayName: string | null }): Promise<UserResponse> {
   return apiFetch<UserResponse>('/api/auth/me', {
     method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+}
+
+export function updateLanguage(body: { language: Language }): Promise<UserResponse> {
+  return apiFetch<UserResponse>('/api/auth/me/language', {
+    method: 'PUT',
     body: JSON.stringify(body),
   });
 }

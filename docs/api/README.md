@@ -107,8 +107,8 @@ GET    /api/recipes/most-brewed          (analytics, List)
 GET    /api/recipes/coffee/{coffeeId}
 GET    /api/recipes/method/{methodId}
 POST   /api/recipes
-POST   /api/recipes/suggest              (AI, feature-flagged)
-POST   /api/recipes/{id}/improve         (AI, feature-flagged)
+POST   /api/recipes/suggest              (AI, feature-flagged; 429 over 10 calls/min per user)
+POST   /api/recipes/{id}/improve         (AI, feature-flagged; 429 over 10 calls/min per user)
 PUT    /api/recipes/{id}
 PATCH  /api/recipes/{id}/favorite
 PATCH  /api/recipes/{id}/unfavorite
@@ -130,6 +130,7 @@ DELETE /api/brew-sessions/{id}
 ## Public (no auth) (`/api/public`)
 ```
 GET    /api/public/recipes/{token}
+GET    /api/public/ui-config        200 ({"languages":["en"]}, plus "es" while web-i18n-spanish is on; read by the Next server)
 ```
 
 ## Dashboard & system

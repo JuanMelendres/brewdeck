@@ -46,7 +46,13 @@ pnpm dev
 
 ## 5. Optional: AI features
 
-AI recipe suggestions are **off by default**. To enable locally, set `AI_ENABLED=true` and provide `ANTHROPIC_API_KEY` (see [environment-variables.md](environment-variables.md)). Leave off for normal development and CI.
+The `local` profile runs "Suggest with AI" and "Improve with AI" on a **free local model** through Ollama ([ADR-016](../decisions/ADR-016-local-llm-ollama.md)). Other environments keep AI off.
+
+1. Install Ollama natively (on macOS, Docker cannot use the Apple GPU): `brew install ollama`.
+2. Download the model once (~5 GB): `ollama pull qwen3:8b`.
+3. Start it while you work: `ollama serve` (listens on `http://localhost:11434`).
+
+Each suggestion takes about 15–25 s on an Apple M4. Without Ollama running, the AI buttons answer `503`. To turn AI off locally, set `AI_ENABLED=false`. To use the paid Claude API instead, set `AI_PROVIDER=claude` and `ANTHROPIC_API_KEY` (see [environment-variables.md](environment-variables.md)). CI never calls a model: the tests stub it.
 
 ## Common commands
 

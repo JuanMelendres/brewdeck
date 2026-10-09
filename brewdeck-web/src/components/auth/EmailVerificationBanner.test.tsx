@@ -17,7 +17,7 @@ const unverified: UserResponse = {
   displayName: null,
   emailVerified: false,
   role: 'USER',
-  themePreference: null,
+  themePreference: null, language: null,
   createdAt: '',
 };
 

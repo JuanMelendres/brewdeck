@@ -34,8 +34,12 @@ describe('recipeSchema', () => {
     }
   });
 
-  it('rejects a water temperature below 70', () => {
-    const r = recipeSchema.safeParse({ ...valid, waterTemp: '60' });
+  it('accepts cold water for cold brew', () => {
+    expect(recipeSchema.safeParse({ ...valid, waterTemp: '4' }).success).toBe(true);
+  });
+
+  it('rejects a water temperature below 0', () => {
+    const r = recipeSchema.safeParse({ ...valid, waterTemp: '-1' });
     expect(r.success).toBe(false);
     if (!r.success) {
       expect(r.error.issues[0].message).toBe('recipe.waterTempTooLow');

@@ -14,6 +14,11 @@ logging:
     org.hibernate.SQL: DEBUG
 
 brewdeck:
+  # Local dev runs the AI assistant on a free local model: start it with `ollama serve`
+  # (docs/development/setup.md). Without Ollama running, the AI buttons answer 503.
+  ai:
+    enabled: ${AI_ENABLED:true}
+    provider: ${AI_PROVIDER:ollama}
   auth:
     refresh-cookie:
       # Local dev runs over plain http://localhost; some browsers drop Secure cookies there.
