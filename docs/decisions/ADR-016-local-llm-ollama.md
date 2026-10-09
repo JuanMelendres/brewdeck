@@ -45,9 +45,19 @@ models on Ollama, running natively on an Apple M4 with 24 GB of RAM:
 - **Positive:** the AI assistant costs nothing and keeps data on the machine. Switching back to
   Claude is one setting.
 - **Positive:** guardrails catch the numeric mistakes local models make. Claude benefits too.
-- **Negative:** answers take 15–25 s, and quality is below a frontier model. Steps text can still
-  mention amounts the guardrails changed, and grind advice can be off (for example "medium-fine"
-  for a French press).
+- **Negative:** answers take 15–25 s, and quality is below a frontier model.
+- **Update 2026-10-09 (method hints):** the prompt now gives the model each method's usual dose,
+  ratio, temperature, and grind (`BrewMethodProfile`, shared with the guardrails), and asks for every
+  text field in the user's language. The guardrails also bound the dose and rewrite the amounts in
+  the steps when they change them. Measured through the real API with `qwen3:8b` (6 methods x 2):
+
+  | | Guardrail fixes | Right grind | English leaking | Median time |
+  | --- | --- | --- | --- | --- |
+  | Before | 1/12 | 5/12 | 2/12 | 17.5 s |
+  | With hints | 0/12 | 12/12 | 0/12 | about 16 s |
+
+  A first version without the dose in the hint made the model propose about 170-215 g of coffee
+  for a V60 or Chemex, which is why the dose is now both hinted and bounded.
 - **Negative:** someone has to run `ollama serve`. Without it, the buttons answer 503.
 - **Negative:** production needs a machine with about 8 GB of free RAM or a GPU. That is not
   decided yet; outside `local` the flag stays off.
