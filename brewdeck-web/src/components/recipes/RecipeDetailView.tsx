@@ -12,6 +12,8 @@ import NextLink from 'next/link';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
+import { rateLimitMessage } from '@/lib/api/errors';
+import { AiWaitHint } from './AiWaitHint';
 import type { Recipe } from '@/lib/api/types';
 import { ApiError } from '@/lib/api/client';
 import { useRecipe, useRecipeStats } from '@/hooks/useRecipe';
@@ -79,7 +81,7 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
         if (error instanceof ApiError && error.status === 422) {
           setImproveError(t('improveNeedsHistory'));
         } else {
-          setImproveError(t('improveFailed'));
+          setImproveError(rateLimitMessage(error) ?? t('improveFailed'));
         }
       },
     });
@@ -185,6 +187,7 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
           {t('share')}
         </Button>
       </Box>
+      <AiWaitHint active={improve.isPending} />
       {improveError ? (
         <Alert severity="error" sx={{ mb: 2 }}>
           {improveError}
