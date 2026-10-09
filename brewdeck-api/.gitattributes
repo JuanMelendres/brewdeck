@@ -1,2 +1,5 @@
 /mvnw text eol=lf
-*.cmd text eol=crlf
+# Windows scripts are stored exactly as written (CRLF), with no line-ending conversion. Normalizing
+# them made mvnw.cmd look modified forever after every Dependabot Maven Wrapper bump, which writes
+# the file with CRLF (fixed by hand in 214fedb, broken again by #193).
+*.cmd -text
