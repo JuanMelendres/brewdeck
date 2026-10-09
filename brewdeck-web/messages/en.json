@@ -406,6 +406,10 @@
       "steps": "Steps",
       "expectedTaste": "Expected taste",
       "generated": "Generated {date}"
+    },
+    "ai": {
+      "waiting": "Thinking… this usually takes about 20 seconds.",
+      "waitingLong": "Still working. The AI runs on this computer and can take up to a minute and a half."
     }
   },
   "brewMethods": {
