@@ -9,7 +9,7 @@ import java.util.Locale;
  */
 final class RecipePrompts {
 
-  static final String VERSION = "2026-10-08";
+  static final String VERSION = "2026-10-09";
 
   static final String SUGGEST_SYSTEM =
       "You are an expert barista. Given a coffee and a brew method, return brewing parameters"
@@ -34,11 +34,20 @@ final class RecipePrompts {
     return IMPROVE_SYSTEM + languageInstruction(locale);
   }
 
-  /** Steps and rationale follow the user's language (ADR-015); numbers stay language-neutral. */
+  /**
+   * Every text field follows the user's language (ADR-015); numbers stay language-neutral. Asking
+   * only for steps and rationale let English leak into the grind setting and brew time.
+   */
   static String languageInstruction(Locale locale) {
-    return "es".equals(locale.getLanguage())
-        ? " Write steps and rationale in Spanish."
-        : " Write steps and rationale in English.";
+    String language = "es".equals(locale.getLanguage()) ? "Spanish" : "English";
+    return " Write every text field (grind setting, brew time, steps, rationale) in "
+        + language
+        + ".";
+  }
+
+  /** The method's usual ratio, temperature, and grind, so the model starts from sensible values. */
+  private static String methodHint(String methodName) {
+    return BrewMethodProfile.forMethod(methodName).map(p -> "\n" + p.promptHint()).orElse("");
   }
 
   static String suggestMessage(SuggestionContext c) {
@@ -63,6 +72,7 @@ final class RecipePrompts {
         + " ("
         + orDash(c.methodDescription())
         + ")"
+        + methodHint(c.methodName())
         + "\nUser notes: "
         + orDash(c.notes());
   }
@@ -91,6 +101,7 @@ final class RecipePrompts {
         .append(" (")
         .append(orDash(c.methodDescription()))
         .append(")")
+        .append(methodHint(c.methodName()))
         .append("\n\nCurrent recipe parameters:")
         .append("\n  Coffee grams: ")
         .append(orDash(c.currentCoffeeGrams()))
