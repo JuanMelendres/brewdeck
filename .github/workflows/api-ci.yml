@@ -19,9 +19,11 @@ jobs:
     runs-on: ubuntu-latest
     environment: brewdeck-github-actions
 
+    # Docker Hub's anonymous pull limit is shared by GitHub runner IPs and fails jobs at
+    # "Initialize containers". Pull the same official images from the ECR Public mirror.
     services:
       postgres:
-        image: postgres:16
+        image: public.ecr.aws/docker/library/postgres:16
         env:
           POSTGRES_DB: brewdeck
           POSTGRES_USER: brewdeck
@@ -43,6 +45,10 @@ jobs:
       DB_URL: jdbc:postgresql://localhost:5432/brewdeck
       DB_USER: brewdeck
       DB_PASSWORD: brewdeck
+      TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX: public.ecr.aws/docker/library/
+      # Ryuk lives under testcontainers/ on Docker Hub, not in the library mirror; the runner
+      # is thrown away after the job, so nothing is left behind without it.
+      TESTCONTAINERS_RYUK_DISABLED: "true"
 
     steps:
       - name: Checkout repository
