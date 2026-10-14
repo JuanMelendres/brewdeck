@@ -130,14 +130,12 @@ paths:
       description: >-
         Separate from PATCH /api/auth/me so a language-only update never touches the display name.
         Body: {"language": "EN" | "ES"}. GET /api/auth/me returns language, which is null until the
-        user chooses (the web app then follows the browser language). Gated by the web-i18n-spanish
-        RELEASE flag (ADR-015): 404 while it is off.
+        user chooses (the web app then follows the browser language). See ADR-015.
       responses:
         "200": { description: OK }
         "400": { description: Missing or unknown language, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
         "401": { description: Unauthenticated }
         "403": { description: Email not verified while verification is required (code EMAIL_NOT_VERIFIED) }
-        "404": { description: The web-i18n-spanish flag is off }
   /api/auth/change-password:
     post:
       tags: [Auth]
@@ -342,14 +340,5 @@ paths:
       summary: Public read-only recipe by share token
       parameters: [{ name: token, in: path, required: true, schema: { type: string } }]
       responses: { "200": { description: OK }, "404": { description: Unknown or revoked token } }
-  /api/public/ui-config:
-    get:
-      tags: [Public]
-      security: []
-      summary: UI languages users can choose
-      description: >-
-        {"languages": ["en"]}, plus "es" while the web-i18n-spanish flag is on (ADR-015). The web
-        server reads it to pick the render language before a user is known. Exposes no other flags.
-      responses: { "200": { description: OK } }
   /api/dashboard/summary:
     get: { tags: [Dashboard], summary: Dashboard summary, responses: { "200": { description: OK } } }

@@ -181,8 +181,6 @@
     "light": "Light",
     "dark": "Dark",
     "onboarding": {
-      "title": "Light or dark?",
-      "body": "Pick how BrewDeck looks. Try both: the app changes as you choose. You can switch any time in Account settings.",
       "saveFailed": "Could not save your choice. It applies on this device for now, and we will ask again next time you sign in.",
       "setupTitle": "Set up BrewDeck",
       "setupBody": "Pick your language and how BrewDeck looks. Try them: the app changes as you choose. You can switch any time in Account settings."

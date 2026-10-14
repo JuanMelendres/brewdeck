@@ -5,15 +5,12 @@ import { LanguagePreferenceSync } from './LanguagePreferenceSync';
 
 const refresh = vi.fn();
 let language: Language | null = null;
-let spanishEnabled = true;
 
 vi.mock('@/lib/auth/AuthProvider', () => ({ useAuth: () => ({ user: { language } }) }));
-vi.mock('@/lib/featureFlags/FeatureFlagProvider', () => ({ useFeatureFlag: () => spanishEnabled }));
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh }) }));
 
 afterEach(() => {
   language = null;
-  spanishEnabled = true;
   document.cookie = 'brewdeck-locale=; max-age=0; path=/';
   vi.clearAllMocks();
 });
@@ -34,10 +31,7 @@ describe('LanguagePreferenceSync', () => {
     expect(refresh).not.toHaveBeenCalled();
   });
 
-  it('does nothing without a saved language or while Spanish is off', () => {
-    renderWithTheme(<LanguagePreferenceSync />);
-    language = 'ES';
-    spanishEnabled = false;
+  it('does nothing without a saved language', () => {
     renderWithTheme(<LanguagePreferenceSync />);
 
     expect(refresh).not.toHaveBeenCalled();

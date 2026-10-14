@@ -12,7 +12,7 @@ This is a stable, high-level summary. The living, detailed roadmap is
 | 4 | Frontend (Next.js + React + TypeScript + MUI + TanStack Query + Vitest) | Completed |
 | 5 | Product improvements (analytics widgets, tasting radar, AI suggestions/improve, PDF export, public share links) | Completed |
 | 6 | Auth & multi-user | Completed |
-| 7 | UI/UX refresh (design system, navigation, dashboard, lists, auth screens, brand mark, i18n) | In progress — visual workstreams done; i18n (workstream 8) pending |
+| 7 | UI/UX refresh (design system, navigation, dashboard, lists, auth screens, brand mark, i18n) | Completed |
 
 ## Phase 6 breakdown
 
@@ -39,7 +39,7 @@ Spike: [ui-ux-refresh-spike](spikes/ui-ux-refresh-spike.md). Decision record: [A
 | 5 | Auth screens: split layout with brand panel | Done (#180) |
 | 6 | Micro-interactions: toasts, card hover | Done (#186) |
 | 7 | Theme preference: per-user light/dark, first-login dialog ([FDD](fdd/theme-preference-fdd.md)) | Done (#175, #176) |
-| 8 | Language (i18n): Spanish + English | Spike in progress |
+| 8 | Language (i18n): Spanish + English ([spike](spikes/i18n-spike.md)) | Done (#205–#211; flag retired in i18n PR 5) |
 | 9 | Forms: sectioned dialogs, select-label fix ([FDD](fdd/forms-fdd.md)) | Done (#178, #179) |
 | 10 | Brand mark: logo, wordmark, app icons, home-screen install ([spike](spikes/brand-mark-spike.md)) | Done (#189, #190) |
 
@@ -47,7 +47,7 @@ Spike: [ui-ux-refresh-spike](spikes/ui-ux-refresh-spike.md). Decision record: [A
 
 ## Status
 
-Phases 1–6 are Completed; Phase 7 is in progress (only i18n remains). Ongoing work past this point is maintenance (CVE/dependency remediation) and follow-ups tracked in [`.claude/project-state.md`](../../.claude/project-state.md) "Immediate Next Steps" (e.g. moving auth tokens off `localStorage` to `httpOnly` cookies). The AI recipe assistant (Phase 5) remains built but feature-flagged off (paused, not removed). "Vision" below is unscheduled future scope, not counted toward this roadmap.
+Phases 1–7 are Completed. Ongoing work past this point is maintenance (CVE/dependency remediation) and follow-ups tracked in [`.claude/project-state.md`](../../.claude/project-state.md) "Immediate Next Steps" (e.g. moving auth tokens off `localStorage` to `httpOnly` cookies). The AI recipe assistant (Phase 5) remains built but feature-flagged off (paused, not removed). "Vision" below is unscheduled future scope, not counted toward this roadmap.
 
 ## Vision (post-roadmap)
 
