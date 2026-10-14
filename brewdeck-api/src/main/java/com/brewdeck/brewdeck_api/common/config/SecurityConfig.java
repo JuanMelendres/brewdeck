@@ -6,7 +6,6 @@ import com.brewdeck.brewdeck_api.auth.verification.EmailVerificationRequiredFilt
 import com.brewdeck.brewdeck_api.common.ratelimit.AuthRateLimitFilter;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
 import com.brewdeck.brewdeck_api.featureflag.FeatureFlagService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +17,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.servlet.LocaleResolver;
+import tools.jackson.databind.ObjectMapper;
 
 @Configuration
 public class SecurityConfig {

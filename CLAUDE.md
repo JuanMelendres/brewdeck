@@ -25,7 +25,7 @@ Both backend and frontend are active. Prioritize full-stack consistency: keep en
 ## Backend Stack & Architecture
 
 ### Stack
-Java 21, Spring Boot 4.1 (migrated from 3.5.16 on 2026-09-23 — see [ADR-008](docs/decisions/ADR-008-spring-boot-4-migration.md); Jackson 2 kept via the `spring-boot-jackson2` compatibility shim, Jackson 3 port deferred), Maven Wrapper, PostgreSQL 16, Docker Compose, Flyway (via `spring-boot-starter-flyway` — Boot 4 silently skips migrations on a bare `flyway-core` dependency, don't revert this), Spring Data JPA, Hibernate, Bean Validation, Testcontainers, JUnit 5, Mockito, MockMvc, JaCoCo, Spotless, PMD, OWASP Dependency Check, SonarCloud, GitHub Actions, Springdoc OpenAPI 3.x / Swagger.
+Java 21, Spring Boot 4.1 (migrated from 3.5.16 on 2026-09-23 — see [ADR-008](docs/decisions/ADR-008-spring-boot-4-migration.md); Jackson 3 (`tools.jackson.*`) for BrewDeck's own code since 2026-10-14; Jackson 2 only as a transitive dependency of third-party libraries), Maven Wrapper, PostgreSQL 16, Docker Compose, Flyway (via `spring-boot-starter-flyway` — Boot 4 silently skips migrations on a bare `flyway-core` dependency, don't revert this), Spring Data JPA, Hibernate, Bean Validation, Testcontainers, JUnit 5, Mockito, MockMvc, JaCoCo, Spotless, PMD, OWASP Dependency Check, SonarCloud, GitHub Actions, Springdoc OpenAPI 3.x / Swagger.
 
 ### Conventions (as built)
 - **Dependency injection:** constructor injection only, via Lombok `@RequiredArgsConstructor` + `private final` fields. No field injection (`@Autowired` on fields).

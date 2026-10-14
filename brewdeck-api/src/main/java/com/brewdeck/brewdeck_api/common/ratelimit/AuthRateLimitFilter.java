@@ -1,7 +1,6 @@
 package com.brewdeck.brewdeck_api.common.ratelimit;
 
 import com.brewdeck.brewdeck_api.common.error.ErrorResponse;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.LocaleResolver;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Per-client-IP limits on the public auth endpoints, applied before any controller work. Not a

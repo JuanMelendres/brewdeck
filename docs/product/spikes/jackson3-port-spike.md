@@ -182,7 +182,10 @@ Same field order, ISO-8601 `Instant`, explicit `null`s. The 404 body matched too
 
 ## 16. Decision
 
-Decision pending.
+- Decision: Option B, port everything in one PR (`refactor/api-jackson3`).
+- Date: 2026-10-14
+- Owner: Juan
+- Status: Accepted
 
 ## 17. Next Steps
 
