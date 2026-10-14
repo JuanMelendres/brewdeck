@@ -68,6 +68,12 @@ CVE-2026-59282/47834, and deserves its own reviewed change. This is intentionall
 nobody mistakes the shim for a permanent architecture choice; **revisit and plan a real Jackson 3
 port as a follow-up**, at which point `spring-boot-jackson2` should be removed.
 
+**Update (2026-10-14): shim removed.** The follow-up landed in `refactor/api-jackson3`, after the
+[Jackson 3 port spike](../product/spikes/jackson3-port-spike.md). `spring-boot-jackson2` is gone;
+BrewDeck's own code and tests use `tools.jackson.databind.*` and the single Boot-configured Jackson 3
+`JsonMapper`. Jackson 2 is still on the classpath for third-party libraries (`jjwt-jackson`,
+`swagger-core`, `anthropic-java`), so the `jackson-2-bom` pin stays.
+
 ## The Flyway starter gotcha
 Boot 4 carved `FlywayAutoConfiguration` out of the Boot 3-style automatic wiring into its own
 `spring-boot-flyway` module, gated behind the new `spring-boot-starter-flyway` starter. A bare
@@ -126,6 +132,6 @@ post-migration; it does not need a further version bump yet.
   above, and deferring leaves the two open CVEs unresolved longer than necessary.
 
 ## Notes
-See `pom.xml` inline comments for the per-dependency rationale (Flyway starter, Jackson 2 shim,
-swagger-ui override) and `.claude/project-state.md` "Recently Worked On" for the round-by-round CVE
+See `pom.xml` inline comments for the per-dependency rationale (Flyway starter, swagger-ui
+override; the Jackson 2 shim comment went with the shim on 2026-10-14) and `.claude/project-state.md` "Recently Worked On" for the round-by-round CVE
 remediation history this migration concludes.
