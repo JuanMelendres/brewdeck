@@ -5,7 +5,7 @@ import { apiFetch } from './client';
  * registry one-to-one; the backend maps each alias to its kebab-case `feature_key`. Add a member
  * here only when the backend exposes the matching flag through `/api/feature-flags`.
  */
-export type FeatureFlagName = 'aiRecipeAssistant' | 'requireEmailVerification' | 'i18nSpanish';
+export type FeatureFlagName = 'aiRecipeAssistant' | 'requireEmailVerification';
 
 export type FeatureFlags = Record<FeatureFlagName, boolean>;
 
@@ -18,7 +18,6 @@ type FeatureFlagsResponse = { features: Partial<Record<string, boolean>> };
 export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   aiRecipeAssistant: false,
   requireEmailVerification: false,
-  i18nSpanish: false,
 };
 
 /** Coerce a raw response map into a fully-populated, strongly-typed flag set. */
@@ -28,7 +27,6 @@ export function normalizeFeatureFlags(
   return {
     aiRecipeAssistant: features?.aiRecipeAssistant ?? false,
     requireEmailVerification: features?.requireEmailVerification ?? false,
-    i18nSpanish: features?.i18nSpanish ?? false,
   };
 }
 

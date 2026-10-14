@@ -30,4 +30,39 @@ public record RecipeRequest(
     @Size(max = 20, message = "{validation.brewTime.tooLong}") String brewTime,
     @Size(max = 1000, message = "{validation.steps.tooLong}") String steps,
     @Size(max = 500, message = "{validation.expectedTaste.tooLong}") String expectedTaste,
-    Boolean favorite) {}
+    Boolean favorite,
+    // Set when the recipe comes from an AI suggestion (ADR-016); informational, sent by the client.
+    @Size(max = 80) String aiModel,
+    @Size(max = 20) String aiPromptVersion) {
+
+  /** A recipe written by hand: no AI provenance. */
+  public RecipeRequest(
+      Long coffeeId,
+      Long methodId,
+      String name,
+      BigDecimal coffeeGrams,
+      BigDecimal waterGrams,
+      String ratio,
+      String grindSetting,
+      Integer waterTemp,
+      String brewTime,
+      String steps,
+      String expectedTaste,
+      Boolean favorite) {
+    this(
+        coffeeId,
+        methodId,
+        name,
+        coffeeGrams,
+        waterGrams,
+        ratio,
+        grindSetting,
+        waterTemp,
+        brewTime,
+        steps,
+        expectedTaste,
+        favorite,
+        null,
+        null);
+  }
+}

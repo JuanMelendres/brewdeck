@@ -2,6 +2,9 @@
 
 Decision record: [ADR-015](../decisions/ADR-015-i18n-next-intl-language-preference.md). Plan: the
 [i18n spike](../product/spikes/i18n-spike.md) §17, PR 4. Status: implemented on `feat/web-spanish-ui`.
+**Update 2026-10-14:** the `web-i18n-spanish` flag, `GET /api/public/ui-config`, and
+`enabledLocales.ts` were removed in i18n PR 5 (V28); Spanish is always available. Flag-related
+sections below are historical.
 
 ## 1. Summary
 

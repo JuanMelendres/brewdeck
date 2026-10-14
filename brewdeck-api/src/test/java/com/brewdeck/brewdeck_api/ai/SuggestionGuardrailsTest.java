@@ -113,4 +113,51 @@ class SuggestionGuardrailsTest {
     assertThat(fixed.steps()).hasSizeLessThanOrEqualTo(1000);
     assertThat(fixed.rationale()).isEqualTo("Smooth.");
   }
+
+  @Test
+  void stepsFollowTheAdjustedWaterAndTemperature() {
+    // Seen end to end: French press 30 g / 225 g was raised to 360 g, but the steps still said 225
+    // g.
+    SuggestedRecipe answer =
+        new SuggestedRecipe(
+            BigDecimal.valueOf(30),
+            BigDecimal.valueOf(225),
+            "1:7.5",
+            "coarse",
+            99,
+            "4:00",
+            "Heat water to 99°C. Pour 225 g of water over 30 g of coffee. Bloom with 50 g first.",
+            "Rich.");
+
+    SuggestedRecipe fixed = guardrails.apply("French Press", answer);
+
+    assertThat(fixed.waterGrams()).isEqualByComparingTo("360.0");
+    assertThat(fixed.waterTemp()).isEqualTo(96);
+    assertThat(fixed.steps())
+        .isEqualTo(
+            "Heat water to 96°C. Pour 360 g of water over 30 g of coffee. Bloom with 50 g first.");
+  }
+
+  @Test
+  void anAbsurdDose_isBroughtBackAndTheWaterFollows() {
+    // Seen end to end: 173 g of coffee and 2249 g of water for one V60 (a fine 1:13 ratio).
+    SuggestedRecipe answer =
+        new SuggestedRecipe(
+            BigDecimal.valueOf(173),
+            BigDecimal.valueOf(2249),
+            "1:13",
+            "medium-fine",
+            92,
+            "3:00",
+            "Pour 2249 g of water over 173 g of coffee.",
+            "Bright.");
+
+    SuggestedRecipe fixed = guardrails.apply("V60", answer);
+
+    assertThat(fixed.coffeeGrams()).isEqualByComparingTo("40.0");
+    assertThat(fixed.waterGrams()).isEqualByComparingTo("520.0");
+    assertThat(fixed.ratio()).isEqualTo("1:13");
+    assertThat(fixed.steps()).isEqualTo("Pour 520 g of water over 40 g of coffee.");
+    assertThat(fixed.rationale()).endsWith("Adjusted to the usual range for this brew method.");
+  }
 }

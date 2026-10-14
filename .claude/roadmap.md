@@ -101,7 +101,7 @@ Released to master: Phase 6 shipped develop→master via PR #77 (Slices C.1 #73,
 
 ## Phase 7 — UI/UX Refresh
 
-Status: In progress (added 2026-09-30) — workstreams 1–7, 9, 10 done; 8 (i18n) spike in progress
+Status: Completed (added 2026-09-30, done 2026-10-14) — all workstreams done; i18n PR 5 retired the `web-i18n-spanish` flag
 
 - Spike + POC: design foundation and visual direction — [docs/product/spikes/ui-ux-refresh-spike.md](../docs/product/spikes/ui-ux-refresh-spike.md). Direction chosen 2026-09-30: A (warm café) light + C palette for dark mode.
 - Workstreams after the POC (each gets an FDD, the foundation gets a TDD):

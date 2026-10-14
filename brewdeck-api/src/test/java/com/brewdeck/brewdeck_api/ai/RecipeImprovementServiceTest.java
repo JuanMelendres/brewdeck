@@ -179,5 +179,7 @@ class RecipeImprovementServiceTest {
     assertThat(context.history().get(0).tasteResult()).isEqualTo("Bright");
     assertThat(result.waterTemp()).isEqualTo(92);
     assertThat(result.rationale()).isEqualTo("Finer grind improves sweetness.");
+    assertThat(result.aiModel()).isEqualTo("claude-haiku-4-5");
+    assertThat(result.aiPromptVersion()).isEqualTo(RecipePrompts.VERSION);
   }
 }

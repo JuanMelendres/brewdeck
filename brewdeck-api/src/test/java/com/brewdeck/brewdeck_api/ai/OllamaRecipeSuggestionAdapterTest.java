@@ -94,7 +94,10 @@ class OllamaRecipeSuggestionAdapterTest {
         .andExpect(
             request -> {
               String body = request.getBody().toString();
-              assertThat(body).contains("Write steps and rationale in Spanish.");
+              assertThat(body)
+                  .contains("in Spanish.")
+                  .contains(
+                      "Usual for this method: coffee dose 10-40 g, water-to-coffee ratio 1:13 to 1:18");
             })
         .andRespond(withSuccess(ollamaReply(ANSWER, "stop"), MediaType.APPLICATION_JSON));
 

@@ -5,16 +5,16 @@ import {
   createRecipe,
   deleteRecipe,
   favoriteRecipe,
+  type RecipeRequestBody,
   unfavoriteRecipe,
   updateRecipe,
 } from '@/lib/api/recipes';
 import { keys } from '@/lib/query/keys';
-import type { RecipeFormValues } from '@/lib/validation/recipeSchema';
 
 export function useCreateRecipe() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body: RecipeFormValues) => createRecipe(body),
+    mutationFn: (body: RecipeRequestBody) => createRecipe(body),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['recipes'] }),
   });
 }
@@ -22,7 +22,7 @@ export function useCreateRecipe() {
 export function useUpdateRecipe() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, body }: { id: number; body: RecipeFormValues }) => updateRecipe(id, body),
+    mutationFn: ({ id, body }: { id: number; body: RecipeRequestBody }) => updateRecipe(id, body),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['recipes'] }),
   });
 }

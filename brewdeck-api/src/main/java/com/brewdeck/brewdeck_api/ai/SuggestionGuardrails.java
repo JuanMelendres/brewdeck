@@ -3,9 +3,9 @@ package com.brewdeck.brewdeck_api.ai;
 import com.brewdeck.brewdeck_api.common.i18n.RequestLocale;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
@@ -23,28 +23,9 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SuggestionGuardrails {
 
-  /** Usual water/coffee ratio (by weight) and water temperature for a family of methods. */
-  record MethodRange(
-      List<String> nameHints, double minRatio, double maxRatio, int minTemp, int maxTemp) {
-    boolean matches(String methodName) {
-      return nameHints.stream().anyMatch(methodName::contains);
-    }
-  }
-
-  // Order matters: "aeropress" must win over "press", "cold brew" over pour-over hints.
-  static final List<MethodRange> RANGES =
-      List.of(
-          new MethodRange(List.of("espresso"), 1.5, 3.0, 88, 96),
-          new MethodRange(List.of("cold"), 4, 16, 0, 25),
-          new MethodRange(List.of("moka"), 6, 10, 80, 100),
-          new MethodRange(List.of("aeropress"), 6, 17, 80, 96),
-          new MethodRange(List.of("french", "prensa", "press"), 12, 17, 88, 96),
-          new MethodRange(
-              List.of("v60", "chemex", "kalita", "origami", "clever", "pour", "dripper", "filter"),
-              13,
-              18,
-              85,
-              96));
+  // Sanity bounds for a method without a profile (user-defined names).
+  private static final double MIN_DOSE = 5;
+  private static final double MAX_DOSE = 250;
 
   // Limits of RecipeRequest, so an accepted suggestion always saves.
   private static final int MAX_GRIND = 120;
@@ -54,11 +35,7 @@ public class SuggestionGuardrails {
   private final MessageSource messageSource;
 
   public SuggestedRecipe apply(String methodName, SuggestedRecipe answer) {
-    MethodRange range =
-        RANGES.stream()
-            .filter(r -> r.matches(methodName == null ? "" : methodName.toLowerCase(Locale.ROOT)))
-            .findFirst()
-            .orElse(null);
+    BrewMethodProfile range = BrewMethodProfile.forMethod(methodName).orElse(null);
 
     BigDecimal water = answer.waterGrams();
     String ratio = answer.ratio();
@@ -69,7 +46,17 @@ public class SuggestionGuardrails {
     if (coffee != null && coffee.signum() > 0 && water != null && water.signum() > 0) {
       double actual = water.doubleValue() / coffee.doubleValue();
       double target = range == null ? actual : clamp(actual, range.minRatio(), range.maxRatio());
-      if (target != actual) {
+      // A sensible ratio can still hide an absurd dose (seen: 173 g of coffee for one V60).
+      double dose =
+          clamp(
+              coffee.doubleValue(),
+              range == null ? MIN_DOSE : range.minDose(),
+              range == null ? MAX_DOSE : range.maxDose());
+      if (dose != coffee.doubleValue()) {
+        coffee = BigDecimal.valueOf(dose).setScale(1, RoundingMode.HALF_UP);
+        adjusted = true;
+      }
+      if (target != actual || adjusted) {
         water = coffee.multiply(BigDecimal.valueOf(target)).setScale(1, RoundingMode.HALF_UP);
         adjusted = true;
       }
@@ -95,7 +82,17 @@ public class SuggestionGuardrails {
     // Models ignore length limits; trim to what the recipe form accepts so the suggestion saves.
     String grind = fit(answer.grindSetting(), MAX_GRIND);
     String brewTime = fit(answer.brewTime(), MAX_BREW_TIME);
-    String steps = fit(answer.steps(), MAX_STEPS);
+    String steps =
+        fit(
+            syncSteps(
+                answer.steps(),
+                answer.coffeeGrams(),
+                coffee,
+                answer.waterGrams(),
+                water,
+                answer.waterTemp(),
+                temp),
+            MAX_STEPS);
 
     if (!adjusted
         && Objects.equals(ratio, answer.ratio())
@@ -120,5 +117,45 @@ public class SuggestionGuardrails {
 
   private static String fit(String text, int max) {
     return text == null || text.length() <= max ? text : text.substring(0, max - 1).strip() + "…";
+  }
+
+  /**
+   * The model writes amounts into the steps too ("pour 225 g"). When the water or temperature was
+   * adjusted, the same numbers in the steps are replaced, so the steps match the recipe fields.
+   */
+  static String syncSteps(
+      String steps,
+      BigDecimal oldCoffee,
+      BigDecimal newCoffee,
+      BigDecimal oldWater,
+      BigDecimal newWater,
+      Integer oldTemp,
+      Integer newTemp) {
+    if (steps == null) {
+      return null;
+    }
+    String result = replaceGrams(steps, oldWater, newWater);
+    result = replaceGrams(result, oldCoffee, newCoffee);
+    if (oldTemp != null && newTemp != null && !oldTemp.equals(newTemp)) {
+      result =
+          result.replaceAll(
+              "(?<![\\d.,])" + oldTemp + "(?=\\s?(?:°|º|grados|degrees))", String.valueOf(newTemp));
+    }
+    return result;
+  }
+
+  private static String plain(BigDecimal value) {
+    return value.stripTrailingZeros().toPlainString();
+  }
+
+  private static String replaceGrams(String text, BigDecimal from, BigDecimal to) {
+    if (from == null || to == null || from.compareTo(to) == 0) {
+      return text;
+    }
+    return text.replaceAll(
+        "(?<![\\d.,])"
+            + Pattern.quote(plain(from))
+            + "(?:[.,]0+)?(?=\\s?(?:g\\b|gr\\b|gramos|grams|ml\\b))",
+        Matcher.quoteReplacement(plain(to)));
   }
 }

@@ -181,8 +181,6 @@
     "light": "Light",
     "dark": "Dark",
     "onboarding": {
-      "title": "Light or dark?",
-      "body": "Pick how BrewDeck looks. Try both: the app changes as you choose. You can switch any time in Account settings.",
       "saveFailed": "Could not save your choice. It applies on this device for now, and we will ask again next time you sign in.",
       "setupTitle": "Set up BrewDeck",
       "setupBody": "Pick your language and how BrewDeck looks. Try them: the app changes as you choose. You can switch any time in Account settings."
@@ -368,7 +366,8 @@
       "lastBrewed": "Last Brewed",
       "historyTitle": "Brew history",
       "historyFailed": "Could not load brew history.",
-      "historyEmpty": "No brew sessions yet for this recipe."
+      "historyEmpty": "No brew sessions yet for this recipe.",
+      "aiSuggested": "AI-suggested ({model})"
     },
     "share": {
       "title": "Share recipe",
@@ -406,6 +405,10 @@
       "steps": "Steps",
       "expectedTaste": "Expected taste",
       "generated": "Generated {date}"
+    },
+    "ai": {
+      "waiting": "Thinking… this usually takes about 20 seconds.",
+      "waitingLong": "Still working. The AI runs on this computer and can take up to a minute and a half."
     }
   },
   "brewMethods": {

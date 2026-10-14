@@ -181,8 +181,6 @@
     "light": "Claro",
     "dark": "Oscuro",
     "onboarding": {
-      "title": "¿Claro u oscuro?",
-      "body": "Elige cómo se ve BrewDeck. Prueba ambos: la app cambia mientras eliges. Puedes cambiarlo cuando quieras en la configuración de tu cuenta.",
       "saveFailed": "No pudimos guardar tu elección. Por ahora aplica en este dispositivo, y te volveremos a preguntar la próxima vez que inicies sesión.",
       "setupTitle": "Configura BrewDeck",
       "setupBody": "Elige tu idioma y cómo se ve BrewDeck. Pruébalos: la app cambia mientras eliges. Puedes cambiarlos cuando quieras en la configuración de tu cuenta."
@@ -368,7 +366,8 @@
       "lastBrewed": "Última preparación",
       "historyTitle": "Historial",
       "historyFailed": "No pudimos cargar el historial.",
-      "historyEmpty": "Aún no hay preparaciones de esta receta."
+      "historyEmpty": "Aún no hay preparaciones de esta receta.",
+      "aiSuggested": "Sugerida por IA ({model})"
     },
     "share": {
       "title": "Compartir receta",
@@ -406,6 +405,10 @@
       "steps": "Pasos",
       "expectedTaste": "Sabor esperado",
       "generated": "Generado el {date}"
+    },
+    "ai": {
+      "waiting": "Pensando… suele tardar unos 20 segundos.",
+      "waitingLong": "Sigue trabajando. La IA corre en esta computadora y puede tardar hasta un minuto y medio."
     }
   },
   "brewMethods": {

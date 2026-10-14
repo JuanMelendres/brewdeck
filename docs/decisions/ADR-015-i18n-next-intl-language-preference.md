@@ -27,7 +27,9 @@ Options, findings, and the proof of concept are in the [i18n spike](../product/s
 - **Emails:** sent in the user's stored language, since asynchronous sending has no request locale. Registration
   stores the request locale.
 - **Rollout:** a RELEASE flag, `web-i18n-spanish`, hides Spanish until every screen is translated. The backend
-  checks it on `PUT /api/auth/me/language`.
+  checks it on `PUT /api/auth/me/language`. **Update 2026-10-14:** the flag was retired (V28) after the owner's
+  review and prod enablement; English and Spanish are always available and `GET /api/public/ui-config` was
+  removed with it.
 - **Supply chain:** the build scripts of `next-intl`'s optional message-extractor dependencies (`@swc/core`,
   `@parcel/watcher`) stay blocked in `pnpm-workspace.yaml`.
 

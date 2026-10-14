@@ -202,24 +202,6 @@ class AuthControllerTest {
   }
 
   @Test
-  void updateLanguage_returns404WhileSpanishIsOff() throws Exception {
-    Principal principal = () -> "brewer@example.com";
-    when(authService.updateLanguage(eq("brewer@example.com"), any()))
-        .thenThrow(
-            new com.brewdeck.brewdeck_api.featureflag.FeatureDisabledException(
-                "web-i18n-spanish", org.springframework.http.HttpStatus.NOT_FOUND));
-
-    mockMvc
-        .perform(
-            put("/api/auth/me/language")
-                .principal(principal)
-                .contentType("application/json")
-                .content("{\"language\":\"ES\"}"))
-        .andExpect(status().isNotFound())
-        .andExpect(jsonPath("$.message").value("This feature is not available"));
-  }
-
-  @Test
   void updateTheme_missingPreferenceReturns400() throws Exception {
     Principal principal = () -> "brewer@example.com";
 

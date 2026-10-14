@@ -21,7 +21,9 @@ public record RecipeResponse(
     Boolean favorite,
     Instant createdAt,
     Instant updatedAt,
-    String shareToken) {
+    String shareToken,
+    String aiModel,
+    String aiPromptVersion) {
   public static RecipeResponse fromEntity(Recipe recipe) {
     return new RecipeResponse(
         recipe.getId(),
@@ -41,6 +43,8 @@ public record RecipeResponse(
         recipe.getFavorite(),
         recipe.getCreatedAt(),
         recipe.getUpdatedAt(),
-        recipe.getShareToken());
+        recipe.getShareToken(),
+        recipe.getAiModel(),
+        recipe.getAiPromptVersion());
   }
 }

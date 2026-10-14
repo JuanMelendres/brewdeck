@@ -62,6 +62,13 @@ public class Recipe {
   @Column(nullable = false)
   private Boolean favorite;
 
+  /** AI model this recipe was saved from, e.g. "qwen3:8b"; null when written by hand (ADR-016). */
+  @Column(name = "ai_model", length = 80)
+  private String aiModel;
+
+  @Column(name = "ai_prompt_version", length = 20)
+  private String aiPromptVersion;
+
   @Column(name = "share_token", unique = true)
   private String shareToken;
 

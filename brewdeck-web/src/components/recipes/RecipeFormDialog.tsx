@@ -17,6 +17,8 @@ import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import type { z } from 'zod';
 import { useTranslations } from 'next-intl';
+import { rateLimitMessage } from '@/lib/api/errors';
+import { AiWaitHint } from './AiWaitHint';
 import { useFieldError } from '@/i18n/useFieldError';
 import { ApiError } from '@/lib/api/client';
 import { recipeSchema, type RecipeFormValues } from '@/lib/validation/recipeSchema';
@@ -104,6 +106,11 @@ export function RecipeFormDialog({
 
   const suggestion = useSuggestRecipe();
   const [rationale, setRationale] = useState<string | null>(initialRationale ?? null);
+  // Which model and prompt produced the values; saved with the recipe, kept on manual edits.
+  const [provenance, setProvenance] = useState({
+    aiModel: recipe?.aiModel ?? null,
+    aiPromptVersion: recipe?.aiPromptVersion ?? null,
+  });
   const [suggestError, setSuggestError] = useState<string | null>(null);
 
   const coffeeId = watch('coffeeId');
@@ -130,9 +137,9 @@ export function RecipeFormDialog({
           set('brewTime', data.brewTime);
           set('steps', data.steps);
           setRationale(data.rationale);
+          setProvenance({ aiModel: data.aiModel, aiPromptVersion: data.aiPromptVersion });
         },
-        onError: () =>
-          setSuggestError(t('suggestFailed')),
+        onError: (error) => setSuggestError(rateLimitMessage(error) ?? t('suggestFailed')),
       },
     );
   };
@@ -155,9 +162,9 @@ export function RecipeFormDialog({
       },
     };
     if (isEdit && recipe) {
-      update.mutate({ id: recipe.id, body: data }, mutateOptions);
+      update.mutate({ id: recipe.id, body: { ...data, ...provenance } }, mutateOptions);
     } else {
-      create.mutate(data, mutateOptions);
+      create.mutate({ ...data, ...provenance }, mutateOptions);
     }
   };
 
@@ -258,6 +265,7 @@ export function RecipeFormDialog({
                   >
                     {t('suggest')}
                   </Button>
+                  <AiWaitHint active={suggestion.isPending} />
                   {suggestError ? <Alert severity="error">{suggestError}</Alert> : null}
                   {rationale ? <Alert severity="info">{rationale}</Alert> : null}
                 </Grid>

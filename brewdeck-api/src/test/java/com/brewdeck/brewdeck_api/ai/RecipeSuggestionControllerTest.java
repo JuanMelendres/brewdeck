@@ -50,7 +50,9 @@ class RecipeSuggestionControllerTest {
                 92,
                 "2:30",
                 "Bloom then pour.",
-                "Balanced for a medium roast."));
+                "Balanced for a medium roast.",
+                "qwen3:8b",
+                "2026-10-09"));
 
     mockMvc
         .perform(

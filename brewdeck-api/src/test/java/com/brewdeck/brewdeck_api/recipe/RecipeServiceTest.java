@@ -235,6 +235,40 @@ class RecipeServiceTest {
   }
 
   @Test
+  void create_shouldKeepAiProvenance_whenRecipeCameFromSuggestion() {
+    Coffee coffee = Coffee.builder().id(1L).name("Mezcla Veracruz").build();
+    BrewMethod method = BrewMethod.builder().id(1L).name("V60").build();
+    User owner = User.builder().id(42L).email("owner@brewdeck.test").build();
+
+    when(currentUserProvider.require()).thenReturn(owner);
+    when(coffeeRepository.findByIdAndOwnerId(1L, 42L)).thenReturn(Optional.of(coffee));
+    when(brewMethodRepository.findVisibleById(1L, 42L)).thenReturn(Optional.of(method));
+    when(recipeRepository.save(any(Recipe.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    RecipeResponse response =
+        recipeService.create(
+            new RecipeRequest(
+                1L,
+                1L,
+                "AI Recipe",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                false,
+                "qwen3:8b",
+                "2026-10-09"));
+
+    assertThat(response.aiModel()).isEqualTo("qwen3:8b");
+    assertThat(response.aiPromptVersion()).isEqualTo("2026-10-09");
+  }
+
+  @Test
   void create_shouldThrowException_whenCoffeeDoesNotExist() {
     RecipeRequest request =
         new RecipeRequest(99L, 1L, "Recipe", null, null, null, null, null, null, null, null, false);

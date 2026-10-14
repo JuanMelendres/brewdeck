@@ -160,6 +160,28 @@ describe('RecipeDetailView', () => {
     expect(screen.queryByText('Favorite')).not.toBeInTheDocument();
   });
 
+  it('labels a recipe that came from the AI assistant with its model', () => {
+    mockRecipe({
+      isLoading: false,
+      isError: false,
+      data: { ...recipe, aiModel: 'qwen3:8b', aiPromptVersion: '2026-10-09' },
+    });
+    mockStats({ isLoading: false, isError: false, data: undefined });
+
+    renderWithTheme(<RecipeDetailView recipeId={1} />);
+
+    expect(screen.getByText('AI-suggested (qwen3:8b)')).toBeInTheDocument();
+  });
+
+  it('does not label a recipe written by hand', () => {
+    mockRecipe({ isLoading: false, isError: false, data: recipe });
+    mockStats({ isLoading: false, isError: false, data: undefined });
+
+    renderWithTheme(<RecipeDetailView recipeId={1} />);
+
+    expect(screen.queryByText(/AI-suggested/)).not.toBeInTheDocument();
+  });
+
   it('shows an inline stats error when statistics fail but the recipe loaded', () => {
     mockRecipe({ isLoading: false, isError: false, data: recipe });
     mockStats({ isLoading: false, isError: true, data: undefined, refetch: vi.fn() });
@@ -247,6 +269,8 @@ describe('RecipeDetailView', () => {
         brewTime: '2:15',
         steps: 'Grind finer and shorten the brew.',
         rationale: 'Finer grind improves sweetness.',
+        aiModel: 'qwen3:8b',
+        aiPromptVersion: '2026-10-09',
       }),
     );
     mockRecipe({ isLoading: false, isError: false, data: recipe });

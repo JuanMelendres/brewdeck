@@ -17,7 +17,7 @@ POST  /api/auth/login               200
 GET   /api/auth/me                  200 (401 without token; includes emailVerified, role: USER|ADMIN, themePreference: LIGHT|DARK|null, language: EN|ES|null)
 PATCH /api/auth/me                  200 (update display name)
 PUT   /api/auth/me/theme            200 (set themePreference LIGHT|DARK; 400 if missing or unknown)
-PUT   /api/auth/me/language         200 (set language EN|ES; 400 if missing or unknown; 404 while the web-i18n-spanish flag is off)
+PUT   /api/auth/me/language         200 (set language EN|ES; 400 if missing or unknown)
 POST  /api/auth/change-password     204 (400 if current password wrong; revokes all refresh tokens)
 POST  /api/auth/forgot-password     200 (always; no user enumeration)
 POST  /api/auth/reset-password      204 (400 if token invalid/expired/used; revokes all refresh tokens)
@@ -110,6 +110,11 @@ POST   /api/recipes
 POST   /api/recipes/suggest              (AI, feature-flagged; 429 over 10 calls/min per user)
 POST   /api/recipes/{id}/improve         (AI, feature-flagged; 429 over 10 calls/min per user)
 PUT    /api/recipes/{id}
+```
+
+Recipe bodies and responses carry optional `aiModel` / `aiPromptVersion`: the AI answer (`suggest`, `improve`) returns them, and the client sends them back when the user saves that answer, so the recipe records which model and prompt produced it. Hand-written recipes leave them `null`.
+
+```
 PATCH  /api/recipes/{id}/favorite
 PATCH  /api/recipes/{id}/unfavorite
 PATCH  /api/recipes/{id}/share
@@ -130,7 +135,6 @@ DELETE /api/brew-sessions/{id}
 ## Public (no auth) (`/api/public`)
 ```
 GET    /api/public/recipes/{token}
-GET    /api/public/ui-config        200 ({"languages":["en"]}, plus "es" while web-i18n-spanish is on; read by the Next server)
 ```
 
 ## Dashboard & system
