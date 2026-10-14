@@ -4,17 +4,12 @@ export type AppLocale = (typeof LOCALES)[number];
 export const DEFAULT_LOCALE: AppLocale = 'en';
 export const LOCALE_COOKIE = 'brewdeck-locale';
 
-/**
- * The locale to render: a saved choice, else the browser language, limited to the locales the
- * backend has enabled (Spanish only while the `web-i18n-spanish` flag is on, ADR-015).
- */
+/** The locale to render: a saved choice, else the browser language (ADR-015). */
 export function resolveLocale(
   saved: string | undefined,
   acceptLanguage: string | null | undefined,
-  enabled: readonly AppLocale[],
 ): AppLocale {
-  const wanted = isLocale(saved) ? saved : localeFromAcceptLanguage(acceptLanguage);
-  return enabled.includes(wanted) ? wanted : DEFAULT_LOCALE;
+  return isLocale(saved) ? saved : localeFromAcceptLanguage(acceptLanguage);
 }
 
 export function isLocale(value: unknown): value is AppLocale {

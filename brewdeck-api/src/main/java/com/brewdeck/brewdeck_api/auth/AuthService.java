@@ -6,8 +6,6 @@ import com.brewdeck.brewdeck_api.auth.verification.EmailVerificationService;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
 import com.brewdeck.brewdeck_api.common.security.SecureTokens;
-import com.brewdeck.brewdeck_api.featureflag.FeatureFlagService;
-import com.brewdeck.brewdeck_api.featureflag.FeatureKeys;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.Instant;
 import java.util.Optional;
@@ -28,7 +26,6 @@ public class AuthService {
   private final PasswordEncoder passwordEncoder;
   private final EmailVerificationService emailVerificationService;
   private final RefreshTokenService refreshTokenService;
-  private final FeatureFlagService featureFlagService;
   private final RateLimiter rateLimiter;
 
   /**
@@ -44,15 +41,13 @@ public class AuthService {
       PasswordEncoder passwordEncoder,
       EmailVerificationService emailVerificationService,
       RefreshTokenService refreshTokenService,
-      RateLimiter rateLimiter,
-      FeatureFlagService featureFlagService) {
+      RateLimiter rateLimiter) {
     this.userRepository = userRepository;
     this.jwtService = jwtService;
     this.passwordEncoder = passwordEncoder;
     this.emailVerificationService = emailVerificationService;
     this.refreshTokenService = refreshTokenService;
     this.rateLimiter = rateLimiter;
-    this.featureFlagService = featureFlagService;
     this.dummyPasswordHash = passwordEncoder.encode(SecureTokens.newToken());
   }
 
@@ -122,8 +117,6 @@ public class AuthService {
 
   @Transactional
   public UserResponse updateLanguage(String email, UpdateLanguageRequest request) {
-    // Checked before any write: the flag gates the feature, not just the UI (ADR-007).
-    featureFlagService.requireEnabled(FeatureKeys.I18N_SPANISH);
     User user = requireByEmail(email);
     user.setLanguage(request.language());
     User saved = userRepository.save(user);
