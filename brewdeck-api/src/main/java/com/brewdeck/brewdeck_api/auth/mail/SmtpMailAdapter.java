@@ -4,6 +4,8 @@ import com.brewdeck.brewdeck_api.auth.reset.MailProperties;
 import com.brewdeck.brewdeck_api.auth.reset.PasswordResetMailPort;
 import com.brewdeck.brewdeck_api.auth.verification.EmailVerificationMailPort;
 import jakarta.mail.MessagingException;
+import jakarta.mail.internet.AddressException;
+import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -49,10 +51,34 @@ public class SmtpMailAdapter implements EmailVerificationMailPort, PasswordReset
       MailProperties properties,
       @Qualifier("applicationTaskExecutor") TaskExecutor taskExecutor,
       MessageSource messageSource) {
+    requireValidFrom(properties.from());
     this.mailSender = mailSender;
     this.properties = properties;
     this.taskExecutor = taskExecutor;
     this.messageSource = messageSource;
+  }
+
+  /**
+   * Fails startup on a sender that would make every email fail later, on a background thread where
+   * nobody sees it. Example: {@code BrewDeck you@example.com}, missing the angle brackets of {@code
+   * BrewDeck <you@example.com>}.
+   */
+  private static void requireValidFrom(String from) {
+    if (from == null || from.isBlank()) {
+      throw invalidFrom(null);
+    }
+    try {
+      new InternetAddress(from, true).validate();
+    } catch (AddressException e) {
+      throw invalidFrom(e);
+    }
+  }
+
+  private static IllegalStateException invalidFrom(AddressException cause) {
+    return new IllegalStateException(
+        "brewdeck.mail.from (BREWDECK_MAIL_FROM) is not a valid sender address; use"
+            + " 'Name <address@example.com>' or 'address@example.com'",
+        cause);
   }
 
   @Override
