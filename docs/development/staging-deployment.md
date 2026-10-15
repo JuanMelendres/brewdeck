@@ -481,7 +481,9 @@ creates a new revision.
 3. The update creates a new revision. The new revision
    promotes the account at startup ([ADR-009](../decisions/ADR-009-role-based-authorization.md)).
 
-## 9. Updating staging by hand (until the deploy pipeline exists)
+## 9. Updating staging by hand
+
+Once step 12 is set up, releases deploy by themselves; use this section as the fallback.
 
 Staging follows `master`.
 
@@ -568,7 +570,145 @@ When staging is no longer needed:
   Then redeploy. Rotating `brewdeck-jwt-secret` logs everyone out.
 - **Sensitive data:** do not put real personal data in staging.
 
+## 12. Automated API deploys (GitHub Actions)
+
+`.github/workflows/deploy-api-staging.yml` deploys the API every time `master` changes under
+`brewdeck-api/`, which means every release that touches the API. The web needs nothing new: Vercel
+already deploys `master` (step 6.2).
+
+### 12.1 How it works
+
+```mermaid
+flowchart LR
+  M[Release PR merged to master] --> W[deploy-api-staging.yml]
+  W -->|OIDC token| WIF[Workload Identity Federation]
+  WIF -->|short-lived credentials| SA[brewdeck-deployer SA]
+  W --> B[docker build + push :commit-sha]
+  B --> C[deploy candidate revision, no traffic]
+  C --> H{candidate /actuator/health UP?}
+  H -->|yes| P[100% traffic to the new revision]
+  H -->|no| F[job fails, users stay on the old revision]
+```
+
+- **No keys anywhere:**
+  - GitHub gives the job a signed OIDC token. Google accepts it only from this repository
+    (`repository_id` 1226185460) and only on `refs/heads/master`.
+  - Google then hands out credentials that expire within the hour.
+  - There is no JSON key to leak or rotate.
+- **No downtime and an automatic safety net:**
+  - The new revision starts with no traffic, under the tag `candidate`.
+  - Only when its health check reports `UP` does traffic move to it.
+  - If it never becomes healthy, the job fails and users keep the previous revision.
+- **Tests are not repeated:** the release PR into `master` already ran `api-ci` (tests, Spotless,
+  PMD, JaCoCo). Merge only when those checks are green.
+- **Migrations:** Flyway runs when the candidate starts, while the old revision is still serving.
+  Keep migrations additive (they already are), so both revisions work on the new schema.
+- **Manual run:** **Actions → Deploy API to staging → Run workflow** on `master`. Useful after
+  changing env vars or secrets, or to redeploy the same commit. The job refuses other branches.
+
+### 12.2 One-time Google Cloud setup
+
+Run these in Cloud Shell or on the Mac, after `source ~/brewdeck-staging/env.sh`.
+
+```bash
+source ~/brewdeck-staging/env.sh
+export PROJECT_NUMBER=$(gcloud projects describe "$GCP_PROJECT" --format='value(projectNumber)')
+export REPO_ID=1226185460      # gh api repos/JuanMelendres/brewdeck -q .id
+echo "$GCP_PROJECT $PROJECT_NUMBER $REGION $REPO_ID"
+
+gcloud services enable iamcredentials.googleapis.com sts.googleapis.com
+```
+
+**Identity pool and GitHub provider.** The condition is the security boundary: only this
+repository, only `master`.
+
+```bash
+gcloud iam workload-identity-pools create github   --location=global --display-name="GitHub Actions"
+
+gcloud iam workload-identity-pools providers create-oidc brewdeck   --location=global --workload-identity-pool=github   --display-name="BrewDeck repository"   --issuer-uri="https://token.actions.githubusercontent.com"   --attribute-mapping="google.subject=assertion.sub,attribute.repository_id=assertion.repository_id,attribute.ref=assertion.ref"   --attribute-condition="assertion.repository_id=='$REPO_ID' && assertion.ref=='refs/heads/master'"
+```
+
+The condition matches on the numeric repository id, not the name. If the repository is ever
+renamed or deleted, somebody else reusing the name still cannot deploy.
+
+**Deployer service account.** It can push images and deploy this project's Cloud Run services,
+and nothing else. It is a separate account from the runtime one, which only reads secrets.
+
+```bash
+gcloud iam service-accounts create brewdeck-deployer   --display-name="BrewDeck staging deployer (GitHub Actions)"
+export DEPLOY_SA="brewdeck-deployer@$GCP_PROJECT.iam.gserviceaccount.com"
+echo "export DEPLOY_SA=$DEPLOY_SA" >> ~/brewdeck-staging/env.sh
+
+# Who may act as the deployer: workflows from this repository (the provider adds "master only").
+gcloud iam service-accounts add-iam-policy-binding "$DEPLOY_SA"   --role=roles/iam.workloadIdentityUser   --member="principalSet://iam.googleapis.com/projects/$PROJECT_NUMBER/locations/global/workloadIdentityPools/github/attribute.repository_id/$REPO_ID"
+
+# What the deployer may do.
+gcloud artifacts repositories add-iam-policy-binding brewdeck --location="$REGION"   --member="serviceAccount:$DEPLOY_SA" --role=roles/artifactregistry.writer
+gcloud projects add-iam-policy-binding "$GCP_PROJECT"   --member="serviceAccount:$DEPLOY_SA" --role=roles/run.developer --condition=None
+# Deploying a revision that runs as brewdeck-api-runtime requires "act as" on that account.
+gcloud iam service-accounts add-iam-policy-binding "$RUNTIME_SA"   --member="serviceAccount:$DEPLOY_SA" --role=roles/iam.serviceAccountUser
+```
+
+**Values for GitHub:**
+
+```bash
+echo "GCP_PROJECT_ID=$GCP_PROJECT"
+echo "GCP_REGION=$REGION"
+echo "GCP_WORKLOAD_IDENTITY_PROVIDER=projects/$PROJECT_NUMBER/locations/global/workloadIdentityPools/github/providers/brewdeck"
+echo "GCP_DEPLOY_SERVICE_ACCOUNT=$DEPLOY_SA"
+```
+
+### 12.3 One-time GitHub setup
+
+1. In the repository, open **Settings → Environments → New environment** and name it `staging`.
+2. **Deployment branches and tags:** choose **Selected branches and tags** and add `master`.
+3. Optional: under **Required reviewers**, add yourself. Each deploy then waits for your approval
+   in the Actions run.
+4. **Environment variables** (these are not secrets; WIF has none). Add the four values from 12.2:
+   `GCP_PROJECT_ID`, `GCP_REGION`, `GCP_WORKLOAD_IDENTITY_PROVIDER`, `GCP_DEPLOY_SERVICE_ACCOUNT`.
+
+### 12.4 First run and checks
+
+1. The workflow file reaches `master` with the next release, and that push runs it by itself,
+   because the file is one of its paths. Or run it by hand (12.1).
+2. Watch **Actions → Deploy API to staging**:
+   - the candidate health attempts should end in `"status":"UP"`;
+   - the summary shows the commit, revision and image.
+3. Check that traffic moved:
+
+   ```bash
+   gcloud run services describe brewdeck-api-staging --region="$REGION" \
+     --format='table(status.traffic[].revisionName, status.traffic[].percent, status.traffic[].tag)'
+   ```
+
+   The newest revision gets 100%. The tag `candidate` stays on it, which is harmless; the next
+   deploy moves it.
+
+| Error in the job | Cause and fix |
+|---|---|
+| `Permission 'iam.serviceAccounts.getAccessToken' denied` | The `workloadIdentityUser` binding or the provider condition does not match. Check `REPO_ID`, and that the run is on `master`. |
+| `The given credential is rejected by the attribute condition` | The run was not on `refs/heads/master`. |
+| `artifactregistry.repositories.uploadArtifacts` denied | The `artifactregistry.writer` binding on the `brewdeck` repository is missing. |
+| `iam.serviceaccounts.actAs` denied | The `serviceAccountUser` binding on `brewdeck-api-runtime` is missing. |
+| Candidate never `UP` | Read the candidate revision's logs (step 5.5). Users were not affected. |
+
+**Rollback** stays as in step 9: send traffic back to an earlier revision with
+`update-traffic --to-revisions`. The next successful deploy moves traffic forward again.
+
+### 12.5 Turning it off
+
+Disable the workflow under **Actions → Deploy API to staging → … → Disable workflow**.
+
+To remove access completely:
+
+```bash
+gcloud iam workload-identity-pools delete github --location=global
+gcloud iam service-accounts delete "$DEPLOY_SA"
+```
+
 ## Next
 
-Automating step 9 (a GitHub Actions workflow that deploys the API when `master` changes, using
-Workload Identity Federation instead of keys) comes in a later PR.
+Optional follow-ups:
+
+- A branch protection rule on `master` that requires `api-ci` and `web-ci` checks.
+- Post-deploy smoke tests with Playwright.
