@@ -24,8 +24,13 @@ The spike found that:
 
 - **Web:** Vercel Hobby, root directory `brewdeck-web`.
   - Server-side `API_PROXY_TARGET` points at the API. `NEXT_PUBLIC_API_BASE_URL` stays empty.
-  - Only the staging branch builds.
-- **API:** Google Cloud Run, from a Docker image built in GitHub Actions.
+  - Only `master` builds (production branch; previews off).
+- **Release flow:** staging deploys from **`master`** only, so it changes with each release
+  (decided 2026-10-15), not with every merge to `develop`.
+- **Registration:** open (decided 2026-10-15). Rate limits and per-user ownership apply; no real
+  personal data in staging.
+- **API:** Google Cloud Run, from a Docker image built from `master` (by hand first, later in
+  GitHub Actions).
   - Size and scaling: 1 vCPU, 512 MiB, startup CPU boost, `min-instances=0`, `max-instances=1`,
     request-based billing, a Tier 1 region.
   - Secrets live in Secret Manager.
@@ -75,49 +80,12 @@ The spike found that:
   Neon) can move to AWS later.
 - **Railway, Koyeb, Fly.io:** rejected; no free compute that can run a JVM for a month.
 
-## Deploy checklist (once accepted)
+## Deploy steps
 
-1. **Neon:**
-   - Create project `brewdeck-staging`; choose a region close to the Cloud Run region.
-   - Fix compute at 0.25 CU.
-   - Copy the **direct** connection details and build
-     `DB_URL=jdbc:postgresql://<host>/<db>?sslmode=require`.
-2. **GCP:**
-   - Create a project and link billing.
-   - Create a $1 budget alert.
-   - Enable Cloud Run, Artifact Registry and Secret Manager.
-   - Create a Docker repository with a cleanup policy that keeps the last 2 images.
-3. **Secrets:**
-   - Create a new `BREWDECK_JWT_SECRET`, e.g. `openssl rand -base64 48`.
-   - Store it and `DB_PASSWORD` in Secret Manager.
-4. **First deploy (manual):**
-   ```bash
-   gcloud run deploy brewdeck-api-staging \
-     --image <region>-docker.pkg.dev/<project>/<repo>/brewdeck-api:<sha> \
-     --region <tier-1 region> --cpu 1 --memory 512Mi --cpu-boost \
-     --min-instances 0 --max-instances 1 --allow-unauthenticated \
-     --set-env-vars SPRING_PROFILES_ACTIVE=staging,DB_URL=...,DB_USER=...,CORS_ALLOWED_ORIGINS=https://<vercel-url>,BREWDECK_MAIL_FRONTEND_BASE_URL=https://<vercel-url> \
-     --set-secrets DB_PASSWORD=db-password:latest,BREWDECK_JWT_SECRET=jwt-secret:latest
-   ```
-   Then check:
-   - `curl https://<service>.run.app/actuator/health` returns `{"status":"UP"}`.
-   - The logs show 28 migrations applied.
-5. **Vercel:**
-   - Import the repository with root `brewdeck-web`.
-   - Set the env var `API_PROXY_TARGET=https://<service>.run.app`, plus `ENABLE_EXPERIMENTAL_COREPACK=1`
-     if pnpm 11 is not picked up.
-   - Production branch: `develop`. Turn off preview deployments for other branches.
-6. **Smoke test from desktop and phone:**
-   - register → login → reload the page (refresh cookie) → coffee, recipe and session CRUD →
-     logout;
-   - then wait 20+ minutes and repeat (cold start).
-7. **Automate:**
-   - Add `deploy-api-staging.yml`, which runs after `api-ci` passes on `develop` (WIF; build, push,
-     deploy).
-   - Roll back by sending traffic to an earlier revision:
-     `gcloud run services update-traffic --to-revisions <rev>=100`.
-   - Flyway migrations only move forward. A rollback that needs an older schema means restoring
-     Neon's point-in-time copy (6 h window).
+The step-by-step manual runbook (Neon, Gmail, Google Cloud, Vercel, smoke tests, updates,
+rollback, teardown) is [docs/development/staging-deployment.md](../development/staging-deployment.md).
+The deploy pipeline (GitHub Actions with Workload Identity Federation, triggered by `master`) comes
+in a later PR.
 
 ## Notes
 Free-tier numbers and sources are listed in the spike (checked 2026-10-15). Recheck them before

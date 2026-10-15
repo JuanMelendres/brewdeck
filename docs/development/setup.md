@@ -65,7 +65,7 @@ docker run --rm -p 8080:8080 -e SPRING_PROFILES_ACTIVE=staging \
   -e BREWDECK_JWT_SECRET="$(openssl rand -base64 48)" brewdeck-api
 ```
 
-The `staging` profile has no dev defaults: startup fails if `DB_URL`, `DB_USER`, `DB_PASSWORD` or `BREWDECK_JWT_SECRET` is missing. It uses the `staging` feature-flag rows (all off), so AI and email verification stay off.
+To deploy staging, follow [staging-deployment.md](staging-deployment.md). The `staging` profile has no dev defaults: startup fails if `DB_URL`, `DB_USER`, `DB_PASSWORD` or `BREWDECK_JWT_SECRET` is missing. It uses the `staging` feature-flag rows (all off), so AI and email verification stay off.
 
 ## Common commands
 
