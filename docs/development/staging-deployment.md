@@ -234,10 +234,12 @@ echo "$IMAGE"            # must end in :<commit>, not in a bare ':'
 Then build and push, depending on where you are:
 
 - **Mac (Apple Silicon):** build for amd64 explicitly. Maven runs under emulation, so the first
-  build takes several minutes.
+  build takes several minutes. A plain `docker build` on the Mac makes an **arm64** image, which
+  Cloud Run rejects. `--provenance=false` skips the attestation, so the registry gets a single amd64
+  manifest instead of an index.
 
   ```bash
-  docker buildx build --platform linux/amd64 -t "$IMAGE" --push brewdeck-api
+  docker buildx build --platform linux/amd64 --provenance=false -t "$IMAGE" --push brewdeck-api
   ```
 
 - **Cloud Shell:** it is already amd64.
@@ -245,6 +247,16 @@ Then build and push, depending on where you are:
   ```bash
   docker build -t "$IMAGE" brewdeck-api && docker push "$IMAGE"
   ```
+
+Check the platform before deploying:
+
+```bash
+docker buildx imagetools inspect "$IMAGE"    # must show Platform: linux/amd64
+```
+
+If it shows `linux/arm64`, rebuild with the Mac command above, using the same tag. Otherwise
+step 5.4 fails with `Container manifest type 'application/vnd.oci.image.index.v1+json' must
+support amd64/linux`.
 
 Notes:
 
@@ -298,16 +310,20 @@ DB_USER: "<NEON_USER>"
 CORS_ALLOWED_ORIGINS: "https://brewdeck-staging.vercel.app"
 BREWDECK_MAIL_FRONTEND_BASE_URL: "https://brewdeck-staging.vercel.app"
 BREWDECK_MAIL_ENABLED: "true"
-BREWDECK_MAIL_FROM: "BrewDeck <MAIL_USER>"
+# Keep the angle brackets: the value is "Name <address>". Without them every email fails.
+BREWDECK_MAIL_FROM: "BrewDeck <you.staging@gmail.com>"
 SPRING_MAIL_HOST: "smtp.gmail.com"
 SPRING_MAIL_PORT: "587"
-SPRING_MAIL_USERNAME: "<MAIL_USER>"
+SPRING_MAIL_USERNAME: "you.staging@gmail.com"
 SPRING_MAIL_SMTP_AUTH: "true"
 SPRING_MAIL_SMTP_STARTTLS: "true"
 EOF
 ```
 
-Replace every `<…>` placeholder. Leave these out on purpose:
+Replace `<NEON_HOST>`, `<NEON_USER>` (brackets included) and `you.staging@gmail.com` with your
+values. In `BREWDECK_MAIL_FROM` the `< >` are part of the address syntax and must stay. Since
+#248 the API refuses to start with an invalid sender, instead of failing every email on a
+background thread. Leave these out on purpose:
 
 - `AI_ENABLED`: defaults to `false`.
 - `FORWARD_HEADERS_STRATEGY`: defaults to `none`, so a client cannot spoof its IP.
@@ -348,6 +364,11 @@ gcloud logging read \
   --limit=200 --format='value(textPayload)' | grep -E 'Successfully applied|Started Brewdeck|ERROR'
 ```
 
+Right after a deploy, or after the service has been idle, the health check may answer
+`{"status":"OUT_OF_SERVICE"}` for a few seconds. That is Spring's readiness state while the instance
+is still starting: Tomcat already listens, but Flyway and the context are not done yet. Repeat the
+`curl` after 10–20 s. Only a `DOWN`, or an `OUT_OF_SERVICE` that does not go away, needs the logs.
+
 The first start against Neon should log `Successfully applied 28 migrations` (or the current
 count) and `Started BrewdeckApiApplication`.
 
@@ -356,6 +377,7 @@ If it fails:
 | Error in the logs | Cause and fix |
 |---|---|
 | `Could not resolve placeholder` | An env var or secret is missing. |
+| `BREWDECK_MAIL_FROM` is not a valid sender address | Use `"BrewDeck <address@gmail.com>"`, keeping the angle brackets. |
 | `password authentication failed` | Check `DB_USER` and the secret value. |
 | `SSL` errors | Check `sslmode=require`. |
 | Flyway errors with `-pooler` in the host | Use the direct endpoint (step 1.4). |
@@ -375,13 +397,23 @@ If it fails:
      name is free; otherwise note the URL Vercel assigns.
    - **Framework preset:** Next.js.
    - **Root directory:** `brewdeck-web`.
-   - **Build and install commands:** keep the defaults; pnpm is detected.
-   - **Environment variables:**
+   - **Build and Output Settings:** turn **Override** on for both commands:
+
+     | Field | Value |
+     |---|---|
+     | Install Command | `npx pnpm@11.27.1 install --frozen-lockfile` |
+     | Build Command | `npx pnpm@11.27.1 run build` |
+
+     Vercel's own pnpm is too old for our lockfile. It warns `Ignoring not compatible lockfile`,
+     then fails with `ERR_INVALID_THIS`. Corepack (`ENABLE_EXPERIMENTAL_COREPACK=1`) does not help
+     either: Vercel looks for `packageManager` in the **repository root** `package.json`, which this
+     monorepo does not have (`Could not enable corepack because package.json is missing
+     "packageManager"`). Keep the version in sync with `brewdeck-web/package.json`.
+   - **Environment variables** (Production):
 
      | Name | Value | Notes |
      |---|---|---|
      | `API_PROXY_TARGET` | your `API_URL`, no trailing slash | Read at **build** time by `next.config.ts` |
-     | `ENABLE_EXPERIMENTAL_COREPACK` | `1` | Uses the exact pnpm from `packageManager` (11.27.1) |
 
      **Do not** set `NEXT_PUBLIC_API_BASE_URL`. The browser must only talk to the Vercel origin,
      otherwise the refresh cookie breaks ([ADR-013](../decisions/ADR-013-refresh-token-cookie.md)).
@@ -402,14 +434,12 @@ anything into `master`). Check that the production deployment shows branch `mast
 
 ### 6.3 Check the build log
 
-- It should say it uses pnpm **11.27.1**.
-- If pnpm fails to install, set **Settings → Build & Deployment → Install Command** to:
-
-  ```bash
-  npx pnpm@11.27.1 install --frozen-lockfile
-  ```
-
-  Then redeploy.
+- The install step must **not** show `Ignoring not compatible lockfile` or `ERR_INVALID_THIS`.
+  If it does, the overrides from step 6.1 are missing.
+- The `Ignored Build Step` line (`if [ "$VERCEL_ENV" == "production" ]; then exit 1; ...`) exiting
+  with 1 is correct. It means "build this one", because production builds.
+- After changing settings or env vars, use **Deployments → … → Redeploy** with **Use existing
+  Build Cache** unchecked. Settings only apply to new builds.
 
 **Save:** `WEB_URL` (the production domain, for example `https://brewdeck-staging.vercel.app`).
 
@@ -456,7 +486,9 @@ creates a new revision.
 3. The update creates a new revision. The new revision
    promotes the account at startup ([ADR-009](../decisions/ADR-009-role-based-authorization.md)).
 
-## 9. Updating staging by hand (until the deploy pipeline exists)
+## 9. Updating staging by hand
+
+Once step 12 is set up, releases deploy by themselves; use this section as the fallback.
 
 Staging follows `master`.
 
@@ -543,7 +575,145 @@ When staging is no longer needed:
   Then redeploy. Rotating `brewdeck-jwt-secret` logs everyone out.
 - **Sensitive data:** do not put real personal data in staging.
 
+## 12. Automated API deploys (GitHub Actions)
+
+`.github/workflows/deploy-api-staging.yml` deploys the API every time `master` changes under
+`brewdeck-api/`, which means every release that touches the API. The web needs nothing new: Vercel
+already deploys `master` (step 6.2).
+
+### 12.1 How it works
+
+```mermaid
+flowchart LR
+  M[Release PR merged to master] --> W[deploy-api-staging.yml]
+  W -->|OIDC token| WIF[Workload Identity Federation]
+  WIF -->|short-lived credentials| SA[brewdeck-deployer SA]
+  W --> B[docker build + push :commit-sha]
+  B --> C[deploy candidate revision, no traffic]
+  C --> H{candidate /actuator/health UP?}
+  H -->|yes| P[100% traffic to the new revision]
+  H -->|no| F[job fails, users stay on the old revision]
+```
+
+- **No keys anywhere:**
+  - GitHub gives the job a signed OIDC token. Google accepts it only from this repository
+    (`repository_id` 1226185460) and only on `refs/heads/master`.
+  - Google then hands out credentials that expire within the hour.
+  - There is no JSON key to leak or rotate.
+- **No downtime and an automatic safety net:**
+  - The new revision starts with no traffic, under the tag `candidate`.
+  - Only when its health check reports `UP` does traffic move to it.
+  - If it never becomes healthy, the job fails and users keep the previous revision.
+- **Tests are not repeated:** the release PR into `master` already ran `api-ci` (tests, Spotless,
+  PMD, JaCoCo). Merge only when those checks are green.
+- **Migrations:** Flyway runs when the candidate starts, while the old revision is still serving.
+  Keep migrations additive (they already are), so both revisions work on the new schema.
+- **Manual run:** **Actions → Deploy API to staging → Run workflow** on `master`. Useful after
+  changing env vars or secrets, or to redeploy the same commit. The job refuses other branches.
+
+### 12.2 One-time Google Cloud setup
+
+Run these in Cloud Shell or on the Mac, after `source ~/brewdeck-staging/env.sh`.
+
+```bash
+source ~/brewdeck-staging/env.sh
+export PROJECT_NUMBER=$(gcloud projects describe "$GCP_PROJECT" --format='value(projectNumber)')
+export REPO_ID=1226185460      # gh api repos/JuanMelendres/brewdeck -q .id
+echo "$GCP_PROJECT $PROJECT_NUMBER $REGION $REPO_ID"
+
+gcloud services enable iamcredentials.googleapis.com sts.googleapis.com
+```
+
+**Identity pool and GitHub provider.** The condition is the security boundary: only this
+repository, only `master`.
+
+```bash
+gcloud iam workload-identity-pools create github   --location=global --display-name="GitHub Actions"
+
+gcloud iam workload-identity-pools providers create-oidc brewdeck   --location=global --workload-identity-pool=github   --display-name="BrewDeck repository"   --issuer-uri="https://token.actions.githubusercontent.com"   --attribute-mapping="google.subject=assertion.sub,attribute.repository_id=assertion.repository_id,attribute.ref=assertion.ref"   --attribute-condition="assertion.repository_id=='$REPO_ID' && assertion.ref=='refs/heads/master'"
+```
+
+The condition matches on the numeric repository id, not the name. If the repository is ever
+renamed or deleted, somebody else reusing the name still cannot deploy.
+
+**Deployer service account.** It can push images and deploy this project's Cloud Run services,
+and nothing else. It is a separate account from the runtime one, which only reads secrets.
+
+```bash
+gcloud iam service-accounts create brewdeck-deployer   --display-name="BrewDeck staging deployer (GitHub Actions)"
+export DEPLOY_SA="brewdeck-deployer@$GCP_PROJECT.iam.gserviceaccount.com"
+echo "export DEPLOY_SA=$DEPLOY_SA" >> ~/brewdeck-staging/env.sh
+
+# Who may act as the deployer: workflows from this repository (the provider adds "master only").
+gcloud iam service-accounts add-iam-policy-binding "$DEPLOY_SA"   --role=roles/iam.workloadIdentityUser   --member="principalSet://iam.googleapis.com/projects/$PROJECT_NUMBER/locations/global/workloadIdentityPools/github/attribute.repository_id/$REPO_ID"
+
+# What the deployer may do.
+gcloud artifacts repositories add-iam-policy-binding brewdeck --location="$REGION"   --member="serviceAccount:$DEPLOY_SA" --role=roles/artifactregistry.writer
+gcloud projects add-iam-policy-binding "$GCP_PROJECT"   --member="serviceAccount:$DEPLOY_SA" --role=roles/run.developer --condition=None
+# Deploying a revision that runs as brewdeck-api-runtime requires "act as" on that account.
+gcloud iam service-accounts add-iam-policy-binding "$RUNTIME_SA"   --member="serviceAccount:$DEPLOY_SA" --role=roles/iam.serviceAccountUser
+```
+
+**Values for GitHub:**
+
+```bash
+echo "GCP_PROJECT_ID=$GCP_PROJECT"
+echo "GCP_REGION=$REGION"
+echo "GCP_WORKLOAD_IDENTITY_PROVIDER=projects/$PROJECT_NUMBER/locations/global/workloadIdentityPools/github/providers/brewdeck"
+echo "GCP_DEPLOY_SERVICE_ACCOUNT=$DEPLOY_SA"
+```
+
+### 12.3 One-time GitHub setup
+
+1. In the repository, open **Settings → Environments → New environment** and name it `staging`.
+2. **Deployment branches and tags:** choose **Selected branches and tags** and add `master`.
+3. Optional: under **Required reviewers**, add yourself. Each deploy then waits for your approval
+   in the Actions run.
+4. **Environment variables** (these are not secrets; WIF has none). Add the four values from 12.2:
+   `GCP_PROJECT_ID`, `GCP_REGION`, `GCP_WORKLOAD_IDENTITY_PROVIDER`, `GCP_DEPLOY_SERVICE_ACCOUNT`.
+
+### 12.4 First run and checks
+
+1. The workflow file reaches `master` with the next release, and that push runs it by itself,
+   because the file is one of its paths. Or run it by hand (12.1).
+2. Watch **Actions → Deploy API to staging**:
+   - the candidate health attempts should end in `"status":"UP"`;
+   - the summary shows the commit, revision and image.
+3. Check that traffic moved:
+
+   ```bash
+   gcloud run services describe brewdeck-api-staging --region="$REGION" \
+     --format='table(status.traffic[].revisionName, status.traffic[].percent, status.traffic[].tag)'
+   ```
+
+   The newest revision gets 100%. The tag `candidate` stays on it, which is harmless; the next
+   deploy moves it.
+
+| Error in the job | Cause and fix |
+|---|---|
+| `Permission 'iam.serviceAccounts.getAccessToken' denied` | The `workloadIdentityUser` binding or the provider condition does not match. Check `REPO_ID`, and that the run is on `master`. |
+| `The given credential is rejected by the attribute condition` | The run was not on `refs/heads/master`. |
+| `artifactregistry.repositories.uploadArtifacts` denied | The `artifactregistry.writer` binding on the `brewdeck` repository is missing. |
+| `iam.serviceaccounts.actAs` denied | The `serviceAccountUser` binding on `brewdeck-api-runtime` is missing. |
+| Candidate never `UP` | Read the candidate revision's logs (step 5.5). Users were not affected. |
+
+**Rollback** stays as in step 9: send traffic back to an earlier revision with
+`update-traffic --to-revisions`. The next successful deploy moves traffic forward again.
+
+### 12.5 Turning it off
+
+Disable the workflow under **Actions → Deploy API to staging → … → Disable workflow**.
+
+To remove access completely:
+
+```bash
+gcloud iam workload-identity-pools delete github --location=global
+gcloud iam service-accounts delete "$DEPLOY_SA"
+```
+
 ## Next
 
-Automating step 9 (a GitHub Actions workflow that deploys the API when `master` changes, using
-Workload Identity Federation instead of keys) comes in a later PR.
+Optional follow-ups:
+
+- A branch protection rule on `master` that requires `api-ci` and `web-ci` checks.
+- Post-deploy smoke tests with Playwright.

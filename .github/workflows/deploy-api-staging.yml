@@ -1,0 +1,108 @@
+name: Deploy API to staging
+
+# Staging follows master (ADR-017): every release that touches the API redeploys it. The web app
+# deploys itself through Vercel's Git integration. Setup (Workload Identity Federation, deployer
+# service account, the "staging" environment and its variables) is in
+# docs/development/staging-deployment.md, step 12.
+on:
+  push:
+    branches: [master]
+    paths:
+      - "brewdeck-api/**"
+      - ".github/workflows/deploy-api-staging.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Never run two deploys at once, and never cancel one halfway through.
+concurrency:
+  group: deploy-api-staging
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build and deploy API (staging)
+    # Release PRs already passed api-ci before merging; a manual run is only allowed from master.
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: ${{ steps.promote.outputs.url }}
+    permissions:
+      contents: read
+      id-token: write # OIDC token for Workload Identity Federation; no JSON key exists.
+
+    env:
+      SERVICE: brewdeck-api-staging
+      REGION: ${{ vars.GCP_REGION }}
+      IMAGE: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/brewdeck/brewdeck-api:${{ github.sha }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v3
+
+      # GitHub runners are amd64, the platform Cloud Run needs, so a plain build is enough.
+      - name: Build and push image
+        run: |
+          gcloud auth configure-docker "$REGION-docker.pkg.dev" --quiet
+          docker build -t "$IMAGE" brewdeck-api
+          docker push "$IMAGE"
+
+      # The new revision gets no traffic yet: users stay on the current one until it passes the
+      # health check. Flyway still runs when it starts, so migrations must stay backward compatible
+      # with the revision that keeps serving (they already are: forward-only, additive).
+      - name: Deploy candidate revision (no traffic)
+        id: candidate
+        run: |
+          gcloud run deploy "$SERVICE" --image="$IMAGE" --region="$REGION" \
+            --no-traffic --tag=candidate --quiet
+          url=$(gcloud run services describe "$SERVICE" --region="$REGION" --format=json \
+            | jq -r '.status.traffic[] | select(.tag == "candidate") | .url')
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Health check candidate
+        env:
+          CANDIDATE_URL: ${{ steps.candidate.outputs.url }}
+        run: |
+          # Cold start plus Flyway against a sleeping Neon takes a while; readiness reports
+          # OUT_OF_SERVICE until the context is up.
+          for attempt in $(seq 1 36); do
+            body=$(curl -s --max-time 10 "$CANDIDATE_URL/actuator/health" || true)
+            echo "attempt $attempt: $body"
+            if echo "$body" | grep -q '"status":"UP"'; then exit 0; fi
+            sleep 5
+          done
+          echo "::error::Candidate never reported UP; traffic stays on the current revision."
+          exit 1
+
+      - name: Send traffic to the new revision
+        id: promote
+        run: |
+          gcloud run services update-traffic "$SERVICE" --region="$REGION" --to-latest --quiet
+          url=$(gcloud run services describe "$SERVICE" --region="$REGION" --format='value(status.url)')
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Summary
+        env:
+          SERVICE_URL: ${{ steps.promote.outputs.url }}
+        run: |
+          revision=$(gcloud run services describe "$SERVICE" --region="$REGION" \
+            --format='value(status.latestReadyRevisionName)')
+          {
+            echo "### API deployed to staging"
+            echo "- Commit: \`${GITHUB_SHA::7}\`"
+            echo "- Revision: \`$revision\`"
+            echo "- Image: \`$IMAGE\`"
+            echo "- Health: $SERVICE_URL/actuator/health"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,6 +1,8 @@
 package com.brewdeck.brewdeck_api.auth.mail;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -18,6 +20,9 @@ import java.util.Properties;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.mail.MailSendException;
@@ -47,6 +52,29 @@ class SmtpMailAdapterTest {
     if (TransactionSynchronizationManager.isSynchronizationActive()) {
       TransactionSynchronizationManager.clearSynchronization();
     }
+  }
+
+  private SmtpMailAdapter adapterWithFrom(String from) {
+    return new SmtpMailAdapter(
+        mailSender,
+        new MailProperties(true, "https://brewdeck.example", from),
+        new SyncTaskExecutor(),
+        TestMessages.messageSource());
+  }
+
+  @ParameterizedTest
+  @NullAndEmptySource
+  @ValueSource(strings = {"BrewDeck no-reply@brewdeck.example", "not-an-address", "   "})
+  void constructor_rejectsAnInvalidSender(String from) {
+    assertThatThrownBy(() -> adapterWithFrom(from))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("BREWDECK_MAIL_FROM");
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"BrewDeck <no-reply@brewdeck.example>", "no-reply@brewdeck.example"})
+  void constructor_acceptsAValidSender(String from) {
+    assertThatCode(() -> adapterWithFrom(from)).doesNotThrowAnyException();
   }
 
   private MimeMessage sentMessage() {
