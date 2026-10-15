@@ -42,6 +42,25 @@ You need:
   git checkout master && git pull
   ```
 
+### Shell variables for every terminal
+
+The commands below use `$GCP_PROJECT`, `$REGION` and `$RUNTIME_SA`. An `export` only lasts in the
+terminal where you ran it. In a new terminal they are empty, and `gcloud` fails with errors like
+`Failed to find attribute [location]`.
+
+So keep them in a file **outside the repository**. These are not secrets.
+
+```bash
+mkdir -p ~/brewdeck-staging
+echo 'export REGION=us-central1' > ~/brewdeck-staging/env.sh
+source ~/brewdeck-staging/env.sh
+```
+
+Step 3.2 adds the project id to this file.
+
+> **Every time you open a new terminal for staging, run `source ~/brewdeck-staging/env.sh` first.**
+> Check it worked with `echo "$GCP_PROJECT $REGION"`; neither value should be empty.
+
 Keep this private note from now on:
 
 ```text
@@ -122,11 +141,18 @@ Cloud Run only blocks port 25, so 587 works.
 
 ```bash
 gcloud auth login
+source ~/brewdeck-staging/env.sh
 export GCP_PROJECT=brewdeck-staging-$RANDOM    # project IDs are global; keep the one that works
 gcloud projects create "$GCP_PROJECT" --name="BrewDeck staging"
+
+# Only after the create succeeded: save the id and the runtime account used in step 5.2.
+echo "export GCP_PROJECT=$GCP_PROJECT" >> ~/brewdeck-staging/env.sh
+echo 'export RUNTIME_SA="brewdeck-api-runtime@$GCP_PROJECT.iam.gserviceaccount.com"' >> ~/brewdeck-staging/env.sh
+source ~/brewdeck-staging/env.sh
+
 gcloud config set project "$GCP_PROJECT"
-export REGION=us-central1
 gcloud config set run/region "$REGION"
+gcloud config set artifacts/location "$REGION"
 
 gcloud billing accounts list                   # copy the ACCOUNT_ID
 gcloud billing projects link "$GCP_PROJECT" --billing-account=<ACCOUNT_ID>
@@ -208,7 +234,7 @@ It can only read these three secrets.
 
 ```bash
 gcloud iam service-accounts create brewdeck-api-runtime --display-name="BrewDeck API runtime"
-export RUNTIME_SA="brewdeck-api-runtime@$GCP_PROJECT.iam.gserviceaccount.com"
+echo "$RUNTIME_SA"    # set by env.sh in step 3.2; must not be empty
 
 for s in brewdeck-jwt-secret brewdeck-db-password brewdeck-mail-password; do
   gcloud secrets add-iam-policy-binding "$s" \
@@ -222,7 +248,6 @@ done
 repository**:
 
 ```bash
-mkdir -p ~/brewdeck-staging
 cat > ~/brewdeck-staging/api.env.yaml <<'EOF'
 SPRING_PROFILES_ACTIVE: "staging"
 DB_URL: "jdbc:postgresql://<NEON_HOST>/brewdeck?sslmode=require"
@@ -398,6 +423,7 @@ Staging follows `master`.
 3. **API:** build and deploy the new commit.
 
    ```bash
+   source ~/brewdeck-staging/env.sh
    git checkout master && git pull
    export IMAGE="$REGION-docker.pkg.dev/$GCP_PROJECT/brewdeck/brewdeck-api:$(git rev-parse --short HEAD)"
    docker buildx build --platform linux/amd64 -t "$IMAGE" --push brewdeck-api
