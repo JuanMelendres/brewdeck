@@ -2,9 +2,6 @@ package com.brewdeck.brewdeck_api.ai;
 
 import com.brewdeck.brewdeck_api.ai.ClaudeRecipeSuggestionAdapter.SuggestedRecipePayload;
 import com.brewdeck.brewdeck_api.common.i18n.RequestLocale;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +13,9 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Suggests and improves recipes with a free, local open-weight model served by Ollama (ADR-016,
@@ -113,7 +113,7 @@ public class OllamaRecipeSuggestionAdapter implements RecipeSuggestionPort {
               .body(objectMapper.writeValueAsString(requestBody(system, user)))
               .retrieve()
               .body(String.class);
-    } catch (JsonProcessingException | RestClientException exception) {
+    } catch (JacksonException | RestClientException exception) {
       log.warn("Ollama {} call failed: {}", kind, exception.toString());
       throw new AiUnavailableException("Local AI model is unavailable", exception);
     }
@@ -151,7 +151,7 @@ public class OllamaRecipeSuggestionAdapter implements RecipeSuggestionPort {
       }
       return ClaudeRecipeSuggestionAdapter.toSuggestedRecipe(
           objectMapper.readValue(content, SuggestedRecipePayload.class));
-    } catch (JsonProcessingException exception) {
+    } catch (JacksonException exception) {
       log.warn("Ollama {} answer was not valid JSON", kind);
       throw new AiUnavailableException("Local AI model returned an invalid answer", exception);
     }

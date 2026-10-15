@@ -1,0 +1,32 @@
+# Hosted staging environment (spike: docs/product/spikes/free-hosting-spike.md, ADR-017).
+# Same required settings as prod, so a missing secret fails at startup instead of falling back to a
+# dev default. Feature flags resolve to their 'staging' rows (all disabled), see ADR-007.
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    # One small instance against a free serverless Postgres (e.g. Neon). minimum-idle 0 closes idle
+    # connections so the database can scale to zero between visits; Neon only suspends when no
+    # connection is open.
+    hikari:
+      maximum-pool-size: ${DB_POOL_MAX_SIZE:5}
+      minimum-idle: 0
+      idle-timeout: 60000
+
+  jpa:
+    show-sql: false
+
+# Container platforms such as Cloud Run inject PORT; SERVER_PORT still works everywhere else.
+server:
+  port: ${PORT:${SERVER_PORT:8080}}
+
+brewdeck:
+  auth:
+    secret: ${BREWDECK_JWT_SECRET}
+
+springdoc:
+  api-docs:
+    enabled: ${API_DOCS_ENABLED:false}
+  swagger-ui:
+    enabled: ${API_DOCS_ENABLED:false}

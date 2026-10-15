@@ -9,6 +9,7 @@ for status and [`.claude/project-state.md`](.claude/project-state.md) for detail
 
 ### Changed
 - **Backend migrated from Spring Boot 3.5.16 to 4.1.1** (closes `CVE-2026-59282` and `CVE-2026-47834`, unresolved in the 3.5.x line after 3 rounds of OWASP remediation). See [ADR-008](docs/decisions/ADR-008-spring-boot-4-migration.md). Notable side effects: Flyway now runs via `spring-boot-starter-flyway` (Boot 4 silently skips migrations on bare `flyway-core`), Jackson 2 kept via the `spring-boot-jackson2` compatibility shim (Jackson 3 port deferred), springdoc bumped to 3.1.1 (2.8.17 breaks Swagger UI at runtime under Boot 4), Tomcat re-pinned to 11.0.26 after Boot 4's default 11.0.24 turned out to carry its own unpatched CVEs.
+- Backend ported to Jackson 3 (`tools.jackson.*`) and the `spring-boot-jackson2` compatibility shim removed, so one JSON mapper serves controllers, security error bodies and the Ollama adapter. No JSON shape change. See the [Jackson 3 port spike](docs/product/spikes/jackson3-port-spike.md) and the ADR-008 update note.
 - Pinned `pnpm` bumped from a broken `11.12.0` release to `11.27.1` (`brewdeck-web/package.json`).
 
 ### Added

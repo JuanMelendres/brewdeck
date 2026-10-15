@@ -203,15 +203,6 @@
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
 			<version>3.1.1</version>
 		</dependency>
-		<!-- Boot 4's spring-boot-starter-web only autoconfigures the new Jackson 3
-		     (tools.jackson) ObjectMapper. BrewDeck's RestAuthenticationEntryPoint and ~18 test
-		     classes depend on the classic com.fasterxml.jackson.databind.ObjectMapper; this
-		     opts back into Jackson2ObjectMapperBuilder autoconfiguration as a deliberate
-		     compatibility shim rather than porting to the Jackson 3 API (see ADR-008). -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-jackson2</artifactId>
-		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -418,6 +409,10 @@
 						<version>12.2.1</version>
 						<configuration>
 							<failBuildOnCVSS>7</failBuildOnCVSS>
+							<!-- NVD rate-limits anonymous clients (HTTP 429 after ~30 retries, ~1 h full syncs).
+							     The key is read from the environment so it never appears on the command line or in
+							     logs; without it (local runs) the plugin falls back to the slow anonymous API. -->
+							<nvdApiKeyEnvironmentVariable>NVD_API_KEY</nvdApiKeyEnvironmentVariable>
 							<formats>
 								<format>HTML</format>
 								<format>JSON</format>

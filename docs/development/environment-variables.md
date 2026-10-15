@@ -33,7 +33,7 @@ General settings live in the root `.env.example`; auth, mail, and hardening sett
 | `RATE_LIMIT_ENABLED` | `true` | Auth endpoint rate limiting ([ADR-011](../decisions/ADR-011-in-memory-auth-rate-limiting.md)); keep on outside automated tests |
 | `BREWDECK_LEGACY_TIMEZONE` | `UTC` | Zone that pre-V21 timestamps were written in; used **once** by migration V21 to convert them to `TIMESTAMPTZ`. Set `America/Mexico_City` for a CST developer DB, or local rows shift 6 h |
 | `FORWARD_HEADERS_STRATEGY` | `none` | `native` only if a load balancer in front of the Next proxy overwrites `X-Forwarded-For`; per-IP rate limits then use the real client IP. Leave `none` when Next is exposed directly, otherwise clients could spoof their IP ([ADR-013](../decisions/ADR-013-refresh-token-cookie.md)) |
-| `API_DOCS_ENABLED` | `false` in `prod` only | Serve `/v3/api-docs` and Swagger UI in production; enable only temporarily |
+| `API_DOCS_ENABLED` | `false` in `prod` and `staging` | Serve `/v3/api-docs` and Swagger UI in production; enable only temporarily |
 
 Database connection (from the README / Spring config; Docker Compose provides matching defaults):
 
@@ -54,6 +54,17 @@ Any SMTP provider works; nothing is provider-specific in code. Examples:
 | Resend | `smtp.resend.com` | `587` | `true` / `true` | `resend` / your API key (needs a verified domain for `BREWDECK_MAIL_FROM`) |
 
 Emails are sent after the database transaction commits, on a background thread. A slow or failing SMTP server never fails or delays the request; failures are logged as `Failed to send ... email`.
+
+### Hosted `staging` profile
+
+`application-staging.yml` ([ADR-017](../decisions/ADR-017-staging-hosting.md)) requires `DB_URL`, `DB_USER`, `DB_PASSWORD` and `BREWDECK_JWT_SECRET` (no defaults), turns API docs off, and resolves feature flags to their `staging` rows. It also reads:
+
+| Variable | Default | Purpose |
+| -------- | ------- | ------- |
+| `PORT` | *(unset)* | Port injected by container platforms such as Cloud Run; wins over `SERVER_PORT` |
+| `DB_POOL_MAX_SIZE` | `5` | HikariCP maximum pool size. Minimum idle is `0`, so a serverless Postgres (Neon) can scale to zero |
+
+For Neon, use the **direct** endpoint (no `-pooler` in the host) so Flyway works: `jdbc:postgresql://<host>/<db>?sslmode=require`.
 
 ## Docker Compose (`docker-compose.yml`)
 

@@ -18,7 +18,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.brewdeck.brewdeck_api.auth.refresh.InvalidRefreshTokenException;
 import com.brewdeck.brewdeck_api.auth.refresh.RefreshTokenCookies;
 import com.brewdeck.brewdeck_api.common.i18n.TestMessages;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
 import java.security.Principal;
 import java.time.Duration;
@@ -32,6 +31,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import tools.jackson.databind.ObjectMapper;
 
 // Uses a standalone MockMvc wired with the real GlobalExceptionHandler so status mapping is
 // exercised.
