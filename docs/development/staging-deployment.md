@@ -310,16 +310,20 @@ DB_USER: "<NEON_USER>"
 CORS_ALLOWED_ORIGINS: "https://brewdeck-staging.vercel.app"
 BREWDECK_MAIL_FRONTEND_BASE_URL: "https://brewdeck-staging.vercel.app"
 BREWDECK_MAIL_ENABLED: "true"
-BREWDECK_MAIL_FROM: "BrewDeck <MAIL_USER>"
+# Keep the angle brackets: the value is "Name <address>". Without them every email fails.
+BREWDECK_MAIL_FROM: "BrewDeck <you.staging@gmail.com>"
 SPRING_MAIL_HOST: "smtp.gmail.com"
 SPRING_MAIL_PORT: "587"
-SPRING_MAIL_USERNAME: "<MAIL_USER>"
+SPRING_MAIL_USERNAME: "you.staging@gmail.com"
 SPRING_MAIL_SMTP_AUTH: "true"
 SPRING_MAIL_SMTP_STARTTLS: "true"
 EOF
 ```
 
-Replace every `<…>` placeholder. Leave these out on purpose:
+Replace `<NEON_HOST>`, `<NEON_USER>` (brackets included) and `you.staging@gmail.com` with your
+values. In `BREWDECK_MAIL_FROM` the `< >` are part of the address syntax and must stay. Since
+#248 the API refuses to start with an invalid sender, instead of failing every email on a
+background thread. Leave these out on purpose:
 
 - `AI_ENABLED`: defaults to `false`.
 - `FORWARD_HEADERS_STRATEGY`: defaults to `none`, so a client cannot spoof its IP.
@@ -373,6 +377,7 @@ If it fails:
 | Error in the logs | Cause and fix |
 |---|---|
 | `Could not resolve placeholder` | An env var or secret is missing. |
+| `BREWDECK_MAIL_FROM` is not a valid sender address | Use `"BrewDeck <address@gmail.com>"`, keeping the angle brackets. |
 | `password authentication failed` | Check `DB_USER` and the secret value. |
 | `SSL` errors | Check `sslmode=require`. |
 | Flyway errors with `-pooler` in the host | Use the direct endpoint (step 1.4). |
