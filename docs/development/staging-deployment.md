@@ -42,6 +42,26 @@ You need:
   git checkout master && git pull
   ```
 
+**Alternative: Google Cloud Shell.** Instead of your Mac, you can run every `gcloud`, `docker` and
+`openssl` command in Cloud Shell, the terminal that opens from the `>_` icon in the Cloud Console.
+
+- It already has `gcloud` (logged in), Docker, `git` and `openssl`, so `gcloud auth login` is not
+  needed there.
+- It runs on **amd64**, like Cloud Run, so the image builds natively. On Apple Silicon the build
+  goes through emulation and is slower.
+- Its `$HOME` (5 GB) is kept between sessions, but only the files are kept. Exported variables are
+  lost, as on any terminal (see below).
+- It is a different machine from your Mac. Create `~/brewdeck-staging/env.sh` there too, and clone
+  the repository there:
+
+  ```bash
+  git clone https://github.com/JuanMelendres/brewdeck.git ~/brewdeck
+  cd ~/brewdeck && git checkout master && git pull
+  ```
+
+Whichever terminal you use, run the commands **from the repository root**. Steps 4.2 and 9 use
+`git rev-parse` for the image tag.
+
 ### Shell variables for every terminal
 
 The commands below use `$GCP_PROJECT`, `$REGION` and `$RUNTIME_SA`. An `export` only lasts in the
@@ -199,18 +219,40 @@ Each image is about 206 MB compressed. Keeping 2 stays under the 0.5 GB free sto
 
 ### 4.2 Build and push
 
-Cloud Run runs **amd64**, and Apple Silicon builds arm64 by default, so build for amd64
-explicitly. The Maven build runs under emulation, so the first build takes several minutes.
+Cloud Run runs **amd64**. Run this from the repository root, on `master`:
 
 ```bash
+source ~/brewdeck-staging/env.sh
+cd ~/brewdeck            # or wherever your checkout is
+git checkout master && git pull
 gcloud auth configure-docker "$REGION-docker.pkg.dev"
 
 export IMAGE="$REGION-docker.pkg.dev/$GCP_PROJECT/brewdeck/brewdeck-api:$(git rev-parse --short HEAD)"
-docker buildx build --platform linux/amd64 -t "$IMAGE" --push brewdeck-api
-echo "$IMAGE"
+echo "$IMAGE"            # must end in :<commit>, not in a bare ':'
 ```
 
-Build from `master` (step 0), so the tag is the commit that is running.
+Then build and push, depending on where you are:
+
+- **Mac (Apple Silicon):** build for amd64 explicitly. Maven runs under emulation, so the first
+  build takes several minutes.
+
+  ```bash
+  docker buildx build --platform linux/amd64 -t "$IMAGE" --push brewdeck-api
+  ```
+
+- **Cloud Shell:** it is already amd64.
+
+  ```bash
+  docker build -t "$IMAGE" brewdeck-api && docker push "$IMAGE"
+  ```
+
+Notes:
+
+- `gcloud auth configure-docker` may print a long `WARNING` listing `credHelpers`. That is
+  informational; the line that matters is `gcloud credential helpers already registered correctly`.
+- If the tag ends in a bare `:` and the build fails with `invalid reference format`, you are not
+  inside the repository. `git rev-parse` failed with `fatal: not a git repository`.
+- `brewdeck-api/Dockerfile` must exist on `master`, so the release with #241 must be merged first.
 
 ## 5. API on Cloud Run
 
@@ -424,7 +466,7 @@ Staging follows `master`.
 
    ```bash
    source ~/brewdeck-staging/env.sh
-   git checkout master && git pull
+   cd ~/brewdeck && git checkout master && git pull    # your checkout, on the Mac or in Cloud Shell
    export IMAGE="$REGION-docker.pkg.dev/$GCP_PROJECT/brewdeck/brewdeck-api:$(git rev-parse --short HEAD)"
    docker buildx build --platform linux/amd64 -t "$IMAGE" --push brewdeck-api
    gcloud run deploy brewdeck-api-staging --image="$IMAGE" --region="$REGION"
