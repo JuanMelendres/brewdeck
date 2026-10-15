@@ -13,6 +13,7 @@ import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 import NextLink from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
+import { useState } from 'react';
 import type { BrewSession } from '@/lib/api/types';
 import { formatDateTime } from '@/lib/format/dates';
 import { radius } from '@/lib/theme/tokens';
@@ -27,6 +28,48 @@ function Muted({ children }: { children: string }) {
 
 function orMuted(value: string | number | null) {
   return value === null || value === '' ? <Muted>—</Muted> : value;
+}
+
+/** Longer notes start collapsed to two lines, with a toggle to read them in full. */
+const TASTE_PREVIEW_CHARS = 80;
+
+function TasteCell({ text }: { text: string }) {
+  const t = useTranslations('brewSessions.list');
+  const [expanded, setExpanded] = useState(false);
+  const long = text.length > TASTE_PREVIEW_CHARS;
+  const collapsed = long && !expanded;
+  return (
+    <>
+      <Typography
+        variant="body2"
+        sx={{
+          whiteSpace: 'pre-wrap',
+          overflowWrap: 'anywhere',
+          ...(collapsed && {
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+          }),
+        }}
+      >
+        {text}
+      </Typography>
+      {long && (
+        <Link
+          component="button"
+          type="button"
+          variant="body2"
+          underline="hover"
+          aria-expanded={expanded}
+          onClick={() => setExpanded((value) => !value)}
+          sx={{ mt: 0.5, fontWeight: 600 }}
+        >
+          {expanded ? t('showLess') : t('showMore')}
+        </Link>
+      )}
+    </>
+  );
 }
 
 export function BrewSessionsTable({ sessions }: { sessions: BrewSession[] }) {
@@ -91,9 +134,7 @@ export function BrewSessionsTable({ sessions }: { sessions: BrewSession[] }) {
               <TableCell>{orMuted(session.actualTime)}</TableCell>
               <TableCell sx={{ maxWidth: 280 }}>
                 {session.tasteResult ? (
-                  <Typography variant="body2" noWrap title={session.tasteResult}>
-                    {session.tasteResult}
-                  </Typography>
+                  <TasteCell text={session.tasteResult} />
                 ) : (
                   <Muted>—</Muted>
                 )}

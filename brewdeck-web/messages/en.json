@@ -458,7 +458,9 @@
       "rating": "Rating",
       "temp": "Temp",
       "time": "Time",
-      "taste": "Taste"
+      "taste": "Taste",
+      "showMore": "Show more",
+      "showLess": "Show less"
     },
     "form": {
       "title": "Add brew session",

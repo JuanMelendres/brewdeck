@@ -458,7 +458,9 @@
       "rating": "Calificación",
       "temp": "Temp.",
       "time": "Tiempo",
-      "taste": "Sabor"
+      "taste": "Sabor",
+      "showMore": "Ver más",
+      "showLess": "Ver menos"
     },
     "form": {
       "title": "Agregar preparación",
