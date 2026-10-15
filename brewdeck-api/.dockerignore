@@ -1,0 +1,9 @@
+# Keep the build context small and never send local secrets to the image build.
+.env
+.env.*
+target/
+.idea/
+.vscode/
+*.iml
+*.log
+HELP.md
