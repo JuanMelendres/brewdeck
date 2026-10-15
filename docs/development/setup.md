@@ -54,6 +54,19 @@ The `local` profile runs "Suggest with AI" and "Improve with AI" on a **free loc
 
 Each suggestion takes about 15–25 s on an Apple M4. Without Ollama running, the AI buttons answer `503`. To turn AI off locally, set `AI_ENABLED=false`. To use the paid Claude API instead, set `AI_PROVIDER=claude` and `ANTHROPIC_API_KEY` (see [environment-variables.md](environment-variables.md)). CI never calls a model: the tests stub it.
 
+## 6. Optional: run the API image
+
+Hosted environments run the API from `brewdeck-api/Dockerfile` with the `staging` profile ([ADR-017](../decisions/ADR-017-staging-hosting.md)). To try the image locally against the Compose database:
+
+```bash
+docker build -t brewdeck-api brewdeck-api
+docker run --rm -p 8080:8080 -e SPRING_PROFILES_ACTIVE=staging \
+  -e DB_URL=jdbc:postgresql://host.docker.internal:5432/brewdeck -e DB_USER=brewdeck -e DB_PASSWORD=brewdeck \
+  -e BREWDECK_JWT_SECRET="$(openssl rand -base64 48)" brewdeck-api
+```
+
+The `staging` profile has no dev defaults: startup fails if `DB_URL`, `DB_USER`, `DB_PASSWORD` or `BREWDECK_JWT_SECRET` is missing. It uses the `staging` feature-flag rows (all off), so AI and email verification stay off.
+
 ## Common commands
 
 See [testing/test-plan.md](../testing/test-plan.md) for test/lint/build commands, and [contribution-guide.md](contribution-guide.md) for the workflow.
