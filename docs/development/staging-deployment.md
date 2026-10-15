@@ -234,10 +234,12 @@ echo "$IMAGE"            # must end in :<commit>, not in a bare ':'
 Then build and push, depending on where you are:
 
 - **Mac (Apple Silicon):** build for amd64 explicitly. Maven runs under emulation, so the first
-  build takes several minutes.
+  build takes several minutes. A plain `docker build` on the Mac makes an **arm64** image, which
+  Cloud Run rejects. `--provenance=false` skips the attestation, so the registry gets a single amd64
+  manifest instead of an index.
 
   ```bash
-  docker buildx build --platform linux/amd64 -t "$IMAGE" --push brewdeck-api
+  docker buildx build --platform linux/amd64 --provenance=false -t "$IMAGE" --push brewdeck-api
   ```
 
 - **Cloud Shell:** it is already amd64.
@@ -245,6 +247,16 @@ Then build and push, depending on where you are:
   ```bash
   docker build -t "$IMAGE" brewdeck-api && docker push "$IMAGE"
   ```
+
+Check the platform before deploying:
+
+```bash
+docker buildx imagetools inspect "$IMAGE"    # must show Platform: linux/amd64
+```
+
+If it shows `linux/arm64`, rebuild with the Mac command above, using the same tag. Otherwise
+step 5.4 fails with `Container manifest type 'application/vnd.oci.image.index.v1+json' must
+support amd64/linux`.
 
 Notes:
 
@@ -348,6 +360,11 @@ gcloud logging read \
   --limit=200 --format='value(textPayload)' | grep -E 'Successfully applied|Started Brewdeck|ERROR'
 ```
 
+Right after a deploy, or after the service has been idle, the health check may answer
+`{"status":"OUT_OF_SERVICE"}` for a few seconds. That is Spring's readiness state while the instance
+is still starting: Tomcat already listens, but Flyway and the context are not done yet. Repeat the
+`curl` after 10–20 s. Only a `DOWN`, or an `OUT_OF_SERVICE` that does not go away, needs the logs.
+
 The first start against Neon should log `Successfully applied 28 migrations` (or the current
 count) and `Started BrewdeckApiApplication`.
 
@@ -375,13 +392,23 @@ If it fails:
      name is free; otherwise note the URL Vercel assigns.
    - **Framework preset:** Next.js.
    - **Root directory:** `brewdeck-web`.
-   - **Build and install commands:** keep the defaults; pnpm is detected.
-   - **Environment variables:**
+   - **Build and Output Settings:** turn **Override** on for both commands:
+
+     | Field | Value |
+     |---|---|
+     | Install Command | `npx pnpm@11.27.1 install --frozen-lockfile` |
+     | Build Command | `npx pnpm@11.27.1 run build` |
+
+     Vercel's own pnpm is too old for our lockfile. It warns `Ignoring not compatible lockfile`,
+     then fails with `ERR_INVALID_THIS`. Corepack (`ENABLE_EXPERIMENTAL_COREPACK=1`) does not help
+     either: Vercel looks for `packageManager` in the **repository root** `package.json`, which this
+     monorepo does not have (`Could not enable corepack because package.json is missing
+     "packageManager"`). Keep the version in sync with `brewdeck-web/package.json`.
+   - **Environment variables** (Production):
 
      | Name | Value | Notes |
      |---|---|---|
      | `API_PROXY_TARGET` | your `API_URL`, no trailing slash | Read at **build** time by `next.config.ts` |
-     | `ENABLE_EXPERIMENTAL_COREPACK` | `1` | Uses the exact pnpm from `packageManager` (11.27.1) |
 
      **Do not** set `NEXT_PUBLIC_API_BASE_URL`. The browser must only talk to the Vercel origin,
      otherwise the refresh cookie breaks ([ADR-013](../decisions/ADR-013-refresh-token-cookie.md)).
@@ -402,14 +429,12 @@ anything into `master`). Check that the production deployment shows branch `mast
 
 ### 6.3 Check the build log
 
-- It should say it uses pnpm **11.27.1**.
-- If pnpm fails to install, set **Settings → Build & Deployment → Install Command** to:
-
-  ```bash
-  npx pnpm@11.27.1 install --frozen-lockfile
-  ```
-
-  Then redeploy.
+- The install step must **not** show `Ignoring not compatible lockfile` or `ERR_INVALID_THIS`.
+  If it does, the overrides from step 6.1 are missing.
+- The `Ignored Build Step` line (`if [ "$VERCEL_ENV" == "production" ]; then exit 1; ...`) exiting
+  with 1 is correct. It means "build this one", because production builds.
+- After changing settings or env vars, use **Deployments → … → Redeploy** with **Use existing
+  Build Cache** unchecked. Settings only apply to new builds.
 
 **Save:** `WEB_URL` (the production domain, for example `https://brewdeck-staging.vercel.app`).
 

@@ -178,6 +178,9 @@ Evidence: Cloud Run pricing and docs pages (CPU boost, billing settings, min ins
 - **pnpm 11:** Vercel picks pnpm from the lockfile unless Corepack is on
   (`ENABLE_EXPERIMENTAL_COREPACK=1` plus the `packageManager` field). Users report rough edges with
   pnpm 11, so the first deploy must confirm the pnpm version used, or pin the install command.
+  **Result of the first deploy (2026-10-15):** Corepack did not engage. Vercel looks for
+  `packageManager` in the repository-root `package.json`, which this monorepo lacks. Pinning the
+  install and build commands to `npx pnpm@11.27.1` fixed it (runbook step 6.1).
 
 Assumption: Vercel passes `Set-Cookie` from external rewrites through unchanged. This is standard
 proxy behavior, but the POC must confirm it.
@@ -310,7 +313,7 @@ one-person staging should not start with OS patching, TLS, backups and firewall 
 | Shared per-IP rate-limit bucket | One abuser locks login for everyone | Low | Per-account limits remain; a trusted-proxy follow-up if needed |
 | Vercel previews hit staging data | Test branches write to staging | Medium | Limit Vercel builds to the staging branch |
 | Neon CU-hours or egress run out | DB suspended until next month | Low | Fixed 0.25 CU, `minimum-idle: 0`, watch the usage page |
-| pnpm 11 on Vercel | Build fails | Medium | Corepack env var or explicit install command |
+| pnpm 11 on Vercel | Build fails | Happened | Pinned install and build commands (`npx pnpm@11.27.1`); Corepack does not work without a root `package.json` |
 | Vercel Hobby is personal and non-commercial | Must move to a paid plan before any business use | Low now | Revisit at production time |
 | Secrets in a public repo | Leak | Low | Secrets only in Secret Manager, Vercel and GitHub; WIF instead of keys |
 
