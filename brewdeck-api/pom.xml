@@ -409,6 +409,10 @@
 						<version>12.2.1</version>
 						<configuration>
 							<failBuildOnCVSS>7</failBuildOnCVSS>
+							<!-- NVD rate-limits anonymous clients (HTTP 429 after ~30 retries, ~1 h full syncs).
+							     The key is read from the environment so it never appears on the command line or in
+							     logs; without it (local runs) the plugin falls back to the slow anonymous API. -->
+							<nvdApiKeyEnvironmentVariable>NVD_API_KEY</nvdApiKeyEnvironmentVariable>
 							<formats>
 								<format>HTML</format>
 								<format>JSON</format>
