@@ -1,8 +1,8 @@
 # ADR-017: Staging hosting on Vercel, Cloud Run and Neon
 
 ## Status
-Proposed (2026-10-15). Waiting on the owner's decision; see the
-[free hosting spike](../product/spikes/free-hosting-spike.md).
+Accepted (2026-10-15). The owner chose Google Cloud over AWS for staging; AWS practice comes
+later. See the [free hosting spike](../product/spikes/free-hosting-spike.md).
 
 ## Date
 2026-10-15
@@ -20,7 +20,7 @@ The spike found that:
   refresh cookie is `SameSite=Strict`. A public API URL in the browser would break login refresh.
 - **Memory is not the limit.** The API uses ~365 MiB after start under a 512 MiB limit.
 
-## Decision (proposed)
+## Decision
 
 - **Web:** Vercel Hobby, root directory `brewdeck-web`.
   - Server-side `API_PROXY_TARGET` points at the API. `NEXT_PUBLIC_API_BASE_URL` stays empty.
@@ -33,7 +33,13 @@ The spike found that:
 - **Database:** Neon Free, direct (non-pooler) endpoint with `sslmode=require`, compute fixed at
   0.25 CU. HikariCP uses `minimum-idle: 0`, so Neon can scale to zero.
 - **Spring profile:** a new `staging` profile, so feature flags resolve to their `staging` rows (all
-  disabled). AI and mail stay off.
+  disabled). The AI assistant stays off: Ollama needs a large local model (ADR-016) and the
+  Claude API costs money.
+- **Email (password reset, verification):** a free external SMTP provider, no mail server of our
+  own. Start with a Gmail account plus an app password (`smtp.gmail.com:587`, STARTTLS), stored in
+  Secret Manager; Cloud Run only blocks port 25. Until it is set, `BREWDECK_MAIL_ENABLED=false` and
+  reset links appear only in the Cloud Run logs. `auth-require-email-verification` stays off until
+  mail works in staging.
 - **Cost guardrails:** a $1 budget alert on the billing account, an Artifact Registry cleanup policy
   and `max-instances=1`.
 
@@ -64,6 +70,9 @@ The spike found that:
   backups.
 - **Oracle Always Free VM with Docker Compose:** deferred. It is a good rehearsal for the home lab,
   but it means operations work and idle instances get reclaimed.
+- **AWS (EC2 + Neon, Free plan):** deferred. A good way to practice AWS, but the Free plan
+  closes the account after 6 months; Cloud Run's free tier does not expire. The same image (and
+  Neon) can move to AWS later.
 - **Railway, Koyeb, Fly.io:** rejected; no free compute that can run a JVM for a month.
 
 ## Deploy checklist (once accepted)

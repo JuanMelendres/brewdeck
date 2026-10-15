@@ -343,7 +343,13 @@ but it is the only one that can bill.
 
 ## 16. Decision
 
-Decision pending.
+- Decision: Option B (Vercel Hobby + Cloud Run + Neon Free). AWS was considered as a learning
+  option (Free plan: $100–200 credits, account closes after 6 months) and deferred.
+- Email: free external SMTP (Gmail app password first); no own mail server.
+- AI: stays off in staging.
+- Date: 2026-10-15
+- Owner: Juan
+- Status: Accepted
 
 ## 17. Next Steps
 
@@ -367,8 +373,7 @@ If accepted, as separate PRs:
 
 ## 19. Open Questions
 
-- OQ-001: Is a card on a GCP billing account acceptable? If not, the fallback is Oracle VM (D), with
-  its reclaim risk.
+- ~~OQ-001: Is a card on a GCP billing account acceptable?~~ Yes (2026-10-15): Google Cloud chosen.
 - OQ-002: Deploy staging from `develop` (every merge) or from `master` (releases only)? This spike
   assumes `develop`.
 - OQ-003: Open registration on staging, or an allowlist before sharing the URL?
