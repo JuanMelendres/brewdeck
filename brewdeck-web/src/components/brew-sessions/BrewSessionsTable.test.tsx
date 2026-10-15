@@ -1,4 +1,5 @@
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { renderWithTheme } from '@/test/renderWithTheme';
 import { BrewSessionsTable } from './BrewSessionsTable';
@@ -37,5 +38,31 @@ describe('BrewSessionsTable', () => {
     expect(screen.getByText(formatDateTime(empty.brewedAt))).toBeInTheDocument();
     // Null rating, actualTemp, actualTime, and tasteResult.
     expect(screen.getAllByText('—')).toHaveLength(4);
+  });
+
+  it('shows short taste notes in full, without a toggle', () => {
+    renderWithTheme(<BrewSessionsTable sessions={[base]} />);
+
+    expect(screen.getByText('Clean')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Show more' })).not.toBeInTheDocument();
+  });
+
+  it('lets the user expand and collapse long taste notes', async () => {
+    const user = userEvent.setup();
+    const longTaste =
+      'Bright citrus up front, then a syrupy body with brown sugar and a long cocoa finish. ' +
+      'Slightly sour when it cooled; grind one step finer next time.';
+    renderWithTheme(<BrewSessionsTable sessions={[{ ...base, tasteResult: longTaste }]} />);
+
+    // The whole text is in the document (clamped visually), so screen readers get all of it.
+    expect(screen.getByText(longTaste)).toBeInTheDocument();
+    const toggle = screen.getByRole('button', { name: 'Show more' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+
+    await user.click(toggle);
+    expect(screen.getByRole('button', { name: 'Show less' })).toHaveAttribute('aria-expanded', 'true');
+
+    await user.click(screen.getByRole('button', { name: 'Show less' }));
+    expect(screen.getByRole('button', { name: 'Show more' })).toBeInTheDocument();
   });
 });
