@@ -84,8 +84,13 @@ The spike found that:
 
 The step-by-step manual runbook (Neon, Gmail, Google Cloud, Vercel, smoke tests, updates,
 rollback, teardown) is [docs/development/staging-deployment.md](../development/staging-deployment.md).
-The deploy pipeline (GitHub Actions with Workload Identity Federation, triggered by `master`) comes
-in a later PR.
+API releases deploy through `.github/workflows/deploy-api-staging.yml`:
+- It runs on pushes to `master` under `brewdeck-api/`, authenticating with Workload Identity
+  Federation scoped to this repository and `master`.
+- It deploys a candidate revision with no traffic and moves traffic only after its health check is
+  `UP`.
+
+Setup is in step 12 of the runbook. The web deploys through Vercel's Git integration.
 
 ## Notes
 Free-tier numbers and sources are listed in the spike (checked 2026-10-15). Recheck them before
