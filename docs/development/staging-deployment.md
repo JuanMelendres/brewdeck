@@ -42,6 +42,45 @@ You need:
   git checkout master && git pull
   ```
 
+**Alternative: Google Cloud Shell.** Instead of your Mac, you can run every `gcloud`, `docker` and
+`openssl` command in Cloud Shell, the terminal that opens from the `>_` icon in the Cloud Console.
+
+- It already has `gcloud` (logged in), Docker, `git` and `openssl`, so `gcloud auth login` is not
+  needed there.
+- It runs on **amd64**, like Cloud Run, so the image builds natively. On Apple Silicon the build
+  goes through emulation and is slower.
+- Its `$HOME` (5 GB) is kept between sessions, but only the files are kept. Exported variables are
+  lost, as on any terminal (see below).
+- It is a different machine from your Mac. Create `~/brewdeck-staging/env.sh` there too, and clone
+  the repository there:
+
+  ```bash
+  git clone https://github.com/JuanMelendres/brewdeck.git ~/brewdeck
+  cd ~/brewdeck && git checkout master && git pull
+  ```
+
+Whichever terminal you use, run the commands **from the repository root**. Steps 4.2 and 9 use
+`git rev-parse` for the image tag.
+
+### Shell variables for every terminal
+
+The commands below use `$GCP_PROJECT`, `$REGION` and `$RUNTIME_SA`. An `export` only lasts in the
+terminal where you ran it. In a new terminal they are empty, and `gcloud` fails with errors like
+`Failed to find attribute [location]`.
+
+So keep them in a file **outside the repository**. These are not secrets.
+
+```bash
+mkdir -p ~/brewdeck-staging
+echo 'export REGION=us-central1' > ~/brewdeck-staging/env.sh
+source ~/brewdeck-staging/env.sh
+```
+
+Step 3.2 adds the project id to this file.
+
+> **Every time you open a new terminal for staging, run `source ~/brewdeck-staging/env.sh` first.**
+> Check it worked with `echo "$GCP_PROJECT $REGION"`; neither value should be empty.
+
 Keep this private note from now on:
 
 ```text
@@ -122,11 +161,18 @@ Cloud Run only blocks port 25, so 587 works.
 
 ```bash
 gcloud auth login
+source ~/brewdeck-staging/env.sh
 export GCP_PROJECT=brewdeck-staging-$RANDOM    # project IDs are global; keep the one that works
 gcloud projects create "$GCP_PROJECT" --name="BrewDeck staging"
+
+# Only after the create succeeded: save the id and the runtime account used in step 5.2.
+echo "export GCP_PROJECT=$GCP_PROJECT" >> ~/brewdeck-staging/env.sh
+echo 'export RUNTIME_SA="brewdeck-api-runtime@$GCP_PROJECT.iam.gserviceaccount.com"' >> ~/brewdeck-staging/env.sh
+source ~/brewdeck-staging/env.sh
+
 gcloud config set project "$GCP_PROJECT"
-export REGION=us-central1
 gcloud config set run/region "$REGION"
+gcloud config set artifacts/location "$REGION"
 
 gcloud billing accounts list                   # copy the ACCOUNT_ID
 gcloud billing projects link "$GCP_PROJECT" --billing-account=<ACCOUNT_ID>
@@ -173,18 +219,40 @@ Each image is about 206 MB compressed. Keeping 2 stays under the 0.5 GB free sto
 
 ### 4.2 Build and push
 
-Cloud Run runs **amd64**, and Apple Silicon builds arm64 by default, so build for amd64
-explicitly. The Maven build runs under emulation, so the first build takes several minutes.
+Cloud Run runs **amd64**. Run this from the repository root, on `master`:
 
 ```bash
+source ~/brewdeck-staging/env.sh
+cd ~/brewdeck            # or wherever your checkout is
+git checkout master && git pull
 gcloud auth configure-docker "$REGION-docker.pkg.dev"
 
 export IMAGE="$REGION-docker.pkg.dev/$GCP_PROJECT/brewdeck/brewdeck-api:$(git rev-parse --short HEAD)"
-docker buildx build --platform linux/amd64 -t "$IMAGE" --push brewdeck-api
-echo "$IMAGE"
+echo "$IMAGE"            # must end in :<commit>, not in a bare ':'
 ```
 
-Build from `master` (step 0), so the tag is the commit that is running.
+Then build and push, depending on where you are:
+
+- **Mac (Apple Silicon):** build for amd64 explicitly. Maven runs under emulation, so the first
+  build takes several minutes.
+
+  ```bash
+  docker buildx build --platform linux/amd64 -t "$IMAGE" --push brewdeck-api
+  ```
+
+- **Cloud Shell:** it is already amd64.
+
+  ```bash
+  docker build -t "$IMAGE" brewdeck-api && docker push "$IMAGE"
+  ```
+
+Notes:
+
+- `gcloud auth configure-docker` may print a long `WARNING` listing `credHelpers`. That is
+  informational; the line that matters is `gcloud credential helpers already registered correctly`.
+- If the tag ends in a bare `:` and the build fails with `invalid reference format`, you are not
+  inside the repository. `git rev-parse` failed with `fatal: not a git repository`.
+- `brewdeck-api/Dockerfile` must exist on `master`, so the release with #241 must be merged first.
 
 ## 5. API on Cloud Run
 
@@ -208,7 +276,7 @@ It can only read these three secrets.
 
 ```bash
 gcloud iam service-accounts create brewdeck-api-runtime --display-name="BrewDeck API runtime"
-export RUNTIME_SA="brewdeck-api-runtime@$GCP_PROJECT.iam.gserviceaccount.com"
+echo "$RUNTIME_SA"    # set by env.sh in step 3.2; must not be empty
 
 for s in brewdeck-jwt-secret brewdeck-db-password brewdeck-mail-password; do
   gcloud secrets add-iam-policy-binding "$s" \
@@ -222,7 +290,6 @@ done
 repository**:
 
 ```bash
-mkdir -p ~/brewdeck-staging
 cat > ~/brewdeck-staging/api.env.yaml <<'EOF'
 SPRING_PROFILES_ACTIVE: "staging"
 DB_URL: "jdbc:postgresql://<NEON_HOST>/brewdeck?sslmode=require"
@@ -398,7 +465,8 @@ Staging follows `master`.
 3. **API:** build and deploy the new commit.
 
    ```bash
-   git checkout master && git pull
+   source ~/brewdeck-staging/env.sh
+   cd ~/brewdeck && git checkout master && git pull    # your checkout, on the Mac or in Cloud Shell
    export IMAGE="$REGION-docker.pkg.dev/$GCP_PROJECT/brewdeck/brewdeck-api:$(git rev-parse --short HEAD)"
    docker buildx build --platform linux/amd64 -t "$IMAGE" --push brewdeck-api
    gcloud run deploy brewdeck-api-staging --image="$IMAGE" --region="$REGION"
