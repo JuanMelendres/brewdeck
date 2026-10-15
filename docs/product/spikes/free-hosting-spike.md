@@ -317,7 +317,7 @@ one-person staging should not start with OS patching, TLS, backups and firewall 
 ## 15. Recommendation
 
 **Recommended option: B — Vercel Hobby (web) + Cloud Run (API) + Neon Free (Postgres), deployed
-from `develop` after CI passes.**
+from `master` (releases only, decided 2026-10-15).**
 
 - **Why B:**
   - It is the only all-managed option where the measured JVM startup (8 s at 1 vCPU) fits Vercel's
@@ -355,14 +355,15 @@ but it is the only one that can bill.
 
 If accepted, as separate PRs:
 
-1. `feat(api)`: Dockerfile + `.dockerignore` + `application-staging.yml` (Hikari settings), plus
-   docs in `environment-variables.md` and `setup.md`.
-2. Manual first deploy (owner): GCP project + billing caps, Neon project, Cloud Run service with
-   Secret Manager, Vercel project. Follow the checklist in [ADR-017](../../decisions/ADR-017-staging-hosting.md).
-3. `ci`: `deploy-api-staging.yml` (WIF; runs after `api-ci` passes on `develop`), and set Vercel's
-   production branch to `develop`.
+1. ~~`feat(api)`: Dockerfile + `.dockerignore` + `application-staging.yml`~~ (done, #241).
+2. Manual first deploy (owner), following the
+   [staging deployment runbook](../../development/staging-deployment.md): Neon, Gmail SMTP, Google
+   Cloud (billing guardrails, Artifact Registry, Secret Manager, Cloud Run), Vercel with production
+   branch `master`.
+3. `ci`: `deploy-api-staging.yml` (WIF; runs when `master` changes and `api-ci` passes).
 4. Smoke tests from desktop and phone; update project state.
-5. Follow-ups: SMTP for staging, a registration allowlist or invite flag, and Playwright smoke tests.
+5. Follow-ups: turn `auth-require-email-verification` on in staging once mail works; Playwright
+   smoke tests.
 
 ## 18. ADR Candidate
 
@@ -374,9 +375,8 @@ If accepted, as separate PRs:
 ## 19. Open Questions
 
 - ~~OQ-001: Is a card on a GCP billing account acceptable?~~ Yes (2026-10-15): Google Cloud chosen.
-- OQ-002: Deploy staging from `develop` (every merge) or from `master` (releases only)? This spike
-  assumes `develop`.
-- OQ-003: Open registration on staging, or an allowlist before sharing the URL?
+- ~~OQ-002: Deploy staging from `develop` or from `master`?~~ `master` (releases only), 2026-10-15.
+- ~~OQ-003: Open registration or an allowlist?~~ Open registration, 2026-10-15.
 - OQ-004: Which Neon region best matches `us-central1`? Measure latency in the POC.
 
 ## 20. Assumptions
