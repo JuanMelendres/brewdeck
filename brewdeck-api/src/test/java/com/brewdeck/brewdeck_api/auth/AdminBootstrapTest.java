@@ -22,11 +22,16 @@ class AdminBootstrapTest {
   @Mock private UserRepository userRepository;
 
   private User user(Role role) {
+    return user(role, true);
+  }
+
+  private User user(Role role, boolean emailVerified) {
     return User.builder()
         .id(1L)
         .email(ADMIN_EMAIL)
         .passwordHash("hash")
         .role(role)
+        .emailVerified(emailVerified)
         .createdAt(Instant.now())
         .build();
   }
@@ -47,6 +52,17 @@ class AdminBootstrapTest {
 
     assertThat(user.getRole()).isEqualTo(Role.ADMIN);
     verify(userRepository).save(user);
+  }
+
+  @Test
+  void run_unverifiedUser_isNotPromoted() {
+    User user = user(Role.USER, false);
+    when(userRepository.findByEmail(ADMIN_EMAIL)).thenReturn(Optional.of(user));
+
+    new AdminBootstrap(userRepository, ADMIN_EMAIL).run(null);
+
+    assertThat(user.getRole()).isEqualTo(Role.USER);
+    verify(userRepository, never()).save(any());
   }
 
   @Test
