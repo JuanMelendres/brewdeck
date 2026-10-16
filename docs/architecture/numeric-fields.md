@@ -8,7 +8,7 @@ on 2026-10-16. Where a fact comes from a probe and not from reading the code, th
 
 | Field | Unit | Column | API type | Range / scale enforced | Form input | Display |
 |---|---|---|---|---|---|---|
-| `recipes.coffee_grams` | grams | `DECIMAL(6,2)` | `BigDecimal` | `@Positive`, `@DecimalMax 9999.99`; **no scale limit** | `type=number`, Zod `positive().max(9999.99)` | `'{value} g'` |
+| `recipes.coffee_grams` | grams | `DECIMAL(6,2)` | `BigDecimal` | `@Positive`, `@DecimalMax 9999.99`, `@Digits(fraction = 2)` | `type=number step=any`, Zod `positive().max(9999.99)` + two decimals | `'{value} g'` |
 | `recipes.water_grams` | grams | `DECIMAL(6,2)` | `BigDecimal` | same as coffee grams | same | `'{value} g'` |
 | `recipes.ratio` | coffee:water, free text (`1:15`) | `VARCHAR(20)` | `String` | `@Size(max = 20)` | text | as typed |
 | `recipes.water_temp` | °C | `NUMERIC(4,1)` (V31) | `BigDecimal` | `@DecimalMin 0`, `@DecimalMax 100`, `@Digits(3, 1)` | `type=number step=any`, Zod `min(0).max(100)` + one decimal | `'{value}°C'` |
@@ -63,7 +63,7 @@ Small PRs, each with tests:
    - Carry the type through the AI path: `SuggestedRecipe`, `BrewHistoryEntry`, the prompts, both
      adapters, and the guardrails' temperature clamp.
    - Mirror in Zod: at most one decimal.
-2. **Grams scale (G2).**
+2. **Grams scale (G2). Done in #268; the AI guardrails also round model grams to two decimals so an accepted suggestion still saves.**
    - Add `@Digits(integer = 4, fraction = 2)` on both gram fields, so `15.126` becomes a `400`
      field error and the response always matches the stored value.
    - Mirror in Zod: at most two decimals.

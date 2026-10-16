@@ -73,13 +73,42 @@ class ValidationLimitsIntegrationTest extends PostgresIntegrationTest {
   @Test
   @WithMockUser
   void recipe_gramsAboveTheColumnPrecision_isAFieldError() throws Exception {
-    postJson("/api/recipes", recipeBody("\"coffeeGrams\":10000,\"waterGrams\":9999.999"))
+    postJson("/api/recipes", recipeBody("\"coffeeGrams\":10000,\"waterGrams\":10000.5"))
         .andExpect(status().isBadRequest())
         .andExpect(
             jsonPath("$.validationErrors.coffeeGrams")
                 .value("Coffee grams must not exceed 9999.99"))
         .andExpect(
             jsonPath("$.validationErrors.waterGrams").value("Water grams must not exceed 9999.99"));
+  }
+
+  @Test
+  @WithMockUser
+  void recipe_gramsWithAThirdDecimal_isAFieldErrorInsteadOfBeingRounded() throws Exception {
+    postJson("/api/recipes", recipeBody("\"coffeeGrams\":15.126,\"waterGrams\":250.005"))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.validationErrors.coffeeGrams")
+                .value("Coffee grams allow at most two decimals"))
+        .andExpect(
+            jsonPath("$.validationErrors.waterGrams")
+                .value("Water grams allow at most two decimals"));
+  }
+
+  @Test
+  @WithMockUser
+  void recipe_gramsWithTwoDecimals_areStoredExactlyAsAnswered() throws Exception {
+    String body =
+        postJson("/api/recipes", recipeBody("\"coffeeGrams\":15.13"))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.coffeeGrams").value(15.13))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    Long id = ((Number) JsonPath.read(body, "$.id")).longValue();
+
+    assertThat(recipeRepository.findById(id).orElseThrow().getCoffeeGrams())
+        .isEqualByComparingTo("15.13");
   }
 
   @Test

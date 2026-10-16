@@ -79,6 +79,10 @@ public class SuggestionGuardrails {
       }
     }
 
+    // RecipeRequest accepts at most two decimals on grams (DECIMAL(6,2)).
+    coffee = fitScale(coffee);
+    water = fitScale(water);
+
     // Models ignore length limits; trim to what the recipe form accepts so the suggestion saves.
     String grind = fit(answer.grindSetting(), MAX_GRIND);
     String brewTime = fit(answer.brewTime(), MAX_BREW_TIME);
@@ -95,6 +99,8 @@ public class SuggestionGuardrails {
             MAX_STEPS);
 
     if (!adjusted
+        && coffee == answer.coffeeGrams()
+        && water == answer.waterGrams()
         && Objects.equals(ratio, answer.ratio())
         && Objects.equals(grind, answer.grindSetting())
         && Objects.equals(brewTime, answer.brewTime())
@@ -145,6 +151,11 @@ public class SuggestionGuardrails {
               Matcher.quoteReplacement(plain(newTemp)));
     }
     return result;
+  }
+
+  /** Rounds to two decimals only when there are more; otherwise returns the same instance. */
+  private static BigDecimal fitScale(BigDecimal grams) {
+    return grams == null || grams.scale() <= 2 ? grams : grams.setScale(2, RoundingMode.HALF_UP);
   }
 
   private static String plain(BigDecimal value) {
