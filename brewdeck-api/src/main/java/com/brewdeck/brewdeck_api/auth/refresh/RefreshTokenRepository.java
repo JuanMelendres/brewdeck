@@ -11,6 +11,17 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
 
   Optional<RefreshToken> findByTokenHash(String tokenHash);
 
+  /**
+   * Marks the token used only if it is still unused and not revoked. The row lock makes this the
+   * single point where concurrent rotations of one token are decided: exactly one gets 1, the rest
+   * get 0.
+   */
+  @Modifying
+  @Query(
+      "UPDATE RefreshToken t SET t.usedAt = :now "
+          + "WHERE t.id = :id AND t.usedAt IS NULL AND t.revokedAt IS NULL")
+  int markUsedIfActive(@Param("id") Long id, @Param("now") Instant now);
+
   /** Revokes every still-active refresh token for the user. Returns the number of rows updated. */
   @Modifying
   @Query(

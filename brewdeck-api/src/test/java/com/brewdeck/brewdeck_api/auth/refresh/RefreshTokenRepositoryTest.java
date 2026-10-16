@@ -71,4 +71,23 @@ class RefreshTokenRepositoryTest extends PostgresIntegrationTest {
     assertThat(refreshTokenRepository.findByTokenHash("other-active").orElseThrow().getRevokedAt())
         .isNull();
   }
+
+  @Test
+  void markUsedIfActiveClaimsTheTokenOnlyOnce() {
+    Long userId = persistUser();
+    RefreshToken token = persistToken(userId, "claim-once", Instant.now().plus(7, ChronoUnit.DAYS));
+    Instant now = Instant.now();
+
+    assertThat(refreshTokenRepository.markUsedIfActive(token.getId(), now)).isEqualTo(1);
+    assertThat(refreshTokenRepository.markUsedIfActive(token.getId(), now)).isZero();
+  }
+
+  @Test
+  void markUsedIfActiveSkipsARevokedToken() {
+    Long userId = persistUser();
+    RefreshToken token = persistToken(userId, "revoked", Instant.now().plus(7, ChronoUnit.DAYS));
+    refreshTokenRepository.revokeAllActiveForUser(userId, Instant.now());
+
+    assertThat(refreshTokenRepository.markUsedIfActive(token.getId(), Instant.now())).isZero();
+  }
 }

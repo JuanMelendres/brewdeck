@@ -35,6 +35,7 @@ The AUTH-05 audit (finding L1) noted that access JWTs outlived logout, password 
 - **Logout** revokes this device's refresh token and bumps the version. Other devices' access tokens stop working too, but they keep their refresh cookie, so the client refreshes silently on the next 401.
 - **Password change** revokes every refresh token, bumps the version, and returns a fresh session (`200` + `AuthResponse` + rotated cookie) so the device that made the change stays logged in. **Password reset** revokes and bumps, without a new session.
 - Presenting a **revoked** refresh token is now just rejected; only an already **used** (rotated) token triggers reuse detection and revokes everything. Otherwise any other device trying its old cookie after a password change would also kill the caller's fresh session.
+- **Atomic rotation (AUTH-05.5, 2026-10-16):** the old token is claimed with a conditional `UPDATE ... SET used_at = now WHERE id = ? AND used_at IS NULL AND revoked_at IS NULL`. Of two concurrent rotations of one token exactly one gets the row; the other gets 0 rows and goes through reuse detection (revokes everything). The Web Locks above keep a normal browser from racing itself. Reset and verification tokens use the same conditional claim, before the password or the verified flag changes.
 - Cost: `JwtAuthenticationFilter` already loads the user on every request, so the check adds no query.
 
 ## Alternatives Considered

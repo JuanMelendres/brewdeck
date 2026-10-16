@@ -63,11 +63,7 @@ public class RefreshTokenService {
     }
 
     if (token.getUsedAt() != null) {
-      tokenRepository.revokeAllActiveForUser(token.getUserId(), now);
-      log.warn(
-          "Refresh token reuse detected for user id={}; revoked all active tokens",
-          token.getUserId());
-      throw new InvalidRefreshTokenException("Refresh token already used");
+      throw reuseDetected(token.getUserId(), now);
     }
 
     if (token.getExpiresAt().isBefore(now)) {
@@ -79,8 +75,11 @@ public class RefreshTokenService {
             .findById(token.getUserId())
             .orElseThrow(() -> new InvalidRefreshTokenException("Refresh token has no user"));
 
-    token.setUsedAt(now);
-    tokenRepository.save(token);
+    // The checks above read a snapshot; two requests with the same token can both pass them. The
+    // conditional update decides: the loser presented a token that is used by now, i.e. reuse.
+    if (tokenRepository.markUsedIfActive(token.getId(), now) == 0) {
+      throw reuseDetected(token.getUserId(), now);
+    }
 
     String newRawToken = issueInternal(user, now);
     return new RotationResult(user, newRawToken);
@@ -112,6 +111,12 @@ public class RefreshTokenService {
   public void revokeAllForUser(Long userId) {
     int revoked = tokenRepository.revokeAllActiveForUser(userId, Instant.now());
     log.info("Revoked {} active refresh token(s) for user id={}", revoked, userId);
+  }
+
+  private InvalidRefreshTokenException reuseDetected(Long userId, Instant now) {
+    tokenRepository.revokeAllActiveForUser(userId, now);
+    log.warn("Refresh token reuse detected for user id={}; revoked all active tokens", userId);
+    return new InvalidRefreshTokenException("Refresh token already used");
   }
 
   private String issueInternal(User user, Instant now) {
