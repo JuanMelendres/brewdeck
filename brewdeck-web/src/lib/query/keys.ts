@@ -32,5 +32,6 @@ export const keys = {
   brewSessions: {
     list: (params: ListBrewSessionsParams) => ['brew-sessions', 'list', params] as const,
     byRecipe: (recipeId: number) => ['brew-sessions', 'by-recipe', recipeId] as const,
+    detail: (id: number) => ['brew-sessions', 'detail', id] as const,
   },
 } as const;

@@ -1,5 +1,5 @@
 import { fireEvent, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderWithTheme } from '@/test/renderWithTheme';
 import { BrewSessionsView } from './BrewSessionsView';
 import * as sessionsHook from '@/hooks/useBrewSessions';
@@ -135,6 +135,36 @@ describe('BrewSessionsView', () => {
       fireEvent.click(screen.getByRole('button', { name: /save new recipe with coffee 7/i }));
 
       expect(screen.getByText('Add brew session for recipe 8')).toBeInTheDocument();
+    });
+  });
+
+  describe('on a phone', () => {
+    // jsdom has no matchMedia; report every query as matching so the phone layout renders.
+    beforeEach(() => {
+      vi.stubGlobal('matchMedia', (query: string) => ({
+        matches: true,
+        media: query,
+        onchange: null,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      }));
+    });
+    afterEach(() => vi.unstubAllGlobals());
+
+    it('shows cards instead of the table, each linking to its session', () => {
+      mockHook({ isLoading: false, isError: false, data: page([session], 1) });
+      renderWithTheme(<BrewSessionsView />);
+
+      expect(screen.queryByRole('table')).not.toBeInTheDocument();
+      expect(screen.getByRole('link', { name: /open the brew session from/i })).toHaveAttribute(
+        'href',
+        '/brew-sessions/1',
+      );
+      expect(screen.getByText('Mezcla AeroPress')).toBeInTheDocument();
+      expect(screen.getByText(/90°C · 2:30/)).toBeInTheDocument();
     });
   });
 });

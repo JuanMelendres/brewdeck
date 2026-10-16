@@ -65,4 +65,13 @@ describe('BrewSessionsTable', () => {
     await user.click(screen.getByRole('button', { name: 'Show less' }));
     expect(screen.getByRole('button', { name: 'Show more' })).toBeInTheDocument();
   });
+
+  it('links each brew date to the session detail page', () => {
+    renderWithTheme(<BrewSessionsTable sessions={[base]} />);
+
+    expect(screen.getByRole('link', { name: /open the brew session from/i })).toHaveAttribute(
+      'href',
+      `/brew-sessions/${base.id}`,
+    );
+  });
 });

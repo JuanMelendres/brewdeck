@@ -5,12 +5,24 @@ import { BrewSessionFormDialog } from './BrewSessionFormDialog';
 import * as mutations from '@/hooks/useBrewSessionMutations';
 import * as options from '@/hooks/useResourceOptions';
 import { ApiError } from '@/lib/api/client';
+import type { BrewSession } from '@/lib/api/types';
 
 const createMutate = vi.fn();
+const updateMutate = vi.fn();
+
+const session: BrewSession = {
+  id: 5, recipeId: 1, recipeName: 'Mezcla AeroPress', brewedAt: '2026-01-01T10:30:00Z',
+  actualGrind: 'Medium', actualTemp: 92, actualTime: '2:30', tasteResult: 'Clean',
+  rating: 8, adjustmentNotes: 'Grind finer',
+};
 
 function mockAll() {
   vi.spyOn(mutations, 'useCreateBrewSession').mockReturnValue({
     mutate: createMutate,
+    isPending: false,
+  } as never);
+  vi.spyOn(mutations, 'useUpdateBrewSession').mockReturnValue({
+    mutate: updateMutate,
     isPending: false,
   } as never);
   vi.spyOn(options, 'useRecipeOptions').mockReturnValue({
@@ -21,6 +33,7 @@ function mockAll() {
 
 beforeEach(() => {
   createMutate.mockReset();
+  updateMutate.mockReset();
 });
 afterEach(() => vi.restoreAllMocks());
 
@@ -89,5 +102,33 @@ describe('BrewSessionFormDialog', () => {
     const result = screen.getByRole('region', { name: 'Result' });
     expect(result).toContainElement(screen.getByLabelText('Rating'));
     expect(result).toContainElement(screen.getByLabelText('Adjustment Notes'));
+  });
+
+  describe('editing a session', () => {
+    it('opens with the saved values and an edit title', () => {
+      mockAll();
+      renderWithTheme(<BrewSessionFormDialog open session={session} onClose={vi.fn()} />);
+
+      expect(screen.getByRole('heading', { name: /edit brew session/i })).toBeInTheDocument();
+      expect(screen.getByRole('combobox', { name: /recipe/i })).toHaveValue('1');
+      expect(screen.getByLabelText(/actual grind/i)).toHaveValue('Medium');
+      expect(screen.getByLabelText(/^rating/i)).toHaveValue(8);
+      expect(screen.getByLabelText(/adjustment notes/i)).toHaveValue('Grind finer');
+    });
+
+    it('saves through update with the session id, not create', async () => {
+      mockAll();
+      renderWithTheme(<BrewSessionFormDialog open session={session} onClose={vi.fn()} />);
+
+      fireEvent.change(screen.getByLabelText(/^rating/i), { target: { value: '9' } });
+      fireEvent.click(screen.getByRole('button', { name: /save/i }));
+
+      await waitFor(() => expect(updateMutate).toHaveBeenCalledTimes(1));
+      expect(updateMutate.mock.calls[0][0]).toEqual({
+        id: 5,
+        body: expect.objectContaining({ recipeId: 1, rating: 9, actualGrind: 'Medium' }),
+      });
+      expect(createMutate).not.toHaveBeenCalled();
+    });
   });
 });
