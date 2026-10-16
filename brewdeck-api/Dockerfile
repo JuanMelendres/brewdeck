@@ -4,7 +4,8 @@
 #
 #   docker build -t brewdeck-api brewdeck-api
 #   docker run --rm -p 8080:8080 -e SPRING_PROFILES_ACTIVE=staging -e DB_URL=... -e DB_USER=... \
-#     -e DB_PASSWORD=... -e BREWDECK_JWT_SECRET=... brewdeck-api
+#     -e DB_PASSWORD=... -e BREWDECK_JWT_SECRET=... -e BREWDECK_MAIL_ENABLED=true \
+#     -e SPRING_MAIL_HOST=... brewdeck-api
 
 FROM eclipse-temurin:21-jdk AS build
 WORKDIR /workspace

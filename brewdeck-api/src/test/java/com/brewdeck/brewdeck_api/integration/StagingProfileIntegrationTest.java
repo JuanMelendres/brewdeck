@@ -18,14 +18,19 @@ import org.springframework.test.web.servlet.MockMvc;
 
 /**
  * Boots the hosted {@code staging} profile (ADR-017). The DB_* values only satisfy the profile's
- * required placeholders; the Testcontainers service connection supplies the real database.
+ * required placeholders; the Testcontainers service connection supplies the real database. Mail
+ * must be on, or {@code StartupSafetyCheck} refuses to start; nothing is sent here, so the SMTP
+ * health check is off.
  */
 @SpringBootTest(
     properties = {
       "DB_URL=jdbc:postgresql://unused:5432/unused",
       "DB_USER=unused",
       "DB_PASSWORD=unused",
-      "BREWDECK_JWT_SECRET=staging-profile-test-secret-0123456789abcdef"
+      "BREWDECK_JWT_SECRET=staging-profile-test-secret-0123456789abcdef",
+      "BREWDECK_MAIL_ENABLED=true",
+      "spring.mail.host=localhost",
+      "management.health.mail.enabled=false"
     })
 @AutoConfigureMockMvc
 @ActiveProfiles("staging")
