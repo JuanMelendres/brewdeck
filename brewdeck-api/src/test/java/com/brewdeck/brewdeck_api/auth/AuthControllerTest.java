@@ -214,8 +214,14 @@ class AuthControllerTest {
   }
 
   @Test
-  void changePassword_returns204() throws Exception {
+  void changePassword_returns200WithAFreshSessionForTheCaller() throws Exception {
     Principal principal = () -> "brewer@example.com";
+    when(authService.changePassword(eq("brewer@example.com"), any()))
+        .thenReturn(
+            new AuthSession(
+                new AuthResponse(
+                    "new-jwt", Instant.parse("2026-07-09T00:00:00Z"), "brewer@example.com"),
+                "new-refresh"));
 
     mockMvc
         .perform(
@@ -225,7 +231,13 @@ class AuthControllerTest {
                 .content(
                     objectMapper.writeValueAsString(
                         new ChangePasswordRequest("password1", "newpassword1"))))
-        .andExpect(status().isNoContent());
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.token").value("new-jwt"))
+        .andExpect(jsonPath("$.refreshToken").doesNotExist())
+        .andExpect(
+            org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
+                .string(
+                    HttpHeaders.SET_COOKIE, org.hamcrest.Matchers.containsString("new-refresh")));
   }
 
   @Test

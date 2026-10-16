@@ -54,7 +54,15 @@ public class RefreshTokenService {
 
     Instant now = Instant.now();
 
-    if (token.getUsedAt() != null || token.getRevokedAt() != null) {
+    // Only a token that was already rotated signals theft. A revoked one (logout, password change,
+    // reset) is just rejected: revoking everything here would also kill the fresh session that a
+    // password change hands the device that made it, as soon as another device tries its old
+    // cookie.
+    if (token.getRevokedAt() != null) {
+      throw new InvalidRefreshTokenException("Refresh token revoked");
+    }
+
+    if (token.getUsedAt() != null) {
       tokenRepository.revokeAllActiveForUser(token.getUserId(), now);
       log.warn(
           "Refresh token reuse detected for user id={}; revoked all active tokens",

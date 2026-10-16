@@ -13,6 +13,7 @@ import { useForm } from 'react-hook-form';
 import { useFieldError } from '@/i18n/useFieldError';
 import { changePassword } from '@/lib/api/auth';
 import { ApiError } from '@/lib/api/client';
+import { setToken } from '@/lib/auth/tokenStore';
 import {
   changePasswordSchema,
   type ChangePasswordFormValues,
@@ -36,10 +37,12 @@ export function ChangePasswordForm() {
     setFormError(null);
     setSaved(false);
     try {
-      await changePassword({
+      const response = await changePassword({
         currentPassword: values.currentPassword,
         newPassword: values.newPassword,
       });
+      // The old access token was invalidated with the password; keep this session on the new one.
+      setToken(response.token);
       setSaved(true);
       reset();
     } catch (error) {

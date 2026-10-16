@@ -10,6 +10,11 @@ vi.mock('@/lib/api/auth', () => ({
   changePassword: (body: unknown) => changePasswordMock(body),
 }));
 
+const setTokenMock = vi.fn();
+vi.mock('@/lib/auth/tokenStore', () => ({
+  setToken: (token: string) => setTokenMock(token),
+}));
+
 async function fill(current: string, next: string, confirm: string) {
   await userEvent.type(screen.getByLabelText(/^current password$/i), current);
   await userEvent.type(screen.getByLabelText(/^new password$/i), next);
@@ -35,8 +40,12 @@ describe('ChangePasswordForm', () => {
     expect(changePasswordMock).not.toHaveBeenCalled();
   });
 
-  it('submits the current and new password and shows success', async () => {
-    changePasswordMock.mockResolvedValue(undefined);
+  it('submits the current and new password, keeps the new session, and shows success', async () => {
+    changePasswordMock.mockResolvedValue({
+      token: 'fresh-jwt',
+      expiresAt: '2026-10-16T12:00:00Z',
+      email: 'brewer@example.com',
+    });
     renderWithTheme(<ChangePasswordForm />);
     await fill('password1', 'newpassword1', 'newpassword1');
     await userEvent.click(screen.getByRole('button', { name: /change password/i }));
@@ -47,6 +56,7 @@ describe('ChangePasswordForm', () => {
       }),
     );
     expect(await screen.findByText(/password changed/i)).toBeInTheDocument();
+    expect(setTokenMock).toHaveBeenCalledWith('fresh-jwt');
   });
 
   it('flags a wrong current password from a 400 response', async () => {

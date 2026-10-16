@@ -93,6 +93,7 @@ public class PasswordResetService {
             .orElseThrow(() -> new InvalidResetTokenException("Reset token has no user"));
 
     user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+    user.revokeAccessTokens();
     userRepository.save(user);
 
     token.setUsedAt(Instant.now());

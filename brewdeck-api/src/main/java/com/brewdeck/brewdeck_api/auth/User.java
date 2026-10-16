@@ -44,4 +44,12 @@ public class User {
 
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;
+
+  /** Embedded in every access JWT; bumping it invalidates all access tokens issued before. */
+  @Column(name = "token_version", nullable = false)
+  private int tokenVersion;
+
+  public void revokeAccessTokens() {
+    tokenVersion++;
+  }
 }

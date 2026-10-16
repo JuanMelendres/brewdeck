@@ -270,6 +270,27 @@ class AuthServiceTest {
   }
 
   @Test
+  void changePassword_invalidatesOutstandingAccessTokens_andReturnsAFreshSession() {
+    User user = stored("brewer@example.com", "password1");
+    when(userRepository.findByEmail("brewer@example.com")).thenReturn(Optional.of(user));
+    when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+    when(refreshTokenService.issue(user)).thenReturn("new-refresh");
+    when(jwtService.generateToken(user)).thenReturn("new-jwt");
+
+    AuthSession session =
+        authService.changePassword(
+            "brewer@example.com", new ChangePasswordRequest("password1", "newpassword1"));
+
+    assertThat(user.getTokenVersion()).isEqualTo(1);
+    assertThat(session.response().token()).isEqualTo("new-jwt");
+    assertThat(session.refreshToken()).isEqualTo("new-refresh");
+    // The fresh refresh token is issued after the old ones are revoked, so it survives.
+    org.mockito.InOrder order = org.mockito.Mockito.inOrder(refreshTokenService);
+    order.verify(refreshTokenService).revokeAllForUser(1L);
+    order.verify(refreshTokenService).issue(user);
+  }
+
+  @Test
   void changePassword_throwsWhenCurrentWrong() {
     when(userRepository.findByEmail("brewer@example.com"))
         .thenReturn(Optional.of(stored("brewer@example.com", "password1")));
@@ -362,5 +383,17 @@ class AuthServiceTest {
     authService.logout("brewer@example.com", null);
 
     org.mockito.Mockito.verifyNoInteractions(refreshTokenService);
+  }
+
+  @Test
+  void logout_invalidatesOutstandingAccessTokens() {
+    User user = stored("brewer@example.com", "password1");
+    when(userRepository.findByEmail("brewer@example.com")).thenReturn(Optional.of(user));
+
+    authService.logout("brewer@example.com", "refresh");
+
+    assertThat(user.getTokenVersion()).isEqualTo(1);
+    verify(refreshTokenService).revoke("refresh", 1L);
+    verify(userRepository).save(user);
   }
 }

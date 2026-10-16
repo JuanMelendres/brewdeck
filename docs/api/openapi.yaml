@@ -142,9 +142,9 @@ paths:
     post:
       tags: [Auth]
       summary: Change the current user's password
-      description: Revokes every active refresh token for the user, ending all other sessions.
+      description: Ends every session (refresh tokens revoked, outstanding access tokens invalidated) and returns a fresh access token plus a rotated refresh cookie for the caller.
       responses:
-        "204": { description: Password changed }
+        "200": { description: Password changed; new session for the caller, content: { application/json: { schema: { $ref: "#/components/schemas/AuthResponse" } } } }
         "400": { description: Wrong current password or validation error, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
         "401": { description: Unauthenticated }
   /api/auth/forgot-password:
@@ -160,7 +160,7 @@ paths:
       tags: [Auth]
       security: []
       summary: Reset password using a reset token
-      description: Revokes every active refresh token for the user, ending all existing sessions.
+      description: Ends every session (refresh tokens revoked, outstanding access tokens invalidated).
       responses:
         "204": { description: Password reset }
         "400": { description: Invalid/expired/used token or validation error, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
@@ -199,7 +199,7 @@ paths:
         - { name: brewdeck_refresh, in: cookie, required: false, schema: { type: string } }
         - { name: X-Requested-With, in: header, required: false, schema: { type: string }, description: Required when the refresh cookie is sent }
       responses:
-        "204": { description: Refresh token revoked; Set-Cookie clears brewdeck_refresh (Max-Age=0) }
+        "204": { description: Refresh token revoked and outstanding access tokens invalidated; Set-Cookie clears brewdeck_refresh (Max-Age=0) }
         "401": { description: Unauthenticated (missing/invalid access token) }
         "403": { description: Refresh cookie sent without the X-Requested-With header }
   /api/feature-flags:

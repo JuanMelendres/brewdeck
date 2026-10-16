@@ -82,11 +82,15 @@ public class AuthController {
   }
 
   @PostMapping("/change-password")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(summary = "Change the authenticated user's password")
-  public void changePassword(
+  @Operation(
+      summary = "Change the authenticated user's password",
+      description =
+          "Signs out every session (refresh tokens revoked, access tokens invalidated) and returns"
+              + " a fresh access token and refresh cookie for the caller.")
+  public ResponseEntity<AuthResponse> changePassword(
       Principal principal, @Valid @RequestBody ChangePasswordRequest request) {
-    authService.changePassword(principal.getName(), request);
+    return withRefreshCookie(
+        HttpStatus.OK, authService.changePassword(principal.getName(), request));
   }
 
   @PostMapping("/refresh")
