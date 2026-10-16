@@ -53,7 +53,7 @@ only range guard.
 
 Small PRs, each with tests:
 
-1. **Temperatures with one decimal (G1). Done on branch `feat/api-decimal-temperatures`.** Decided by the owner on 2026-10-16: water
+1. **Temperatures with one decimal (G1). Done in #267.** Decided by the owner on 2026-10-16: water
    temperature must keep decimals, so the fix is to store them rather than reject them.
    - New Flyway migration: `recipes.water_temp` and `brew_sessions.actual_temp` go from `INTEGER`
      to `NUMERIC(4,1)` (0.0 to 100.0). Existing integers convert losslessly.
