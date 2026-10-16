@@ -320,7 +320,9 @@
       "noMatches": "Ninguna receta coincide con estos filtros.",
       "empty": "Aún no hay recetas. Guarda cómo preparas un café para repetir tus mejores tazas.",
       "addFirst": "Agrega tu primera receta",
-      "favoritesOnly": "Solo favoritas"
+      "favoritesOnly": "Solo favoritas",
+      "needsCoffee": "Las recetas parten de un café. Agrega primero el café que preparas; después se abre el formulario de su receta.",
+      "addCoffeeFirst": "Agregar un café"
     },
     "favorites": {
       "title": "Recetas favoritas",
@@ -464,7 +466,11 @@
       "time": "Tiempo",
       "taste": "Sabor",
       "showMore": "Ver más",
-      "showLess": "Ver menos"
+      "showLess": "Ver menos",
+      "needsRecipe": "Cada preparación sigue una receta. Crea la receta primero; después se abre el formulario de la preparación.",
+      "addRecipeFirst": "Agregar una receta",
+      "needsCoffee": "Las preparaciones siguen una receta, y las recetas parten de un café. Agrega tu café primero; después siguen la receta y la preparación.",
+      "addCoffeeFirst": "Agregar un café"
     },
     "form": {
       "title": "Agregar preparación",
