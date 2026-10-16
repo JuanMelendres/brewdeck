@@ -19,4 +19,15 @@ class LoggingEmailVerificationMailAdapterTest {
             () -> adapter.sendVerificationLink("brewer@example.com", "raw-token", Locale.ENGLISH))
         .doesNotThrowAnyException();
   }
+
+  @Test
+  void sendAccountExistsNotice_logsWithoutThrowing() {
+    LoggingEmailVerificationMailAdapter adapter =
+        new LoggingEmailVerificationMailAdapter(
+            new MailProperties(
+                false, "http://localhost:3000", "BrewDeck <no-reply@brewdeck.local>"));
+
+    assertThatCode(() -> adapter.sendAccountExistsNotice("brewer@example.com", Locale.ENGLISH))
+        .doesNotThrowAnyException();
+  }
 }

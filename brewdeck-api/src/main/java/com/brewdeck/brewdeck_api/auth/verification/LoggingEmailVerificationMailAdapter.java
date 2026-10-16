@@ -33,4 +33,14 @@ public class LoggingEmailVerificationMailAdapter implements EmailVerificationMai
         properties.frontendBaseUrl(),
         rawToken);
   }
+
+  @Override
+  public void sendAccountExistsNotice(String email, Locale locale) {
+    log.info(
+        "Account-exists notice for {}: log in at {}/login or reset the password at"
+            + " {}/forgot-password",
+        email,
+        properties.frontendBaseUrl(),
+        properties.frontendBaseUrl());
+  }
 }

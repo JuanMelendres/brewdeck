@@ -4,11 +4,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { RegisterForm } from './RegisterForm';
 import { renderWithTheme } from '@/test/renderWithTheme';
 
-const pushMock = vi.fn();
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push: pushMock, replace: vi.fn() }) }));
-
 const registerMock = vi.fn();
-vi.mock('@/lib/auth/AuthProvider', () => ({ useAuth: () => ({ register: registerMock }) }));
+vi.mock('@/lib/api/auth', () => ({ register: (body: unknown) => registerMock(body) }));
 
 async function fillForm(password: string, confirmPassword: string) {
   await userEvent.type(screen.getByLabelText(/^email$/i), 'brewer@example.com');
@@ -38,8 +35,8 @@ describe('RegisterForm', () => {
     expect(registerMock).not.toHaveBeenCalled();
   });
 
-  it('registers with email and password only, then goes to the dashboard', async () => {
-    registerMock.mockResolvedValue(undefined);
+  it('registers with email and password only, then asks the user to check their email', async () => {
+    registerMock.mockResolvedValue({ message: 'Check your email to finish creating your account.' });
     renderWithTheme(<RegisterForm />);
     await fillForm('password1', 'password1');
     await waitFor(() =>
@@ -48,14 +45,18 @@ describe('RegisterForm', () => {
         password: 'password1',
       }),
     );
-    expect(pushMock).toHaveBeenCalledWith('/dashboard');
+    expect(await screen.findByRole('heading', { name: /check your email/i })).toBeInTheDocument();
+    expect(screen.getByText(/we sent a message to brewer@example\.com/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /go to log in/i })).toHaveAttribute('href', '/login');
+    // No session is created at signup, so the form is gone rather than redirecting into the app.
+    expect(screen.queryByRole('button', { name: /create account/i })).not.toBeInTheDocument();
   });
 
   it('shows an error when registration fails', async () => {
     registerMock.mockRejectedValue(new Error('conflict'));
     renderWithTheme(<RegisterForm />);
     await fillForm('password1', 'password1');
-    expect(await screen.findByText(/could not register/i)).toBeInTheDocument();
-    expect(pushMock).not.toHaveBeenCalled();
+    expect(await screen.findByText(/could not create your account/i)).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /check your email/i })).not.toBeInTheDocument();
   });
 });

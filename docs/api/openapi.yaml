@@ -84,9 +84,11 @@ paths:
     post:
       tags: [Auth]
       security: []
-      summary: Self-register
+      summary: Self-register (same answer for new and existing emails; no session)
+      description: Always 202 with the same message, whether or not the email is registered. A new address gets a verification email, an existing one a notice to log in or reset the password. No token and no refresh cookie; the user logs in afterwards.
       responses:
-        "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/AuthResponse" } } } }
+        "202": { description: Accepted, content: { application/json: { schema: { type: object, properties: { message: { type: string } } } } } }
+        "429": { description: Too many signups for this IP or email, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
         "400": { description: Validation error, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
   /api/auth/login:
     post:

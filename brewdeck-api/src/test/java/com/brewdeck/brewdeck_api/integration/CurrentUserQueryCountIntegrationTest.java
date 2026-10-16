@@ -47,16 +47,11 @@ class CurrentUserQueryCountIntegrationTest extends PostgresIntegrationTest {
   void registerUser() throws Exception {
     statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
     String response =
-        mockMvc
-            .perform(
-                post("/api/auth/register")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(
-                        "{\"email\":\"query-count-"
-                            + System.nanoTime()
-                            + "@example.com\",\"password\":\"password123\"}"))
-            .andReturn()
-            .getResponse()
+        TestAccounts.registerAndLogin(
+                mockMvc,
+                "{\"email\":\"query-count-"
+                    + System.nanoTime()
+                    + "@example.com\",\"password\":\"password123\"}")
             .getContentAsString();
     bearer = "Bearer " + JsonPath.read(response, "$.token");
   }

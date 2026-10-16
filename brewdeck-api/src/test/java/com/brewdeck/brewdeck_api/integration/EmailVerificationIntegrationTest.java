@@ -40,14 +40,8 @@ class EmailVerificationIntegrationTest extends PostgresIntegrationTest {
     String email = "verify-flow-" + System.nanoTime() + "@example.com";
 
     String registerResponse =
-        mockMvc
-            .perform(
-                post("/api/auth/register")
-                    .contentType("application/json")
-                    .content("{\"email\":\"" + email + "\",\"password\":\"password1\"}"))
-            .andExpect(status().isCreated())
-            .andReturn()
-            .getResponse()
+        TestAccounts.registerAndLogin(
+                mockMvc, "{\"email\":\"" + email + "\",\"password\":\"password1\"}")
             .getContentAsString();
     String token = com.jayway.jsonpath.JsonPath.read(registerResponse, "$.token");
 
@@ -90,14 +84,8 @@ class EmailVerificationIntegrationTest extends PostgresIntegrationTest {
     String email = "verify-resend-" + System.nanoTime() + "@example.com";
     String token =
         com.jayway.jsonpath.JsonPath.read(
-            mockMvc
-                .perform(
-                    post("/api/auth/register")
-                        .contentType("application/json")
-                        .content("{\"email\":\"" + email + "\",\"password\":\"password1\"}"))
-                .andExpect(status().isCreated())
-                .andReturn()
-                .getResponse()
+            TestAccounts.registerAndLogin(
+                    mockMvc, "{\"email\":\"" + email + "\",\"password\":\"password1\"}")
                 .getContentAsString(),
             "$.token");
 

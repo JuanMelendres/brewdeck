@@ -105,7 +105,7 @@ class ValidationLimitsIntegrationTest extends PostgresIntegrationTest {
 
   @Test
   void register_passwordAt72Bytes_succeeds() throws Exception {
-    postJson("/api/auth/register", registerBody("x".repeat(72))).andExpect(status().isCreated());
+    postJson("/api/auth/register", registerBody("x".repeat(72))).andExpect(status().isAccepted());
   }
 
   @Test
@@ -135,11 +135,7 @@ class ValidationLimitsIntegrationTest extends PostgresIntegrationTest {
   @Test
   void changePassword_newPasswordOver72Bytes_isAFieldError() throws Exception {
     String registered =
-        postJson("/api/auth/register", registerBody("password123"))
-            .andExpect(status().isCreated())
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
+        TestAccounts.registerAndLogin(mockMvc, registerBody("password123")).getContentAsString();
     String token = JsonPath.read(registered, "$.token");
 
     mockMvc

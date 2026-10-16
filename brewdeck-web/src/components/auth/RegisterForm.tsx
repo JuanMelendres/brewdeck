@@ -9,22 +9,21 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import NextLink from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { register as registerAccount } from '@/lib/api/auth';
 import { rateLimitMessage } from '@/lib/api/errors';
 import { useFieldError } from '@/i18n/useFieldError';
-import { useAuth } from '@/lib/auth/AuthProvider';
 import { registerSchema, type RegisterFormValues } from '@/lib/validation/authSchema';
 
 export function RegisterForm() {
   const t = useTranslations('auth.register');
   const tc = useTranslations('common');
   const fieldError = useFieldError();
-  const { register: registerAccount } = useAuth();
-  const router = useRouter();
   const [formError, setFormError] = useState<string | null>(null);
+  // The address the confirmation went to; set once signup is accepted.
+  const [sentTo, setSentTo] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
@@ -35,11 +34,28 @@ export function RegisterForm() {
     setFormError(null);
     try {
       await registerAccount({ email: values.email, password: values.password });
-      router.push('/dashboard');
+      setSentTo(values.email);
     } catch (error) {
       setFormError(rateLimitMessage(error) ?? t('failed'));
     }
   });
+
+  if (sentTo) {
+    // Same screen whether the email was new or already registered: the email itself says which.
+    return (
+      <Box>
+        <Typography variant="h4" component="h1">
+          {t('checkEmailTitle')}
+        </Typography>
+        <Stack spacing={2.25} sx={{ mt: 2 }}>
+          <Alert severity="success">{t('checkEmail', { email: sentTo })}</Alert>
+          <Button component={NextLink} href="/login" variant="contained" size="large">
+            {t('goToLogin')}
+          </Button>
+        </Stack>
+      </Box>
+    );
+  }
 
   return (
     <Box component="form" onSubmit={onSubmit}>

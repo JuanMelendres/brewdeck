@@ -1,6 +1,7 @@
 package com.brewdeck.brewdeck_api.auth;
 
 import com.brewdeck.brewdeck_api.auth.refresh.RefreshTokenCookies;
+import com.brewdeck.brewdeck_api.common.web.MessageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,15 +19,25 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Auth", description = "Registration, login, and current-user lookup")
 public class AuthController {
 
+  /** Same text for new and existing emails, so the response does not reveal which it was. */
+  private static final String REGISTER_MESSAGE =
+      "Check your email to finish creating your account.";
+
   private final AuthService authService;
   private final RefreshTokenCookies refreshTokenCookies;
 
   @PostMapping("/register")
+  @ResponseStatus(HttpStatus.ACCEPTED)
   @Operation(
       summary = "Register a new account",
-      description = "Returns the access token; the refresh token is set as an httpOnly cookie.")
-  public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
-    return withRefreshCookie(HttpStatus.CREATED, authService.register(request));
+      description =
+          "Always 202 with the same body, whether or not the email is registered (no account"
+              + " enumeration). A new address gets a verification email; an existing one gets a"
+              + " notice to log in or reset the password. No session is created: the user logs in"
+              + " afterwards.")
+  public MessageResponse register(@Valid @RequestBody RegisterRequest request) {
+    authService.register(request);
+    return new MessageResponse(REGISTER_MESSAGE);
   }
 
   @PostMapping("/login")

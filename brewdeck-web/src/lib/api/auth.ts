@@ -1,8 +1,12 @@
 import { apiFetch } from './client';
 import type { AuthResponse, Language, ThemePreference, UserResponse } from './types';
 
-export function register(body: { email: string; password: string }): Promise<AuthResponse> {
-  return apiFetch<AuthResponse>('/api/auth/register', {
+/**
+ * Answers the same for new and existing emails and creates no session (AUTH-05.7): the user
+ * confirms by email, then logs in.
+ */
+export function register(body: { email: string; password: string }): Promise<{ message: string }> {
+  return apiFetch<{ message: string }>('/api/auth/register', {
     method: 'POST',
     body: JSON.stringify(body),
   });
