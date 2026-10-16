@@ -18,13 +18,13 @@ GET   /api/auth/me                  200 (401 without token; includes emailVerifi
 PATCH /api/auth/me                  200 (update display name)
 PUT   /api/auth/me/theme            200 (set themePreference LIGHT|DARK; 400 if missing or unknown)
 PUT   /api/auth/me/language         200 (set language EN|ES; 400 if missing or unknown)
-POST  /api/auth/change-password     204 (400 if current password wrong; revokes all refresh tokens)
+POST  /api/auth/change-password     200 (new access token + refresh cookie for the caller; 400 if current password wrong; ends every other session)
 POST  /api/auth/forgot-password     200 (always; no user enumeration)
-POST  /api/auth/reset-password      204 (400 if token invalid/expired/used; revokes all refresh tokens)
+POST  /api/auth/reset-password      204 (400 if token invalid/expired/used; ends every session)
 POST  /api/auth/verify-email        204 (400 if token invalid/expired/used)
 POST  /api/auth/resend-verification 200 (authenticated; no-op if already verified)
 POST  /api/auth/refresh             200 (public; refresh token from the httpOnly cookie + X-Requested-With header; 401 if invalid/expired/used/missing; 403 cookie without header)
-POST  /api/auth/logout              204 (authenticated; revokes the presented refresh token and clears the cookie)
+POST  /api/auth/logout              204 (authenticated; revokes the presented refresh token, invalidates outstanding access tokens, clears the cookie)
 ```
 
 > Public auth endpoints are rate limited per client IP, and login and forgot-password also per
@@ -41,15 +41,17 @@ POST  /api/auth/logout              204 (authenticated; revokes the presented re
 > `juan@x.com` exists is a `409`.
 
 > Changing or resetting a password ends every existing session: all of the user's active refresh
-> tokens are revoked, so other devices must log in again. Already-issued access tokens stay valid
-> until they expire (`AUTH_TOKEN_TTL`, default 15 minutes).
+> tokens are revoked and already-issued access tokens stop working at once, so other devices must
+> log in again. `change-password` hands the caller a fresh session so that device stays logged in.
+> `logout` also invalidates outstanding access tokens; other devices keep their refresh cookie and
+> silently get a new access token (access JWTs carry the user's token version, ADR-013).
 
-> **Refresh token cookie (ADR-013).** `register`, `login`, and `refresh` set `brewdeck_refresh`
+> **Refresh token cookie (ADR-013).** `register`, `login`, `refresh`, and `change-password` set `brewdeck_refresh`
 > (`HttpOnly; Secure; SameSite=Strict; Path=/api/auth`). Cookie-authenticated calls must send an
 > `X-Requested-With` header. The refresh token is **never** returned in or accepted from a JSON
 > body.
 
-> `register`, `login`, and `refresh` return `token`, `expiresAt`, and `email`.
+> `register`, `login`, `refresh`, and `change-password` return `token`, `expiresAt`, and `email`.
 
 ## Feature flags (`/api/feature-flags`)
 ```

@@ -176,7 +176,7 @@ class AuthSecurityIntegrationTest extends PostgresIntegrationTest {
                 .header("Authorization", "Bearer " + token)
                 .contentType("application/json")
                 .content("{\"currentPassword\":\"password1\",\"newPassword\":\"newpassword1\"}"))
-        .andExpect(status().isNoContent());
+        .andExpect(status().isOk());
 
     // New password logs in; old one no longer does.
     mockMvc
@@ -222,18 +222,32 @@ class AuthSecurityIntegrationTest extends PostgresIntegrationTest {
     // A second session (e.g. another device) holding its own refresh cookie.
     Cookie fromLogin = loginCookie(email, "password123");
 
-    mockMvc
-        .perform(
-            post("/api/auth/change-password")
-                .header("Authorization", "Bearer " + access)
-                .contentType("application/json")
-                .content("{\"currentPassword\":\"password123\",\"newPassword\":\"newpassword1\"}"))
-        .andExpect(status().isNoContent());
+    MockHttpServletResponse changed =
+        mockMvc
+            .perform(
+                post("/api/auth/change-password")
+                    .header("Authorization", "Bearer " + access)
+                    .contentType("application/json")
+                    .content(
+                        "{\"currentPassword\":\"password123\",\"newPassword\":\"newpassword1\"}"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse();
 
-    // Every session issued under the old password is dead.
+    // Every session issued under the old password is dead: refresh cookies and the access token.
     for (Cookie stale : new Cookie[] {fromRegister, fromLogin}) {
       refreshWith(stale).andExpect(status().isUnauthorized());
     }
+    mockMvc
+        .perform(get("/api/auth/me").header("Authorization", "Bearer " + access))
+        .andExpect(status().isUnauthorized());
+
+    // The caller got a fresh session: its access token and refresh cookie both work.
+    String freshAccess = com.jayway.jsonpath.JsonPath.read(changed.getContentAsString(), "$.token");
+    mockMvc
+        .perform(get("/api/auth/me").header("Authorization", "Bearer " + freshAccess))
+        .andExpect(status().isOk());
+    refreshWith(changed.getCookie(REFRESH_COOKIE)).andExpect(status().isOk());
 
     // A fresh login with the new password yields a working refresh cookie.
     refreshWith(loginCookie(email, "newpassword1")).andExpect(status().isOk());
@@ -256,6 +270,38 @@ class AuthSecurityIntegrationTest extends PostgresIntegrationTest {
 
     // Even if a client kept the old cookie value, it can no longer be rotated.
     refreshWith(refresh).andExpect(status().isUnauthorized());
+    // The access token stops working at once instead of living out its TTL.
+    mockMvc
+        .perform(get("/api/auth/me").header("Authorization", "Bearer " + access))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  void logoutOnOneDevice_letsOtherDevicesRecoverThroughTheirRefreshCookie() throws Exception {
+    String email = "logout-other-device-" + System.nanoTime() + "@example.com";
+    MockHttpServletResponse first = register(email, "password123");
+    String firstAccess = com.jayway.jsonpath.JsonPath.read(first.getContentAsString(), "$.token");
+    Cookie otherDevice = loginCookie(email, "password123");
+
+    mockMvc
+        .perform(
+            post("/api/auth/logout")
+                .header("Authorization", "Bearer " + firstAccess)
+                .header("X-Requested-With", "fetch")
+                .cookie(first.getCookie(REFRESH_COOKIE)))
+        .andExpect(status().isNoContent());
+
+    // The other device's refresh cookie still works, and the new access token is accepted.
+    String renewed =
+        refreshWith(otherDevice)
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    String renewedAccess = com.jayway.jsonpath.JsonPath.read(renewed, "$.token");
+    mockMvc
+        .perform(get("/api/auth/me").header("Authorization", "Bearer " + renewedAccess))
+        .andExpect(status().isOk());
   }
 
   @Test

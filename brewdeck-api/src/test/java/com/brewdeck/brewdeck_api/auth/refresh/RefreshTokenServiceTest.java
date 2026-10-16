@@ -94,6 +94,19 @@ class RefreshTokenServiceTest {
   }
 
   @Test
+  void rotateOnRevokedTokenThrowsWithoutRevokingAll() {
+    String raw = "raw-revoked";
+    RefreshToken revoked = activeToken(raw);
+    revoked.setRevokedAt(Instant.now().minus(1, ChronoUnit.MINUTES));
+    when(tokenRepository.findByTokenHash(SecureTokens.sha256Hex(raw)))
+        .thenReturn(Optional.of(revoked));
+
+    assertThatThrownBy(() -> service.rotate(raw)).isInstanceOf(InvalidRefreshTokenException.class);
+    verify(tokenRepository, never()).revokeAllActiveForUser(any(), any());
+    verify(userRepository, never()).findById(any());
+  }
+
+  @Test
   void rotateOnExpiredTokenThrowsWithoutRevokingAll() {
     String raw = "raw-expired";
     RefreshToken expired = activeToken(raw);
