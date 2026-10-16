@@ -52,6 +52,19 @@ class FeatureFlagRepositoryTest extends PostgresIntegrationTest {
   }
 
   @Test
+  void emailVerificationFlag_isSeededEnabledInStagingOnly() {
+    // V20 seeds the flag disabled everywhere; V29 enables it in staging.
+    assertThat(
+            repository.findByFeatureKeyAndEnvironment(
+                FeatureKeys.REQUIRE_EMAIL_VERIFICATION, "staging"))
+        .hasValueSatisfying(seeded -> assertThat(seeded.isEnabled()).isTrue());
+    assertThat(
+            repository.findByFeatureKeyAndEnvironment(
+                FeatureKeys.REQUIRE_EMAIL_VERIFICATION, "prod"))
+        .hasValueSatisfying(seeded -> assertThat(seeded.isEnabled()).isFalse());
+  }
+
+  @Test
   void findByExpiresAtBefore_returnsOnlyPastExpiries() {
     String key = "repo-exp-" + System.nanoTime();
     FeatureFlag expired = flag(key, "exp-env", true);
