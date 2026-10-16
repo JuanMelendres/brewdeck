@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { DM_Sans, Fraunces } from 'next/font/google';
 import type { ReactNode } from 'react';
+import { isIndexingAllowed } from '@/lib/seo/indexing';
 import { THEME_MODE_STORAGE_KEY } from '@/lib/theme/theme';
 import { Providers } from './providers';
 
@@ -12,7 +13,12 @@ const displayFont = Fraunces({ subsets: ['latin'], variable: '--font-display', d
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('meta');
-  return { title: 'BrewDeck', description: t('description') };
+  const indexable = isIndexingAllowed();
+  return {
+    title: 'BrewDeck',
+    description: t('description'),
+    robots: { index: indexable, follow: indexable },
+  };
 }
 
 export default async function RootLayout({ children }: { children: ReactNode }) {

@@ -574,6 +574,15 @@ When staging is no longer needed:
 
   Then redeploy. Rotating `brewdeck-jwt-secret` logs everyone out.
 - **Sensitive data:** do not put real personal data in staging.
+- **Crawlers and bots:**
+  - Staging is `noindex`: `robots.txt` disallows everything, pages carry the meta tag and every
+    response carries an `X-Robots-Tag` header, unless `ALLOW_INDEXING=true`. Polite crawlers
+    (Google, Bing) obey this.
+  - For the rest, use Vercel's free firewall (**Project → Firewall**). Set **AI Bots** to *Deny*.
+    Set **Bot Protection** to *Log* first, check that it does not flag the app's own `/api/*`
+    calls, then switch it to *Challenge*. **Attack Challenge Mode** is the panic button.
+  - The `run.app` URL bypasses Vercel's firewall. Restricting it to the Next proxy (a shared-secret
+    header) is planned for production.
 
 ## 12. Automated API deploys (GitHub Actions)
 

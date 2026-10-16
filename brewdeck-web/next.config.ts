@@ -9,11 +9,22 @@ import createNextIntlPlugin from "next-intl/plugin";
  */
 const apiProxyTarget = process.env.API_PROXY_TARGET ?? "http://localhost:8080";
 
+/**
+ * Keeps search engines out unless ALLOW_INDEXING=true (see src/lib/seo/indexing.ts). The header also
+ * covers responses without HTML metadata, such as proxied /api/* JSON.
+ */
+const allowIndexing = process.env.ALLOW_INDEXING === "true";
+
 const nextConfig: NextConfig = {
   experimental: {
     // The proxy's default is 30 s. A local AI model can take longer (ADR-016), and the API waits up
     // to 90 s for it (OLLAMA_TIMEOUT_SECONDS), so the proxy must outlast that.
     proxyTimeout: 100_000,
+  },
+  async headers() {
+    return allowIndexing
+      ? []
+      : [{ source: "/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }];
   },
   async rewrites() {
     return [{ source: "/api/:path*", destination: `${apiProxyTarget}/api/:path*` }];
