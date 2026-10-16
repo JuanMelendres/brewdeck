@@ -11,9 +11,9 @@ on 2026-10-16. Where a fact comes from a probe and not from reading the code, th
 | `recipes.coffee_grams` | grams | `DECIMAL(6,2)` | `BigDecimal` | `@Positive`, `@DecimalMax 9999.99`; **no scale limit** | `type=number`, Zod `positive().max(9999.99)` | `'{value} g'` |
 | `recipes.water_grams` | grams | `DECIMAL(6,2)` | `BigDecimal` | same as coffee grams | same | `'{value} g'` |
 | `recipes.ratio` | coffee:water, free text (`1:15`) | `VARCHAR(20)` | `String` | `@Size(max = 20)` | text | as typed |
-| `recipes.water_temp` | °C | `INTEGER` | `Integer` | `@Min 0`, `@Max 100` | `type=number`, Zod `min(0).max(100)`, **no `int()`** | `'{value}°C'` |
+| `recipes.water_temp` | °C | `INTEGER` (to become `NUMERIC(4,1)`, see fix 1) | `Integer` | `@Min 0`, `@Max 100` | `type=number`, Zod `min(0).max(100)`, **no `int()`** | `'{value}°C'` |
 | `recipes.brew_time` | free text (`2:30`) | `VARCHAR(40)` | `String` | `@Size(max = 20)` | text | as typed |
-| `brew_sessions.actual_temp` | °C | `INTEGER` | `Integer` | `@Min 0`, `@Max 100` | `type=number`, Zod `min(0).max(100)`, **no `int()`** | `'{value}°C'` |
+| `brew_sessions.actual_temp` | °C | `INTEGER` (to become `NUMERIC(4,1)`, see fix 1) | `Integer` | `@Min 0`, `@Max 100` | `type=number`, Zod `min(0).max(100)`, **no `int()`** | `'{value}°C'` |
 | `brew_sessions.actual_time` | free text | `VARCHAR(40)` | `String` | `@Size(max = 20)` | text | as typed |
 | `brew_sessions.rating` | score 1–10 | `INTEGER` | `Integer` | `@Min 1`, `@Max 10` | `type=number`, Zod `int().min(1).max(10)` | `n/10` with a star |
 | `coffees.*_score` (acidity, body, sweetness, bitterness) | score 1–5 | `INTEGER` | `Integer` | `@Min 1`, `@Max 5` | slider, Zod `int().min(1).max(5)` | radar chart, `'{value}/5'` |
@@ -53,20 +53,28 @@ only range guard.
 
 Small PRs, each with tests:
 
-1. **Backend input precision (G1, G2).**
+1. **Temperatures with one decimal (G1).** Decided by the owner on 2026-10-16: water
+   temperature must keep decimals, so the fix is to store them rather than reject them.
+   - New Flyway migration: `recipes.water_temp` and `brew_sessions.actual_temp` go from `INTEGER`
+     to `NUMERIC(4,1)` (0.0 to 100.0). Existing integers convert losslessly.
+   - Entities, requests and responses use `BigDecimal`. The requests get `@DecimalMin("0")`,
+     `@DecimalMax("100")` and `@Digits(integer = 3, fraction = 1)`, so `92.75` is a `400` field
+     error instead of being rounded.
+   - Carry the type through the AI path: `SuggestedRecipe`, `BrewHistoryEntry`, the prompts, both
+     adapters, and the guardrails' temperature clamp.
+   - Mirror in Zod: at most one decimal.
+2. **Grams scale (G2).**
    - Add `@Digits(integer = 4, fraction = 2)` on both gram fields, so `15.126` becomes a `400`
-     field error.
-   - Make `actualTemp` / `waterTemp` reject fractions with a `400`. Use either a field-level check
-     or Jackson's `ACCEPT_FLOAT_AS_INT` disabled for the API mapper, whichever surfaces as a
-     normal `validationErrors` entry.
-   - Mirror both rules in Zod: `int()` on the temperatures, at most two decimals on grams.
-2. **Locale-aware numbers in the UI (G3, G4).**
+     field error and the response always matches the stored value.
+   - Mirror in Zod: at most two decimals.
+3. **Locale-aware numbers in the UI (G3, G4).** This also covers the new decimal temperatures
+   (`92,5 °C` in Spanish).
    - Change unit messages to `{value, number}`.
    - Replace `toFixed(1)` with one helper built on `Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })`.
    - Round averages to one decimal `HALF_UP` in the API responses (`BigDecimal.valueOf(avg).setScale(1, HALF_UP)`), so 8.35 shows `8,4` / `8.4`. Ranking order keeps using the full value in SQL.
-3. **Browser check (G6).** Type `15,5` in Chrome, Safari and Firefox with the UI in Spanish. Fix
+4. **Browser check (G6).** Type `15,5` in Chrome, Safari and Firefox with the UI in Spanish. Fix
    only if a browser drops or rejects it.
-4. **Ratio (G5).** Option A, decided by the owner on 2026-10-16.
+5. **Ratio (G5).** Option A, decided by the owner on 2026-10-16.
 
 ### Ratio (G5): decided, option A (2026-10-16)
 
