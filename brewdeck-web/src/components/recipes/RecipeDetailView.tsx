@@ -31,6 +31,7 @@ import { RecipeFormDialog } from './RecipeFormDialog';
 import { ShareRecipeDialog } from './ShareRecipeDialog';
 import { downloadRecipePdf, orDash } from '@/lib/pdf/recipePdf';
 import { formatDate } from '@/lib/format/dates';
+import { formatAverage } from '@/lib/format/numbers';
 
 export function RecipeDetailView({ recipeId }: { recipeId: number }) {
   const t = useTranslations('recipes.detail');
@@ -125,7 +126,7 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
       { label: t('totalSessions'), value: stats.totalSessions },
       {
         label: t('averageRating'),
-        value: stats.averageRating === null ? '—' : stats.averageRating.toFixed(1),
+        value: formatAverage(stats.averageRating, locale),
       },
       { label: t('lastBrewed'), value: formatDate(stats.lastBrewedAt, undefined, locale) },
     ];

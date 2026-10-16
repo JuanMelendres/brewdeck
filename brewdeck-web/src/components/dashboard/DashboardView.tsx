@@ -9,7 +9,7 @@ import TimerOutlinedIcon from '@mui/icons-material/TimerOutlined';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
-import { useFormatter, useTranslations } from 'next-intl';
+import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { useDashboardSummary } from '@/hooks/useDashboardSummary';
 import { useAuth } from '@/lib/auth/AuthProvider';
@@ -20,6 +20,7 @@ import { TopRatedRecipes } from './TopRatedRecipes';
 import { MostBrewedRecipes } from './MostBrewedRecipes';
 import { MethodUsage } from './MethodUsage';
 import { MostUsedCoffees } from './MostUsedCoffees';
+import { formatAverage } from '@/lib/format/numbers';
 
 function greetingKey(hour: number) {
   if (hour < 12) return 'goodMorning';
@@ -32,6 +33,7 @@ export function DashboardView() {
   const { user } = useAuth();
   const format = useFormatter();
   const t = useTranslations('dashboard');
+  const locale = useLocale();
 
   if (isLoading) {
     return <Spinner />;
@@ -51,7 +53,7 @@ export function DashboardView() {
     { label: t('brewSessions'), value: data.totalBrewSessions, icon: <TimerOutlinedIcon fontSize="small" /> },
     {
       label: t('averageRating'),
-      value: data.averageSessionRating === null ? '—' : data.averageSessionRating.toFixed(1),
+      value: formatAverage(data.averageSessionRating, locale),
       icon: <StarRoundedIcon fontSize="small" />,
     },
   ];
