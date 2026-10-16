@@ -11,6 +11,8 @@ public enum RateLimitRule {
   LOGIN_IP(20, Duration.ofMinutes(1)),
   LOGIN_EMAIL(10, Duration.ofMinutes(15)),
   REGISTER_IP(5, Duration.ofHours(1)),
+  // Signup emails go to the address typed in, new or existing: stops anyone flooding a mailbox.
+  REGISTER_EMAIL(3, Duration.ofHours(1)),
   REFRESH_IP(30, Duration.ofMinutes(1)),
   FORGOT_PASSWORD_IP(5, Duration.ofMinutes(15)),
   // Stops anyone from flooding a mailbox with reset emails.

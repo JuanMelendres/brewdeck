@@ -63,6 +63,11 @@ public class EmailVerificationService {
     log.info("Issued email verification token for user id={}", user.getId());
   }
 
+  /** Best-effort notice to an existing account's owner that someone signed up with the address. */
+  public void sendAccountExistsNotice(User user) {
+    mailPort.sendAccountExistsNotice(user.getEmail(), UserLocale.of(user));
+  }
+
   @Transactional
   public void verify(String rawToken) {
     EmailVerificationToken token =

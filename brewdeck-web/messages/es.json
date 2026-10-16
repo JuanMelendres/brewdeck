@@ -87,7 +87,10 @@
       "subtitle": "Empieza a registrar tus cafés, recetas y preparaciones.",
       "submit": "Crear cuenta",
       "haveAccount": "¿Ya tienes cuenta? <link>Inicia sesión</link>",
-      "failed": "No pudimos crear la cuenta. Es posible que ese correo ya esté en uso."
+      "failed": "No pudimos crear la cuenta. Inténtalo de nuevo.",
+      "checkEmailTitle": "Revisa tu correo",
+      "checkEmail": "Enviamos un mensaje a {email}. Ábrelo para verificar tu correo y después inicia sesión.",
+      "goToLogin": "Ir a iniciar sesión"
     },
     "forgot": {
       "title": "Restablece tu contraseña",

@@ -5,7 +5,6 @@ import {
   getMe,
   login as loginApi,
   logout as logoutApi,
-  register as registerApi,
   updateProfile as updateProfileApi,
   updateLanguage as updateLanguageApi,
   updateTheme as updateThemeApi,
@@ -22,7 +21,6 @@ type AuthContextValue = {
   user: UserResponse | null;
   status: AuthStatus;
   login: (body: Credentials) => Promise<void>;
-  register: (body: Credentials) => Promise<void>;
   updateProfile: (body: { displayName: string | null }) => Promise<void>;
   updateTheme: (themePreference: ThemePreference) => Promise<void>;
   updateLanguage: (language: Language) => Promise<void>;
@@ -67,13 +65,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       status,
       login: async (body) => {
         const response = await loginApi(body);
-        setToken(response.token);
-        const me = await getMe();
-        setUser(me);
-        setStatus('authenticated');
-      },
-      register: async (body) => {
-        const response = await registerApi(body);
         setToken(response.token);
         const me = await getMe();
         setUser(me);

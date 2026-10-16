@@ -12,7 +12,7 @@ in [`architecture/api-design.md`](../architecture/api-design.md).
 
 ## Auth (`/api/auth`)
 ```
-POST  /api/auth/register            201
+POST  /api/auth/register            202 (always, same body; no session; new email → verification email, existing → account-exists email)
 POST  /api/auth/login               200
 GET   /api/auth/me                  200 (401 without token; includes emailVerified, role: USER|ADMIN, themePreference: LIGHT|DARK|null, language: EN|ES|null)
 PATCH /api/auth/me                  200 (update display name)
@@ -37,8 +37,13 @@ POST  /api/auth/logout              204 (authenticated; revokes the presented re
 > `brewdeck-api/src/main/resources/messages*.properties`.
 
 > Emails are case-insensitive. `register`, `login`, and `forgot-password` trim and lowercase the
-> address, and responses return that normalized form. Registering `Juan@x.com` when
-> `juan@x.com` exists is a `409`.
+> address, and responses return that normalized form.
+
+> **No account enumeration at signup (AUTH-05.7).** `register` answers `202` with the same message
+> whether or not the email exists, creates no session, and returns no token or cookie. A new address
+> gets the verification email; an existing one gets a "you already have an account" email pointing
+> to log in or reset the password. A per-email limit (`REGISTER_EMAIL`, 3 per hour) applies to both,
+> so nobody can flood a mailbox. The user logs in after signup.
 
 > Changing or resetting a password ends every existing session: all of the user's active refresh
 > tokens are revoked and already-issued access tokens stop working at once, so other devices must
@@ -46,12 +51,12 @@ POST  /api/auth/logout              204 (authenticated; revokes the presented re
 > `logout` also invalidates outstanding access tokens; other devices keep their refresh cookie and
 > silently get a new access token (access JWTs carry the user's token version, ADR-013).
 
-> **Refresh token cookie (ADR-013).** `register`, `login`, `refresh`, and `change-password` set `brewdeck_refresh`
+> **Refresh token cookie (ADR-013).** `login`, `refresh`, and `change-password` set `brewdeck_refresh`
 > (`HttpOnly; Secure; SameSite=Strict; Path=/api/auth`). Cookie-authenticated calls must send an
 > `X-Requested-With` header. The refresh token is **never** returned in or accepted from a JSON
 > body.
 
-> `register`, `login`, `refresh`, and `change-password` return `token`, `expiresAt`, and `email`.
+> `login`, `refresh`, and `change-password` return `token`, `expiresAt`, and `email`.
 
 ## Feature flags (`/api/feature-flags`)
 ```

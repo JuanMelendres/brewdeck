@@ -87,7 +87,10 @@
       "subtitle": "Start logging your coffees, recipes, and brews.",
       "submit": "Create account",
       "haveAccount": "Already have an account? <link>Log in</link>",
-      "failed": "Could not register. That email may already be in use."
+      "failed": "Could not create your account. Please try again.",
+      "checkEmailTitle": "Check your email",
+      "checkEmail": "We sent a message to {email}. Open it to verify your address, then log in.",
+      "goToLogin": "Go to log in"
     },
     "forgot": {
       "title": "Reset your password",
