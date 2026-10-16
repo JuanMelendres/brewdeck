@@ -40,7 +40,7 @@ class MailDeliveryIntegrationTest extends PostgresIntegrationTest {
   private static final int SMTP_PORT = 1025;
   private static final int API_PORT = 8025;
 
-  // GHCR, not Docker Hub: CI rewrites Docker Hub names to the ECR Public library mirror
+  // GHCR, not Docker Hub: CI rewrites Docker Hub names to the mirror.gcr.io library mirror
   // (TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX), which only carries official images.
   @SuppressWarnings("resource")
   static final GenericContainer<?> MAILPIT =
