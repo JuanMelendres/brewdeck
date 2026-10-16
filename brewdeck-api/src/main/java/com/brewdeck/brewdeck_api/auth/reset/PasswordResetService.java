@@ -92,12 +92,15 @@ public class PasswordResetService {
             .findById(token.getUserId())
             .orElseThrow(() -> new InvalidResetTokenException("Reset token has no user"));
 
+    // Claimed before the password changes, so two requests with one link cannot both set it.
+    if (tokenRepository.markUsedIfUnused(token.getId(), Instant.now()) == 0) {
+      throw new InvalidResetTokenException("Reset token used or expired");
+    }
+
     user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
     user.revokeAccessTokens();
     userRepository.save(user);
 
-    token.setUsedAt(Instant.now());
-    tokenRepository.save(token);
     refreshTokenService.revokeAllForUser(user.getId());
     log.info("Password reset completed for user id={}", user.getId());
   }

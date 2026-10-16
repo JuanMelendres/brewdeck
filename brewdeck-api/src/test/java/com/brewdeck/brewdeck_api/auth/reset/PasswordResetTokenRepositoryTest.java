@@ -67,4 +67,26 @@ class PasswordResetTokenRepositoryTest extends PostgresIntegrationTest {
 
     assertThat(tokenRepository.findByUserIdAndUsedAtIsNull(user.getId())).hasSize(1);
   }
+
+  @Test
+  void markUsedIfUnused_claimsTheTokenOnlyOnce() {
+    User user =
+        userRepository.save(
+            User.builder()
+                .email("reset-" + System.nanoTime() + "@example.com")
+                .passwordHash("hash")
+                .createdAt(Instant.now())
+                .build());
+    PasswordResetToken token =
+        tokenRepository.save(
+            PasswordResetToken.builder()
+                .userId(user.getId())
+                .tokenHash("claim-" + System.nanoTime())
+                .expiresAt(Instant.now().plus(30, ChronoUnit.MINUTES))
+                .createdAt(Instant.now())
+                .build());
+
+    assertThat(tokenRepository.markUsedIfUnused(token.getId(), Instant.now())).isEqualTo(1);
+    assertThat(tokenRepository.markUsedIfUnused(token.getId(), Instant.now())).isZero();
+  }
 }

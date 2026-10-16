@@ -114,15 +114,35 @@ class EmailVerificationServiceTest {
     when(tokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(token));
     User user = user(false);
     when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+    when(tokenRepository.markUsedIfUnused(eq(5L), any(Instant.class))).thenReturn(1);
 
     service.verify("any-raw-token");
 
     assertThat(user.isEmailVerified()).isTrue();
-    assertThat(token.getUsedAt()).isNotNull();
+    verify(tokenRepository).markUsedIfUnused(eq(5L), any(Instant.class));
   }
 
   @Test
-  void verify_persistsUserAndToken() {
+  void verify_tokenClaimedConcurrently_throwsWithoutSaving() {
+    EmailVerificationToken token =
+        EmailVerificationToken.builder()
+            .id(9L)
+            .userId(1L)
+            .tokenHash("hash")
+            .expiresAt(Instant.now().plus(1, ChronoUnit.HOURS))
+            .createdAt(Instant.now())
+            .build();
+    when(tokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(token));
+    when(userRepository.findById(1L)).thenReturn(Optional.of(user(false)));
+    when(tokenRepository.markUsedIfUnused(eq(9L), any(Instant.class))).thenReturn(0);
+
+    assertThatThrownBy(() -> service.verify("raw"))
+        .isInstanceOf(InvalidVerificationTokenException.class);
+    verify(userRepository, never()).save(any());
+  }
+
+  @Test
+  void verify_persistsUser() {
     EmailVerificationToken token =
         EmailVerificationToken.builder()
             .id(8L)
@@ -134,11 +154,11 @@ class EmailVerificationServiceTest {
     when(tokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(token));
     User user = user(false);
     when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+    when(tokenRepository.markUsedIfUnused(eq(8L), any(Instant.class))).thenReturn(1);
 
     service.verify("any-raw-token");
 
     verify(userRepository).save(user);
-    verify(tokenRepository).save(token);
   }
 
   @Test
