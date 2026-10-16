@@ -81,7 +81,7 @@ class OllamaRecipeSuggestionAdapterTest {
 
     assertThat(recipe.coffeeGrams()).isEqualByComparingTo(BigDecimal.valueOf(15));
     assertThat(recipe.waterGrams()).isEqualByComparingTo(BigDecimal.valueOf(250));
-    assertThat(recipe.waterTemp()).isEqualTo(93);
+    assertThat(recipe.waterTemp()).isEqualByComparingTo("93");
     assertThat(recipe.steps()).isEqualTo("Bloom, then pour.");
     server.verify();
   }

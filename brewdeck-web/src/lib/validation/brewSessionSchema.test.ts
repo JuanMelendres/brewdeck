@@ -50,4 +50,14 @@ describe('brewSessionSchema', () => {
       );
     }
   });
+
+  it('keeps one decimal on the actual temperature and rejects two', () => {
+    expect(brewSessionSchema.safeParse({ recipeId: '1', actualTemp: '93.5' }).success).toBe(true);
+
+    const tooPrecise = brewSessionSchema.safeParse({ recipeId: '1', actualTemp: '93.25' });
+    expect(tooPrecise.success).toBe(false);
+    if (!tooPrecise.success) {
+      expect(tooPrecise.error.issues[0].message).toBe('brewSession.actualTempOneDecimal');
+    }
+  });
 });

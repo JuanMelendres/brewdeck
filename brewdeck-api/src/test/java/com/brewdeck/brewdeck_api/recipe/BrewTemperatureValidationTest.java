@@ -13,7 +13,7 @@ class BrewTemperatureValidationTest {
 
   private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
-  private static RecipeRequest recipeAt(Integer waterTemp) {
+  private static RecipeRequest recipeAt(String waterTemp) {
     return new RecipeRequest(
         1L,
         9L,
@@ -22,7 +22,7 @@ class BrewTemperatureValidationTest {
         BigDecimal.valueOf(800),
         "1:8",
         "Coarse",
-        waterTemp,
+        new BigDecimal(waterTemp),
         "16:00:00",
         "Steep in the fridge, then filter.",
         "Smooth, chocolate.",
@@ -36,21 +36,41 @@ class BrewTemperatureValidationTest {
 
   @Test
   void coldBrewRecipe_withFridgeColdWater_isValid() {
-    assertThat(violates(recipeAt(4), "waterTemp")).isFalse();
-    assertThat(violates(recipeAt(0), "waterTemp")).isFalse();
+    assertThat(violates(recipeAt("4"), "waterTemp")).isFalse();
+    assertThat(violates(recipeAt("0"), "waterTemp")).isFalse();
   }
 
   @Test
   void recipe_temperatureOutsideLiquidWater_isRejected() {
-    assertThat(violates(recipeAt(-1), "waterTemp")).isTrue();
-    assertThat(violates(recipeAt(101), "waterTemp")).isTrue();
+    assertThat(violates(recipeAt("-1"), "waterTemp")).isTrue();
+    assertThat(violates(recipeAt("101"), "waterTemp")).isTrue();
   }
 
   @Test
   void coldBrewSession_withColdWater_isValid() {
     BrewSessionRequest session =
-        new BrewSessionRequest(1L, "Coarse", 4, "16:00:00", "Smooth", 8, null);
+        new BrewSessionRequest(1L, "Coarse", new BigDecimal("4"), "16:00:00", "Smooth", 8, null);
 
     assertThat(violates(session, "actualTemp")).isFalse();
+  }
+
+  @Test
+  void temperature_withOneDecimal_isValid() {
+    assertThat(violates(recipeAt("92.5"), "waterTemp")).isFalse();
+    assertThat(violates(recipeAt("100.0"), "waterTemp")).isFalse();
+  }
+
+  @Test
+  void temperature_withTwoDecimals_isRejectedInsteadOfRounded() {
+    assertThat(violates(recipeAt("92.75"), "waterTemp")).isTrue();
+    BrewSessionRequest session =
+        new BrewSessionRequest(1L, "Coarse", new BigDecimal("92.75"), "2:30", "Sweet", 8, null);
+
+    assertThat(violates(session, "actualTemp")).isTrue();
+  }
+
+  @Test
+  void temperature_justAboveBoiling_isRejected() {
+    assertThat(violates(recipeAt("100.1"), "waterTemp")).isTrue();
   }
 }

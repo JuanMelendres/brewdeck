@@ -123,6 +123,8 @@ export function BrewSessionFormDialog({
     <TextField
       label={tf(f.name)}
       type={f.number ? 'number' : 'text'}
+      // Grams and temperatures take decimals; the default step of 1 would flag 92.5 as invalid.
+      slotProps={f.number ? { htmlInput: { step: 'any' } } : undefined}
       multiline={f.multiline}
       minRows={f.multiline ? 3 : undefined}
       size="small"

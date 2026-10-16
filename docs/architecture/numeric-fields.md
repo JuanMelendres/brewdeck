@@ -11,9 +11,9 @@ on 2026-10-16. Where a fact comes from a probe and not from reading the code, th
 | `recipes.coffee_grams` | grams | `DECIMAL(6,2)` | `BigDecimal` | `@Positive`, `@DecimalMax 9999.99`; **no scale limit** | `type=number`, Zod `positive().max(9999.99)` | `'{value} g'` |
 | `recipes.water_grams` | grams | `DECIMAL(6,2)` | `BigDecimal` | same as coffee grams | same | `'{value} g'` |
 | `recipes.ratio` | coffee:water, free text (`1:15`) | `VARCHAR(20)` | `String` | `@Size(max = 20)` | text | as typed |
-| `recipes.water_temp` | °C | `INTEGER` (to become `NUMERIC(4,1)`, see fix 1) | `Integer` | `@Min 0`, `@Max 100` | `type=number`, Zod `min(0).max(100)`, **no `int()`** | `'{value}°C'` |
+| `recipes.water_temp` | °C | `NUMERIC(4,1)` (V31) | `BigDecimal` | `@DecimalMin 0`, `@DecimalMax 100`, `@Digits(3, 1)` | `type=number step=any`, Zod `min(0).max(100)` + one decimal | `'{value}°C'` |
 | `recipes.brew_time` | free text (`2:30`) | `VARCHAR(40)` | `String` | `@Size(max = 20)` | text | as typed |
-| `brew_sessions.actual_temp` | °C | `INTEGER` (to become `NUMERIC(4,1)`, see fix 1) | `Integer` | `@Min 0`, `@Max 100` | `type=number`, Zod `min(0).max(100)`, **no `int()`** | `'{value}°C'` |
+| `brew_sessions.actual_temp` | °C | `NUMERIC(4,1)` (V31) | `BigDecimal` | `@DecimalMin 0`, `@DecimalMax 100`, `@Digits(3, 1)` | `type=number step=any`, Zod `min(0).max(100)` + one decimal | `'{value}°C'` |
 | `brew_sessions.actual_time` | free text | `VARCHAR(40)` | `String` | `@Size(max = 20)` | text | as typed |
 | `brew_sessions.rating` | score 1–10 | `INTEGER` | `Integer` | `@Min 1`, `@Max 10` | `type=number`, Zod `int().min(1).max(10)` | `n/10` with a star |
 | `coffees.*_score` (acidity, body, sweetness, bitterness) | score 1–5 | `INTEGER` | `Integer` | `@Min 1`, `@Max 5` | slider, Zod `int().min(1).max(5)` | radar chart, `'{value}/5'` |
@@ -53,7 +53,7 @@ only range guard.
 
 Small PRs, each with tests:
 
-1. **Temperatures with one decimal (G1).** Decided by the owner on 2026-10-16: water
+1. **Temperatures with one decimal (G1). Done on branch `feat/api-decimal-temperatures`.** Decided by the owner on 2026-10-16: water
    temperature must keep decimals, so the fix is to store them rather than reject them.
    - New Flyway migration: `recipes.water_temp` and `brew_sessions.actual_temp` go from `INTEGER`
      to `NUMERIC(4,1)` (0.0 to 100.0). Existing integers convert losslessly.

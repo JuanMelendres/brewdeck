@@ -8,6 +8,12 @@ function optionalNumber<T extends z.ZodTypeAny>(inner: T) {
   );
 }
 
+/** True when `value` has at most one decimal (92.5 yes, 92.75 no); tolerant of float noise. */
+export function hasAtMostOneDecimal(value: number): boolean {
+  const tenths = value * 10;
+  return Math.abs(tenths - Math.round(tenths)) < 1e-9;
+}
+
 export const recipeSchema = z.object({
   coffeeId: z.coerce.number().int().positive(vk('recipe.coffeeRequired')),
   methodId: z.coerce.number().int().positive(vk('recipe.methodRequired')),
@@ -31,7 +37,9 @@ export const recipeSchema = z.object({
     z.coerce
       .number()
       .min(0, vk('recipe.waterTempTooLow'))
-      .max(100, vk('recipe.waterTempTooHigh')),
+      .max(100, vk('recipe.waterTempTooHigh'))
+      // Stored as NUMERIC(4,1): one decimal, e.g. 92.5.
+      .refine(hasAtMostOneDecimal, vk('recipe.waterTempOneDecimal')),
   ),
   brewTime: z.string().max(20, vk('recipe.brewTimeTooLong')).optional(),
   steps: z.string().max(1000, vk('recipe.stepsTooLong')).optional(),

@@ -44,7 +44,7 @@ class PublicRecipeControllerTest {
             new BigDecimal("250.0"),
             "1:16",
             "Medium",
-            94,
+            new BigDecimal("94"),
             "3:00",
             "Bloom then pour",
             "Floral");

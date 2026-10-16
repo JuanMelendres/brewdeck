@@ -39,7 +39,7 @@ public class SuggestionGuardrails {
 
     BigDecimal water = answer.waterGrams();
     String ratio = answer.ratio();
-    Integer temp = answer.waterTemp();
+    BigDecimal temp = answer.waterTemp();
     boolean adjusted = false;
 
     BigDecimal coffee = answer.coffeeGrams();
@@ -70,10 +70,10 @@ public class SuggestionGuardrails {
     }
 
     if (temp != null) {
-      int min = range == null ? 0 : range.minTemp();
-      int max = range == null ? 100 : range.maxTemp();
-      int bounded = Math.clamp(temp, min, max);
-      if (bounded != temp) {
+      BigDecimal min = BigDecimal.valueOf(range == null ? 0 : range.minTemp());
+      BigDecimal max = BigDecimal.valueOf(range == null ? 100 : range.maxTemp());
+      BigDecimal bounded = temp.max(min).min(max);
+      if (bounded.compareTo(temp) != 0) {
         temp = bounded;
         adjusted = true;
       }
@@ -129,17 +129,20 @@ public class SuggestionGuardrails {
       BigDecimal newCoffee,
       BigDecimal oldWater,
       BigDecimal newWater,
-      Integer oldTemp,
-      Integer newTemp) {
+      BigDecimal oldTemp,
+      BigDecimal newTemp) {
     if (steps == null) {
       return null;
     }
     String result = replaceGrams(steps, oldWater, newWater);
     result = replaceGrams(result, oldCoffee, newCoffee);
-    if (oldTemp != null && newTemp != null && !oldTemp.equals(newTemp)) {
+    if (oldTemp != null && newTemp != null && oldTemp.compareTo(newTemp) != 0) {
       result =
           result.replaceAll(
-              "(?<![\\d.,])" + oldTemp + "(?=\\s?(?:°|º|grados|degrees))", String.valueOf(newTemp));
+              "(?<![\\d.,])"
+                  + Pattern.quote(plain(oldTemp))
+                  + "(?:[.,]0+)?(?=\\s?(?:°|º|grados|degrees))",
+              Matcher.quoteReplacement(plain(newTemp)));
     }
     return result;
   }

@@ -85,7 +85,7 @@ class RecipeImprovementServiceTest {
         .waterGrams(new BigDecimal("230"))
         .ratio("1:15")
         .grindSetting("Timemore S3 - 5.5")
-        .waterTemp(90)
+        .waterTemp(new BigDecimal("90"))
         .brewTime("2:30")
         .steps("Bloom then press.")
         .favorite(false)
@@ -143,7 +143,7 @@ class RecipeImprovementServiceTest {
             .recipe(recipe)
             .brewedAt(Instant.parse("2026-04-21T10:00:00Z"))
             .actualGrind("Timemore S3 - 5.5")
-            .actualTemp(91)
+            .actualTemp(new BigDecimal("91"))
             .actualTime("2:20")
             .tasteResult("Bright")
             .rating(9)
@@ -160,7 +160,7 @@ class RecipeImprovementServiceTest {
                 new BigDecimal("240"),
                 "1:15",
                 "Timemore S3 - 5.0",
-                92,
+                new BigDecimal("92"),
                 "2:15",
                 "Grind finer and shorten the brew.",
                 "Finer grind improves sweetness."));
@@ -173,11 +173,11 @@ class RecipeImprovementServiceTest {
     ImprovementContext context = captor.getValue();
     assertThat(context.coffeeName()).isEqualTo("Mezcla Veracruz");
     assertThat(context.methodName()).isEqualTo("AeroPress");
-    assertThat(context.currentWaterTemp()).isEqualTo(90);
+    assertThat(context.currentWaterTemp()).isEqualByComparingTo("90");
     assertThat(context.history()).hasSize(1);
     assertThat(context.history().get(0).rating()).isEqualTo(9);
     assertThat(context.history().get(0).tasteResult()).isEqualTo("Bright");
-    assertThat(result.waterTemp()).isEqualTo(92);
+    assertThat(result.waterTemp()).isEqualByComparingTo("92");
     assertThat(result.rationale()).isEqualTo("Finer grind improves sweetness.");
     assertThat(result.aiModel()).isEqualTo("claude-haiku-4-5");
     assertThat(result.aiPromptVersion()).isEqualTo(RecipePrompts.VERSION);

@@ -7,6 +7,7 @@ import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.common.PostgresRepositoryTest;
 import com.brewdeck.brewdeck_api.method.BrewMethod;
 import com.brewdeck.brewdeck_api.recipe.Recipe;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,7 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
             .owner(owner)
             .brewedAt(Instant.parse("2026-04-20T10:00:00Z"))
             .actualGrind("Timemore S3 - 5.5")
-            .actualTemp(90)
+            .actualTemp(new BigDecimal("90"))
             .actualTime("2:30")
             .tasteResult("Balanced")
             .rating(8)
@@ -50,7 +51,7 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
             .owner(owner)
             .brewedAt(Instant.parse("2026-04-21T10:00:00Z"))
             .actualGrind("Timemore S3 - 5.5")
-            .actualTemp(91)
+            .actualTemp(new BigDecimal("91"))
             .actualTime("2:20")
             .tasteResult("More aromatic")
             .rating(9)
@@ -88,7 +89,7 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
             .owner(owner)
             .brewedAt(Instant.parse("2026-04-21T10:00:00Z"))
             .actualGrind("Timemore S3 - 5.5")
-            .actualTemp(90)
+            .actualTemp(new BigDecimal("90"))
             .actualTime("2:30")
             .tasteResult("Balanced")
             .rating(9)
@@ -101,7 +102,7 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
             .owner(owner)
             .brewedAt(Instant.parse("2026-04-21T11:00:00Z"))
             .actualGrind("Fine")
-            .actualTemp(93)
+            .actualTemp(new BigDecimal("93"))
             .actualTime("28s")
             .tasteResult("Strong body")
             .rating(8)
@@ -176,7 +177,7 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
             .recipe(recipe)
             .owner(owner)
             .brewedAt(Instant.parse("2026-05-01T10:00:00Z"))
-            .actualTemp(90)
+            .actualTemp(new BigDecimal("90"))
             .build());
 
     // 11 rated sessions with ascending brewedAt: only the newest 10 come back, newest first.
@@ -187,7 +188,7 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
               .owner(owner)
               .brewedAt(
                   java.time.LocalDateTime.of(2026, 4, i, 10, 0).toInstant(java.time.ZoneOffset.UTC))
-              .actualTemp(88 + i)
+              .actualTemp(BigDecimal.valueOf(88 + i))
               .actualTime("2:30")
               .tasteResult("taste " + i)
               .rating((i % 10) + 1)
@@ -299,7 +300,7 @@ class BrewSessionRepositoryTest extends PostgresRepositoryTest {
             .name(recipeName)
             .ratio("1:15")
             .grindSetting("Timemore S3 - 5.5")
-            .waterTemp(90)
+            .waterTemp(new BigDecimal("90"))
             .brewTime("2:30")
             .steps("Bloom 30s, stir gently, press slowly.")
             .expectedTaste("Clean and aromatic.")

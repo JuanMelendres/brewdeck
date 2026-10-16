@@ -51,6 +51,7 @@
       "grindSettingTooLong": "Grind setting must not exceed 120 characters",
       "waterTempTooLow": "Water temperature must be at least 0 degrees Celsius",
       "waterTempTooHigh": "Water temperature must not exceed 100 degrees Celsius",
+      "waterTempOneDecimal": "Water temperature allows at most one decimal",
       "brewTimeTooLong": "Brew time must not exceed 20 characters",
       "stepsTooLong": "Steps must not exceed 1000 characters",
       "expectedTasteTooLong": "Expected taste must not exceed 500 characters"
@@ -66,6 +67,7 @@
       "actualGrindTooLong": "Actual grind must not exceed 120 characters",
       "actualTempTooLow": "Actual temperature must be at least 0 degrees Celsius",
       "actualTempTooHigh": "Actual temperature must not exceed 100 degrees Celsius",
+      "actualTempOneDecimal": "Actual temperature allows at most one decimal",
       "actualTimeTooLong": "Actual time must not exceed 20 characters",
       "tasteResultTooLong": "Taste result must not exceed 1000 characters",
       "ratingTooLow": "Rating must be at least 1",

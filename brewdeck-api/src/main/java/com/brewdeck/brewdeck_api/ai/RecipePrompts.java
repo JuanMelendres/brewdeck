@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.ai;
 
+import java.math.BigDecimal;
 import java.util.Locale;
 
 /**
@@ -142,6 +143,10 @@ final class RecipePrompts {
   }
 
   private static String orDash(Object value) {
+    if (value instanceof BigDecimal number) {
+      // NUMERIC columns come back with their scale ("92.0"); the model reads "92" more naturally.
+      return number.stripTrailingZeros().toPlainString();
+    }
     return value == null || String.valueOf(value).isBlank() ? "n/a" : String.valueOf(value);
   }
 }

@@ -43,7 +43,7 @@ class RecipeImprovementControllerTest {
                 new BigDecimal("240"),
                 "1:15",
                 "Timemore S3 - 5.0",
-                92,
+                new BigDecimal("92"),
                 "2:15",
                 "Grind finer.",
                 "Finer grind improves sweetness.",
