@@ -188,7 +188,7 @@ Lowest: 5.47 (`text.secondary` on `tint`, light).
 ## 13. Security Considerations
 
 - No secrets, data, or auth involved.
-- `InitColorSchemeScript` is an inline script from MUI. TODO: if a strict Content-Security-Policy is added later, it needs a nonce or hash.
+- `InitColorSchemeScript` is an inline script from MUI. The CSP (`src/lib/security/headers.ts`, Report-Only since AUTH-05.1) allows it through `'unsafe-inline'`; moving to a strict nonce-based CSP means passing the nonce to it.
 - `localStorage` stores only `'light'` / `'dark'`; nothing sensitive.
 
 ## 14. Observability
