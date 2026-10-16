@@ -34,7 +34,7 @@ export function RegisterForm() {
   const onSubmit = handleSubmit(async (values) => {
     setFormError(null);
     try {
-      await registerAccount(values);
+      await registerAccount({ email: values.email, password: values.password });
       router.push('/dashboard');
     } catch (error) {
       setFormError(rateLimitMessage(error) ?? t('failed'));
@@ -64,6 +64,13 @@ export function RegisterForm() {
           {...register('password')}
           error={!!errors.password}
           helperText={fieldError(errors.password?.message)}
+        />
+        <TextField
+          label={tc('confirmPassword')}
+          type="password"
+          {...register('confirmPassword')}
+          error={!!errors.confirmPassword}
+          helperText={fieldError(errors.confirmPassword?.message)}
         />
         <Button type="submit" variant="contained" size="large" disabled={isSubmitting}>
           {t('submit')}
