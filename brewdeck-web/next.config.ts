@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
+import { securityHeaderRules } from "./src/lib/security/headers";
 
 /**
  * The browser only talks to this origin: /api/* is proxied to the Spring Boot API (ADR-013).
@@ -22,9 +23,16 @@ const nextConfig: NextConfig = {
     proxyTimeout: 100_000,
   },
   async headers() {
+    const security = securityHeaderRules({
+      isDev: process.env.NODE_ENV === "development",
+      apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
+    });
     return allowIndexing
-      ? []
-      : [{ source: "/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }];
+      ? security
+      : [
+          { source: "/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },
+          ...security,
+        ];
   },
   async rewrites() {
     return [{ source: "/api/:path*", destination: `${apiProxyTarget}/api/:path*` }];
