@@ -17,11 +17,11 @@ General settings live in the root `.env.example`; auth, mail, and hardening sett
 | `OLLAMA_MODEL` | `qwen3:8b` | Model Ollama serves (see the local LLM spike) |
 | `OLLAMA_TIMEOUT_SECONDS` | `90` | Read timeout per AI call; local models take 15–25 s |
 | `ANTHROPIC_API_KEY` | *(blank)* | Anthropic key; required only when `AI_PROVIDER=claude` and `AI_ENABLED=true` |
-| `BREWDECK_JWT_SECRET` | dev-only placeholder; **required in `prod`** | HMAC key for access tokens (≥ 32 bytes) |
+| `BREWDECK_JWT_SECRET` | dev-only placeholder; **required in `staging`/`prod`** | HMAC key for access tokens (≥ 32 bytes). Startup fails if the dev placeholder is used under any profile other than `local` or `test` |
 | `AUTH_TOKEN_TTL` | `PT15M` | Access-token lifetime (ISO-8601) |
 | `AUTH_REFRESH_TTL` | `P7D` | Refresh-token lifetime (ISO-8601); also the refresh cookie's `Max-Age` |
 | `AUTH_COOKIE_SECURE` | `true` (`false` in the `local` profile) | `Secure` flag of the `brewdeck_refresh` cookie ([ADR-013](../decisions/ADR-013-refresh-token-cookie.md)); only disable for plain-HTTP local development |
-| `BREWDECK_MAIL_ENABLED` | `false` | `true` sends real emails over SMTP (`SPRING_MAIL_*` below); `false` only logs the links |
+| `BREWDECK_MAIL_ENABLED` | `false` | `true` sends real emails over SMTP (`SPRING_MAIL_*` below); `false` only logs the links. **Must be `true` in `staging`/`prod`**: startup fails otherwise, because the logged links are live reset and verification tokens |
 | `BREWDECK_MAIL_FRONTEND_BASE_URL` | `http://localhost:3000` | Base URL for links in emails |
 | `BREWDECK_MAIL_FROM` | `BrewDeck <no-reply@brewdeck.local>` | Sender address (must be allowed by your provider) |
 | `SPRING_MAIL_HOST` | *(unset)* | SMTP host; **required** when `BREWDECK_MAIL_ENABLED=true` (startup fails without it) |
@@ -57,7 +57,7 @@ Emails are sent after the database transaction commits, on a background thread. 
 
 ### Hosted `staging` profile
 
-`application-staging.yml` ([ADR-017](../decisions/ADR-017-staging-hosting.md)) requires `DB_URL`, `DB_USER`, `DB_PASSWORD` and `BREWDECK_JWT_SECRET` (no defaults), turns API docs off, and resolves feature flags to their `staging` rows. It also reads:
+`application-staging.yml` ([ADR-017](../decisions/ADR-017-staging-hosting.md)) requires `DB_URL`, `DB_USER`, `DB_PASSWORD` and `BREWDECK_JWT_SECRET` (no defaults) plus `BREWDECK_MAIL_ENABLED=true` with `SPRING_MAIL_*` (checked by `StartupSafetyCheck`), turns API docs off, and resolves feature flags to their `staging` rows. It also reads:
 
 | Variable | Default | Purpose |
 | -------- | ------- | ------- |
