@@ -149,6 +149,7 @@
     "email": "Email",
     "password": "Password",
     "newPassword": "New password",
+    "confirmPassword": "Confirm password",
     "confirmNewPassword": "Confirm new password",
     "logIn": "Log in",
     "logOut": "Log out",

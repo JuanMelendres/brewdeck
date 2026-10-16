@@ -21,10 +21,16 @@ export const loginSchema = z.object({
   password: z.string().min(1, vk('passwordRequired')),
 });
 
-export const registerSchema = z.object({
-  email: z.string().min(1, vk('emailRequired')).max(255, vk('emailTooLong')).email(vk('emailInvalid')),
-  password: newPassword(vk('passwordTooShort')),
-});
+export const registerSchema = z
+  .object({
+    email: z.string().min(1, vk('emailRequired')).max(255, vk('emailTooLong')).email(vk('emailInvalid')),
+    password: newPassword(vk('passwordTooShort')),
+    confirmPassword: z.string().min(1, vk('confirmPasswordRequired')),
+  })
+  .refine((values) => values.password === values.confirmPassword, {
+    path: ['confirmPassword'],
+    message: vk('passwordsDoNotMatch'),
+  });
 
 export const profileSchema = z.object({
   displayName: z.string().max(100, vk('displayNameTooLong')),

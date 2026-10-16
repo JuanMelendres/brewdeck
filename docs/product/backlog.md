@@ -30,7 +30,7 @@ the code, not at the report.
 
 | ID | Item | Status | Evidence (2026-10-16) | Next step | Size |
 |---|---|---|---|---|---|
-| AUTH-01 | Unknown email at login sends the user to Sign Up | `needs-repro` | Backend answers the same 401 for an unknown email and for a wrong password, with a dummy BCrypt check for equal timing (`AuthService.login`). `LoginForm` shows `t('failed')` and only pushes `/dashboard` on success. `apiFetch` sends 401s to `/login`, never to `/register`. | Reproduce on staging (browser, steps, URL before and after); the password manager or browser autofill is a suspect. Separately, decide on signup enumeration: `register` returns 409 "Email is already registered". | S |
+| ~~AUTH-01~~ | ~~Sign Up asks for the password only once~~ (#253) | `implemented` | Owner clarified on 2026-10-16: the Login and Sign Up screens route correctly (no redirect bug); the real gap was the missing confirmation field. `RegisterForm` now asks for the password twice; `registerSchema` rejects a mismatch on `confirmPassword`, and only email and password reach the API. | — | S |
 | AUTH-02 | Email verification before using the account | `partial` | Tokens: random, SHA-256 hashed, 24 h TTL, single use; resend limited to 3 per hour (`RESEND_VERIFICATION_EMAIL`). There is a blocking filter (`EmailVerificationRequiredFilter`, 403 `EMAIL_NOT_VERIFIED`), a frontend gate and ADR-012. SMTP works on staging since #248. **Gap:** the `auth-require-email-verification` flag is off in `staging` and `prod`; there is no `PENDING_VERIFICATION` status (a boolean only); no bounce monitoring. | Turn the flag on in `staging` (verify Juan's account first; recovery SQL is in ADR-012). Then decide whether a status column is needed (AUTH-06 depends on it). | S–M |
 | AUTH-03 | Password policy per NIST SP 800-63B | `partial` | Minimum is 8 (`RegisterRequest`, `ChangePasswordRequest`); maximum 72 **bytes** (BCrypt limit, V17 / audit item 4); no composition rules, no forced rotation, revocation on change and reset exists. **Gaps:** minimum 15 for a single factor, a blocklist of common or breached passwords, at least 64 characters (72 bytes cuts multibyte passphrases short), show/hide toggle. | ADR: Argon2id (no 72-byte limit) with gradual rehash, vs. BCrypt plus pre-hashing; local blocklist (no plaintext to third parties); rules in backend and Zod. | M |
 | AUTH-04 | Secure email change | `missing` | `UpdateProfileRequest` has no email field, so email cannot be changed at all; nothing is exposed. | Design with re-authentication, `pending_email`, a token to the new address, a notice to the old one, and session revocation. ADR first. | L |
@@ -75,4 +75,4 @@ the code, not at the report.
 
 ## Inbox (untriaged)
 
-Empty.
+- Signup enumeration: `register` answers 409 "Email is already registered", which reveals that an account exists (split out of AUTH-01 on 2026-10-16).

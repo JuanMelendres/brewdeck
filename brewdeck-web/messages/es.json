@@ -149,6 +149,7 @@
     "email": "Correo",
     "password": "Contraseña",
     "newPassword": "Nueva contraseña",
+    "confirmPassword": "Confirma la contraseña",
     "confirmNewPassword": "Confirma la nueva contraseña",
     "logIn": "Iniciar sesión",
     "logOut": "Cerrar sesión",

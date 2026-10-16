@@ -21,10 +21,25 @@ describe('password byte limit in auth schemas', () => {
   const email = 'brewer@example.com';
 
   it('registerSchema rejects a password over 72 bytes', () => {
-    expect(registerSchema.safeParse({ email, password: 'x'.repeat(72) }).success).toBe(true);
-    const result = registerSchema.safeParse({ email, password: 'x'.repeat(73) });
+    const fits = 'x'.repeat(72);
+    expect(registerSchema.safeParse({ email, password: fits, confirmPassword: fits }).success).toBe(
+      true,
+    );
+    const long = 'x'.repeat(73);
+    const result = registerSchema.safeParse({ email, password: long, confirmPassword: long });
     expect(result.success).toBe(false);
     expect(result.error?.issues[0].message).toBe('passwordTooLong');
+  });
+
+  it('registerSchema rejects a confirmation that does not match', () => {
+    const result = registerSchema.safeParse({
+      email,
+      password: 'password1',
+      confirmPassword: 'password2',
+    });
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0].path).toEqual(['confirmPassword']);
+    expect(result.error?.issues[0].message).toBe('passwordsDoNotMatch');
   });
 
   it('changePasswordSchema rejects a new password over 72 bytes', () => {
