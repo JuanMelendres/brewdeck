@@ -15,7 +15,7 @@ Introduce a minimal role model:
 - **Storage:** `users.role VARCHAR(20) NOT NULL DEFAULT 'USER'` with `CHECK (role IN ('USER','ADMIN'))` (Flyway V15), mapped to a `Role` enum on `User`.
 - **Resolution:** `JwtAuthenticationFilter` already loads the user on every request, so it grants `ROLE_<role>` from the database. The role is **not** a JWT claim: a role change applies on the next request instead of after the token's TTL (15 min).
 - **Enforcement:** `SecurityConfig` limits `POST`/`PUT`/`DELETE /api/brew-methods/**` to `ROLE_ADMIN`. `GET` stays open to any authenticated user. A `RestAccessDeniedHandler` returns a JSON `403` `ErrorResponse`; anonymous calls still get `401`.
-- **Admin bootstrap:** no endpoint can grant a role. `AdminBootstrap` (an `ApplicationRunner`) promotes the existing account named by `BREWDECK_ADMIN_EMAIL` at startup. The operator registers the account first, then sets the variable and restarts. Because it never creates an account, nobody can pre-register the address to take the admin role.
+- **Admin bootstrap:** no endpoint can grant a role. `AdminBootstrap` (an `ApplicationRunner`) promotes the existing account named by `BREWDECK_ADMIN_EMAIL` at startup. The operator registers the account and verifies its email first, then sets the variable and restarts. Because it never creates an account and skips accounts whose email is not verified (AUTH-05.4, 2026-10-16), nobody can pre-register the address to take the admin role.
 - **Exposure:** `GET /api/auth/me` returns `role`, so the frontend can hide admin-only actions. Hiding is a convenience only; the backend enforces access.
 
 ## Consequences

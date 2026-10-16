@@ -476,7 +476,8 @@ creates a new revision.
 
 ## 8. Optional: admin account
 
-1. Register the account you want as admin.
+1. Register the account you want as admin and open the verification link from its email.
+   Unverified accounts are not promoted; the log shows a warning instead.
 2. Set it, and add the same line to `~/brewdeck-staging/api.env.yaml`:
 
    ```bash

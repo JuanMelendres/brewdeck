@@ -13,7 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * <p>Promotion runs only for an account that already exists. The operator registers the account
  * first, then sets {@code BREWDECK_ADMIN_EMAIL} and restarts — so nobody can pre-register the
- * configured address to squat the admin role. Removing the variable does not demote anyone.
+ * configured address to squat the admin role. The account must also have verified its email:
+ * otherwise anyone could register the owner's address before the owner does and be promoted on the
+ * next restart. Removing the variable does not demote anyone.
  */
 @Service
 @Slf4j
@@ -38,6 +40,12 @@ public class AdminBootstrap implements ApplicationRunner {
         .findByEmail(EmailAddresses.normalize(adminEmail))
         .ifPresentOrElse(
             user -> {
+              if (!user.isEmailVerified()) {
+                log.warn(
+                    "brewdeck.auth.admin-email names an account whose email is not verified;"
+                        + " verify it first, then restart");
+                return;
+              }
               if (user.getRole() != Role.ADMIN) {
                 user.setRole(Role.ADMIN);
                 userRepository.save(user);
