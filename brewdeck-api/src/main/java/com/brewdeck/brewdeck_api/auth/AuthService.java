@@ -124,16 +124,23 @@ public class AuthService {
     return UserResponse.fromEntity(saved);
   }
 
+  /**
+   * Changes the password and signs every session out: all refresh tokens are revoked and the token
+   * version is bumped so outstanding access tokens stop working. The caller gets a fresh session so
+   * the device that made the change stays logged in.
+   */
   @Transactional
-  public void changePassword(String email, ChangePasswordRequest request) {
+  public AuthSession changePassword(String email, ChangePasswordRequest request) {
     User user = requireByEmail(email);
     if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
       throw new InvalidCurrentPasswordException("Current password is incorrect");
     }
     user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
-    userRepository.save(user);
-    refreshTokenService.revokeAllForUser(user.getId());
-    log.info("Changed password for user id={}", user.getId());
+    user.revokeAccessTokens();
+    User saved = userRepository.save(user);
+    refreshTokenService.revokeAllForUser(saved.getId());
+    log.info("Changed password for user id={}", saved.getId());
+    return tokenResponse(saved, refreshTokenService.issue(saved));
   }
 
   // No @Transactional here on purpose: rotate() must be the outermost transaction boundary so its
@@ -149,12 +156,19 @@ public class AuthService {
     return tokenResponse(result.user(), result.rawToken());
   }
 
+  /**
+   * Revokes this device's refresh token and bumps the token version, so the access token in use
+   * stops working at once. Other devices keep their refresh tokens and silently get a new access
+   * token on their next request.
+   */
   @Transactional
   public void logout(String email, String rawRefreshToken) {
     User user = requireByEmail(email);
     if (rawRefreshToken != null && !rawRefreshToken.isBlank()) {
       refreshTokenService.revoke(rawRefreshToken, user.getId());
     }
+    user.revokeAccessTokens();
+    userRepository.save(user);
   }
 
   private User requireByEmail(String email) {

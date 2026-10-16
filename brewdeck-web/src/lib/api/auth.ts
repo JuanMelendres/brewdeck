@@ -40,11 +40,15 @@ export function updateTheme(body: { themePreference: ThemePreference }): Promise
   });
 }
 
+/**
+ * Signs out every other session and returns a fresh access token for this one (the server also
+ * rotates the refresh cookie). The access token sent with this request stops working.
+ */
 export function changePassword(body: {
   currentPassword: string;
   newPassword: string;
-}): Promise<void> {
-  return apiFetch<void>('/api/auth/change-password', {
+}): Promise<AuthResponse> {
+  return apiFetch<AuthResponse>('/api/auth/change-password', {
     method: 'POST',
     body: JSON.stringify(body),
   });
