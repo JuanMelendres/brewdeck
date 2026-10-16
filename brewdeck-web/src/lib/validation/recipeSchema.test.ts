@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { hasAtMostOneDecimal, recipeSchema } from './recipeSchema';
+import { hasAtMostOneDecimal, hasAtMostTwoDecimals, recipeSchema } from './recipeSchema';
 
 const valid = { coffeeId: '1', methodId: '2', name: 'AeroPress' };
 
@@ -81,5 +81,24 @@ describe('hasAtMostOneDecimal', () => {
     expect(hasAtMostOneDecimal(0.1 + 0.2)).toBe(true);
     expect(hasAtMostOneDecimal(92.3)).toBe(true);
     expect(hasAtMostOneDecimal(92.75)).toBe(false);
+  });
+});
+
+describe('grams scale', () => {
+  it('keeps two decimals on grams and rejects a third', () => {
+    const ok = recipeSchema.safeParse({ ...valid, coffeeGrams: '15.13', waterGrams: '250.5' });
+    expect(ok.success).toBe(true);
+
+    const tooPrecise = recipeSchema.safeParse({ ...valid, coffeeGrams: '15.126' });
+    expect(tooPrecise.success).toBe(false);
+    if (!tooPrecise.success) {
+      expect(tooPrecise.error.issues[0].message).toBe('recipe.coffeeGramsTwoDecimals');
+    }
+  });
+
+  it('is not fooled by float noise', () => {
+    expect(hasAtMostTwoDecimals(0.1 + 0.2)).toBe(true);
+    expect(hasAtMostTwoDecimals(1.005)).toBe(false);
+    expect(hasAtMostTwoDecimals(9999.99)).toBe(true);
   });
 });

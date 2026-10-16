@@ -175,4 +175,24 @@ class SuggestionGuardrailsTest {
 
     assertThat(steps).isEqualTo("Heat water to 96°C, then pour.");
   }
+
+  @Test
+  void gramsWithMoreThanTwoDecimals_areRoundedSoTheSuggestionSaves() {
+    SuggestedRecipe precise =
+        new SuggestedRecipe(
+            new BigDecimal("18.125"),
+            new BigDecimal("45.3125"),
+            "1:2.5",
+            "fine",
+            BigDecimal.valueOf(92),
+            "0:30",
+            "Pull.",
+            "Sweet.");
+
+    SuggestedRecipe fixed = guardrails.apply("Espresso", precise);
+
+    assertThat(fixed.coffeeGrams()).isEqualByComparingTo("18.13");
+    assertThat(fixed.coffeeGrams().scale()).isLessThanOrEqualTo(2);
+    assertThat(fixed.waterGrams().scale()).isLessThanOrEqualTo(2);
+  }
 }

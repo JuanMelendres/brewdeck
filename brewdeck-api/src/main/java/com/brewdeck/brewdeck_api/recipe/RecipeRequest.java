@@ -15,12 +15,17 @@ public record RecipeRequest(
     @NotBlank(message = "{validation.recipeName.required}")
         @Size(max = 120, message = "{validation.recipeName.tooLong}")
         String name,
-    // DECIMAL(6,2) columns: at most 9999.99.
+    // DECIMAL(6,2) columns: at most 9999.99 and two decimals. A third decimal is rejected instead
+    // of
+    // being rounded by the column (DATA-01 G2). @Digits only guards the scale here: its integer
+    // limit is loose on purpose, so an oversized value reports @DecimalMax alone.
     @Positive(message = "{validation.coffeeGrams.positive}")
         @DecimalMax(value = "9999.99", message = "{validation.coffeeGrams.max}")
+        @Digits(integer = 10, fraction = 2, message = "{validation.coffeeGrams.scale}")
         BigDecimal coffeeGrams,
     @Positive(message = "{validation.waterGrams.positive}")
         @DecimalMax(value = "9999.99", message = "{validation.waterGrams.max}")
+        @Digits(integer = 10, fraction = 2, message = "{validation.waterGrams.scale}")
         BigDecimal waterGrams,
     @Size(max = 20, message = "{validation.ratio.tooLong}") String ratio,
     @Size(max = 120, message = "{validation.grindSetting.tooLong}") String grindSetting,
