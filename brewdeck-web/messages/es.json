@@ -470,14 +470,30 @@
       "needsRecipe": "Cada preparación sigue una receta. Crea la receta primero; después se abre el formulario de la preparación.",
       "addRecipeFirst": "Agregar una receta",
       "needsCoffee": "Las preparaciones siguen una receta, y las recetas parten de un café. Agrega tu café primero; después siguen la receta y la preparación.",
-      "addCoffeeFirst": "Agregar un café"
+      "addCoffeeFirst": "Agregar un café",
+      "viewSession": "Abrir la preparación del {date}"
     },
     "form": {
       "title": "Agregar preparación",
       "sectionBrew": "Preparación",
       "sectionResult": "Resultado",
       "selectRecipe": "Elige una receta",
-      "logged": "Preparación registrada"
+      "logged": "Preparación registrada",
+      "editTitle": "Editar preparación",
+      "updated": "Preparación actualizada"
+    },
+    "delete": {
+      "title": "Eliminar preparación",
+      "confirm": "¿Eliminar la preparación de {recipe} del {date}? Esta acción no se puede deshacer.",
+      "deleted": "Preparación eliminada"
+    },
+    "detail": {
+      "back": "← Volver a preparaciones",
+      "loadFailed": "No pudimos cargar esta preparación.",
+      "brewedOn": "Preparada el {date}",
+      "notRated": "Sin calificar",
+      "edit": "Editar",
+      "delete": "Eliminar"
     }
   },
   "meta": {

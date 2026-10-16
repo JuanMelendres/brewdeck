@@ -6,6 +6,8 @@ import TimerOutlinedIcon from '@mui/icons-material/TimerOutlined';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import TablePagination from '@mui/material/TablePagination';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import Typography from '@mui/material/Typography';
 import { useState, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
@@ -19,6 +21,7 @@ import { CoffeeFormDialog } from '@/components/coffees/CoffeeFormDialog';
 import { RecipeFormDialog } from '@/components/recipes/RecipeFormDialog';
 import { BrewSessionFilters } from './BrewSessionFilters';
 import { BrewSessionsTable } from './BrewSessionsTable';
+import { BrewSessionCards } from './BrewSessionCards';
 import { BrewSessionFormDialog } from './BrewSessionFormDialog';
 import type { BrewSessionFilters as Filters } from '@/lib/api/types';
 
@@ -42,6 +45,9 @@ export function BrewSessionsView() {
   };
 
   const [createOpen, setCreateOpen] = useState(false);
+  // Cards on phones; the six-column table would need a sideways scroll there.
+  const theme = useTheme();
+  const isPhone = useMediaQuery(theme.breakpoints.down('sm'));
 
   // A brew session needs a recipe, and a recipe needs a coffee. Whatever is missing is created
   // first, and each form opens the next one with the new item selected.
@@ -101,7 +107,11 @@ export function BrewSessionsView() {
   } else {
     body = (
       <>
-        <BrewSessionsTable sessions={data.content} />
+        {isPhone ? (
+          <BrewSessionCards sessions={data.content} />
+        ) : (
+          <BrewSessionsTable sessions={data.content} />
+        )}
         <TablePagination
           component="div"
           count={data.totalElements}

@@ -470,14 +470,30 @@
       "needsRecipe": "Each brew session follows a recipe. Create the recipe first; the brew form opens right after.",
       "addRecipeFirst": "Add a recipe",
       "needsCoffee": "Brew sessions follow a recipe, and recipes start from a coffee. Add your coffee first; the recipe and brew forms follow.",
-      "addCoffeeFirst": "Add a coffee"
+      "addCoffeeFirst": "Add a coffee",
+      "viewSession": "Open the brew session from {date}"
     },
     "form": {
       "title": "Add brew session",
       "sectionBrew": "Brew",
       "sectionResult": "Result",
       "selectRecipe": "Select a recipe",
-      "logged": "Brew session logged"
+      "logged": "Brew session logged",
+      "editTitle": "Edit brew session",
+      "updated": "Brew session updated"
+    },
+    "delete": {
+      "title": "Delete brew session",
+      "confirm": "Delete the {recipe} brew from {date}? This cannot be undone.",
+      "deleted": "Brew session deleted"
+    },
+    "detail": {
+      "back": "← Back to brew sessions",
+      "loadFailed": "Could not load this brew session.",
+      "brewedOn": "Brewed {date}",
+      "notRated": "Not rated",
+      "edit": "Edit",
+      "delete": "Delete"
     }
   },
   "meta": {
