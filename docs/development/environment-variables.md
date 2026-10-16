@@ -82,6 +82,7 @@ The `mailpit` service (SMTP on `1025`, web UI on `8025`) catches local emails.
 | -------- | ------- | ------- |
 | `NEXT_PUBLIC_API_BASE_URL` | *(empty)* | Leave empty: the browser calls its own origin and Next proxies `/api/*` ([ADR-013](../decisions/ADR-013-refresh-token-cookie.md)). Another origin breaks the `SameSite=Strict` refresh cookie |
 | `API_PROXY_TARGET` | `http://localhost:8080` | Where the Next **server** proxies `/api/*` (server-side only) |
+| `ALLOW_INDEXING` | *(unset)* | `true` lets search engines index the site. Otherwise `robots.txt` disallows everything and every response carries `noindex, nofollow` (meta tag and `X-Robots-Tag`). Leave unset outside a public production site |
 
 ## Rules
 
