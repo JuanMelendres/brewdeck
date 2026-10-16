@@ -63,7 +63,7 @@ Small PRs, each with tests:
    - Carry the type through the AI path: `SuggestedRecipe`, `BrewHistoryEntry`, the prompts, both
      adapters, and the guardrails' temperature clamp.
    - Mirror in Zod: at most one decimal.
-2. **Grams scale (G2). Done on branch `fix/api-grams-scale`; the AI guardrails also round model grams to two decimals so an accepted suggestion still saves.**
+2. **Grams scale (G2). Done in #268; the AI guardrails also round model grams to two decimals so an accepted suggestion still saves.**
    - Add `@Digits(integer = 4, fraction = 2)` on both gram fields, so `15.126` becomes a `400`
      field error and the response always matches the stored value.
    - Mirror in Zod: at most two decimals.
