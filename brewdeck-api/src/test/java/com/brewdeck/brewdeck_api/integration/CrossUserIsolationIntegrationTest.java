@@ -51,13 +51,18 @@ class CrossUserIsolationIntegrationTest extends PostgresIntegrationTest {
   @Autowired private BrewSessionRepository brewSessionRepository;
   @Autowired private BrewMethodRepository brewMethodRepository;
 
+  // More than any ranking can return (limits cap at 20) and far more than the mock user has, so a
+  // leaked foreign row would sit at the top of most-used and most-brewed.
+  private static final int HEAVY_USE = 25;
+
+  private User otherUser;
   private Long foreignCoffeeId;
   private Long foreignRecipeId;
   private Long foreignOnlyMethodId;
 
   @BeforeEach
   void seedForeignOwnedData() {
-    User otherUser =
+    otherUser =
         userRepository
             .findByEmail(OTHER_USER_EMAIL)
             .orElseGet(
@@ -190,5 +195,89 @@ class CrossUserIsolationIntegrationTest extends PostgresIntegrationTest {
         .andExpect(jsonPath("$.totalCoffees", equalTo((int) expectedCoffees)))
         .andExpect(jsonPath("$.totalRecipes", equalTo((int) expectedRecipes)))
         .andExpect(jsonPath("$.totalBrewSessions", equalTo((int) expectedSessions)));
+  }
+
+  @Test
+  void getRecipesByCoffee_shouldBeEmpty_forForeignCoffee() throws Exception {
+    mockMvc
+        .perform(
+            get("/api/recipes/coffee/{coffeeId}", foreignCoffeeId)
+                .param("page", "0")
+                .param("size", "10")
+                .param("sort", "id,asc"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content", hasSize(0)))
+        .andExpect(jsonPath("$.totalElements").value(0));
+  }
+
+  @Test
+  void getRecipesByMethod_shouldNotListForeignRecipe() throws Exception {
+    // The method is shared-visible, but its only recipe belongs to the other user.
+    mockMvc
+        .perform(
+            get("/api/recipes/method/{methodId}", foreignOnlyMethodId)
+                .param("page", "0")
+                .param("size", "10")
+                .param("sort", "id,asc"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content", hasSize(0)))
+        .andExpect(jsonPath("$.totalElements").value(0));
+  }
+
+  @Test
+  void getMostUsedCoffees_shouldNotIncludeForeignCoffee() throws Exception {
+    Recipe template = recipeRepository.findById(foreignRecipeId).orElseThrow();
+    for (int i = 0; i < HEAVY_USE; i++) {
+      recipeRepository.save(
+          Recipe.builder()
+              .coffee(template.getCoffee())
+              .method(template.getMethod())
+              .name("Foreign Recipe " + i)
+              .favorite(false)
+              .owner(otherUser)
+              .build());
+    }
+
+    String response =
+        mockMvc
+            .perform(get("/api/coffees/most-used").param("limit", "20"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    JsonNode ranking = objectMapper.readTree(response);
+    assertThat(ranking.isArray()).isTrue();
+    for (JsonNode coffee : ranking) {
+      assertThat(coffee.get("coffeeId").asLong()).isNotEqualTo(foreignCoffeeId);
+    }
+  }
+
+  @Test
+  void getMostBrewedRecipes_shouldNotIncludeForeignRecipe() throws Exception {
+    Recipe foreignRecipe = recipeRepository.findById(foreignRecipeId).orElseThrow();
+    for (int i = 0; i < HEAVY_USE; i++) {
+      brewSessionRepository.save(
+          BrewSession.builder()
+              .recipe(foreignRecipe)
+              .owner(otherUser)
+              .brewedAt(Instant.now())
+              .rating(8)
+              .build());
+    }
+
+    String response =
+        mockMvc
+            .perform(get("/api/recipes/most-brewed").param("limit", "20"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    JsonNode ranking = objectMapper.readTree(response);
+    assertThat(ranking.isArray()).isTrue();
+    for (JsonNode recipe : ranking) {
+      assertThat(recipe.get("recipeId").asLong()).isNotEqualTo(foreignRecipeId);
+    }
   }
 }
