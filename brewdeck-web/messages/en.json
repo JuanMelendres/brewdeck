@@ -320,7 +320,9 @@
       "noMatches": "No recipes match these filters.",
       "empty": "No recipes yet. Save how you brew a coffee to repeat your best cups.",
       "addFirst": "Add your first recipe",
-      "favoritesOnly": "Favorites only"
+      "favoritesOnly": "Favorites only",
+      "needsCoffee": "Recipes start from a coffee. Add the coffee you brew first; its recipe form opens right after.",
+      "addCoffeeFirst": "Add a coffee"
     },
     "favorites": {
       "title": "Favorite Recipes",
@@ -464,7 +466,11 @@
       "time": "Time",
       "taste": "Taste",
       "showMore": "Show more",
-      "showLess": "Show less"
+      "showLess": "Show less",
+      "needsRecipe": "Each brew session follows a recipe. Create the recipe first; the brew form opens right after.",
+      "addRecipeFirst": "Add a recipe",
+      "needsCoffee": "Brew sessions follow a recipe, and recipes start from a coffee. Add your coffee first; the recipe and brew forms follow.",
+      "addCoffeeFirst": "Add a coffee"
     },
     "form": {
       "title": "Add brew session",

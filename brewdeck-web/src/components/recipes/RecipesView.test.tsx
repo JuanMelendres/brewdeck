@@ -16,9 +16,19 @@ vi.mock('@/hooks/useRecipeMutations', () => ({
   useDeleteRecipe: () => ({ mutate: vi.fn(), isPending: false }),
   useToggleFavorite: () => ({ mutate: vi.fn(), isPending: false }),
 }));
+// Mutable so a test can start with no coffees at all.
+const options = vi.hoisted(() => ({ coffees: [{ id: 1, name: 'Mezcla' }] }));
 vi.mock('@/hooks/useResourceOptions', () => ({
-  useCoffeeOptions: () => ({ data: [], isLoading: false }),
+  useCoffeeOptions: () => ({ data: options.coffees, isLoading: false }),
   useMethodOptions: () => ({ data: [], isLoading: false }),
+}));
+// The real coffee form needs a query client; this stand-in "creates" coffee 7 on save.
+vi.mock('@/components/coffees/CoffeeFormDialog', () => ({
+  CoffeeFormDialog: ({ onCreated }: { onCreated?: (coffee: { id: number }) => void }) => (
+    <button type="button" onClick={() => onCreated?.({ id: 7 })}>
+      Save new coffee
+    </button>
+  ),
 }));
 vi.mock('@/hooks/useSuggestRecipe', () => ({
   useSuggestRecipe: () => ({ mutate: vi.fn(), isPending: false }),
@@ -41,7 +51,10 @@ const recipe: Recipe = {
   favorite: true, createdAt: '2026-01-01T00:00:00', updatedAt: null, shareToken: null,
 };
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.restoreAllMocks();
+  options.coffees = [{ id: 1, name: 'Mezcla' }];
+});
 
 describe('RecipesView', () => {
   it('shows a spinner while loading', () => {
@@ -89,5 +102,32 @@ describe('RecipesView', () => {
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText('Add recipe')).toBeInTheDocument();
+  });
+
+  describe('without any coffee yet', () => {
+    it('asks for a coffee first and disables Add Recipe', () => {
+      options.coffees = [];
+      mockHook({ isLoading: false, isError: false, data: page([], 0) });
+      renderWithTheme(<RecipesView />);
+
+      expect(screen.getByText(/recipes start from a coffee/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /^add recipe$/i })).toBeDisabled();
+      expect(screen.queryByRole('button', { name: /add your first recipe/i })).not.toBeInTheDocument();
+    });
+
+    it('opens the recipe form with the new coffee selected once the coffee is saved', () => {
+      options.coffees = [];
+      mockHook({ isLoading: false, isError: false, data: page([], 0) });
+      const { rerender } = renderWithTheme(<RecipesView />);
+
+      fireEvent.click(screen.getByRole('button', { name: /add a coffee/i }));
+      // The saved coffee shows up in the options once the coffee list refetches.
+      options.coffees = [{ id: 7, name: 'Nuevo' }];
+      fireEvent.click(screen.getByRole('button', { name: /save new coffee/i }));
+      rerender(<RecipesView />);
+
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByLabelText(/coffee/i, { selector: 'select' })).toHaveValue('7');
+    });
   });
 });

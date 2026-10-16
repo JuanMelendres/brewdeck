@@ -49,9 +49,9 @@ const NOTE_FIELDS: TextFieldSpec[] = [
   { name: 'expectedTaste', multiline: true },
 ];
 
-function toDefaults(recipe?: Recipe): RecipeFormInput {
+function toDefaults(recipe?: Recipe, initialCoffeeId?: number): RecipeFormInput {
   return {
-    coffeeId: recipe?.coffeeId ?? '',
+    coffeeId: recipe?.coffeeId ?? initialCoffeeId ?? '',
     methodId: recipe?.methodId ?? '',
     name: recipe?.name ?? '',
     coffeeGrams: recipe?.coffeeGrams ?? '',
@@ -71,11 +71,17 @@ export function RecipeFormDialog({
   recipe,
   onClose,
   initialRationale,
+  initialCoffeeId,
+  onCreated,
 }: {
   open: boolean;
   recipe?: Recipe;
   onClose: () => void;
   initialRationale?: string | null;
+  /** Preselects the coffee of a new recipe, e.g. one the user has just created. */
+  initialCoffeeId?: number;
+  /** Called with the new recipe after a create (not an edit), once the dialog has closed. */
+  onCreated?: (recipe: Recipe) => void;
 }) {
   const t = useTranslations('recipes.form');
   const tf = useTranslations('recipes.fields');
@@ -99,7 +105,7 @@ export function RecipeFormDialog({
     formState: { errors },
   } = useForm<RecipeFormInput, unknown, RecipeFormValues>({
     resolver: zodResolver(recipeSchema),
-    values: toDefaults(recipe),
+    values: toDefaults(recipe, initialCoffeeId),
   });
 
   const pending = create.isPending || update.isPending;
@@ -147,9 +153,10 @@ export function RecipeFormDialog({
   const onSubmit = (data: RecipeFormValues) => {
     setServerError(null);
     const mutateOptions = {
-      onSuccess: () => {
+      onSuccess: (saved: Recipe) => {
         notify(isEdit ? t('updated') : t('added'));
         onClose();
+        if (!isEdit) onCreated?.(saved);
       },
       onError: (error: unknown) => {
         if (error instanceof ApiError && error.validationErrors) {

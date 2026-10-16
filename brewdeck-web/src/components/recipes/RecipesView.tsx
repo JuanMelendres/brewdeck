@@ -1,5 +1,6 @@
 'use client';
 
+import CoffeeOutlinedIcon from '@mui/icons-material/CoffeeOutlined';
 import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -9,9 +10,11 @@ import { useState, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRecipes } from '@/hooks/useRecipes';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useCoffeeOptions } from '@/hooks/useResourceOptions';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { CardGridSkeleton } from '@/components/ui/CardGrid';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { CoffeeFormDialog } from '@/components/coffees/CoffeeFormDialog';
 import { RecipeFilters } from './RecipeFilters';
 import { RecipeCards } from './RecipeCards';
 import { RecipeFormDialog } from './RecipeFormDialog';
@@ -42,6 +45,18 @@ export function RecipesView() {
   const [editing, setEditing] = useState<Recipe | null>(null);
   const [deleting, setDeleting] = useState<Recipe | null>(null);
 
+  // A recipe needs a coffee. With none yet, the coffee form comes first and the recipe form opens
+  // right after with that coffee selected.
+  const coffeeOptions = useCoffeeOptions();
+  const needsCoffee = coffeeOptions.data?.length === 0;
+  const [coffeeOpen, setCoffeeOpen] = useState(false);
+  const [newCoffeeId, setNewCoffeeId] = useState<number | undefined>(undefined);
+
+  const openRecipeForm = (coffeeId?: number) => {
+    setNewCoffeeId(coffeeId);
+    setCreateOpen(true);
+  };
+
   let body: ReactNode;
   if (isLoading && !data) {
     body = <CardGridSkeleton />;
@@ -49,15 +64,25 @@ export function RecipesView() {
     body = <ErrorState message={t('loadFailed')} onRetry={() => refetch()} />;
   } else if (data.content.length === 0) {
     const filtered = Object.values(debouncedFilters).some((value) => value !== undefined && value !== '' && value !== false);
-    body = filtered ? (
-      <EmptyState message={t('noMatches')} />
-    ) : (
-      <EmptyState
-        icon={<MenuBookOutlinedIcon />}
-        message={t('empty')}
-        action={{ label: t('addFirst'), onClick: () => setCreateOpen(true) }}
-      />
-    );
+    if (filtered) {
+      body = <EmptyState message={t('noMatches')} />;
+    } else if (needsCoffee) {
+      body = (
+        <EmptyState
+          icon={<CoffeeOutlinedIcon />}
+          message={t('needsCoffee')}
+          action={{ label: t('addCoffeeFirst'), onClick: () => setCoffeeOpen(true) }}
+        />
+      );
+    } else {
+      body = (
+        <EmptyState
+          icon={<MenuBookOutlinedIcon />}
+          message={t('empty')}
+          action={{ label: t('addFirst'), onClick: () => openRecipeForm() }}
+        />
+      );
+    }
   } else {
     body = (
       <>
@@ -90,14 +115,23 @@ export function RecipesView() {
         <Typography variant="h4" component="h1">
           {t('title')}
         </Typography>
-        <Button variant="contained" onClick={() => setCreateOpen(true)}>
+        <Button variant="contained" disabled={needsCoffee} onClick={() => openRecipeForm()}>
           {t('add')}
         </Button>
       </Box>
       <RecipeFilters value={filters} onChange={handleFiltersChange} />
       {body}
 
-      {createOpen ? <RecipeFormDialog open onClose={() => setCreateOpen(false)} /> : null}
+      {coffeeOpen ? (
+        <CoffeeFormDialog
+          open
+          onClose={() => setCoffeeOpen(false)}
+          onCreated={(coffee) => openRecipeForm(coffee.id)}
+        />
+      ) : null}
+      {createOpen ? (
+        <RecipeFormDialog open initialCoffeeId={newCoffeeId} onClose={() => setCreateOpen(false)} />
+      ) : null}
       {editing ? <RecipeFormDialog open recipe={editing} onClose={() => setEditing(null)} /> : null}
       {deleting ? <DeleteRecipeDialog open recipe={deleting} onClose={() => setDeleting(null)} /> : null}
     </>
