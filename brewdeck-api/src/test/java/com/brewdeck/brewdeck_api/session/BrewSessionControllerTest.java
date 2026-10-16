@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.brewdeck.brewdeck_api.common.pagination.PageResponse;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -164,7 +165,8 @@ class BrewSessionControllerTest {
   @Test
   void create_shouldReturnValidationErrorBody_whenRecipeIdIsMissing() throws Exception {
     BrewSessionRequest request =
-        new BrewSessionRequest(null, "Timemore S3 - 5.5", 90, "2:30", "Balanced", 9, "Repeat.");
+        new BrewSessionRequest(
+            null, "Timemore S3 - 5.5", new BigDecimal("90"), "2:30", "Balanced", 9, "Repeat.");
 
     mockMvc
         .perform(
@@ -181,7 +183,8 @@ class BrewSessionControllerTest {
   @Test
   void create_shouldReturnBadRequest_whenRatingIsTooHigh() throws Exception {
     BrewSessionRequest request =
-        new BrewSessionRequest(1L, "Timemore S3 - 5.5", 90, "2:30", "Balanced", 11, "Repeat.");
+        new BrewSessionRequest(
+            1L, "Timemore S3 - 5.5", new BigDecimal("90"), "2:30", "Balanced", 11, "Repeat.");
 
     mockMvc
         .perform(
@@ -225,7 +228,8 @@ class BrewSessionControllerTest {
   @Test
   void create_shouldReturnBadRequest_whenRatingIsTooLow() throws Exception {
     BrewSessionRequest request =
-        new BrewSessionRequest(1L, "Timemore S3 - 5.5", 90, "2:30", "Balanced", 0, "Repeat.");
+        new BrewSessionRequest(
+            1L, "Timemore S3 - 5.5", new BigDecimal("90"), "2:30", "Balanced", 0, "Repeat.");
 
     mockMvc
         .perform(
@@ -242,7 +246,8 @@ class BrewSessionControllerTest {
   @Test
   void create_shouldReturnBadRequest_whenActualTempIsTooLow() throws Exception {
     BrewSessionRequest request =
-        new BrewSessionRequest(1L, "Timemore S3 - 5.5", -1, "2:30", "Balanced", 9, "Repeat.");
+        new BrewSessionRequest(
+            1L, "Timemore S3 - 5.5", new BigDecimal("-1"), "2:30", "Balanced", 9, "Repeat.");
 
     mockMvc
         .perform(
@@ -258,7 +263,8 @@ class BrewSessionControllerTest {
   @Test
   void create_shouldReturnBadRequest_whenActualTempIsTooHigh() throws Exception {
     BrewSessionRequest request =
-        new BrewSessionRequest(1L, "Timemore S3 - 5.5", 101, "2:30", "Balanced", 9, "Repeat.");
+        new BrewSessionRequest(
+            1L, "Timemore S3 - 5.5", new BigDecimal("101"), "2:30", "Balanced", 9, "Repeat.");
 
     mockMvc
         .perform(
@@ -274,7 +280,8 @@ class BrewSessionControllerTest {
   @Test
   void create_shouldReturnBadRequest_whenActualGrindExceedsMaxLength() throws Exception {
     BrewSessionRequest request =
-        new BrewSessionRequest(1L, "A".repeat(121), 90, "2:30", "Balanced", 9, "Repeat.");
+        new BrewSessionRequest(
+            1L, "A".repeat(121), new BigDecimal("90"), "2:30", "Balanced", 9, "Repeat.");
 
     mockMvc
         .perform(
@@ -291,7 +298,13 @@ class BrewSessionControllerTest {
   void create_shouldReturnBadRequest_whenActualTimeExceedsMaxLength() throws Exception {
     BrewSessionRequest request =
         new BrewSessionRequest(
-            1L, "Timemore S3 - 5.5", 90, "A".repeat(21), "Balanced", 9, "Repeat.");
+            1L,
+            "Timemore S3 - 5.5",
+            new BigDecimal("90"),
+            "A".repeat(21),
+            "Balanced",
+            9,
+            "Repeat.");
 
     mockMvc
         .perform(
@@ -310,7 +323,8 @@ class BrewSessionControllerTest {
   @Test
   void create_shouldReturnBadRequest_whenTasteResultExceedsMaxLength() throws Exception {
     BrewSessionRequest request =
-        new BrewSessionRequest(1L, "Timemore S3 - 5.5", 90, "2:30", "A".repeat(1001), 9, "Repeat.");
+        new BrewSessionRequest(
+            1L, "Timemore S3 - 5.5", new BigDecimal("90"), "2:30", "A".repeat(1001), 9, "Repeat.");
 
     mockMvc
         .perform(
@@ -327,7 +341,7 @@ class BrewSessionControllerTest {
   void create_shouldReturnBadRequest_whenAdjustmentNotesExceedsMaxLength() throws Exception {
     BrewSessionRequest request =
         new BrewSessionRequest(
-            1L, "Timemore S3 - 5.5", 90, "2:30", "Balanced", 9, "A".repeat(1001));
+            1L, "Timemore S3 - 5.5", new BigDecimal("90"), "2:30", "Balanced", 9, "A".repeat(1001));
 
     mockMvc
         .perform(
@@ -343,7 +357,8 @@ class BrewSessionControllerTest {
   @Test
   void update_shouldReturnBadRequest_whenRatingIsTooHigh() throws Exception {
     BrewSessionRequest request =
-        new BrewSessionRequest(1L, "Timemore S3 - 5.5", 90, "2:30", "Balanced", 11, "Repeat.");
+        new BrewSessionRequest(
+            1L, "Timemore S3 - 5.5", new BigDecimal("90"), "2:30", "Balanced", 11, "Repeat.");
 
     mockMvc
         .perform(
@@ -361,7 +376,7 @@ class BrewSessionControllerTest {
     return new BrewSessionRequest(
         1L,
         "Timemore S3 - 5.5",
-        90,
+        new BigDecimal("90"),
         "2:30",
         "Balanced, clean and aromatic.",
         9,
@@ -375,7 +390,7 @@ class BrewSessionControllerTest {
         "Mezcla Veracruz AeroPress",
         Instant.now(),
         "Timemore S3 - 5.5",
-        90,
+        new BigDecimal("90"),
         "2:30",
         "Balanced, clean and aromatic.",
         9,

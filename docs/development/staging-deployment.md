@@ -527,6 +527,11 @@ Staging follows `master`.
 - **Web:** Vercel **Deployments → … → Instant Rollback** on an earlier production deployment.
 - **Database:** Flyway only moves forward. If a release needs the old schema back, use Neon
   **Restore** (6-hour window on Free) to a point before the deploy, then roll back the API.
+- **Not backward compatible: V31** (temperatures `INTEGER` → `NUMERIC(4,1)`, DATA-01). API
+  revisions built before V31 fail Hibernate's schema validation against the migrated database, so
+  sending traffic back to one of them does not work. Fix forward. Going back means Neon
+  **Restore** to before the deploy **and** an older revision, which also loses any decimal
+  temperatures saved since. Deploy the API and the web together for this release.
 
 ## 10. Watching cost and usage
 
@@ -617,7 +622,9 @@ flowchart LR
 - **Tests are not repeated:** the release PR into `master` already ran `api-ci` (tests, Spotless,
   PMD, JaCoCo). Merge only when those checks are green.
 - **Migrations:** Flyway runs when the candidate starts, while the old revision is still serving.
-  Keep migrations additive (they already are), so both revisions work on the new schema.
+  Keep migrations additive, so both revisions work on the new schema. V31 is the one exception
+  (see **Rollback** in step 9). Any future type change in production needs expand/contract: add the
+  new column, write both, backfill, switch reads, then drop the old one.
 - **Manual run:** **Actions → Deploy API to staging → Run workflow** on `master`. Useful after
   changing env vars or secrets, or to redeploy the same commit. The job refuses other branches.
 

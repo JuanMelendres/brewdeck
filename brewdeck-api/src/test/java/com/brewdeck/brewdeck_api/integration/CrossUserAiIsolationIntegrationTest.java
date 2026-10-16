@@ -207,7 +207,7 @@ class CrossUserAiIsolationIntegrationTest extends PostgresIntegrationTest {
         new BigDecimal("250.00"),
         "1:16.7",
         "Medium",
-        93,
+        new BigDecimal("93"),
         "3:00",
         "Bloom 30 s, then pour slowly.",
         "Balanced starting point.");

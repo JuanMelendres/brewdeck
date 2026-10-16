@@ -1,8 +1,8 @@
 package com.brewdeck.brewdeck_api.recipe;
 
 import jakarta.validation.constraints.DecimalMax;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -24,9 +24,10 @@ public record RecipeRequest(
         BigDecimal waterGrams,
     @Size(max = 20, message = "{validation.ratio.tooLong}") String ratio,
     @Size(max = 120, message = "{validation.grindSetting.tooLong}") String grindSetting,
-    @Min(value = 0, message = "{validation.waterTemp.min}")
-        @Max(value = 100, message = "{validation.waterTemp.max}")
-        Integer waterTemp,
+    @DecimalMin(value = "0", message = "{validation.waterTemp.min}")
+        @DecimalMax(value = "100", message = "{validation.waterTemp.max}")
+        @Digits(integer = 3, fraction = 1, message = "{validation.waterTemp.scale}")
+        BigDecimal waterTemp,
     @Size(max = 20, message = "{validation.brewTime.tooLong}") String brewTime,
     @Size(max = 1000, message = "{validation.steps.tooLong}") String steps,
     @Size(max = 500, message = "{validation.expectedTaste.tooLong}") String expectedTaste,
@@ -44,7 +45,7 @@ public record RecipeRequest(
       BigDecimal waterGrams,
       String ratio,
       String grindSetting,
-      Integer waterTemp,
+      BigDecimal waterTemp,
       String brewTime,
       String steps,
       String expectedTaste,

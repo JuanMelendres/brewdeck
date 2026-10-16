@@ -2,6 +2,8 @@ package com.brewdeck.brewdeck_api.ai;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.Locale;
 import org.junit.jupiter.api.Test;
 
@@ -37,5 +39,33 @@ class RecipePromptsTest {
   void anUnknownUserMethod_getsNoHint() {
     assertThat(RecipePrompts.suggestMessage(context("My grandma's pot")))
         .doesNotContain("Usual for");
+  }
+
+  @Test
+  void improveMessage_printsTemperaturesWithoutTheColumnScale() {
+    ImprovementContext context =
+        new ImprovementContext(
+            "Coffee",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            "V60",
+            null,
+            new BigDecimal("15.00"),
+            new BigDecimal("250.00"),
+            "1:16.7",
+            "Medium",
+            new BigDecimal("92.0"),
+            "3:00",
+            null,
+            List.of(new BrewHistoryEntry(8, null, new BigDecimal("93.5"), null, null, null)));
+
+    String message = RecipePrompts.improveMessage(context);
+
+    assertThat(message).contains("Water temp: 92\n").contains("93.5").doesNotContain("92.0");
   }
 }

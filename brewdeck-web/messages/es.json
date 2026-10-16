@@ -51,6 +51,7 @@
       "grindSettingTooLong": "La molienda no debe pasar de 120 caracteres",
       "waterTempTooLow": "La temperatura del agua debe ser de al menos 0 grados Celsius",
       "waterTempTooHigh": "La temperatura del agua no debe pasar de 100 grados Celsius",
+      "waterTempOneDecimal": "La temperatura del agua admite como máximo un decimal",
       "brewTimeTooLong": "El tiempo de preparación no debe pasar de 20 caracteres",
       "stepsTooLong": "Los pasos no deben pasar de 1000 caracteres",
       "expectedTasteTooLong": "El sabor esperado no debe pasar de 500 caracteres"
@@ -66,6 +67,7 @@
       "actualGrindTooLong": "La molienda real no debe pasar de 120 caracteres",
       "actualTempTooLow": "La temperatura real debe ser de al menos 0 grados Celsius",
       "actualTempTooHigh": "La temperatura real no debe pasar de 100 grados Celsius",
+      "actualTempOneDecimal": "La temperatura real admite como máximo un decimal",
       "actualTimeTooLong": "El tiempo real no debe pasar de 20 caracteres",
       "tasteResultTooLong": "El sabor en taza no debe pasar de 1000 caracteres",
       "ratingTooLow": "La calificación debe ser de al menos 1",

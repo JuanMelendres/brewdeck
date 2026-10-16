@@ -10,7 +10,7 @@ public record PublicRecipeResponse(
     BigDecimal waterGrams,
     String ratio,
     String grindSetting,
-    Integer waterTemp,
+    BigDecimal waterTemp,
     String brewTime,
     String steps,
     String expectedTaste) {

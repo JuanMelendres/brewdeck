@@ -95,7 +95,8 @@ public class ClaudeRecipeSuggestionAdapter implements RecipeSuggestionPort {
         payload.waterGrams(),
         payload.ratio(),
         payload.grindSetting(),
-        payload.waterTemp(),
+        // Models answer whole degrees (the schema says integer); the recipe keeps one decimal.
+        payload.waterTemp() == null ? null : BigDecimal.valueOf(payload.waterTemp()),
         payload.brewTime(),
         payload.steps(),
         payload.rationale());
