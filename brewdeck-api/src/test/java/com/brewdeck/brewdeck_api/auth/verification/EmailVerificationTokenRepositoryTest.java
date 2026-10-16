@@ -65,4 +65,20 @@ class EmailVerificationTokenRepositoryTest extends PostgresIntegrationTest {
 
     assertThat(tokenRepository.findByUserIdAndUsedAtIsNull(user.getId())).hasSize(1);
   }
+
+  @Test
+  void markUsedIfUnused_claimsTheTokenOnlyOnce() {
+    User user = persistUser();
+    EmailVerificationToken token =
+        tokenRepository.save(
+            EmailVerificationToken.builder()
+                .userId(user.getId())
+                .tokenHash("claim-" + System.nanoTime())
+                .expiresAt(Instant.now().plus(1, ChronoUnit.HOURS))
+                .createdAt(Instant.now())
+                .build());
+
+    assertThat(tokenRepository.markUsedIfUnused(token.getId(), Instant.now())).isEqualTo(1);
+    assertThat(tokenRepository.markUsedIfUnused(token.getId(), Instant.now())).isZero();
+  }
 }

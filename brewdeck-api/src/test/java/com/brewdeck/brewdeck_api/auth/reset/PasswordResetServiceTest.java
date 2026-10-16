@@ -139,6 +139,7 @@ class PasswordResetServiceTest {
     when(tokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(token));
     User user = user();
     when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+    when(tokenRepository.markUsedIfUnused(eq(5L), any(Instant.class))).thenReturn(1);
     String originalHash = user.getPasswordHash();
 
     service.resetPassword(new ResetPasswordRequest("any-raw-token", "newpassword1"));
@@ -146,8 +147,32 @@ class PasswordResetServiceTest {
     assertThat(user.getPasswordHash()).isNotEqualTo(originalHash);
     assertThat(new BCryptPasswordEncoder().matches("newpassword1", user.getPasswordHash()))
         .isTrue();
-    assertThat(token.getUsedAt()).isNotNull();
+    verify(tokenRepository).markUsedIfUnused(eq(5L), any(Instant.class));
     verify(refreshTokenService).revokeAllForUser(1L);
+  }
+
+  @Test
+  void resetPassword_tokenClaimedConcurrently_leavesThePasswordAlone() {
+    PasswordResetToken token =
+        PasswordResetToken.builder()
+            .id(9L)
+            .userId(1L)
+            .tokenHash("hash")
+            .expiresAt(Instant.now().plus(10, ChronoUnit.MINUTES))
+            .createdAt(Instant.now())
+            .build();
+    when(tokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(token));
+    User user = user();
+    when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+    // A concurrent reset with the same link committed first.
+    when(tokenRepository.markUsedIfUnused(eq(9L), any(Instant.class))).thenReturn(0);
+    String originalHash = user.getPasswordHash();
+
+    assertThatThrownBy(() -> service.resetPassword(new ResetPasswordRequest("raw", "newpassword1")))
+        .isInstanceOf(InvalidResetTokenException.class);
+    assertThat(user.getPasswordHash()).isEqualTo(originalHash);
+    verify(userRepository, never()).save(any());
+    verify(refreshTokenService, never()).revokeAllForUser(anyLong());
   }
 
   @Test

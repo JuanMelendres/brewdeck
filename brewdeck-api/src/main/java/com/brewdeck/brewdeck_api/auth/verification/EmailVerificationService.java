@@ -85,11 +85,12 @@ public class EmailVerificationService {
             .orElseThrow(
                 () -> new InvalidVerificationTokenException("Verification token has no user"));
 
+    if (tokenRepository.markUsedIfUnused(token.getId(), Instant.now()) == 0) {
+      throw new InvalidVerificationTokenException("Verification token used or expired");
+    }
+
     user.setEmailVerified(true);
     userRepository.save(user);
-
-    token.setUsedAt(Instant.now());
-    tokenRepository.save(token);
     log.info("Email verified for user id={}", user.getId());
   }
 
