@@ -102,11 +102,11 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
   const details: Array<{ label: string; value: string }> = [
     { label: t('coffee'), value: recipe.coffeeName },
     { label: t('method'), value: recipe.methodName },
-    { label: t('coffeeGrams'), value: orDash(recipe.coffeeGrams) },
-    { label: t('waterGrams'), value: orDash(recipe.waterGrams) },
+    { label: t('coffeeGrams'), value: recipe.coffeeGrams === null ? '—' : tc('grams', { value: recipe.coffeeGrams }) },
+    { label: t('waterGrams'), value: recipe.waterGrams === null ? '—' : tc('grams', { value: recipe.waterGrams }) },
     { label: t('ratio'), value: orDash(recipe.ratio) },
     { label: t('grind'), value: orDash(recipe.grindSetting) },
-    { label: t('waterTemp'), value: orDash(recipe.waterTemp) },
+    { label: t('waterTemp'), value: recipe.waterTemp === null ? '—' : tc('celsius', { value: recipe.waterTemp }) },
     { label: t('brewTime'), value: orDash(recipe.brewTime) },
   ];
 

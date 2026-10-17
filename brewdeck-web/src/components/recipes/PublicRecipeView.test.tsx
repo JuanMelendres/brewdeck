@@ -47,4 +47,16 @@ describe('PublicRecipeView', () => {
     expect(screen.getByText('Ethiopia')).toBeInTheDocument();
     expect(screen.getByText('V60')).toBeInTheDocument();
   });
+
+  it('formats grams and temperature with the decimal separator of the app language', () => {
+    mockHook({
+      isLoading: false,
+      data: { ...sample, coffeeGrams: 15.5, waterTemp: 92.5 },
+      isError: false,
+    });
+    renderWithTheme(<PublicRecipeView token="tok-1" />, { locale: 'es' });
+
+    expect(screen.getByText('15,5 g')).toBeInTheDocument();
+    expect(screen.getByText('92,5 °C')).toBeInTheDocument();
+  });
 });
