@@ -121,6 +121,8 @@ PUT    /api/recipes/{id}
 
 Recipe bodies and responses carry optional `aiModel` / `aiPromptVersion`: the AI answer (`suggest`, `improve`) returns them, and the client sends them back when the user saves that answer, so the recipe records which model and prompt produced it. Hand-written recipes leave them `null`.
 
+Numbers (DATA-01, [numeric-fields.md](../architecture/numeric-fields.md)): `coffeeGrams` / `waterGrams` take at most two decimals and `waterTemp` at most one; more is a `400` field error, never a silent rounding. When both grams are set, the stored `ratio` is derived as `1:<water / coffee>` (one decimal, half up) and any `ratio` in the body is ignored; without both grams, `ratio` stays free text.
+
 ```
 PATCH  /api/recipes/{id}/favorite
 PATCH  /api/recipes/{id}/unfavorite
@@ -138,6 +140,8 @@ POST   /api/brew-sessions
 PUT    /api/brew-sessions/{id}
 DELETE /api/brew-sessions/{id}
 ```
+
+`actualTemp` takes at most one decimal (`NUMERIC(4,1)`); more is a `400` field error.
 
 ## Public (no auth) (`/api/public`)
 ```

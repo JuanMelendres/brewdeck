@@ -13,7 +13,7 @@ import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import type { z } from 'zod';
 import { useTranslations } from 'next-intl';
@@ -27,6 +27,7 @@ import { useCoffeeOptions, useMethodOptions } from '@/hooks/useResourceOptions';
 import { useSuggestRecipe } from '@/hooks/useSuggestRecipe';
 import { FeatureFlag } from '@/components/ui/FeatureFlag';
 import { FormSection } from '@/components/ui/FormSection';
+import { deriveRatio } from '@/lib/format/ratio';
 import type { Recipe } from '@/lib/api/types';
 import { useNotify } from '@/lib/notifications/NotificationProvider';
 
@@ -119,6 +120,15 @@ export function RecipeFormDialog({
   });
   const [suggestError, setSuggestError] = useState<string | null>(null);
 
+  // With both grams the API derives the ratio and ignores typed text (DATA-01, option A); show the
+  // same value here, read-only, so what the user sees is what gets saved.
+  const derivedRatio = deriveRatio(watch('coffeeGrams'), watch('waterGrams'));
+  useEffect(() => {
+    if (derivedRatio !== null) {
+      setValue('ratio', derivedRatio);
+    }
+  }, [derivedRatio, setValue]);
+
   const coffeeId = watch('coffeeId');
   const methodId = watch('methodId');
   const canSuggest = Boolean(coffeeId) && Boolean(methodId) && !suggestion.isPending;
@@ -175,22 +185,31 @@ export function RecipeFormDialog({
     }
   };
 
-  const renderTextField = (f: TextFieldSpec) => (
+  const renderTextField = (f: TextFieldSpec) => {
+    const derived = f.name === 'ratio' && derivedRatio !== null;
+    return (
     <TextField
       label={tf(f.name)}
       required={f.name === 'name'}
       type={f.number ? 'number' : 'text'}
       // Grams and temperatures take decimals; the default step of 1 would flag 92.5 as invalid.
-      slotProps={f.number ? { htmlInput: { step: 'any' } } : undefined}
+      slotProps={
+        f.number
+          ? { htmlInput: { step: 'any' } }
+          : derived
+            ? { htmlInput: { readOnly: true }, inputLabel: { shrink: true } }
+            : undefined
+      }
       multiline={f.multiline}
       minRows={f.multiline ? 3 : undefined}
       size="small"
       fullWidth
       error={Boolean(errors[f.name])}
-      helperText={fieldError(errors[f.name]?.message)}
+      helperText={derived ? t('ratioDerived') : fieldError(errors[f.name]?.message)}
       {...register(f.name)}
     />
-  );
+    );
+  };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>

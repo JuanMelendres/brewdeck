@@ -204,4 +204,41 @@ describe('RecipeFormDialog', () => {
     expect(createMutate.mock.calls[0][0]).toEqual(expect.objectContaining({ coffeeId: 1 }));
     expect(onClose).toHaveBeenCalled();
   });
+
+  describe('ratio derived from the grams', () => {
+    it('shows the computed ratio read-only once both grams are set, and saves it', async () => {
+      mockAll();
+      renderWithTheme(<RecipeFormDialog open onClose={vi.fn()} />);
+
+      const ratio = screen.getByLabelText(/^ratio/i);
+      expect(ratio).not.toHaveAttribute('readonly');
+
+      fireEvent.change(screen.getByLabelText(/coffee grams/i), { target: { value: '15' } });
+      fireEvent.change(screen.getByLabelText(/water grams/i), { target: { value: '250' } });
+
+      await waitFor(() => expect(ratio).toHaveValue('1:16.7'));
+      expect(ratio).toHaveAttribute('readonly');
+      expect(screen.getByText('Calculated from the grams')).toBeInTheDocument();
+
+      fireEvent.change(screen.getByRole('combobox', { name: /coffee/i }), { target: { value: '1' } });
+      fireEvent.change(screen.getByRole('combobox', { name: /brew method/i }), { target: { value: '2' } });
+      fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: 'Derived' } });
+      fireEvent.click(screen.getByRole('button', { name: /create/i }));
+
+      await waitFor(() => expect(createMutate).toHaveBeenCalledTimes(1));
+      expect(createMutate.mock.calls[0][0]).toEqual(expect.objectContaining({ ratio: '1:16.7' }));
+    });
+
+    it('keeps the ratio editable when a gram amount is missing', () => {
+      mockAll();
+      renderWithTheme(<RecipeFormDialog open onClose={vi.fn()} />);
+
+      fireEvent.change(screen.getByLabelText(/coffee grams/i), { target: { value: '15' } });
+      const ratio = screen.getByLabelText(/^ratio/i);
+      fireEvent.change(ratio, { target: { value: '1:16' } });
+
+      expect(ratio).not.toHaveAttribute('readonly');
+      expect(ratio).toHaveValue('1:16');
+    });
+  });
 });

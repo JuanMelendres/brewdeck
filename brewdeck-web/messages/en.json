@@ -315,7 +315,8 @@
       "suggest": "Suggest with AI",
       "suggestFailed": "AI suggestions are unavailable right now. Please try again later.",
       "added": "Recipe added",
-      "updated": "Recipe updated"
+      "updated": "Recipe updated",
+      "ratioDerived": "Calculated from the grams"
     },
     "list": {
       "title": "Recipes",

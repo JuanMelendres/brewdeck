@@ -10,7 +10,7 @@ on 2026-10-16. Where a fact comes from a probe and not from reading the code, th
 |---|---|---|---|---|---|---|
 | `recipes.coffee_grams` | grams | `DECIMAL(6,2)` | `BigDecimal` | `@Positive`, `@DecimalMax 9999.99`, `@Digits(fraction = 2)` | `type=number step=any`, Zod `positive().max(9999.99)` + two decimals | `'{value} g'` |
 | `recipes.water_grams` | grams | `DECIMAL(6,2)` | `BigDecimal` | same as coffee grams | same | `'{value} g'` |
-| `recipes.ratio` | coffee:water, free text (`1:15`) | `VARCHAR(20)` | `String` | `@Size(max = 20)` | text | as typed |
+| `recipes.ratio` | coffee:water (`1:16.7`) | `VARCHAR(20)` | `String` | `@Size(max = 20)`; **derived** as `1:<water / coffee>` (one decimal, half up) when both grams are set, typed text ignored | read-only with both grams, text otherwise | as stored |
 | `recipes.water_temp` | °C | `NUMERIC(4,1)` (V31) | `BigDecimal` | `@DecimalMin 0`, `@DecimalMax 100`, `@Digits(3, 1)` | `type=number step=any`, Zod `min(0).max(100)` + one decimal | `'{value}°C'` |
 | `recipes.brew_time` | free text (`2:30`) | `VARCHAR(40)` | `String` | `@Size(max = 20)` | text | as typed |
 | `brew_sessions.actual_temp` | °C | `NUMERIC(4,1)` (V31) | `BigDecimal` | `@DecimalMin 0`, `@DecimalMax 100`, `@Digits(3, 1)` | `type=number step=any`, Zod `min(0).max(100)` + one decimal | `'{value}°C'` |
@@ -74,7 +74,7 @@ Small PRs, each with tests:
    - Round averages to one decimal `HALF_UP` in the API responses (`BigDecimal.valueOf(avg).setScale(1, HALF_UP)`), so 8.35 shows `8,4` / `8.4`. Ranking order keeps using the full value in SQL.
 4. **Browser check (G6).** Type `15,5` in Chrome, Safari and Firefox with the UI in Spanish. Fix
    only if a browser drops or rejects it.
-5. **Ratio (G5).** Option A, decided by the owner on 2026-10-16.
+5. **Ratio (G5).** Option A, decided by the owner on 2026-10-16. Done in #270: `BrewRatios.fromGrams` in `RecipeService`, `deriveRatio` in the form. Existing rows keep their text until they are edited.
 
 ### Ratio (G5): decided, option A (2026-10-16)
 

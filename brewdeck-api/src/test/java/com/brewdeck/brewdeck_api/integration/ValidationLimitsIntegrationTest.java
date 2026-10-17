@@ -182,6 +182,24 @@ class ValidationLimitsIntegrationTest extends PostgresIntegrationTest {
                 .value("Actual temperature allows at most one decimal"));
   }
 
+  // --- Ratio derived from the grams (DATA-01, option A) ---
+
+  @Test
+  @WithMockUser
+  void recipe_withBothGrams_storesTheDerivedRatioAndIgnoresTheTypedOne() throws Exception {
+    postJson("/api/recipes", recipeBody("\"coffeeGrams\":15,\"waterGrams\":250,\"ratio\":\"1:99\""))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.ratio").value("1:16.7"));
+  }
+
+  @Test
+  @WithMockUser
+  void recipe_withoutBothGrams_keepsTheTypedRatio() throws Exception {
+    postJson("/api/recipes", recipeBody("\"coffeeGrams\":15,\"ratio\":\"1:16\""))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.ratio").value("1:16"));
+  }
+
   // --- Password byte limit (BCrypt) ---
 
   @Test

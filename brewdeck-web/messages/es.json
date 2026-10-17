@@ -315,7 +315,8 @@
       "suggest": "Sugerir con IA",
       "suggestFailed": "Las sugerencias con IA no están disponibles ahora. Inténtalo más tarde.",
       "added": "Receta agregada",
-      "updated": "Receta actualizada"
+      "updated": "Receta actualizada",
+      "ratioDerived": "Calculada a partir de los gramos"
     },
     "list": {
       "title": "Recetas",
