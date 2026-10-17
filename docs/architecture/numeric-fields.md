@@ -74,7 +74,7 @@ Small PRs, each with tests:
    - Round averages to one decimal `HALF_UP` in the API responses (`BigDecimal.valueOf(avg).setScale(1, HALF_UP)`), so 8.35 shows `8,4` / `8.4`. Ranking order keeps using the full value in SQL.
 4. **Browser check (G6).** Type `15,5` in Chrome, Safari and Firefox with the UI in Spanish. Fix
    only if a browser drops or rejects it.
-5. **Ratio (G5).** Option A, decided by the owner on 2026-10-16. Done on branch `feat/derived-recipe-ratio`: `BrewRatios.fromGrams` in `RecipeService`, `deriveRatio` in the form. Existing rows keep their text until they are edited.
+5. **Ratio (G5).** Option A, decided by the owner on 2026-10-16. Done in #270: `BrewRatios.fromGrams` in `RecipeService`, `deriveRatio` in the form. Existing rows keep their text until they are edited.
 
 ### Ratio (G5): decided, option A (2026-10-16)
 
