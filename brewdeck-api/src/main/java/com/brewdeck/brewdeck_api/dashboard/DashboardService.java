@@ -5,6 +5,7 @@ import com.brewdeck.brewdeck_api.coffee.CoffeeRepository;
 import com.brewdeck.brewdeck_api.method.BrewMethodRepository;
 import com.brewdeck.brewdeck_api.recipe.RecipeRepository;
 import com.brewdeck.brewdeck_api.session.BrewSessionRepository;
+import com.brewdeck.brewdeck_api.session.RatingAverages;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +30,6 @@ public class DashboardService {
         recipeRepository.countByOwnerId(ownerId),
         recipeRepository.countByFavoriteTrueAndOwnerId(ownerId),
         brewSessionRepository.countByOwnerId(ownerId),
-        brewSessionRepository.findAverageRating(ownerId));
+        RatingAverages.round(brewSessionRepository.findAverageRating(ownerId)));
   }
 }

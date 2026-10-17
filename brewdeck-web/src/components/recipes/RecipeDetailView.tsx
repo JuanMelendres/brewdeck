@@ -31,6 +31,7 @@ import { RecipeFormDialog } from './RecipeFormDialog';
 import { ShareRecipeDialog } from './ShareRecipeDialog';
 import { downloadRecipePdf, orDash } from '@/lib/pdf/recipePdf';
 import { formatDate } from '@/lib/format/dates';
+import { formatAverage } from '@/lib/format/numbers';
 
 export function RecipeDetailView({ recipeId }: { recipeId: number }) {
   const t = useTranslations('recipes.detail');
@@ -101,11 +102,11 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
   const details: Array<{ label: string; value: string }> = [
     { label: t('coffee'), value: recipe.coffeeName },
     { label: t('method'), value: recipe.methodName },
-    { label: t('coffeeGrams'), value: orDash(recipe.coffeeGrams) },
-    { label: t('waterGrams'), value: orDash(recipe.waterGrams) },
+    { label: t('coffeeGrams'), value: recipe.coffeeGrams === null ? '—' : tc('grams', { value: recipe.coffeeGrams }) },
+    { label: t('waterGrams'), value: recipe.waterGrams === null ? '—' : tc('grams', { value: recipe.waterGrams }) },
     { label: t('ratio'), value: orDash(recipe.ratio) },
     { label: t('grind'), value: orDash(recipe.grindSetting) },
-    { label: t('waterTemp'), value: orDash(recipe.waterTemp) },
+    { label: t('waterTemp'), value: recipe.waterTemp === null ? '—' : tc('celsius', { value: recipe.waterTemp }) },
     { label: t('brewTime'), value: orDash(recipe.brewTime) },
   ];
 
@@ -125,7 +126,7 @@ export function RecipeDetailView({ recipeId }: { recipeId: number }) {
       { label: t('totalSessions'), value: stats.totalSessions },
       {
         label: t('averageRating'),
-        value: stats.averageRating === null ? '—' : stats.averageRating.toFixed(1),
+        value: formatAverage(stats.averageRating, locale),
       },
       { label: t('lastBrewed'), value: formatDate(stats.lastBrewedAt, undefined, locale) },
     ];

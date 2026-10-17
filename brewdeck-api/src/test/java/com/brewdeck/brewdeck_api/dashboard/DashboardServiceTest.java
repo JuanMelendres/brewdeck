@@ -47,7 +47,8 @@ class DashboardServiceTest {
     assertThat(summary.totalRecipes()).isEqualTo(10L);
     assertThat(summary.favoriteRecipes()).isEqualTo(3L);
     assertThat(summary.totalBrewSessions()).isEqualTo(20L);
-    assertThat(summary.averageSessionRating()).isEqualTo(4.25);
+    // Rounded to one decimal, half up, for display (DATA-01).
+    assertThat(summary.averageSessionRating()).isEqualTo(4.3);
   }
 
   @Test
