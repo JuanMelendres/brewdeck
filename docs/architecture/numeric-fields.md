@@ -67,7 +67,7 @@ Small PRs, each with tests:
    - Add `@Digits(integer = 4, fraction = 2)` on both gram fields, so `15.126` becomes a `400`
      field error and the response always matches the stored value.
    - Mirror in Zod: at most two decimals.
-3. **Locale-aware numbers in the UI (G3, G4). Done in #269: `RatingAverages.round` in the API, `{value, number}` unit messages, `formatAverage`, and the recipe detail and public views now show grams and °C through the unit messages. The recipe PDF export still prints raw numbers.** This also covers the new decimal temperatures
+3. **Locale-aware numbers in the UI (G3, G4). Done in #269: `RatingAverages.round` in the API, `{value, number}` unit messages, `formatAverage`, and the recipe detail and public views now show grams and °C through the unit messages. The recipe PDF export follows the same rules since #271.** This also covers the new decimal temperatures
    (`92,5 °C` in Spanish).
    - Change unit messages to `{value, number}`.
    - Replace `toFixed(1)` with one helper built on `Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })`.

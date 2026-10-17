@@ -96,7 +96,7 @@ describe('buildRecipePdf', () => {
     expect(text).toContain('Water (g): 230');
     expect(text).toContain('Ratio: 1:15');
     expect(text).toContain('Grind: Timemore S3 - 5.5');
-    expect(text).toContain('Water Temp: 90');
+    expect(text).toContain('Water Temp: 90°C');
     expect(text).toContain('Brew Time: 2:30');
   });
 
@@ -146,5 +146,15 @@ describe('downloadRecipePdf', () => {
   it('saves the document under the slugified filename', () => {
     downloadRecipePdf(fullRecipe);
     expect(saveMock).toHaveBeenCalledWith('mezcla-aeropress.pdf');
+  });
+
+  it('writes decimal grams and temperatures in the PDF language', () => {
+    textCalls.length = 0;
+    buildRecipePdf({ ...fullRecipe, coffeeGrams: 15.5, waterGrams: 250.25, waterTemp: 92.5 }, 'es');
+
+    const text = emittedText();
+    expect(text).toContain('Café (g): 15,5');
+    expect(text).toContain('Agua (g): 250,25');
+    expect(text).toContain('Temperatura del agua: 92,5 °C');
   });
 });
