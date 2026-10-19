@@ -10,10 +10,19 @@ on:
       - "brewdeck-api/pom.xml"
       - ".github/workflows/security.yml"
 
+# One scan per branch or PR. A new push cancels the running PR scan; scheduled and manual runs
+# are never cancelled.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   dependency-check:
     name: OWASP Dependency Check
     runs-on: ubuntu-latest
+    # Green runs take 25 to 75 minutes (longest: a full NVD sync). A hung NVD download would
+    # otherwise hold the job for GitHub's 6-hour default.
+    timeout-minutes: 120
 
     defaults:
       run:
