@@ -61,43 +61,80 @@ class AuthServiceTest {
   }
 
   @Test
-  void register_persistsHashedPasswordAndReturnsToken() {
-    when(userRepository.existsByEmail("new@example.com")).thenReturn(false);
+  void register_newEmail_createsTheAccountWithAHashedPassword_andSendsVerification() {
+    when(userRepository.findByEmail("new@example.com")).thenReturn(Optional.empty());
     when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
-    when(jwtService.generateToken(any(User.class))).thenReturn("jwt-token");
 
-    AuthResponse response =
-        authService.register(new RegisterRequest("new@example.com", "password1")).response();
+    authService.register(new RegisterRequest("new@example.com", "password1"));
 
-    assertThat(response.token()).isEqualTo("jwt-token");
-    assertThat(response.email()).isEqualTo("new@example.com");
-    org.mockito.Mockito.verify(emailVerificationService)
-        .issueFor(org.mockito.ArgumentMatchers.any(User.class));
+    org.mockito.ArgumentCaptor<User> saved = org.mockito.ArgumentCaptor.forClass(User.class);
+    verify(userRepository).save(saved.capture());
+    assertThat(saved.getValue().getEmail()).isEqualTo("new@example.com");
+    assertThat(new BCryptPasswordEncoder().matches("password1", saved.getValue().getPasswordHash()))
+        .isTrue();
+    verify(emailVerificationService).issueFor(saved.getValue());
+    // No session at signup (AUTH-05.7).
+    org.mockito.Mockito.verifyNoInteractions(refreshTokenService, jwtService);
   }
 
   @Test
-  void register_throwsWhenEmailAlreadyUsed() {
-    when(userRepository.existsByEmail("taken@example.com")).thenReturn(true);
+  void register_existingEmail_notifiesTheOwner_andChangesNothing() {
+    User existing = stored("taken@example.com", "password1");
+    when(userRepository.findByEmail("taken@example.com")).thenReturn(Optional.of(existing));
+
+    authService.register(new RegisterRequest("taken@example.com", "other-password"));
+
+    verify(emailVerificationService).sendAccountExistsNotice(existing);
+    verify(emailVerificationService, never()).issueFor(any(User.class));
+    verify(userRepository, never()).save(any(User.class));
+    org.mockito.Mockito.verifyNoInteractions(refreshTokenService, jwtService);
+  }
+
+  @Test
+  void register_appliesThePerEmailLimit_beforeLookingTheAccountUp() {
+    RateLimiter limiter = org.mockito.Mockito.mock(RateLimiter.class);
+    org.mockito.Mockito.doThrow(new RateLimitExceededException(Duration.ofMinutes(30)))
+        .when(limiter)
+        .requireAllowed(RateLimitRule.REGISTER_EMAIL, "flood@example.com");
+    AuthService limited =
+        new AuthService(
+            userRepository,
+            jwtService,
+            new BCryptPasswordEncoder(),
+            emailVerificationService,
+            refreshTokenService,
+            limiter);
 
     assertThatThrownBy(
-            () -> authService.register(new RegisterRequest("taken@example.com", "password1")))
-        .isInstanceOf(EmailAlreadyUsedException.class);
+            () -> limited.register(new RegisterRequest("flood@example.com", "password1")))
+        .isInstanceOf(RateLimitExceededException.class);
+    org.mockito.Mockito.verifyNoInteractions(userRepository, emailVerificationService);
   }
 
   @Test
   void register_succeedsEvenWhenVerificationIssueThrows() {
-    when(userRepository.existsByEmail("new@example.com")).thenReturn(false);
+    when(userRepository.findByEmail("new@example.com")).thenReturn(Optional.empty());
     when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
-    when(jwtService.generateToken(any(User.class))).thenReturn("jwt-token");
     org.mockito.Mockito.doThrow(new RuntimeException("verification down"))
         .when(emailVerificationService)
         .issueFor(any(User.class));
 
-    // The account is created and a token returned even if verification issuance fails.
-    AuthResponse response =
-        authService.register(new RegisterRequest("new@example.com", "password1")).response();
+    // The account is still created if verification issuance fails.
+    authService.register(new RegisterRequest("new@example.com", "password1"));
 
-    assertThat(response.token()).isEqualTo("jwt-token");
+    verify(userRepository).save(any(User.class));
+  }
+
+  @Test
+  void register_existingEmail_swallowsANoticeFailure() {
+    User existing = stored("taken@example.com", "password1");
+    when(userRepository.findByEmail("taken@example.com")).thenReturn(Optional.of(existing));
+    org.mockito.Mockito.doThrow(new RuntimeException("mail down"))
+        .when(emailVerificationService)
+        .sendAccountExistsNotice(existing);
+
+    // Must not surface: an error here would tell the caller the email exists.
+    authService.register(new RegisterRequest("taken@example.com", "password1"));
   }
 
   @Test
@@ -233,6 +270,27 @@ class AuthServiceTest {
   }
 
   @Test
+  void changePassword_invalidatesOutstandingAccessTokens_andReturnsAFreshSession() {
+    User user = stored("brewer@example.com", "password1");
+    when(userRepository.findByEmail("brewer@example.com")).thenReturn(Optional.of(user));
+    when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+    when(refreshTokenService.issue(user)).thenReturn("new-refresh");
+    when(jwtService.generateToken(user)).thenReturn("new-jwt");
+
+    AuthSession session =
+        authService.changePassword(
+            "brewer@example.com", new ChangePasswordRequest("password1", "newpassword1"));
+
+    assertThat(user.getTokenVersion()).isEqualTo(1);
+    assertThat(session.response().token()).isEqualTo("new-jwt");
+    assertThat(session.refreshToken()).isEqualTo("new-refresh");
+    // The fresh refresh token is issued after the old ones are revoked, so it survives.
+    org.mockito.InOrder order = org.mockito.Mockito.inOrder(refreshTokenService);
+    order.verify(refreshTokenService).revokeAllForUser(1L);
+    order.verify(refreshTokenService).issue(user);
+  }
+
+  @Test
   void changePassword_throwsWhenCurrentWrong() {
     when(userRepository.findByEmail("brewer@example.com"))
         .thenReturn(Optional.of(stored("brewer@example.com", "password1")));
@@ -325,5 +383,17 @@ class AuthServiceTest {
     authService.logout("brewer@example.com", null);
 
     org.mockito.Mockito.verifyNoInteractions(refreshTokenService);
+  }
+
+  @Test
+  void logout_invalidatesOutstandingAccessTokens() {
+    User user = stored("brewer@example.com", "password1");
+    when(userRepository.findByEmail("brewer@example.com")).thenReturn(Optional.of(user));
+
+    authService.logout("brewer@example.com", "refresh");
+
+    assertThat(user.getTokenVersion()).isEqualTo(1);
+    verify(refreshTokenService).revoke("refresh", 1L);
+    verify(userRepository).save(user);
   }
 }

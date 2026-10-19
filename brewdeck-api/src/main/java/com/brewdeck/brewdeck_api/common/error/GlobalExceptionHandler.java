@@ -2,7 +2,6 @@ package com.brewdeck.brewdeck_api.common.error;
 
 import com.brewdeck.brewdeck_api.ai.AiUnavailableException;
 import com.brewdeck.brewdeck_api.ai.InsufficientBrewHistoryException;
-import com.brewdeck.brewdeck_api.auth.EmailAlreadyUsedException;
 import com.brewdeck.brewdeck_api.auth.InvalidCurrentPasswordException;
 import com.brewdeck.brewdeck_api.auth.refresh.InvalidRefreshTokenException;
 import com.brewdeck.brewdeck_api.auth.reset.InvalidResetTokenException;
@@ -215,19 +214,6 @@ public class GlobalExceptionHandler {
             null);
 
     return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
-  }
-
-  @ExceptionHandler(EmailAlreadyUsedException.class)
-  public ResponseEntity<ErrorResponse> handleEmailAlreadyUsed(
-      EmailAlreadyUsedException exception, HttpServletRequest request) {
-    ErrorResponse errorResponse =
-        buildErrorResponse(
-            HttpStatus.CONFLICT,
-            sanitize(exception.getMessage()),
-            sanitize(request.getRequestURI()),
-            null);
-
-    return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
   }
 
   @ExceptionHandler(ResourceInUseException.class)

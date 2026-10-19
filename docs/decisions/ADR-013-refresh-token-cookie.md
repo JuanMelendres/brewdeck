@@ -23,11 +23,20 @@ The web client kept both tokens in `localStorage`. Any XSS, including one introd
 3. **Backend:** stop returning `refreshToken` in JSON and stop accepting it in the body.
 
 ## Consequences
-- **Positive:** an XSS can no longer steal a long-lived credential. At worst it acts inside the open tab while the 15-minute access token lasts.
+- **Positive:** an XSS can no longer steal a long-lived credential. At worst it acts inside the open tab while the 15-minute access token lasts (or until logout or a password change, see the addendum).
 - **Positive:** a single origin removes CORS from the browser path entirely.
 - **Negative:** each page load does one refresh round-trip (and rotation).
 - **Negative:** the frontend must run as a Node server (it already does), not a static export.
 - **Negative:** sessions stored in `localStorage` before step 2 end once. Users log in again.
+
+## Addendum (2026-10-16): revoking access tokens (AUTH-05.6)
+The AUTH-05 audit (finding L1) noted that access JWTs outlived logout, password change and reset by up to 15 minutes. The owner chose to fix it:
+- `users.token_version` (V30) is embedded in every access JWT as the `ver` claim; `JwtAuthenticationFilter` rejects a token whose `ver` differs from the stored value. Tokens without the claim count as `0`.
+- **Logout** revokes this device's refresh token and bumps the version. Other devices' access tokens stop working too, but they keep their refresh cookie, so the client refreshes silently on the next 401.
+- **Password change** revokes every refresh token, bumps the version, and returns a fresh session (`200` + `AuthResponse` + rotated cookie) so the device that made the change stays logged in. **Password reset** revokes and bumps, without a new session.
+- Presenting a **revoked** refresh token is now just rejected; only an already **used** (rotated) token triggers reuse detection and revokes everything. Otherwise any other device trying its old cookie after a password change would also kill the caller's fresh session.
+- **Atomic rotation (AUTH-05.5, 2026-10-16):** the old token is claimed with a conditional `UPDATE ... SET used_at = now WHERE id = ? AND used_at IS NULL AND revoked_at IS NULL`. Of two concurrent rotations of one token exactly one gets the row; the other gets 0 rows and goes through reuse detection (revokes everything). The Web Locks above keep a normal browser from racing itself. Reset and verification tokens use the same conditional claim, before the password or the verified flag changes.
+- Cost: `JwtAuthenticationFilter` already loads the user on every request, so the check adds no query.
 
 ## Alternatives Considered
 - **Both tokens in cookies:** every write endpoint would need CSRF protection and the JWT filter would change. That is more surface for little extra gain, since the access token is short-lived.

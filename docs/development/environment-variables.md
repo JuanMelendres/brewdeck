@@ -17,11 +17,11 @@ General settings live in the root `.env.example`; auth, mail, and hardening sett
 | `OLLAMA_MODEL` | `qwen3:8b` | Model Ollama serves (see the local LLM spike) |
 | `OLLAMA_TIMEOUT_SECONDS` | `90` | Read timeout per AI call; local models take 15–25 s |
 | `ANTHROPIC_API_KEY` | *(blank)* | Anthropic key; required only when `AI_PROVIDER=claude` and `AI_ENABLED=true` |
-| `BREWDECK_JWT_SECRET` | dev-only placeholder; **required in `prod`** | HMAC key for access tokens (≥ 32 bytes) |
+| `BREWDECK_JWT_SECRET` | dev-only placeholder; **required in `staging`/`prod`** | HMAC key for access tokens (≥ 32 bytes). Startup fails if the dev placeholder is used under any profile other than `local` or `test` |
 | `AUTH_TOKEN_TTL` | `PT15M` | Access-token lifetime (ISO-8601) |
 | `AUTH_REFRESH_TTL` | `P7D` | Refresh-token lifetime (ISO-8601); also the refresh cookie's `Max-Age` |
 | `AUTH_COOKIE_SECURE` | `true` (`false` in the `local` profile) | `Secure` flag of the `brewdeck_refresh` cookie ([ADR-013](../decisions/ADR-013-refresh-token-cookie.md)); only disable for plain-HTTP local development |
-| `BREWDECK_MAIL_ENABLED` | `false` | `true` sends real emails over SMTP (`SPRING_MAIL_*` below); `false` only logs the links |
+| `BREWDECK_MAIL_ENABLED` | `false` | `true` sends real emails over SMTP (`SPRING_MAIL_*` below); `false` only logs the links. **Must be `true` in `staging`/`prod`**: startup fails otherwise, because the logged links are live reset and verification tokens |
 | `BREWDECK_MAIL_FRONTEND_BASE_URL` | `http://localhost:3000` | Base URL for links in emails |
 | `BREWDECK_MAIL_FROM` | `BrewDeck <no-reply@brewdeck.local>` | Sender address (must be allowed by your provider) |
 | `SPRING_MAIL_HOST` | *(unset)* | SMTP host; **required** when `BREWDECK_MAIL_ENABLED=true` (startup fails without it) |
@@ -29,7 +29,7 @@ General settings live in the root `.env.example`; auth, mail, and hardening sett
 | `SPRING_MAIL_USERNAME` / `SPRING_MAIL_PASSWORD` | *(unset)* | SMTP credentials (secret: set in the environment, never commit) |
 | `SPRING_MAIL_SMTP_AUTH` | `false` | `true` for any real provider |
 | `SPRING_MAIL_SMTP_STARTTLS` | `false` | `true` for port 587 providers |
-| `BREWDECK_ADMIN_EMAIL` | *(blank)* | Existing account promoted to `ADMIN` at startup ([ADR-009](../decisions/ADR-009-role-based-authorization.md)) |
+| `BREWDECK_ADMIN_EMAIL` | *(blank)* | Existing account with a verified email promoted to `ADMIN` at startup; unverified accounts are skipped with a warning ([ADR-009](../decisions/ADR-009-role-based-authorization.md)) |
 | `RATE_LIMIT_ENABLED` | `true` | Auth endpoint rate limiting ([ADR-011](../decisions/ADR-011-in-memory-auth-rate-limiting.md)); keep on outside automated tests |
 | `BREWDECK_LEGACY_TIMEZONE` | `UTC` | Zone that pre-V21 timestamps were written in; used **once** by migration V21 to convert them to `TIMESTAMPTZ`. Set `America/Mexico_City` for a CST developer DB, or local rows shift 6 h |
 | `FORWARD_HEADERS_STRATEGY` | `none` | `native` only if a load balancer in front of the Next proxy overwrites `X-Forwarded-For`; per-IP rate limits then use the real client IP. Leave `none` when Next is exposed directly, otherwise clients could spoof their IP ([ADR-013](../decisions/ADR-013-refresh-token-cookie.md)) |
@@ -57,7 +57,7 @@ Emails are sent after the database transaction commits, on a background thread. 
 
 ### Hosted `staging` profile
 
-`application-staging.yml` ([ADR-017](../decisions/ADR-017-staging-hosting.md)) requires `DB_URL`, `DB_USER`, `DB_PASSWORD` and `BREWDECK_JWT_SECRET` (no defaults), turns API docs off, and resolves feature flags to their `staging` rows. It also reads:
+`application-staging.yml` ([ADR-017](../decisions/ADR-017-staging-hosting.md)) requires `DB_URL`, `DB_USER`, `DB_PASSWORD` and `BREWDECK_JWT_SECRET` (no defaults) plus `BREWDECK_MAIL_ENABLED=true` with `SPRING_MAIL_*` (checked by `StartupSafetyCheck`), turns API docs off, and resolves feature flags to their `staging` rows. It also reads:
 
 | Variable | Default | Purpose |
 | -------- | ------- | ------- |
@@ -82,6 +82,7 @@ The `mailpit` service (SMTP on `1025`, web UI on `8025`) catches local emails.
 | -------- | ------- | ------- |
 | `NEXT_PUBLIC_API_BASE_URL` | *(empty)* | Leave empty: the browser calls its own origin and Next proxies `/api/*` ([ADR-013](../decisions/ADR-013-refresh-token-cookie.md)). Another origin breaks the `SameSite=Strict` refresh cookie |
 | `API_PROXY_TARGET` | `http://localhost:8080` | Where the Next **server** proxies `/api/*` (server-side only) |
+| `ALLOW_INDEXING` | *(unset)* | `true` lets search engines index the site. Otherwise `robots.txt` disallows everything and every response carries `noindex, nofollow` (meta tag and `X-Robots-Tag`). Leave unset outside a public production site |
 
 ## Rules
 

@@ -99,4 +99,22 @@ describe('CoffeeFormDialog', () => {
     expect(await screen.findByText('Coffee added')).toBeInTheDocument();
     expect(onClose).toHaveBeenCalled();
   });
+
+  it('hands the created coffee to onCreated after closing', async () => {
+    mockHooks();
+    createMutate.mockImplementation((_body, opts) => opts.onSuccess({ id: 7, name: 'Mezcla' }));
+    const onClose = vi.fn();
+    const onCreated = vi.fn();
+    renderWithTheme(
+      <NotificationProvider>
+        <CoffeeFormDialog open onClose={onClose} onCreated={onCreated} />
+      </NotificationProvider>,
+    );
+
+    fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: 'Mezcla' } });
+    fireEvent.click(screen.getByRole('button', { name: /create/i }));
+
+    await waitFor(() => expect(onCreated).toHaveBeenCalledWith(expect.objectContaining({ id: 7 })));
+    expect(onClose).toHaveBeenCalled();
+  });
 });

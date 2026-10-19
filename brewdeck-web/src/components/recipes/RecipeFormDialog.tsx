@@ -13,7 +13,7 @@ import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import type { z } from 'zod';
 import { useTranslations } from 'next-intl';
@@ -27,6 +27,7 @@ import { useCoffeeOptions, useMethodOptions } from '@/hooks/useResourceOptions';
 import { useSuggestRecipe } from '@/hooks/useSuggestRecipe';
 import { FeatureFlag } from '@/components/ui/FeatureFlag';
 import { FormSection } from '@/components/ui/FormSection';
+import { deriveRatio } from '@/lib/format/ratio';
 import type { Recipe } from '@/lib/api/types';
 import { useNotify } from '@/lib/notifications/NotificationProvider';
 
@@ -49,9 +50,9 @@ const NOTE_FIELDS: TextFieldSpec[] = [
   { name: 'expectedTaste', multiline: true },
 ];
 
-function toDefaults(recipe?: Recipe): RecipeFormInput {
+function toDefaults(recipe?: Recipe, initialCoffeeId?: number): RecipeFormInput {
   return {
-    coffeeId: recipe?.coffeeId ?? '',
+    coffeeId: recipe?.coffeeId ?? initialCoffeeId ?? '',
     methodId: recipe?.methodId ?? '',
     name: recipe?.name ?? '',
     coffeeGrams: recipe?.coffeeGrams ?? '',
@@ -71,11 +72,17 @@ export function RecipeFormDialog({
   recipe,
   onClose,
   initialRationale,
+  initialCoffeeId,
+  onCreated,
 }: {
   open: boolean;
   recipe?: Recipe;
   onClose: () => void;
   initialRationale?: string | null;
+  /** Preselects the coffee of a new recipe, e.g. one the user has just created. */
+  initialCoffeeId?: number;
+  /** Called with the new recipe after a create (not an edit), once the dialog has closed. */
+  onCreated?: (recipe: Recipe) => void;
 }) {
   const t = useTranslations('recipes.form');
   const tf = useTranslations('recipes.fields');
@@ -99,7 +106,7 @@ export function RecipeFormDialog({
     formState: { errors },
   } = useForm<RecipeFormInput, unknown, RecipeFormValues>({
     resolver: zodResolver(recipeSchema),
-    values: toDefaults(recipe),
+    values: toDefaults(recipe, initialCoffeeId),
   });
 
   const pending = create.isPending || update.isPending;
@@ -112,6 +119,15 @@ export function RecipeFormDialog({
     aiPromptVersion: recipe?.aiPromptVersion ?? null,
   });
   const [suggestError, setSuggestError] = useState<string | null>(null);
+
+  // With both grams the API derives the ratio and ignores typed text (DATA-01, option A); show the
+  // same value here, read-only, so what the user sees is what gets saved.
+  const derivedRatio = deriveRatio(watch('coffeeGrams'), watch('waterGrams'));
+  useEffect(() => {
+    if (derivedRatio !== null) {
+      setValue('ratio', derivedRatio);
+    }
+  }, [derivedRatio, setValue]);
 
   const coffeeId = watch('coffeeId');
   const methodId = watch('methodId');
@@ -147,9 +163,10 @@ export function RecipeFormDialog({
   const onSubmit = (data: RecipeFormValues) => {
     setServerError(null);
     const mutateOptions = {
-      onSuccess: () => {
+      onSuccess: (saved: Recipe) => {
         notify(isEdit ? t('updated') : t('added'));
         onClose();
+        if (!isEdit) onCreated?.(saved);
       },
       onError: (error: unknown) => {
         if (error instanceof ApiError && error.validationErrors) {
@@ -168,20 +185,31 @@ export function RecipeFormDialog({
     }
   };
 
-  const renderTextField = (f: TextFieldSpec) => (
+  const renderTextField = (f: TextFieldSpec) => {
+    const derived = f.name === 'ratio' && derivedRatio !== null;
+    return (
     <TextField
       label={tf(f.name)}
       required={f.name === 'name'}
       type={f.number ? 'number' : 'text'}
+      // Grams and temperatures take decimals; the default step of 1 would flag 92.5 as invalid.
+      slotProps={
+        f.number
+          ? { htmlInput: { step: 'any' } }
+          : derived
+            ? { htmlInput: { readOnly: true }, inputLabel: { shrink: true } }
+            : undefined
+      }
       multiline={f.multiline}
       minRows={f.multiline ? 3 : undefined}
       size="small"
       fullWidth
       error={Boolean(errors[f.name])}
-      helperText={fieldError(errors[f.name]?.message)}
+      helperText={derived ? t('ratioDerived') : fieldError(errors[f.name]?.message)}
       {...register(f.name)}
     />
-  );
+    );
+  };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>

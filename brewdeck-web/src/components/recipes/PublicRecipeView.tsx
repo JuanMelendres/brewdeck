@@ -17,6 +17,7 @@ function orDash(value: string | number | null): string {
 export function PublicRecipeView({ token }: { token: string }) {
   const t = useTranslations('recipes.public');
   const td = useTranslations('recipes.detail');
+  const tc = useTranslations('common');
   const query = usePublicRecipe(token);
 
   if (query.isLoading) {
@@ -31,11 +32,11 @@ export function PublicRecipeView({ token }: { token: string }) {
   const details: Array<{ label: string; value: string }> = [
     { label: td('coffee'), value: recipe.coffeeName },
     { label: td('method'), value: recipe.methodName },
-    { label: td('coffeeGrams'), value: orDash(recipe.coffeeGrams) },
-    { label: td('waterGrams'), value: orDash(recipe.waterGrams) },
+    { label: td('coffeeGrams'), value: recipe.coffeeGrams === null ? '—' : tc('grams', { value: recipe.coffeeGrams }) },
+    { label: td('waterGrams'), value: recipe.waterGrams === null ? '—' : tc('grams', { value: recipe.waterGrams }) },
     { label: td('ratio'), value: orDash(recipe.ratio) },
     { label: td('grind'), value: orDash(recipe.grindSetting) },
-    { label: td('waterTemp'), value: orDash(recipe.waterTemp) },
+    { label: td('waterTemp'), value: recipe.waterTemp === null ? '—' : tc('celsius', { value: recipe.waterTemp }) },
     { label: td('brewTime'), value: orDash(recipe.brewTime) },
   ];
 

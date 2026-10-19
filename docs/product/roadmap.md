@@ -3,6 +3,7 @@
 This is a stable, high-level summary. The living, detailed roadmap is
 [`.claude/roadmap.md`](../../.claude/roadmap.md); current status lives in
 [`.claude/project-state.md`](../../.claude/project-state.md).
+Pending bugs, features and operations work are triaged in [backlog.md](backlog.md).
 
 | Phase | Theme | Status |
 | ----- | ----- | ------ |

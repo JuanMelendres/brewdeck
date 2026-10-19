@@ -70,14 +70,31 @@ class RefreshTokenServiceTest {
     when(tokenRepository.findByTokenHash(SecureTokens.sha256Hex(raw)))
         .thenReturn(Optional.of(stored));
     when(userRepository.findById(7L)).thenReturn(Optional.of(user));
+    when(tokenRepository.markUsedIfActive(eq(1L), any(Instant.class))).thenReturn(1);
 
     RefreshTokenService.RotationResult result = service.rotate(raw);
 
-    assertThat(stored.getUsedAt()).isNotNull();
     assertThat(result.user()).isEqualTo(user);
     assertThat(result.rawToken()).isNotBlank().isNotEqualTo(raw);
-    // saved twice: the rotated (used) token + the new one.
-    verify(tokenRepository, times(2)).save(any(RefreshToken.class));
+    // The old token is claimed by the conditional update; only the new one is saved.
+    verify(tokenRepository).markUsedIfActive(eq(1L), any(Instant.class));
+    verify(tokenRepository, times(1)).save(any(RefreshToken.class));
+  }
+
+  @Test
+  void rotateThatLosesTheRaceIsTreatedAsReuse() {
+    String raw = "raw-raced";
+    when(tokenRepository.findByTokenHash(SecureTokens.sha256Hex(raw)))
+        .thenReturn(Optional.of(activeToken(raw)));
+    when(userRepository.findById(7L)).thenReturn(Optional.of(user));
+    // A concurrent rotation of the same token committed first.
+    when(tokenRepository.markUsedIfActive(eq(1L), any(Instant.class))).thenReturn(0);
+
+    assertThatThrownBy(() -> service.rotate(raw))
+        .isInstanceOf(InvalidRefreshTokenException.class)
+        .hasMessage("Refresh token already used");
+    verify(tokenRepository).revokeAllActiveForUser(eq(7L), any(Instant.class));
+    verify(tokenRepository, never()).save(any());
   }
 
   @Test
@@ -90,6 +107,19 @@ class RefreshTokenServiceTest {
 
     assertThatThrownBy(() -> service.rotate(raw)).isInstanceOf(InvalidRefreshTokenException.class);
     verify(tokenRepository).revokeAllActiveForUser(eq(7L), any(Instant.class));
+    verify(userRepository, never()).findById(any());
+  }
+
+  @Test
+  void rotateOnRevokedTokenThrowsWithoutRevokingAll() {
+    String raw = "raw-revoked";
+    RefreshToken revoked = activeToken(raw);
+    revoked.setRevokedAt(Instant.now().minus(1, ChronoUnit.MINUTES));
+    when(tokenRepository.findByTokenHash(SecureTokens.sha256Hex(raw)))
+        .thenReturn(Optional.of(revoked));
+
+    assertThatThrownBy(() -> service.rotate(raw)).isInstanceOf(InvalidRefreshTokenException.class);
+    verify(tokenRepository, never()).revokeAllActiveForUser(any(), any());
     verify(userRepository, never()).findById(any());
   }
 

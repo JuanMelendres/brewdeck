@@ -326,14 +326,8 @@ class BrewMethodOwnershipIntegrationTest extends PostgresIntegrationTest {
 
   private String registerAndGetToken(String email) throws Exception {
     String response =
-        mockMvc
-            .perform(
-                post("/api/auth/register")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content("{\"email\":\"" + email + "\",\"password\":\"" + PASSWORD + "\"}"))
-            .andExpect(status().isCreated())
-            .andReturn()
-            .getResponse()
+        TestAccounts.registerAndLogin(
+                mockMvc, "{\"email\":\"" + email + "\",\"password\":\"" + PASSWORD + "\"}")
             .getContentAsString();
     return JsonPath.read(response, "$.token");
   }

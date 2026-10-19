@@ -25,7 +25,7 @@ class SuggestionGuardrailsTest {
         BigDecimal.valueOf(water),
         ratio,
         "medium",
-        temp,
+        temp == null ? null : BigDecimal.valueOf(temp),
         "2:30",
         "Pour.",
         "Bright cup.");
@@ -51,9 +51,9 @@ class SuggestionGuardrailsTest {
   @Test
   void coldBrew_keepsColdWater_butNotBoilingWater() {
     assertThat(guardrails.apply("Cold Brew", answer(100, 800, "1:8", 15)).waterTemp())
-        .isEqualTo(15);
+        .isEqualByComparingTo("15");
     assertThat(guardrails.apply("Cold Brew", answer(100, 800, "1:8", 93)).waterTemp())
-        .isEqualTo(25);
+        .isEqualByComparingTo("25");
   }
 
   @Test
@@ -80,7 +80,7 @@ class SuggestionGuardrailsTest {
     SuggestedRecipe fixed = guardrails.apply("My grandma's pot", odd);
 
     assertThat(fixed.waterGrams()).isEqualByComparingTo("100");
-    assertThat(fixed.waterTemp()).isEqualTo(100);
+    assertThat(fixed.waterTemp()).isEqualByComparingTo("100");
   }
 
   @Test
@@ -101,7 +101,7 @@ class SuggestionGuardrailsTest {
             BigDecimal.valueOf(1000),
             "75 g de café : 1000 g de agua (1:13.33)",
             "coarse",
-            15,
+            new BigDecimal("15"),
             "between twelve and twenty-four hours",
             "x".repeat(1200),
             "Smooth.");
@@ -124,7 +124,7 @@ class SuggestionGuardrailsTest {
             BigDecimal.valueOf(225),
             "1:7.5",
             "coarse",
-            99,
+            new BigDecimal("99"),
             "4:00",
             "Heat water to 99°C. Pour 225 g of water over 30 g of coffee. Bloom with 50 g first.",
             "Rich.");
@@ -132,7 +132,7 @@ class SuggestionGuardrailsTest {
     SuggestedRecipe fixed = guardrails.apply("French Press", answer);
 
     assertThat(fixed.waterGrams()).isEqualByComparingTo("360.0");
-    assertThat(fixed.waterTemp()).isEqualTo(96);
+    assertThat(fixed.waterTemp()).isEqualByComparingTo("96");
     assertThat(fixed.steps())
         .isEqualTo(
             "Heat water to 96°C. Pour 360 g of water over 30 g of coffee. Bloom with 50 g first.");
@@ -147,7 +147,7 @@ class SuggestionGuardrailsTest {
             BigDecimal.valueOf(2249),
             "1:13",
             "medium-fine",
-            92,
+            new BigDecimal("92"),
             "3:00",
             "Pour 2249 g of water over 173 g of coffee.",
             "Bright.");
@@ -159,5 +159,40 @@ class SuggestionGuardrailsTest {
     assertThat(fixed.ratio()).isEqualTo("1:13");
     assertThat(fixed.steps()).isEqualTo("Pour 520 g of water over 40 g of coffee.");
     assertThat(fixed.rationale()).endsWith("Adjusted to the usual range for this brew method.");
+  }
+
+  @Test
+  void stepsFollowAnAdjustedDecimalTemperature() {
+    String steps =
+        SuggestionGuardrails.syncSteps(
+            "Heat water to 99.5°C, then pour.",
+            null,
+            null,
+            null,
+            null,
+            new BigDecimal("99.5"),
+            new BigDecimal("96"));
+
+    assertThat(steps).isEqualTo("Heat water to 96°C, then pour.");
+  }
+
+  @Test
+  void gramsWithMoreThanTwoDecimals_areRoundedSoTheSuggestionSaves() {
+    SuggestedRecipe precise =
+        new SuggestedRecipe(
+            new BigDecimal("18.125"),
+            new BigDecimal("45.3125"),
+            "1:2.5",
+            "fine",
+            BigDecimal.valueOf(92),
+            "0:30",
+            "Pull.",
+            "Sweet.");
+
+    SuggestedRecipe fixed = guardrails.apply("Espresso", precise);
+
+    assertThat(fixed.coffeeGrams()).isEqualByComparingTo("18.13");
+    assertThat(fixed.coffeeGrams().scale()).isLessThanOrEqualTo(2);
+    assertThat(fixed.waterGrams().scale()).isLessThanOrEqualTo(2);
   }
 }

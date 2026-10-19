@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { vk } from '@/i18n/validationKey';
+import { hasAtMostOneDecimal } from './recipeSchema';
 
 function optionalNumber<T extends z.ZodTypeAny>(inner: T) {
   return z.preprocess(
@@ -15,7 +16,9 @@ export const brewSessionSchema = z.object({
     z.coerce
       .number()
       .min(0, vk('brewSession.actualTempTooLow'))
-      .max(100, vk('brewSession.actualTempTooHigh')),
+      .max(100, vk('brewSession.actualTempTooHigh'))
+      // Stored as NUMERIC(4,1): one decimal, e.g. 92.5.
+      .refine(hasAtMostOneDecimal, vk('brewSession.actualTempOneDecimal')),
   ),
   actualTime: z.string().max(20, vk('brewSession.actualTimeTooLong')).optional(),
   tasteResult: z.string().max(1000, vk('brewSession.tasteResultTooLong')).optional(),

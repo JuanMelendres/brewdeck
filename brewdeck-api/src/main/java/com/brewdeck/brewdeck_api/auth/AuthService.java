@@ -51,18 +51,35 @@ public class AuthService {
     this.dummyPasswordHash = passwordEncoder.encode(SecureTokens.newToken());
   }
 
+  /**
+   * Signs up without revealing whether the email is already registered (AUTH-05.7): the caller
+   * always gets the same answer and no session. A new address gets an account and a verification
+   * link; an existing one gets a notice to log in or reset the password instead. Both paths run one
+   * BCrypt hash so timing does not tell them apart, and the per-email limit applies to both.
+   */
   @Transactional
-  public AuthSession register(RegisterRequest request) {
-    if (userRepository.existsByEmail(request.email())) {
-      throw new EmailAlreadyUsedException("Email is already registered");
+  public void register(RegisterRequest request) {
+    rateLimiter.requireAllowed(RateLimitRule.REGISTER_EMAIL, request.email());
+    String passwordHash = passwordEncoder.encode(request.password());
+    Optional<User> existing = userRepository.findByEmail(request.email());
+    if (existing.isPresent()) {
+      User user = existing.get();
+      try {
+        emailVerificationService.sendAccountExistsNotice(user);
+      } catch (RuntimeException e) {
+        log.warn(
+            "Failed to send account-exists notice for user id={}: {}", user.getId(), e.toString());
+      }
+      log.info("Signup attempted for existing user id={}", user.getId());
+      return;
     }
-    User user =
-        User.builder()
-            .email(request.email())
-            .passwordHash(passwordEncoder.encode(request.password()))
-            .createdAt(Instant.now())
-            .build();
-    User saved = userRepository.save(user);
+    User saved =
+        userRepository.save(
+            User.builder()
+                .email(request.email())
+                .passwordHash(passwordHash)
+                .createdAt(Instant.now())
+                .build());
     log.info("Registered user id={}", saved.getId());
     try {
       emailVerificationService.issueFor(saved);
@@ -70,7 +87,6 @@ public class AuthService {
       log.warn(
           "Failed to issue verification token for user id={}: {}", saved.getId(), e.toString());
     }
-    return tokenResponse(saved, refreshTokenService.issue(saved));
   }
 
   @Transactional
@@ -124,16 +140,23 @@ public class AuthService {
     return UserResponse.fromEntity(saved);
   }
 
+  /**
+   * Changes the password and signs every session out: all refresh tokens are revoked and the token
+   * version is bumped so outstanding access tokens stop working. The caller gets a fresh session so
+   * the device that made the change stays logged in.
+   */
   @Transactional
-  public void changePassword(String email, ChangePasswordRequest request) {
+  public AuthSession changePassword(String email, ChangePasswordRequest request) {
     User user = requireByEmail(email);
     if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
       throw new InvalidCurrentPasswordException("Current password is incorrect");
     }
     user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
-    userRepository.save(user);
-    refreshTokenService.revokeAllForUser(user.getId());
-    log.info("Changed password for user id={}", user.getId());
+    user.revokeAccessTokens();
+    User saved = userRepository.save(user);
+    refreshTokenService.revokeAllForUser(saved.getId());
+    log.info("Changed password for user id={}", saved.getId());
+    return tokenResponse(saved, refreshTokenService.issue(saved));
   }
 
   // No @Transactional here on purpose: rotate() must be the outermost transaction boundary so its
@@ -149,12 +172,19 @@ public class AuthService {
     return tokenResponse(result.user(), result.rawToken());
   }
 
+  /**
+   * Revokes this device's refresh token and bumps the token version, so the access token in use
+   * stops working at once. Other devices keep their refresh tokens and silently get a new access
+   * token on their next request.
+   */
   @Transactional
   public void logout(String email, String rawRefreshToken) {
     User user = requireByEmail(email);
     if (rawRefreshToken != null && !rawRefreshToken.isBlank()) {
       refreshTokenService.revoke(rawRefreshToken, user.getId());
     }
+    user.revokeAccessTokens();
+    userRepository.save(user);
   }
 
   private User requireByEmail(String email) {

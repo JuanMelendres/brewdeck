@@ -55,7 +55,7 @@
  "item": [
   {
    "name": "Auth",
-   "description": "Self-registration, JWT login, current-user, and refresh/logout endpoints. Register/login are unauthenticated; they save the access token into {{authToken}}, and the refresh token arrives as the httpOnly brewdeck_refresh cookie, which Postman's cookie jar sends automatically to /api/auth/refresh and /api/auth/logout (ADR-013). Those two require the X-Requested-With header.",
+   "description": "Self-registration, JWT login, current-user, and refresh/logout endpoints. Register/login are unauthenticated. Register answers 202 with no token (no account enumeration); Login saves the access token into {{authToken}}, and the refresh token arrives as the httpOnly brewdeck_refresh cookie, which Postman's cookie jar sends automatically to /api/auth/refresh and /api/auth/logout (ADR-013). Those two require the X-Requested-With header.",
    "item": [
     {
      "name": "POST - Register",
@@ -93,10 +93,9 @@
        "script": {
         "type": "text/javascript",
         "exec": [
-         "pm.test('Status code is 201', function () {",
-         "  pm.response.to.have.status(201);",
-         "});",
-         "pm.collectionVariables.set('authToken', pm.response.json().token);"
+         "pm.test('Status code is 202', function () {",
+         "  pm.response.to.have.status(202);",
+         "});"
         ]
        }
       }
@@ -364,9 +363,11 @@
        "script": {
         "type": "text/javascript",
         "exec": [
-         "pm.test('Status code is 204', function () {",
-         "  pm.response.to.have.status(204);",
-         "});"
+         "pm.test('Status code is 200', function () {",
+         "  pm.response.to.have.status(200);",
+         "});",
+         "// The old access token is invalidated with the password; keep the new one.",
+         "pm.collectionVariables.set('authToken', pm.response.json().token);"
         ]
        }
       }
@@ -566,7 +567,7 @@
         "refresh"
        ]
       },
-      "description": "Uses the httpOnly brewdeck_refresh cookie that Postman's cookie jar stored from Register/Login (ADR-013). No body. The X-Requested-With header is required with the cookie."
+      "description": "Uses the httpOnly brewdeck_refresh cookie that Postman's cookie jar stored from Login (ADR-013). No body. The X-Requested-With header is required with the cookie."
      },
      "response": [],
      "event": [
@@ -610,7 +611,7 @@
         "logout"
        ]
       },
-      "description": "Uses the httpOnly brewdeck_refresh cookie that Postman's cookie jar stored from Register/Login (ADR-013). No body. The X-Requested-With header is required with the cookie."
+      "description": "Uses the httpOnly brewdeck_refresh cookie that Postman's cookie jar stored from Login (ADR-013). No body. The X-Requested-With header is required with the cookie."
      },
      "response": [],
      "event": [

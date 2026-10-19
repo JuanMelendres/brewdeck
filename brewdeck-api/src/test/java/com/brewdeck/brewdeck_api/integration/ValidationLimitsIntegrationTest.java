@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.integration;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -72,13 +73,42 @@ class ValidationLimitsIntegrationTest extends PostgresIntegrationTest {
   @Test
   @WithMockUser
   void recipe_gramsAboveTheColumnPrecision_isAFieldError() throws Exception {
-    postJson("/api/recipes", recipeBody("\"coffeeGrams\":10000,\"waterGrams\":9999.999"))
+    postJson("/api/recipes", recipeBody("\"coffeeGrams\":10000,\"waterGrams\":10000.5"))
         .andExpect(status().isBadRequest())
         .andExpect(
             jsonPath("$.validationErrors.coffeeGrams")
                 .value("Coffee grams must not exceed 9999.99"))
         .andExpect(
             jsonPath("$.validationErrors.waterGrams").value("Water grams must not exceed 9999.99"));
+  }
+
+  @Test
+  @WithMockUser
+  void recipe_gramsWithAThirdDecimal_isAFieldErrorInsteadOfBeingRounded() throws Exception {
+    postJson("/api/recipes", recipeBody("\"coffeeGrams\":15.126,\"waterGrams\":250.005"))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.validationErrors.coffeeGrams")
+                .value("Coffee grams allow at most two decimals"))
+        .andExpect(
+            jsonPath("$.validationErrors.waterGrams")
+                .value("Water grams allow at most two decimals"));
+  }
+
+  @Test
+  @WithMockUser
+  void recipe_gramsWithTwoDecimals_areStoredExactlyAsAnswered() throws Exception {
+    String body =
+        postJson("/api/recipes", recipeBody("\"coffeeGrams\":15.13"))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.coffeeGrams").value(15.13))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    Long id = ((Number) JsonPath.read(body, "$.id")).longValue();
+
+    assertThat(recipeRepository.findById(id).orElseThrow().getCoffeeGrams())
+        .isEqualByComparingTo("15.13");
   }
 
   @Test
@@ -101,11 +131,80 @@ class ValidationLimitsIntegrationTest extends PostgresIntegrationTest {
         .andExpect(jsonPath("$.actualGrind").value("a".repeat(120)));
   }
 
+  // --- Temperatures keep one decimal (V31, DATA-01) ---
+
+  @Test
+  @WithMockUser
+  void recipe_waterTempWithOneDecimal_isStoredAsSent() throws Exception {
+    String body =
+        postJson("/api/recipes", recipeBody("\"waterTemp\":92.5"))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.waterTemp").value(92.5))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    Long id = ((Number) JsonPath.read(body, "$.id")).longValue();
+
+    // Read back from the database, not the request echo.
+    assertThat(recipeRepository.findById(id).orElseThrow().getWaterTemp())
+        .isEqualByComparingTo("92.5");
+  }
+
+  @Test
+  @WithMockUser
+  void recipe_waterTempWithTwoDecimals_isAFieldErrorInsteadOfBeingRounded() throws Exception {
+    postJson("/api/recipes", recipeBody("\"waterTemp\":92.75"))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.validationErrors.waterTemp")
+                .value("Water temperature allows at most one decimal"));
+  }
+
+  @Test
+  @WithMockUser
+  void brewSession_actualTempWithOneDecimal_isStoredAsSent() throws Exception {
+    Long recipeId = seedRecipe();
+
+    postJson("/api/brew-sessions", "{\"recipeId\":" + recipeId + ",\"actualTemp\":93.5}")
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.actualTemp").value(93.5));
+  }
+
+  @Test
+  @WithMockUser
+  void brewSession_actualTempWithTwoDecimals_isAFieldError() throws Exception {
+    Long recipeId = seedRecipe();
+
+    postJson("/api/brew-sessions", "{\"recipeId\":" + recipeId + ",\"actualTemp\":93.25}")
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.validationErrors.actualTemp")
+                .value("Actual temperature allows at most one decimal"));
+  }
+
+  // --- Ratio derived from the grams (DATA-01, option A) ---
+
+  @Test
+  @WithMockUser
+  void recipe_withBothGrams_storesTheDerivedRatioAndIgnoresTheTypedOne() throws Exception {
+    postJson("/api/recipes", recipeBody("\"coffeeGrams\":15,\"waterGrams\":250,\"ratio\":\"1:99\""))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.ratio").value("1:16.7"));
+  }
+
+  @Test
+  @WithMockUser
+  void recipe_withoutBothGrams_keepsTheTypedRatio() throws Exception {
+    postJson("/api/recipes", recipeBody("\"coffeeGrams\":15,\"ratio\":\"1:16\""))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.ratio").value("1:16"));
+  }
+
   // --- Password byte limit (BCrypt) ---
 
   @Test
   void register_passwordAt72Bytes_succeeds() throws Exception {
-    postJson("/api/auth/register", registerBody("x".repeat(72))).andExpect(status().isCreated());
+    postJson("/api/auth/register", registerBody("x".repeat(72))).andExpect(status().isAccepted());
   }
 
   @Test
@@ -135,11 +234,7 @@ class ValidationLimitsIntegrationTest extends PostgresIntegrationTest {
   @Test
   void changePassword_newPasswordOver72Bytes_isAFieldError() throws Exception {
     String registered =
-        postJson("/api/auth/register", registerBody("password123"))
-            .andExpect(status().isCreated())
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
+        TestAccounts.registerAndLogin(mockMvc, registerBody("password123")).getContentAsString();
     String token = JsonPath.read(registered, "$.token");
 
     mockMvc

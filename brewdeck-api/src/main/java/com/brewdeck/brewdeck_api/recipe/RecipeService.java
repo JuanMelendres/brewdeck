@@ -169,7 +169,9 @@ public class RecipeService {
     recipe.setName(request.name());
     recipe.setCoffeeGrams(request.coffeeGrams());
     recipe.setWaterGrams(request.waterGrams());
-    recipe.setRatio(request.ratio());
+    // With both grams the ratio is derived and the typed text is ignored (DATA-01, option A).
+    String derived = BrewRatios.fromGrams(request.coffeeGrams(), request.waterGrams());
+    recipe.setRatio(derived != null ? derived : request.ratio());
     recipe.setGrindSetting(request.grindSetting());
     recipe.setWaterTemp(request.waterTemp());
     recipe.setBrewTime(request.brewTime());

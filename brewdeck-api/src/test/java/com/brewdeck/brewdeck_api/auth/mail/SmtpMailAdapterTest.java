@@ -121,6 +121,25 @@ class SmtpMailAdapterTest {
   }
 
   @Test
+  void accountExistsNotice_pointsToLogin_andCarriesNoToken() throws Exception {
+    adapter.sendAccountExistsNotice("brewer@example.com", Locale.ENGLISH);
+
+    MimeMessage message = sentMessage();
+    assertThat(message.getSubject()).isEqualTo("You already have a BrewDeck account");
+    assertThat(plainText(message))
+        .contains("https://brewdeck.example/login")
+        .contains("Forgot password?")
+        .doesNotContain("token=");
+  }
+
+  @Test
+  void accountExistsNotice_inSpanish() throws Exception {
+    adapter.sendAccountExistsNotice("brewer@example.com", Locale.forLanguageTag("es"));
+
+    assertThat(sentMessage().getSubject()).isEqualTo("Ya tienes una cuenta en BrewDeck");
+  }
+
+  @Test
   void resetEmail_linksToTheResetPage() throws Exception {
     adapter.sendResetLink("brewer@example.com", "reset_TOKEN", Locale.ENGLISH);
 

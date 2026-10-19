@@ -21,9 +21,10 @@ import {
   brewSessionSchema,
   type BrewSessionFormValues,
 } from '@/lib/validation/brewSessionSchema';
-import { useCreateBrewSession } from '@/hooks/useBrewSessionMutations';
+import { useCreateBrewSession, useUpdateBrewSession } from '@/hooks/useBrewSessionMutations';
 import { useRecipeOptions } from '@/hooks/useResourceOptions';
 import { FormSection } from '@/components/ui/FormSection';
+import type { BrewSession } from '@/lib/api/types';
 import { useNotify } from '@/lib/notifications/NotificationProvider';
 
 type BrewSessionFormInput = z.input<typeof brewSessionSchema>;
@@ -46,24 +47,27 @@ const RESULT_NOTE_FIELDS: TextFieldSpec[] = [
   { name: 'adjustmentNotes', multiline: true },
 ];
 
-function toDefaults(recipeId?: number): BrewSessionFormInput {
+function toDefaults(session?: BrewSession, recipeId?: number): BrewSessionFormInput {
   return {
-    recipeId: recipeId ?? '',
-    actualGrind: '',
-    actualTemp: '',
-    actualTime: '',
-    tasteResult: '',
-    rating: '',
-    adjustmentNotes: '',
+    recipeId: session?.recipeId ?? recipeId ?? '',
+    actualGrind: session?.actualGrind ?? '',
+    actualTemp: session?.actualTemp ?? '',
+    actualTime: session?.actualTime ?? '',
+    tasteResult: session?.tasteResult ?? '',
+    rating: session?.rating ?? '',
+    adjustmentNotes: session?.adjustmentNotes ?? '',
   } as BrewSessionFormInput;
 }
 
 export function BrewSessionFormDialog({
   open,
+  session,
   recipeId,
   onClose,
 }: {
   open: boolean;
+  /** The session to edit; without it the dialog logs a new one. */
+  session?: BrewSession;
   recipeId?: number;
   onClose: () => void;
 }) {
@@ -71,7 +75,9 @@ export function BrewSessionFormDialog({
   const tf = useTranslations('brewSessions.fields');
   const tc = useTranslations('common');
   const fieldError = useFieldError();
+  const isEdit = session !== undefined;
   const create = useCreateBrewSession();
+  const update = useUpdateBrewSession();
   const notify = useNotify();
   const recipeOptions = useRecipeOptions();
   const [serverError, setServerError] = useState<string | null>(null);
@@ -84,16 +90,16 @@ export function BrewSessionFormDialog({
     formState: { errors },
   } = useForm<BrewSessionFormInput, unknown, BrewSessionFormValues>({
     resolver: zodResolver(brewSessionSchema),
-    values: toDefaults(recipeId),
+    values: toDefaults(session, recipeId),
   });
 
-  const pending = create.isPending;
+  const pending = create.isPending || update.isPending;
 
   const onSubmit = (data: BrewSessionFormValues) => {
     setServerError(null);
-    create.mutate(data, {
+    const options = {
       onSuccess: () => {
-        notify(t('logged'));
+        notify(isEdit ? t('updated') : t('logged'));
         onClose();
       },
       onError: (error: unknown) => {
@@ -105,13 +111,20 @@ export function BrewSessionFormDialog({
           setServerError(error instanceof Error ? error.message : tc('genericError'));
         }
       },
-    });
+    };
+    if (isEdit && session) {
+      update.mutate({ id: session.id, body: data }, options);
+    } else {
+      create.mutate(data, options);
+    }
   };
 
   const renderTextField = (f: TextFieldSpec) => (
     <TextField
       label={tf(f.name)}
       type={f.number ? 'number' : 'text'}
+      // Grams and temperatures take decimals; the default step of 1 would flag 92.5 as invalid.
+      slotProps={f.number ? { htmlInput: { step: 'any' } } : undefined}
       multiline={f.multiline}
       minRows={f.multiline ? 3 : undefined}
       size="small"
@@ -124,7 +137,7 @@ export function BrewSessionFormDialog({
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>{t('title')}</DialogTitle>
+      <DialogTitle>{isEdit ? t('editTitle') : t('title')}</DialogTitle>
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <DialogContent>
           {serverError ? (
@@ -193,7 +206,7 @@ export function BrewSessionFormDialog({
             disabled={pending}
             startIcon={pending ? <CircularProgress size={16} /> : undefined}
           >
-            {tc('create')}
+            {isEdit ? tc('save') : tc('create')}
           </Button>
         </DialogActions>
       </form>

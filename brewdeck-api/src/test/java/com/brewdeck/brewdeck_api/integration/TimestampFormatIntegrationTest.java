@@ -3,7 +3,6 @@ package com.brewdeck.brewdeck_api.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.brewdeck.brewdeck_api.common.PostgresIntegrationTest;
 import com.jayway.jsonpath.JsonPath;
@@ -35,17 +34,11 @@ class TimestampFormatIntegrationTest extends PostgresIntegrationTest {
   void resourceUserAndErrorTimestamps_areUtcInstantsCloseToNow() throws Exception {
     Instant before = Instant.now();
     String registered =
-        mockMvc
-            .perform(
-                post("/api/auth/register")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(
-                        "{\"email\":\"ts-"
-                            + System.nanoTime()
-                            + "@example.com\",\"password\":\"password123\"}"))
-            .andExpect(status().isCreated())
-            .andReturn()
-            .getResponse()
+        TestAccounts.registerAndLogin(
+                mockMvc,
+                "{\"email\":\"ts-"
+                    + System.nanoTime()
+                    + "@example.com\",\"password\":\"password123\"}")
             .getContentAsString();
     String bearer = "Bearer " + JsonPath.read(registered, "$.token");
 

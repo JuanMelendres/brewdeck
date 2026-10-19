@@ -87,6 +87,11 @@ public class SmtpMailAdapter implements EmailVerificationMailPort, PasswordReset
   }
 
   @Override
+  public void sendAccountExistsNotice(String email, Locale locale) {
+    send("account-exists", email, properties.frontendBaseUrl() + "/login", locale);
+  }
+
+  @Override
   public void sendResetLink(String email, String rawToken, Locale locale) {
     send("password-reset", email, link("/reset-password", rawToken), locale);
   }

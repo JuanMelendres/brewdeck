@@ -2,6 +2,7 @@ package com.brewdeck.brewdeck_api.recipe;
 
 import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
 import com.brewdeck.brewdeck_api.session.BrewSessionRepository;
+import com.brewdeck.brewdeck_api.session.RatingAverages;
 import com.brewdeck.brewdeck_api.session.RecipeSessionStats;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
@@ -33,7 +34,10 @@ public class RecipeStatsService {
     RecipeSessionStats stats = brewSessionRepository.findStatsByRecipeId(recipeId, ownerId);
 
     return new RecipeStatsResponse(
-        recipeId, stats.getTotalSessions(), stats.getAverageRating(), stats.getLastBrewedAt());
+        recipeId,
+        stats.getTotalSessions(),
+        RatingAverages.round(stats.getAverageRating()),
+        stats.getLastBrewedAt());
   }
 
   public List<TopRatedRecipeResponse> getTopRated(int limit) {
@@ -47,7 +51,7 @@ public class RecipeStatsService {
                 new TopRatedRecipeResponse(
                     row.getRecipeId(),
                     row.getRecipeName(),
-                    row.getAverageRating(),
+                    RatingAverages.round(row.getAverageRating()),
                     row.getTotalSessions()))
         .toList();
   }

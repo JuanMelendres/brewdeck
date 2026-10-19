@@ -84,9 +84,11 @@ paths:
     post:
       tags: [Auth]
       security: []
-      summary: Self-register
+      summary: Self-register (same answer for new and existing emails; no session)
+      description: Always 202 with the same message, whether or not the email is registered. A new address gets a verification email, an existing one a notice to log in or reset the password. No token and no refresh cookie; the user logs in afterwards.
       responses:
-        "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/AuthResponse" } } } }
+        "202": { description: Accepted, content: { application/json: { schema: { type: object, properties: { message: { type: string } } } } } }
+        "429": { description: Too many signups for this IP or email, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
         "400": { description: Validation error, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
   /api/auth/login:
     post:
@@ -140,9 +142,9 @@ paths:
     post:
       tags: [Auth]
       summary: Change the current user's password
-      description: Revokes every active refresh token for the user, ending all other sessions.
+      description: Ends every session (refresh tokens revoked, outstanding access tokens invalidated) and returns a fresh access token plus a rotated refresh cookie for the caller.
       responses:
-        "204": { description: Password changed }
+        "200": { description: Password changed; new session for the caller, content: { application/json: { schema: { $ref: "#/components/schemas/AuthResponse" } } } }
         "400": { description: Wrong current password or validation error, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
         "401": { description: Unauthenticated }
   /api/auth/forgot-password:
@@ -158,7 +160,7 @@ paths:
       tags: [Auth]
       security: []
       summary: Reset password using a reset token
-      description: Revokes every active refresh token for the user, ending all existing sessions.
+      description: Ends every session (refresh tokens revoked, outstanding access tokens invalidated).
       responses:
         "204": { description: Password reset }
         "400": { description: Invalid/expired/used token or validation error, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
@@ -197,7 +199,7 @@ paths:
         - { name: brewdeck_refresh, in: cookie, required: false, schema: { type: string } }
         - { name: X-Requested-With, in: header, required: false, schema: { type: string }, description: Required when the refresh cookie is sent }
       responses:
-        "204": { description: Refresh token revoked; Set-Cookie clears brewdeck_refresh (Max-Age=0) }
+        "204": { description: Refresh token revoked and outstanding access tokens invalidated; Set-Cookie clears brewdeck_refresh (Max-Age=0) }
         "401": { description: Unauthenticated (missing/invalid access token) }
         "403": { description: Refresh cookie sent without the X-Requested-With header }
   /api/feature-flags:

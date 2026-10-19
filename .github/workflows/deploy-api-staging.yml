@@ -61,7 +61,9 @@ jobs:
 
       # The new revision gets no traffic yet: users stay on the current one until it passes the
       # health check. Flyway still runs when it starts, so migrations must stay backward compatible
-      # with the revision that keeps serving (they already are: forward-only, additive).
+      # with the revision that keeps serving. They are forward-only and additive, with one
+      # exception: V31 (INTEGER -> NUMERIC temperatures), after which revisions built before it fail
+      # Hibernate's schema validation on startup. See staging-deployment.md, "Rollback".
       - name: Deploy candidate revision (no traffic)
         id: candidate
         run: |

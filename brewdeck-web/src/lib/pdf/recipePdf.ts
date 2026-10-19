@@ -14,6 +14,11 @@ export function orDash(value: string | number | null): string {
   return text.trim() !== '' ? text : '—';
 }
 
+/** A number in the PDF's language ("15.5" / "15,5"), or a dash when missing. */
+function formatNumber(value: number | null, locale: AppLocale): string {
+  return value === null ? '—' : new Intl.NumberFormat(locale).format(value);
+}
+
 export function recipePdfFilename(recipe: Recipe): string {
   const slug = recipe.name
     .toLowerCase()
@@ -26,6 +31,7 @@ const MESSAGES = { en, es } as const;
 
 export function buildRecipePdf(recipe: Recipe, locale: AppLocale = DEFAULT_LOCALE): jsPDF {
   const t = createTranslator({ locale, messages: MESSAGES[locale], namespace: 'recipes.pdf' });
+  const tc = createTranslator({ locale, messages: MESSAGES[locale], namespace: 'common' });
   const doc = new jsPDF();
   const marginX = 14;
   const maxWidth = doc.internal.pageSize.getWidth() - marginX * 2;
@@ -50,11 +56,15 @@ export function buildRecipePdf(recipe: Recipe, locale: AppLocale = DEFAULT_LOCAL
   const details: Array<[string, string]> = [
     [t('coffee'), recipe.coffeeName],
     [t('method'), recipe.methodName],
-    [t('coffeeGrams'), orDash(recipe.coffeeGrams)],
-    [t('waterGrams'), orDash(recipe.waterGrams)],
+    // The labels already say "(g)"; only the number follows the language.
+    [t('coffeeGrams'), formatNumber(recipe.coffeeGrams, locale)],
+    [t('waterGrams'), formatNumber(recipe.waterGrams, locale)],
     [t('ratio'), orDash(recipe.ratio)],
     [t('grind'), orDash(recipe.grindSetting)],
-    [t('waterTemp'), orDash(recipe.waterTemp)],
+    [
+      t('waterTemp'),
+      recipe.waterTemp === null ? '—' : tc('celsius', { value: recipe.waterTemp }),
+    ],
     [t('brewTime'), orDash(recipe.brewTime)],
   ];
   doc.setFontSize(11);

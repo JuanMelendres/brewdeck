@@ -16,7 +16,8 @@ import org.springframework.test.web.servlet.MockMvc;
  * Boots with the real {@code prod} profile and checks that the OpenAPI spec and Swagger UI are not
  * served (audit finding 7). {@link OpenApiDocsIntegrationTest} covers the non-prod case where they
  * are. The datasource placeholders are required by application-prod.yml but overridden by the
- * Testcontainers service connection.
+ * Testcontainers service connection. Mail must be on, or {@code StartupSafetyCheck} refuses to
+ * start; nothing is sent here, so the SMTP health check is off.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -26,7 +27,10 @@ import org.springframework.test.web.servlet.MockMvc;
       "DB_URL=jdbc:postgresql://overridden-by-testcontainers/brewdeck",
       "DB_USER=overridden",
       "DB_PASSWORD=overridden",
-      "BREWDECK_JWT_SECRET=prod-profile-test-secret-that-is-at-least-32-bytes-long"
+      "BREWDECK_JWT_SECRET=prod-profile-test-secret-that-is-at-least-32-bytes-long",
+      "BREWDECK_MAIL_ENABLED=true",
+      "spring.mail.host=localhost",
+      "management.health.mail.enabled=false"
     })
 class ProdProfileApiDocsIntegrationTest extends PostgresIntegrationTest {
 

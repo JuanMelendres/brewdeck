@@ -7,7 +7,7 @@ public record SuggestedRecipeResponse(
     BigDecimal waterGrams,
     String ratio,
     String grindSetting,
-    Integer waterTemp,
+    BigDecimal waterTemp,
     String brewTime,
     String steps,
     String rationale,

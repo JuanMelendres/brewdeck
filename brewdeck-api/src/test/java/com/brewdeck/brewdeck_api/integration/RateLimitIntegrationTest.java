@@ -106,7 +106,7 @@ class RateLimitIntegrationTest extends PostgresIntegrationTest {
             "/api/auth/register",
             freshIp(),
             "{\"email\":\"" + email + "\",\"password\":\"password123\"}")
-        .andExpect(status().isCreated());
+        .andExpect(status().isAccepted());
 
     for (int i = 0; i < RateLimitRule.FORGOT_PASSWORD_EMAIL.limit(); i++) {
       post("/api/auth/forgot-password", freshIp(), "{\"email\":\"" + email + "\"}")
@@ -146,7 +146,7 @@ class RateLimitIntegrationTest extends PostgresIntegrationTest {
                   + System.nanoTime()
                   + "@example.com\","
                   + "\"password\":\"password123\"}")
-          .andExpect(status().isCreated());
+          .andExpect(status().isAccepted());
     }
 
     post(
@@ -157,6 +157,17 @@ class RateLimitIntegrationTest extends PostgresIntegrationTest {
                 + "@example.com\","
                 + "\"password\":\"password123\"}")
         .andExpect(status().isTooManyRequests());
+  }
+
+  @Test
+  void register_perEmailLimit_capsSignupEmails_newOrExisting() throws Exception {
+    String email = "reg-flood-" + System.nanoTime() + "@example.com";
+    String body = "{\"email\":\"" + email + "\",\"password\":\"password123\"}";
+    // The first call creates the account; the next ones hit an existing email. Same answer.
+    for (int i = 0; i < RateLimitRule.REGISTER_EMAIL.limit(); i++) {
+      post("/api/auth/register", freshIp(), body).andExpect(status().isAccepted());
+    }
+    post("/api/auth/register", freshIp(), body).andExpect(status().isTooManyRequests());
   }
 
   @Test

@@ -6,6 +6,7 @@ import * as mutations from '@/hooks/useRecipeMutations';
 import * as options from '@/hooks/useResourceOptions';
 import * as suggest from '@/hooks/useSuggestRecipe';
 import { ApiError } from '@/lib/api/client';
+import { NotificationProvider } from '@/lib/notifications/NotificationProvider';
 
 // AI assistant flag on: these tests cover the enabled-feature behaviour of the Suggest button.
 vi.mock('@/lib/featureFlags/FeatureFlagProvider', () => ({
@@ -175,5 +176,69 @@ describe('RecipeFormDialog', () => {
     expect(screen.getByRole('region', { name: 'Notes' })).toContainElement(
       screen.getByLabelText('Steps'),
     );
+  });
+
+  it('preselects initialCoffeeId for a new recipe', () => {
+    mockAll();
+    renderWithTheme(<RecipeFormDialog open initialCoffeeId={1} onClose={vi.fn()} />);
+
+    expect(screen.getByRole('combobox', { name: /coffee/i })).toHaveValue('1');
+  });
+
+  it('hands the created recipe to onCreated after closing', async () => {
+    mockAll();
+    createMutate.mockImplementation((_body, opts) => opts.onSuccess({ id: 8, name: 'My Recipe' }));
+    const onClose = vi.fn();
+    const onCreated = vi.fn();
+    renderWithTheme(
+      <NotificationProvider>
+        <RecipeFormDialog open initialCoffeeId={1} onClose={onClose} onCreated={onCreated} />
+      </NotificationProvider>,
+    );
+
+    fireEvent.change(screen.getByRole('combobox', { name: /brew method/i }), { target: { value: '2' } });
+    fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: 'My Recipe' } });
+    fireEvent.click(screen.getByRole('button', { name: /create/i }));
+
+    await waitFor(() => expect(onCreated).toHaveBeenCalledWith(expect.objectContaining({ id: 8 })));
+    expect(createMutate.mock.calls[0][0]).toEqual(expect.objectContaining({ coffeeId: 1 }));
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  describe('ratio derived from the grams', () => {
+    it('shows the computed ratio read-only once both grams are set, and saves it', async () => {
+      mockAll();
+      renderWithTheme(<RecipeFormDialog open onClose={vi.fn()} />);
+
+      const ratio = screen.getByLabelText(/^ratio/i);
+      expect(ratio).not.toHaveAttribute('readonly');
+
+      fireEvent.change(screen.getByLabelText(/coffee grams/i), { target: { value: '15' } });
+      fireEvent.change(screen.getByLabelText(/water grams/i), { target: { value: '250' } });
+
+      await waitFor(() => expect(ratio).toHaveValue('1:16.7'));
+      expect(ratio).toHaveAttribute('readonly');
+      expect(screen.getByText('Calculated from the grams')).toBeInTheDocument();
+
+      fireEvent.change(screen.getByRole('combobox', { name: /coffee/i }), { target: { value: '1' } });
+      fireEvent.change(screen.getByRole('combobox', { name: /brew method/i }), { target: { value: '2' } });
+      fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: 'Derived' } });
+      fireEvent.click(screen.getByRole('button', { name: /create/i }));
+
+      await waitFor(() => expect(createMutate).toHaveBeenCalledTimes(1));
+      expect(createMutate.mock.calls[0][0]).toEqual(expect.objectContaining({ ratio: '1:16.7' }));
+    });
+
+    it('keeps the ratio editable when a gram amount is missing', () => {
+      mockAll();
+      renderWithTheme(<RecipeFormDialog open onClose={vi.fn()} />);
+
+      fireEvent.change(screen.getByLabelText(/coffee grams/i), { target: { value: '15' } });
+      const ratio = screen.getByLabelText(/^ratio/i);
+      fireEvent.change(ratio, { target: { value: '1:16' } });
+
+      expect(ratio).not.toHaveAttribute('readonly');
+      expect(ratio).toHaveValue('1:16');
+    });
   });
 });

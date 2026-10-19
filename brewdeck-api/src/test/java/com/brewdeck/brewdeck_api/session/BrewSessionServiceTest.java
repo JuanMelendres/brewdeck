@@ -12,6 +12,7 @@ import com.brewdeck.brewdeck_api.method.BrewMethod;
 import com.brewdeck.brewdeck_api.recipe.Recipe;
 import com.brewdeck.brewdeck_api.recipe.RecipeRepository;
 import jakarta.persistence.EntityNotFoundException;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -45,7 +46,7 @@ class BrewSessionServiceTest {
             .recipe(recipe)
             .brewedAt(Instant.now())
             .actualGrind("Timemore S3 - 5.5")
-            .actualTemp(90)
+            .actualTemp(new BigDecimal("90"))
             .actualTime("2:30")
             .tasteResult("Balanced")
             .rating(9)
@@ -82,7 +83,7 @@ class BrewSessionServiceTest {
             .recipe(recipe)
             .brewedAt(Instant.now())
             .actualGrind("Timemore S3 - 5.5")
-            .actualTemp(90)
+            .actualTemp(new BigDecimal("90"))
             .actualTime("2:30")
             .tasteResult("Balanced")
             .rating(9)
@@ -157,7 +158,7 @@ class BrewSessionServiceTest {
         new BrewSessionRequest(
             1L,
             "Timemore S3 - 5.5",
-            90,
+            new BigDecimal("90"),
             "2:30",
             "Balanced, clean and aromatic.",
             9,
@@ -270,7 +271,7 @@ class BrewSessionServiceTest {
             .recipe(oldRecipe)
             .brewedAt(Instant.now())
             .actualGrind("Old grind")
-            .actualTemp(88)
+            .actualTemp(new BigDecimal("88"))
             .actualTime("2:00")
             .tasteResult("Old result")
             .rating(7)
@@ -281,7 +282,7 @@ class BrewSessionServiceTest {
         new BrewSessionRequest(
             1L,
             "Timemore S3 - 5.8",
-            91,
+            new BigDecimal("91"),
             "2:40",
             "More aromatic and balanced.",
             10,
@@ -298,7 +299,7 @@ class BrewSessionServiceTest {
     assertThat(result.id()).isEqualTo(1L);
     assertThat(result.recipeId()).isEqualTo(1L);
     assertThat(result.actualGrind()).isEqualTo("Timemore S3 - 5.8");
-    assertThat(result.actualTemp()).isEqualTo(91);
+    assertThat(result.actualTemp()).isEqualByComparingTo("91");
     assertThat(result.actualTime()).isEqualTo("2:40");
     assertThat(result.tasteResult()).isEqualTo("More aromatic and balanced.");
     assertThat(result.rating()).isEqualTo(10);
@@ -315,7 +316,7 @@ class BrewSessionServiceTest {
         new BrewSessionRequest(
             1L,
             "Timemore S3 - 5.8",
-            91,
+            new BigDecimal("91"),
             "2:40",
             "More aromatic and balanced.",
             10,
@@ -344,7 +345,7 @@ class BrewSessionServiceTest {
         new BrewSessionRequest(
             99L,
             "Timemore S3 - 5.8",
-            91,
+            new BigDecimal("91"),
             "2:40",
             "More aromatic and balanced.",
             10,

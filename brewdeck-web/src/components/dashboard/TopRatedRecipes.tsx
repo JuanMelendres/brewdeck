@@ -5,15 +5,17 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import type { ReactNode } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useTopRatedRecipes } from '@/hooks/useTopRatedRecipes';
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Count, RankedList } from './RankedList';
+import { formatAverage } from '@/lib/format/numbers';
 
 export function TopRatedRecipes() {
   const t = useTranslations('dashboard.topRated');
+  const locale = useLocale();
   const { data, isLoading, isError, refetch } = useTopRatedRecipes(5);
 
   let body: ReactNode;
@@ -36,7 +38,7 @@ export function TopRatedRecipes() {
           badge: (
             <>
               <StarRoundedIcon sx={{ fontSize: 15 }} aria-hidden />
-              <span>{recipe.averageRating === null ? '—' : recipe.averageRating.toFixed(1)}</span>
+              <span>{formatAverage(recipe.averageRating, locale)}</span>
             </>
           ),
         }))}

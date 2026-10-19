@@ -82,10 +82,13 @@ export function CoffeeFormDialog({
   open,
   coffee,
   onClose,
+  onCreated,
 }: {
   open: boolean;
   coffee?: Coffee;
   onClose: () => void;
+  /** Called with the new coffee after a create (not an edit), once the dialog has closed. */
+  onCreated?: (coffee: Coffee) => void;
 }) {
   const t = useTranslations('coffees.form');
   const tf = useTranslations('coffees.fields');
@@ -113,9 +116,10 @@ export function CoffeeFormDialog({
   const onSubmit = (data: CoffeeFormValues) => {
     setServerError(null);
     const options = {
-      onSuccess: () => {
+      onSuccess: (saved: Coffee) => {
         notify(isEdit ? t('updated') : t('added'));
         onClose();
+        if (!isEdit) onCreated?.(saved);
       },
       onError: (error: unknown) => {
         if (error instanceof ApiError && error.validationErrors) {

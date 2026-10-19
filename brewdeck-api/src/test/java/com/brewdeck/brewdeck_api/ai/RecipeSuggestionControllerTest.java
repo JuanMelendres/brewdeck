@@ -47,7 +47,7 @@ class RecipeSuggestionControllerTest {
                 new BigDecimal("240"),
                 "1:16",
                 "Medium-fine",
-                92,
+                new BigDecimal("92"),
                 "2:30",
                 "Bloom then pour.",
                 "Balanced for a medium roast.",

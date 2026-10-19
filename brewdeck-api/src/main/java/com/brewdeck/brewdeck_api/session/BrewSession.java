@@ -3,6 +3,7 @@ package com.brewdeck.brewdeck_api.session;
 import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.recipe.Recipe;
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import java.time.Instant;
 import lombok.*;
 
@@ -33,8 +34,8 @@ public class BrewSession {
   @Column(name = "actual_grind", length = 120)
   private String actualGrind;
 
-  @Column(name = "actual_temp")
-  private Integer actualTemp;
+  @Column(name = "actual_temp", precision = 4, scale = 1)
+  private BigDecimal actualTemp;
 
   @Column(name = "actual_time")
   private String actualTime;

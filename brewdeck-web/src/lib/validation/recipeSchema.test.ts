@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { recipeSchema } from './recipeSchema';
+import { hasAtMostOneDecimal, hasAtMostTwoDecimals, recipeSchema } from './recipeSchema';
 
 const valid = { coffeeId: '1', methodId: '2', name: 'AeroPress' };
 
@@ -56,5 +56,49 @@ describe('recipeSchema', () => {
         'recipe.waterGramsTooHigh',
       ]);
     }
+  });
+
+  it('keeps one decimal on the water temperature and rejects two', () => {
+    const ok = recipeSchema.safeParse({ ...valid, waterTemp: '92.5' });
+    expect(ok.success).toBe(true);
+    if (ok.success) {
+      expect(ok.data.waterTemp).toBe(92.5);
+    }
+
+    const tooPrecise = recipeSchema.safeParse({ ...valid, waterTemp: '92.75' });
+    expect(tooPrecise.success).toBe(false);
+    if (!tooPrecise.success) {
+      expect(tooPrecise.error.issues[0].message).toBe('recipe.waterTempOneDecimal');
+    }
+  });
+});
+
+describe('hasAtMostOneDecimal', () => {
+  it('accepts whole numbers and one decimal, despite float noise', () => {
+    expect(hasAtMostOneDecimal(92)).toBe(true);
+    expect(hasAtMostOneDecimal(92.5)).toBe(true);
+    // 0.1 + 0.2 is 0.30000000000000004 in floating point, still one decimal.
+    expect(hasAtMostOneDecimal(0.1 + 0.2)).toBe(true);
+    expect(hasAtMostOneDecimal(92.3)).toBe(true);
+    expect(hasAtMostOneDecimal(92.75)).toBe(false);
+  });
+});
+
+describe('grams scale', () => {
+  it('keeps two decimals on grams and rejects a third', () => {
+    const ok = recipeSchema.safeParse({ ...valid, coffeeGrams: '15.13', waterGrams: '250.5' });
+    expect(ok.success).toBe(true);
+
+    const tooPrecise = recipeSchema.safeParse({ ...valid, coffeeGrams: '15.126' });
+    expect(tooPrecise.success).toBe(false);
+    if (!tooPrecise.success) {
+      expect(tooPrecise.error.issues[0].message).toBe('recipe.coffeeGramsTwoDecimals');
+    }
+  });
+
+  it('is not fooled by float noise', () => {
+    expect(hasAtMostTwoDecimals(0.1 + 0.2)).toBe(true);
+    expect(hasAtMostTwoDecimals(1.005)).toBe(false);
+    expect(hasAtMostTwoDecimals(9999.99)).toBe(true);
   });
 });

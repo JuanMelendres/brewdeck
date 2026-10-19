@@ -136,7 +136,7 @@ class RecipeSuggestionServiceTest {
                 new BigDecimal("240"),
                 "1:16",
                 "Medium-fine",
-                92,
+                new BigDecimal("92"),
                 "2:30",
                 "Bloom then pour.",
                 "Balanced extraction for a medium roast."));
@@ -145,7 +145,7 @@ class RecipeSuggestionServiceTest {
         service().suggest(new SuggestRecipeRequest(1L, 2L, "fruity please"));
 
     assertThat(result.coffeeGrams()).isEqualByComparingTo("15");
-    assertThat(result.waterTemp()).isEqualTo(92);
+    assertThat(result.waterTemp()).isEqualByComparingTo("92");
     assertThat(result.rationale()).isEqualTo("Balanced extraction for a medium roast.");
     assertThat(result.aiModel()).isEqualTo("claude-haiku-4-5");
     assertThat(result.aiPromptVersion()).isEqualTo(RecipePrompts.VERSION);

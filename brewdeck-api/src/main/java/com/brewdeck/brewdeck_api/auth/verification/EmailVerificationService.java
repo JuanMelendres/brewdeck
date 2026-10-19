@@ -63,6 +63,11 @@ public class EmailVerificationService {
     log.info("Issued email verification token for user id={}", user.getId());
   }
 
+  /** Best-effort notice to an existing account's owner that someone signed up with the address. */
+  public void sendAccountExistsNotice(User user) {
+    mailPort.sendAccountExistsNotice(user.getEmail(), UserLocale.of(user));
+  }
+
   @Transactional
   public void verify(String rawToken) {
     EmailVerificationToken token =
@@ -80,11 +85,12 @@ public class EmailVerificationService {
             .orElseThrow(
                 () -> new InvalidVerificationTokenException("Verification token has no user"));
 
+    if (tokenRepository.markUsedIfUnused(token.getId(), Instant.now()) == 0) {
+      throw new InvalidVerificationTokenException("Verification token used or expired");
+    }
+
     user.setEmailVerified(true);
     userRepository.save(user);
-
-    token.setUsedAt(Instant.now());
-    tokenRepository.save(token);
     log.info("Email verified for user id={}", user.getId());
   }
 

@@ -476,7 +476,8 @@ creates a new revision.
 
 ## 8. Optional: admin account
 
-1. Register the account you want as admin.
+1. Register the account you want as admin and open the verification link from its email.
+   Unverified accounts are not promoted; the log shows a warning instead.
 2. Set it, and add the same line to `~/brewdeck-staging/api.env.yaml`:
 
    ```bash
@@ -526,6 +527,11 @@ Staging follows `master`.
 - **Web:** Vercel **Deployments → … → Instant Rollback** on an earlier production deployment.
 - **Database:** Flyway only moves forward. If a release needs the old schema back, use Neon
   **Restore** (6-hour window on Free) to a point before the deploy, then roll back the API.
+- **Not backward compatible: V31** (temperatures `INTEGER` → `NUMERIC(4,1)`, DATA-01). API
+  revisions built before V31 fail Hibernate's schema validation against the migrated database, so
+  sending traffic back to one of them does not work. Fix forward. Going back means Neon
+  **Restore** to before the deploy **and** an older revision, which also loses any decimal
+  temperatures saved since. Deploy the API and the web together for this release.
 
 ## 10. Watching cost and usage
 
@@ -574,6 +580,15 @@ When staging is no longer needed:
 
   Then redeploy. Rotating `brewdeck-jwt-secret` logs everyone out.
 - **Sensitive data:** do not put real personal data in staging.
+- **Crawlers and bots:**
+  - Staging is `noindex`: `robots.txt` disallows everything, pages carry the meta tag and every
+    response carries an `X-Robots-Tag` header, unless `ALLOW_INDEXING=true`. Polite crawlers
+    (Google, Bing) obey this.
+  - For the rest, use Vercel's free firewall (**Project → Firewall**). Set **AI Bots** to *Deny*.
+    Set **Bot Protection** to *Log* first, check that it does not flag the app's own `/api/*`
+    calls, then switch it to *Challenge*. **Attack Challenge Mode** is the panic button.
+  - The `run.app` URL bypasses Vercel's firewall. Restricting it to the Next proxy (a shared-secret
+    header) is planned for production.
 
 ## 12. Automated API deploys (GitHub Actions)
 
@@ -607,7 +622,9 @@ flowchart LR
 - **Tests are not repeated:** the release PR into `master` already ran `api-ci` (tests, Spotless,
   PMD, JaCoCo). Merge only when those checks are green.
 - **Migrations:** Flyway runs when the candidate starts, while the old revision is still serving.
-  Keep migrations additive (they already are), so both revisions work on the new schema.
+  Keep migrations additive, so both revisions work on the new schema. V31 is the one exception
+  (see **Rollback** in step 9). Any future type change in production needs expand/contract: add the
+  new column, write both, backfill, switch reads, then drop the old one.
 - **Manual run:** **Actions → Deploy API to staging → Run workflow** on `master`. Useful after
   changing env vars or secrets, or to redeploy the same commit. The job refuses other branches.
 

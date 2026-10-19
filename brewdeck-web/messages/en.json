@@ -45,12 +45,15 @@
       "nameTooLong": "Name must not exceed 120 characters",
       "coffeeGramsPositive": "Coffee grams must be greater than zero",
       "coffeeGramsTooHigh": "Coffee grams must not exceed 9999.99",
+      "coffeeGramsTwoDecimals": "Coffee grams allow at most two decimals",
       "waterGramsPositive": "Water grams must be greater than zero",
       "waterGramsTooHigh": "Water grams must not exceed 9999.99",
+      "waterGramsTwoDecimals": "Water grams allow at most two decimals",
       "ratioTooLong": "Ratio must not exceed 20 characters",
       "grindSettingTooLong": "Grind setting must not exceed 120 characters",
       "waterTempTooLow": "Water temperature must be at least 0 degrees Celsius",
       "waterTempTooHigh": "Water temperature must not exceed 100 degrees Celsius",
+      "waterTempOneDecimal": "Water temperature allows at most one decimal",
       "brewTimeTooLong": "Brew time must not exceed 20 characters",
       "stepsTooLong": "Steps must not exceed 1000 characters",
       "expectedTasteTooLong": "Expected taste must not exceed 500 characters"
@@ -66,6 +69,7 @@
       "actualGrindTooLong": "Actual grind must not exceed 120 characters",
       "actualTempTooLow": "Actual temperature must be at least 0 degrees Celsius",
       "actualTempTooHigh": "Actual temperature must not exceed 100 degrees Celsius",
+      "actualTempOneDecimal": "Actual temperature allows at most one decimal",
       "actualTimeTooLong": "Actual time must not exceed 20 characters",
       "tasteResultTooLong": "Taste result must not exceed 1000 characters",
       "ratingTooLow": "Rating must be at least 1",
@@ -87,7 +91,10 @@
       "subtitle": "Start logging your coffees, recipes, and brews.",
       "submit": "Create account",
       "haveAccount": "Already have an account? <link>Log in</link>",
-      "failed": "Could not register. That email may already be in use."
+      "failed": "Could not create your account. Please try again.",
+      "checkEmailTitle": "Check your email",
+      "checkEmail": "We sent a message to {email}. Open it to verify your address, then log in.",
+      "goToLogin": "Go to log in"
     },
     "forgot": {
       "title": "Reset your password",
@@ -149,6 +156,7 @@
     "email": "Email",
     "password": "Password",
     "newPassword": "New password",
+    "confirmPassword": "Confirm password",
     "confirmNewPassword": "Confirm new password",
     "logIn": "Log in",
     "logOut": "Log out",
@@ -169,8 +177,8 @@
     "favorite": "Favorite",
     "favoriteItem": "Favorite {name}",
     "loadingEllipsis": "Loading…",
-    "grams": "{value} g",
-    "celsius": "{value}°C",
+    "grams": "{value, number} g",
+    "celsius": "{value, number}°C",
     "close": "Close",
     "copy": "Copy",
     "name": "Name",
@@ -307,7 +315,8 @@
       "suggest": "Suggest with AI",
       "suggestFailed": "AI suggestions are unavailable right now. Please try again later.",
       "added": "Recipe added",
-      "updated": "Recipe updated"
+      "updated": "Recipe updated",
+      "ratioDerived": "Calculated from the grams"
     },
     "list": {
       "title": "Recipes",
@@ -316,7 +325,9 @@
       "noMatches": "No recipes match these filters.",
       "empty": "No recipes yet. Save how you brew a coffee to repeat your best cups.",
       "addFirst": "Add your first recipe",
-      "favoritesOnly": "Favorites only"
+      "favoritesOnly": "Favorites only",
+      "needsCoffee": "Recipes start from a coffee. Add the coffee you brew first; its recipe form opens right after.",
+      "addCoffeeFirst": "Add a coffee"
     },
     "favorites": {
       "title": "Favorite Recipes",
@@ -460,14 +471,34 @@
       "time": "Time",
       "taste": "Taste",
       "showMore": "Show more",
-      "showLess": "Show less"
+      "showLess": "Show less",
+      "needsRecipe": "Each brew session follows a recipe. Create the recipe first; the brew form opens right after.",
+      "addRecipeFirst": "Add a recipe",
+      "needsCoffee": "Brew sessions follow a recipe, and recipes start from a coffee. Add your coffee first; the recipe and brew forms follow.",
+      "addCoffeeFirst": "Add a coffee",
+      "viewSession": "Open the brew session from {date}"
     },
     "form": {
       "title": "Add brew session",
       "sectionBrew": "Brew",
       "sectionResult": "Result",
       "selectRecipe": "Select a recipe",
-      "logged": "Brew session logged"
+      "logged": "Brew session logged",
+      "editTitle": "Edit brew session",
+      "updated": "Brew session updated"
+    },
+    "delete": {
+      "title": "Delete brew session",
+      "confirm": "Delete the {recipe} brew from {date}? This cannot be undone.",
+      "deleted": "Brew session deleted"
+    },
+    "detail": {
+      "back": "← Back to brew sessions",
+      "loadFailed": "Could not load this brew session.",
+      "brewedOn": "Brewed {date}",
+      "notRated": "Not rated",
+      "edit": "Edit",
+      "delete": "Delete"
     }
   },
   "meta": {

@@ -1,7 +1,6 @@
 package com.brewdeck.brewdeck_api.integration;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -27,14 +26,8 @@ class LanguagePreferenceIntegrationTest extends PostgresIntegrationTest {
   private String register() throws Exception {
     String email = "language-" + System.nanoTime() + "@example.com";
     String response =
-        mockMvc
-            .perform(
-                post("/api/auth/register")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content("{\"email\":\"" + email + "\",\"password\":\"password123\"}"))
-            .andExpect(status().isCreated())
-            .andReturn()
-            .getResponse()
+        TestAccounts.registerAndLogin(
+                mockMvc, "{\"email\":\"" + email + "\",\"password\":\"password123\"}")
             .getContentAsString();
     return "Bearer " + JsonPath.read(response, "$.token");
   }

@@ -18,7 +18,7 @@ import type { BrewSession } from '@/lib/api/types';
 import { formatDateTime } from '@/lib/format/dates';
 import { radius } from '@/lib/theme/tokens';
 
-function Muted({ children }: { children: string }) {
+export function Muted({ children }: { children: string }) {
   return (
     <Typography component="span" variant="body2" color="text.secondary">
       {children}
@@ -33,7 +33,7 @@ function orMuted(value: string | number | null) {
 /** Longer notes start collapsed to two lines, with a toggle to read them in full. */
 const TASTE_PREVIEW_CHARS = 80;
 
-function TasteCell({ text }: { text: string }) {
+export function TasteCell({ text }: { text: string }) {
   const t = useTranslations('brewSessions.list');
   const [expanded, setExpanded] = useState(false);
   const long = text.length > TASTE_PREVIEW_CHARS;
@@ -72,6 +72,35 @@ function TasteCell({ text }: { text: string }) {
   );
 }
 
+/** "9/10" with a star, or a dash when the brew was not rated. */
+export function RatingPill({ rating }: { rating: number | null }) {
+  if (rating === null) {
+    return <Muted>—</Muted>;
+  }
+  return (
+    <Box
+      component="span"
+      sx={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 0.5,
+        px: 1.25,
+        py: 0.25,
+        borderRadius: radius.pill,
+        bgcolor: 'background.tint',
+        color: 'secondary.main',
+        fontWeight: 600,
+      }}
+    >
+      <StarRoundedIcon sx={{ fontSize: 15 }} aria-hidden />
+      <span>{rating}</span>
+      <Typography component="span" variant="caption" color="text.secondary">
+        /10
+      </Typography>
+    </Box>
+  );
+}
+
 export function BrewSessionsTable({ sessions }: { sessions: BrewSession[] }) {
   const t = useTranslations('brewSessions.list');
   const tc = useTranslations('common');
@@ -92,7 +121,17 @@ export function BrewSessionsTable({ sessions }: { sessions: BrewSession[] }) {
         <TableBody>
           {sessions.map((session) => (
             <TableRow key={session.id} hover>
-              <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatDateTime(session.brewedAt, undefined, locale)}</TableCell>
+              <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                <Link
+                  component={NextLink}
+                  href={`/brew-sessions/${session.id}`}
+                  underline="hover"
+                  color="text.primary"
+                  aria-label={t('viewSession', { date: formatDateTime(session.brewedAt, undefined, locale) })}
+                >
+                  {formatDateTime(session.brewedAt, undefined, locale)}
+                </Link>
+              </TableCell>
               <TableCell>
                 <Link
                   component={NextLink}
@@ -105,30 +144,7 @@ export function BrewSessionsTable({ sessions }: { sessions: BrewSession[] }) {
                 </Link>
               </TableCell>
               <TableCell>
-                {session.rating === null ? (
-                  <Muted>—</Muted>
-                ) : (
-                  <Box
-                    component="span"
-                    sx={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 0.5,
-                      px: 1.25,
-                      py: 0.25,
-                      borderRadius: radius.pill,
-                      bgcolor: 'background.tint',
-                      color: 'secondary.main',
-                      fontWeight: 600,
-                    }}
-                  >
-                    <StarRoundedIcon sx={{ fontSize: 15 }} aria-hidden />
-                    <span>{session.rating}</span>
-                    <Typography component="span" variant="caption" color="text.secondary">
-                      /10
-                    </Typography>
-                  </Box>
-                )}
+                <RatingPill rating={session.rating} />
               </TableCell>
               <TableCell>{session.actualTemp === null ? <Muted>—</Muted> : tc('celsius', { value: session.actualTemp })}</TableCell>
               <TableCell>{orMuted(session.actualTime)}</TableCell>

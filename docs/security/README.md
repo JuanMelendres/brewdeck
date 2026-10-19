@@ -4,6 +4,10 @@ Security review outputs for BrewDeck, kept as living docs alongside the code.
 
 ## Contents
 
+- [`asvs-checklist.md`](asvs-checklist.md) — ASVS-style checklist of the application's security
+  controls (authentication, sessions, access control, validation, configuration, headers), each
+  linked to its code and test, plus the open gaps. Re-check it when auth, ownership, tokens or
+  configuration change.
 - `spring-vulnerability-audit.md` — dependency & container vulnerability audit report, generated and
   updated by the `spring-vulnerability-audit` skill. Created on the first audit run.
 

@@ -18,7 +18,7 @@ public record ImprovementContext(
     BigDecimal currentWaterGrams,
     String currentRatio,
     String currentGrindSetting,
-    Integer currentWaterTemp,
+    BigDecimal currentWaterTemp,
     String currentBrewTime,
     String currentSteps,
     List<BrewHistoryEntry> history) {}

@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.session;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 public record BrewSessionResponse(
@@ -8,7 +9,7 @@ public record BrewSessionResponse(
     String recipeName,
     Instant brewedAt,
     String actualGrind,
-    Integer actualTemp,
+    BigDecimal actualTemp,
     String actualTime,
     String tasteResult,
     Integer rating,

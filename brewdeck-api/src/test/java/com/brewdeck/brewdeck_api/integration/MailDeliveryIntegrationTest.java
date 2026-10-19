@@ -40,7 +40,7 @@ class MailDeliveryIntegrationTest extends PostgresIntegrationTest {
   private static final int SMTP_PORT = 1025;
   private static final int API_PORT = 8025;
 
-  // GHCR, not Docker Hub: CI rewrites Docker Hub names to the ECR Public library mirror
+  // GHCR, not Docker Hub: CI rewrites Docker Hub names to the mirror.gcr.io library mirror
   // (TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX), which only carries official images.
   @SuppressWarnings("resource")
   static final GenericContainer<?> MAILPIT =
@@ -106,14 +106,8 @@ class MailDeliveryIntegrationTest extends PostgresIntegrationTest {
   void registration_sendsARealVerificationEmail_whoseLinkVerifiesTheAccount() throws Exception {
     String email = "mail-verify-" + System.nanoTime() + "@example.com";
     String registered =
-        mockMvc
-            .perform(
-                post("/api/auth/register")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content("{\"email\":\"" + email + "\",\"password\":\"password123\"}"))
-            .andExpect(status().isCreated())
-            .andReturn()
-            .getResponse()
+        TestAccounts.registerAndLogin(
+                mockMvc, "{\"email\":\"" + email + "\",\"password\":\"password123\"}")
             .getContentAsString();
     String bearer = "Bearer " + JsonPath.read(registered, "$.token");
 
@@ -132,6 +126,21 @@ class MailDeliveryIntegrationTest extends PostgresIntegrationTest {
   }
 
   @Test
+  void signupWithAnExistingEmail_sendsARealAccountExistsEmail() throws Exception {
+    String email = "mail-exists-" + System.nanoTime() + "@example.com";
+    String body = "{\"email\":\"" + email + "\",\"password\":\"password123\"}";
+    mockMvc
+        .perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(body))
+        .andExpect(status().isAccepted());
+
+    mockMvc
+        .perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(body))
+        .andExpect(status().isAccepted());
+
+    assertThat(awaitMessageText(email, "You already have a BrewDeck account")).contains("/login");
+  }
+
+  @Test
   void forgotPassword_sendsARealResetEmail_whoseLinkResetsThePassword() throws Exception {
     String email = "mail-reset-" + System.nanoTime() + "@example.com";
     mockMvc
@@ -139,7 +148,7 @@ class MailDeliveryIntegrationTest extends PostgresIntegrationTest {
             post("/api/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"email\":\"" + email + "\",\"password\":\"password123\"}"))
-        .andExpect(status().isCreated());
+        .andExpect(status().isAccepted());
 
     mockMvc
         .perform(

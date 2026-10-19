@@ -58,13 +58,7 @@ class AuthControllerTest {
   }
 
   @Test
-  void register_returns201WithToken() throws Exception {
-    when(authService.register(any()))
-        .thenReturn(
-            new AuthSession(
-                new AuthResponse("jwt", Instant.parse("2026-07-09T00:00:00Z"), "new@example.com"),
-                "refresh-token"));
-
+  void register_returns202WithAGenericMessage_andNoSession() throws Exception {
     mockMvc
         .perform(
             post("/api/auth/register")
@@ -72,24 +66,13 @@ class AuthControllerTest {
                 .content(
                     objectMapper.writeValueAsString(
                         new RegisterRequest("new@example.com", "password1"))))
-        .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.token").value("jwt"))
-        .andExpect(jsonPath("$.email").value("new@example.com"));
-  }
-
-  @Test
-  void register_duplicateReturns409() throws Exception {
-    when(authService.register(any()))
-        .thenThrow(new EmailAlreadyUsedException("Email is already registered"));
-
-    mockMvc
-        .perform(
-            post("/api/auth/register")
-                .contentType("application/json")
-                .content(
-                    objectMapper.writeValueAsString(
-                        new RegisterRequest("taken@example.com", "password1"))))
-        .andExpect(status().isConflict());
+        .andExpect(status().isAccepted())
+        .andExpect(jsonPath("$.message").value("Check your email to finish creating your account."))
+        .andExpect(jsonPath("$.token").doesNotExist())
+        .andExpect(
+            org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
+                .doesNotExist(HttpHeaders.SET_COOKIE));
+    verify(authService).register(new RegisterRequest("new@example.com", "password1"));
   }
 
   @Test
@@ -231,8 +214,14 @@ class AuthControllerTest {
   }
 
   @Test
-  void changePassword_returns204() throws Exception {
+  void changePassword_returns200WithAFreshSessionForTheCaller() throws Exception {
     Principal principal = () -> "brewer@example.com";
+    when(authService.changePassword(eq("brewer@example.com"), any()))
+        .thenReturn(
+            new AuthSession(
+                new AuthResponse(
+                    "new-jwt", Instant.parse("2026-07-09T00:00:00Z"), "brewer@example.com"),
+                "new-refresh"));
 
     mockMvc
         .perform(
@@ -242,7 +231,13 @@ class AuthControllerTest {
                 .content(
                     objectMapper.writeValueAsString(
                         new ChangePasswordRequest("password1", "newpassword1"))))
-        .andExpect(status().isNoContent());
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.token").value("new-jwt"))
+        .andExpect(jsonPath("$.refreshToken").doesNotExist())
+        .andExpect(
+            org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
+                .string(
+                    HttpHeaders.SET_COOKIE, org.hamcrest.Matchers.containsString("new-refresh")));
   }
 
   @Test

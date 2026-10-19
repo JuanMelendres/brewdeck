@@ -37,9 +37,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         && SecurityContextHolder.getContext().getAuthentication() == null) {
       String token = header.substring(BEARER_PREFIX.length());
       try {
-        String email = jwtService.validateAndGetSubject(token);
+        JwtService.VerifiedToken verified = jwtService.verify(token);
         userRepository
-            .findByEmail(email)
+            .findByEmail(verified.subject())
+            // A bumped token version (logout, password change or reset) revokes older tokens.
+            .filter(user -> user.getTokenVersion() == verified.tokenVersion())
             .ifPresent(
                 user -> {
                   var authentication =

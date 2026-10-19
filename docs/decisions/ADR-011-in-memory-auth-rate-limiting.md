@@ -12,7 +12,7 @@ The 2026-09-24 backend audit found no throttling on the public auth endpoints: 1
 ## Decision
 - **Store:** an in-process, fixed-window counter (`RateLimiter`) on top of Caffeine, which is already a dependency (ADR-007 caching). No new library or infrastructure.
 - **Per client IP:** `AuthRateLimitFilter`, in the security chain before JWT handling, covers `POST` on login, register, refresh, forgot-password, reset-password, and verify-email.
-- **Per account:** services apply limits by email. Login has one, so rotating IPs does not help against one account. Forgot-password has one, checked before the user lookup so known and unknown emails are throttled alike (no enumeration).
+- **Per account:** services apply limits by email. Login has one, so rotating IPs does not help against one account. Forgot-password has one, checked before the user lookup so known and unknown emails are throttled alike (no enumeration). Register has one too (`REGISTER_EMAIL`, added 2026-10-16 with AUTH-05.7): signup now answers the same for new and existing emails and emails the address either way, so the limit keeps anyone from flooding a mailbox, and it is checked before the lookup for the same reason.
 - **Limits** (`RateLimitRule`):
 
   | Rule | Limit |
@@ -20,6 +20,7 @@ The 2026-09-24 backend audit found no throttling on the public auth endpoints: 1
   | `LOGIN_IP` | 20 / minute |
   | `LOGIN_EMAIL` | 10 / 15 minutes |
   | `REGISTER_IP` | 5 / hour |
+  | `REGISTER_EMAIL` | 3 / hour |
   | `REFRESH_IP` | 30 / minute |
   | `FORGOT_PASSWORD_IP` | 5 / 15 minutes |
   | `FORGOT_PASSWORD_EMAIL` | 3 / hour |

@@ -24,7 +24,7 @@ class ClaudeRecipeSuggestionAdapterTest {
     SuggestedRecipe result = ClaudeRecipeSuggestionAdapter.toSuggestedRecipe(payload);
 
     assertThat(result.coffeeGrams()).isEqualByComparingTo("15");
-    assertThat(result.waterTemp()).isEqualTo(92);
+    assertThat(result.waterTemp()).isEqualByComparingTo("92");
     assertThat(result.rationale()).isEqualTo("Balanced for a medium roast.");
   }
 

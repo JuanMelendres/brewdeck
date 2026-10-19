@@ -1,11 +1,11 @@
 package com.brewdeck.brewdeck_api.integration;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -13,8 +13,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.auth.UserRepository;
 import com.brewdeck.brewdeck_api.auth.reset.PasswordResetMailPort;
+import com.brewdeck.brewdeck_api.auth.verification.EmailVerificationMailPort;
 import com.brewdeck.brewdeck_api.common.PostgresIntegrationTest;
-import com.jayway.jsonpath.JsonPath;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,38 +37,32 @@ class EmailNormalizationIntegrationTest extends PostgresIntegrationTest {
   @Autowired private MockMvc mockMvc;
   @Autowired private UserRepository userRepository;
   @MockitoSpyBean private PasswordResetMailPort mailPort;
+  @MockitoSpyBean private EmailVerificationMailPort verificationMailPort;
 
   @Test
   void register_storesTheNormalizedEmail() throws Exception {
     String local = "mixed.case-" + System.nanoTime();
 
-    String response =
-        register("  " + local.toUpperCase() + "@Example.COM ")
-            .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.email").value(local + "@example.com"))
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
+    register("  " + local.toUpperCase() + "@Example.COM ").andExpect(status().isAccepted());
 
-    String token = JsonPath.read(response, "$.token");
-    mockMvc
-        .perform(get("/api/auth/me").header("Authorization", "Bearer " + token))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.email").value(local + "@example.com"));
+    assertThat(userRepository.findByEmail(local + "@example.com")).isPresent();
   }
 
   @Test
-  void register_sameAddressInDifferentCase_isAConflict() throws Exception {
+  void register_sameAddressInDifferentCase_notifiesTheExistingAccount() throws Exception {
     String local = "dup-" + System.nanoTime();
-    register(local + "@example.com").andExpect(status().isCreated());
+    register(local + "@example.com").andExpect(status().isAccepted());
 
-    register(local.toUpperCase() + "@EXAMPLE.com").andExpect(status().isConflict());
+    // Same answer as a new signup; the owner of the existing account is told by email instead.
+    register(local.toUpperCase() + "@EXAMPLE.com").andExpect(status().isAccepted());
+
+    verify(verificationMailPort).sendAccountExistsNotice(eq(local + "@example.com"), any());
   }
 
   @Test
   void login_isCaseInsensitive() throws Exception {
     String local = "login-" + System.nanoTime();
-    register(local + "@example.com").andExpect(status().isCreated());
+    register(local + "@example.com").andExpect(status().isAccepted());
 
     mockMvc
         .perform(
@@ -87,7 +81,7 @@ class EmailNormalizationIntegrationTest extends PostgresIntegrationTest {
   @Test
   void forgotPassword_findsTheAccountRegardlessOfCase() throws Exception {
     String local = "forgot-" + System.nanoTime();
-    register(local + "@example.com").andExpect(status().isCreated());
+    register(local + "@example.com").andExpect(status().isAccepted());
 
     mockMvc
         .perform(

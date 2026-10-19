@@ -57,14 +57,8 @@ class EmailVerificationEnforcementIntegrationTest extends PostgresIntegrationTes
 
   private String registerUnverified(String email) throws Exception {
     String response =
-        mockMvc
-            .perform(
-                post("/api/auth/register")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content("{\"email\":\"" + email + "\",\"password\":\"password123\"}"))
-            .andExpect(status().isCreated())
-            .andReturn()
-            .getResponse()
+        TestAccounts.registerAndLogin(
+                mockMvc, "{\"email\":\"" + email + "\",\"password\":\"password123\"}")
             .getContentAsString();
     return "Bearer " + JsonPath.read(response, "$.token");
   }

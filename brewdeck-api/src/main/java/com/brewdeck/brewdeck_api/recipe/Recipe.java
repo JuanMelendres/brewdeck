@@ -47,8 +47,8 @@ public class Recipe {
   @Column(name = "grind_setting", length = 120)
   private String grindSetting;
 
-  @Column(name = "water_temp")
-  private Integer waterTemp;
+  @Column(name = "water_temp", precision = 4, scale = 1)
+  private BigDecimal waterTemp;
 
   @Column(name = "brew_time")
   private String brewTime;
