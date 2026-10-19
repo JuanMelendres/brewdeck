@@ -63,7 +63,7 @@ class PasswordResetControllerTest {
                 .contentType("application/json")
                 .content(
                     objectMapper.writeValueAsString(
-                        new ResetPasswordRequest("raw-token", "newpassword1"))))
+                        new ResetPasswordRequest("raw-token", "brew-new-pass-0001"))))
         .andExpect(status().isNoContent());
   }
 
@@ -77,7 +77,7 @@ class PasswordResetControllerTest {
                 .contentType("application/json")
                 .content(
                     objectMapper.writeValueAsString(
-                        new ResetPasswordRequest("raw-token", "newpassword1"))))
+                        new ResetPasswordRequest("raw-token", "brew-new-pass-0001"))))
         .andExpect(status().isBadRequest());
   }
 

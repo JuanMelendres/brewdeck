@@ -16,6 +16,7 @@ import { useForm } from 'react-hook-form';
 import { rateLimitMessage } from '@/lib/api/errors';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { useFieldError } from '@/i18n/useFieldError';
+import { PasswordField } from '@/components/ui/PasswordField';
 import { loginSchema, type LoginFormValues } from '@/lib/validation/authSchema';
 
 export function LoginForm() {
@@ -58,9 +59,8 @@ export function LoginForm() {
           error={!!errors.email}
           helperText={fieldError(errors.email?.message)}
         />
-        <TextField
+        <PasswordField
           label={tc('password')}
-          type="password"
           {...register('password')}
           error={!!errors.password}
           helperText={fieldError(errors.password?.message)}

@@ -27,7 +27,7 @@ class LanguagePreferenceIntegrationTest extends PostgresIntegrationTest {
     String email = "language-" + System.nanoTime() + "@example.com";
     String response =
         TestAccounts.registerAndLogin(
-                mockMvc, "{\"email\":\"" + email + "\",\"password\":\"password123\"}")
+                mockMvc, "{\"email\":\"" + email + "\",\"password\":\"brew-test-pass-123\"}")
             .getContentAsString();
     return "Bearer " + JsonPath.read(response, "$.token");
   }

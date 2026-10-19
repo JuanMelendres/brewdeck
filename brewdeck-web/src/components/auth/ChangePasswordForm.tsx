@@ -5,12 +5,12 @@ import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useFieldError } from '@/i18n/useFieldError';
+import { PasswordField } from '@/components/ui/PasswordField';
 import { changePassword } from '@/lib/api/auth';
 import { ApiError } from '@/lib/api/client';
 import { setToken } from '@/lib/auth/tokenStore';
@@ -69,23 +69,20 @@ export function ChangePasswordForm() {
       <Stack spacing={2}>
         {formError ? <Alert severity="error">{formError}</Alert> : null}
         {saved ? <Alert severity="success">{t('saved')}</Alert> : null}
-        <TextField
+        <PasswordField
           label={t('currentPassword')}
-          type="password"
           {...register('currentPassword')}
           error={!!errors.currentPassword}
           helperText={fieldError(errors.currentPassword?.message)}
         />
-        <TextField
+        <PasswordField
           label={tc('newPassword')}
-          type="password"
           {...register('newPassword')}
           error={!!errors.newPassword}
           helperText={fieldError(errors.newPassword?.message)}
         />
-        <TextField
+        <PasswordField
           label={tc('confirmNewPassword')}
-          type="password"
           {...register('confirmPassword')}
           error={!!errors.confirmPassword}
           helperText={fieldError(errors.confirmPassword?.message)}

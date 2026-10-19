@@ -30,7 +30,7 @@ public class AuthService {
 
   /**
    * A real hash of a random password with the same encoder (and cost) as stored hashes. Login
-   * checks against it when the email is unknown, so "no such user" costs the same BCrypt work as
+   * checks against it when the email is unknown, so "no such user" costs the same hashing work as
    * "wrong password" and response time does not reveal which emails are registered.
    */
   private final String dummyPasswordHash;
@@ -55,7 +55,7 @@ public class AuthService {
    * Signs up without revealing whether the email is already registered (AUTH-05.7): the caller
    * always gets the same answer and no session. A new address gets an account and a verification
    * link; an existing one gets a notice to log in or reset the password instead. Both paths run one
-   * BCrypt hash so timing does not tell them apart, and the per-email limit applies to both.
+   * password hash so timing does not tell them apart, and the per-email limit applies to both.
    */
   @Transactional
   public void register(RegisterRequest request) {
@@ -94,7 +94,7 @@ public class AuthService {
     // Per-account limit, checked before the password: rotating IPs does not help an attacker.
     rateLimiter.requireAllowed(RateLimitRule.LOGIN_EMAIL, request.email());
     Optional<User> maybeUser = userRepository.findByEmail(request.email());
-    // Always run exactly one BCrypt comparison, against the dummy hash when the user is unknown,
+    // Always run exactly one hash comparison, against the dummy hash when the user is unknown,
     // so the two failure cases are indistinguishable by timing as well as by response body.
     String hashToCheck = maybeUser.map(User::getPasswordHash).orElse(dummyPasswordHash);
     boolean passwordMatches = passwordEncoder.matches(request.password(), hashToCheck);
@@ -102,6 +102,12 @@ public class AuthService {
       throw new BadCredentialsException(INVALID_CREDENTIALS);
     }
     User user = maybeUser.get();
+    // BCrypt hashes from before ADR-018 move to Argon2id the first time their owner logs in.
+    if (passwordEncoder.upgradeEncoding(user.getPasswordHash())) {
+      user.setPasswordHash(passwordEncoder.encode(request.password()));
+      userRepository.save(user);
+      log.info("Upgraded password hash to Argon2id for user id={}", user.getId());
+    }
     return tokenResponse(user, refreshTokenService.issue(user));
   }
 

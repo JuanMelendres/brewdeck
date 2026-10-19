@@ -15,9 +15,9 @@
     "emailTooLong": "Email must not exceed 255 characters",
     "emailInvalid": "Enter a valid email",
     "passwordRequired": "Password is required",
-    "passwordTooShort": "Password must be at least 8 characters",
-    "newPasswordTooShort": "New password must be at least 8 characters",
-    "passwordTooLong": "Password must not exceed 72 bytes (fewer characters if it uses accents or emoji)",
+    "passwordTooShort": "Password must be at least 15 characters",
+    "newPasswordTooShort": "New password must be at least 15 characters",
+    "passwordTooLong": "Password must not exceed 128 characters",
     "displayNameTooLong": "Display name must not exceed 100 characters",
     "currentPasswordRequired": "Current password is required",
     "currentPasswordIncorrect": "Current password is incorrect",
@@ -182,7 +182,9 @@
     "close": "Close",
     "copy": "Copy",
     "name": "Name",
-    "actions": "Actions"
+    "actions": "Actions",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "theme": {
     "group": "Theme",

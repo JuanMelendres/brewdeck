@@ -39,7 +39,7 @@ class PasswordResetIntegrationTest extends PostgresIntegrationTest {
     userRepository.save(
         User.builder()
             .email(email)
-            .passwordHash(passwordEncoder.encode("password1"))
+            .passwordHash(passwordEncoder.encode("brew-test-pass-001"))
             .createdAt(Instant.now())
             .build());
 
@@ -61,7 +61,7 @@ class PasswordResetIntegrationTest extends PostgresIntegrationTest {
         .perform(
             post("/api/auth/reset-password")
                 .contentType("application/json")
-                .content("{\"token\":\"" + token + "\",\"newPassword\":\"newpassword1\"}"))
+                .content("{\"token\":\"" + token + "\",\"newPassword\":\"brew-new-pass-0001\"}"))
         .andExpect(status().isNoContent());
 
     // new password logs in, old one does not
@@ -69,13 +69,13 @@ class PasswordResetIntegrationTest extends PostgresIntegrationTest {
         .perform(
             post("/api/auth/login")
                 .contentType("application/json")
-                .content("{\"email\":\"" + email + "\",\"password\":\"newpassword1\"}"))
+                .content("{\"email\":\"" + email + "\",\"password\":\"brew-new-pass-0001\"}"))
         .andExpect(status().isOk());
     mockMvc
         .perform(
             post("/api/auth/login")
                 .contentType("application/json")
-                .content("{\"email\":\"" + email + "\",\"password\":\"password1\"}"))
+                .content("{\"email\":\"" + email + "\",\"password\":\"brew-test-pass-001\"}"))
         .andExpect(status().isUnauthorized());
 
     // token is single-use: replay returns 400
@@ -83,7 +83,7 @@ class PasswordResetIntegrationTest extends PostgresIntegrationTest {
         .perform(
             post("/api/auth/reset-password")
                 .contentType("application/json")
-                .content("{\"token\":\"" + token + "\",\"newPassword\":\"another12\"}"))
+                .content("{\"token\":\"" + token + "\",\"newPassword\":\"brew-another-pass-12\"}"))
         .andExpect(status().isBadRequest());
   }
 
@@ -93,7 +93,7 @@ class PasswordResetIntegrationTest extends PostgresIntegrationTest {
     userRepository.save(
         User.builder()
             .email(email)
-            .passwordHash(passwordEncoder.encode("password1"))
+            .passwordHash(passwordEncoder.encode("brew-test-pass-001"))
             .createdAt(Instant.now())
             .build());
 
@@ -103,7 +103,7 @@ class PasswordResetIntegrationTest extends PostgresIntegrationTest {
             .perform(
                 post("/api/auth/login")
                     .contentType("application/json")
-                    .content("{\"email\":\"" + email + "\",\"password\":\"password1\"}"))
+                    .content("{\"email\":\"" + email + "\",\"password\":\"brew-test-pass-001\"}"))
             .andExpect(status().isOk())
             .andReturn()
             .getResponse();
@@ -125,7 +125,9 @@ class PasswordResetIntegrationTest extends PostgresIntegrationTest {
             post("/api/auth/reset-password")
                 .contentType("application/json")
                 .content(
-                    "{\"token\":\"" + rawToken.getValue() + "\",\"newPassword\":\"newpassword1\"}"))
+                    "{\"token\":\""
+                        + rawToken.getValue()
+                        + "\",\"newPassword\":\"brew-new-pass-0001\"}"))
         .andExpect(status().isNoContent());
 
     // The pre-reset session can no longer be refreshed.
@@ -163,7 +165,7 @@ class PasswordResetIntegrationTest extends PostgresIntegrationTest {
         userRepository.save(
             User.builder()
                 .email(email)
-                .passwordHash(passwordEncoder.encode("password1"))
+                .passwordHash(passwordEncoder.encode("brew-test-pass-001"))
                 .createdAt(Instant.now())
                 .build());
     // Persist a token whose hash we know, already expired.
@@ -181,7 +183,8 @@ class PasswordResetIntegrationTest extends PostgresIntegrationTest {
         .perform(
             post("/api/auth/reset-password")
                 .contentType("application/json")
-                .content("{\"token\":\"" + rawExpired + "\",\"newPassword\":\"newpassword1\"}"))
+                .content(
+                    "{\"token\":\"" + rawExpired + "\",\"newPassword\":\"brew-new-pass-0001\"}"))
         .andExpect(status().isBadRequest());
   }
 
