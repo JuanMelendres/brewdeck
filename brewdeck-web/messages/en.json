@@ -17,7 +17,7 @@
     "passwordRequired": "Password is required",
     "passwordTooShort": "Password must be at least 8 characters",
     "newPasswordTooShort": "New password must be at least 8 characters",
-    "passwordTooLong": "Password must not exceed 72 bytes (fewer characters if it uses accents or emoji)",
+    "passwordTooLong": "Password must not exceed 128 characters",
     "displayNameTooLong": "Display name must not exceed 100 characters",
     "currentPasswordRequired": "Current password is required",
     "currentPasswordIncorrect": "Current password is incorrect",

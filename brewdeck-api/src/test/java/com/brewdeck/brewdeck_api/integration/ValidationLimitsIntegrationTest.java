@@ -32,8 +32,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @ActiveProfiles("test")
 class ValidationLimitsIntegrationTest extends PostgresIntegrationTest {
 
-  private static final String PASSWORD_TOO_LONG =
-      "Password must not exceed 72 bytes (fewer characters if it uses accents or emoji)";
+  private static final String PASSWORD_TOO_LONG = "Password must not exceed 128 characters";
 
   @Autowired private MockMvc mockMvc;
   @Autowired private CoffeeRepository coffeeRepository;
@@ -200,39 +199,37 @@ class ValidationLimitsIntegrationTest extends PostgresIntegrationTest {
         .andExpect(jsonPath("$.ratio").value("1:16"));
   }
 
-  // --- Password byte limit (BCrypt) ---
+  // --- Password length (ADR-018: Argon2id, up to 128 characters) ---
 
   @Test
-  void register_passwordAt72Bytes_succeeds() throws Exception {
-    postJson("/api/auth/register", registerBody("x".repeat(72))).andExpect(status().isAccepted());
+  void register_passwordAt128Characters_succeeds() throws Exception {
+    postJson("/api/auth/register", registerBody("x".repeat(128))).andExpect(status().isAccepted());
   }
 
   @Test
-  void register_passwordOver72Bytes_isAFieldErrorNotA500() throws Exception {
-    postJson("/api/auth/register", registerBody("x".repeat(80)))
+  void register_multiBytePassphraseOver72Bytes_isAccepted() throws Exception {
+    // 64 characters, 128 bytes: rejected while BCrypt's 72-byte limit applied.
+    postJson("/api/auth/register", registerBody("é".repeat(64))).andExpect(status().isAccepted());
+  }
+
+  @Test
+  void register_passwordOver128Characters_isAFieldErrorNotA500() throws Exception {
+    postJson("/api/auth/register", registerBody("x".repeat(129)))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.validationErrors.password").value(PASSWORD_TOO_LONG));
   }
 
   @Test
-  void register_multiBytePasswordOver72Bytes_isRejectedEvenUnder72Characters() throws Exception {
-    // 37 characters, 74 bytes.
-    postJson("/api/auth/register", registerBody("é".repeat(37)))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.validationErrors.password").value(PASSWORD_TOO_LONG));
-  }
-
-  @Test
-  void login_passwordOver72Bytes_isABadRequestNotA500() throws Exception {
+  void login_passwordOver128Characters_isABadRequestNotA500() throws Exception {
     postJson(
             "/api/auth/login",
-            "{\"email\":\"anyone@example.com\",\"password\":\"" + "x".repeat(80) + "\"}")
+            "{\"email\":\"anyone@example.com\",\"password\":\"" + "x".repeat(129) + "\"}")
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.validationErrors.password").value(PASSWORD_TOO_LONG));
   }
 
   @Test
-  void changePassword_newPasswordOver72Bytes_isAFieldError() throws Exception {
+  void changePassword_newPasswordOver128Characters_isAFieldError() throws Exception {
     String registered =
         TestAccounts.registerAndLogin(mockMvc, registerBody("password123")).getContentAsString();
     String token = JsonPath.read(registered, "$.token");
@@ -244,7 +241,7 @@ class ValidationLimitsIntegrationTest extends PostgresIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     "{\"currentPassword\":\"password123\",\"newPassword\":\""
-                        + "x".repeat(73)
+                        + "x".repeat(129)
                         + "\"}"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.validationErrors.newPassword").value(PASSWORD_TOO_LONG));

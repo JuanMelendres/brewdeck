@@ -21,7 +21,7 @@ Paths are relative to `brewdeck-api/src/main/java/com/brewdeck/brewdeck_api/` (c
 
 | Control | Status | Code | Test |
 |---|---|---|---|
-| Passwords hashed with BCrypt; length 8 to 72 UTF-8 bytes (BCrypt's limit) on register, change and reset | pass | `common/config/PasswordEncoderConfig`, `auth/RegisterRequest`, `auth/ChangePasswordRequest`, `auth/reset/ResetPasswordRequest` | `integration/ValidationLimitsIntegrationTest` |
+| Passwords hashed with Argon2id (m = 19 MiB, t = 2, p = 1), at most 4 hashes at once; legacy BCrypt hashes still match and are re-hashed on login; length 8 to 128 characters (ADR-018) | pass | `common/config/PasswordEncoderConfig`, `common/config/BoundedPasswordEncoder`, `auth/AuthService#login`, the auth request records | `common/config/PasswordEncoderConfigTest`, `auth/AuthServiceTest`, `integration/ValidationLimitsIntegrationTest` |
 | Login failure is uniform: unknown email and wrong password give the same 401 body, and both run one BCrypt comparison (dummy hash) | pass | `auth/AuthService` | `auth/AuthServiceTest` (same exception for both); the dummy-hash comparison is code review only |
 | Signup does not reveal registered emails: same 202 for new and existing addresses; the existing owner gets an "account exists" email (AUTH-05.7, ADR-011) | pass | `auth/AuthService`, `auth/verification/EmailVerificationService` | `integration/AuthSecurityIntegrationTest` |
 | Forgot-password answers 200 for unknown emails and sends nothing | pass | `auth/reset/PasswordResetService` | `integration/PasswordResetIntegrationTest` |
