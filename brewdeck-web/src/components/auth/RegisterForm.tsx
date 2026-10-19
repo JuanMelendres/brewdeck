@@ -13,8 +13,10 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { register as registerAccount } from '@/lib/api/auth';
+import { ApiError } from '@/lib/api/client';
 import { rateLimitMessage } from '@/lib/api/errors';
 import { useFieldError } from '@/i18n/useFieldError';
+import { PasswordField } from '@/components/ui/PasswordField';
 import { registerSchema, type RegisterFormValues } from '@/lib/validation/authSchema';
 
 export function RegisterForm() {
@@ -27,6 +29,7 @@ export function RegisterForm() {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormValues>({ resolver: zodResolver(registerSchema) });
 
@@ -36,6 +39,13 @@ export function RegisterForm() {
       await registerAccount({ email: values.email, password: values.password });
       setSentTo(values.email);
     } catch (error) {
+      // The API also checks the password against its common-password list; show that on the field.
+      if (error instanceof ApiError && error.validationErrors) {
+        for (const [field, message] of Object.entries(error.validationErrors)) {
+          setError(field as keyof RegisterFormValues, { message });
+        }
+        return;
+      }
       setFormError(rateLimitMessage(error) ?? t('failed'));
     }
   });
@@ -74,16 +84,14 @@ export function RegisterForm() {
           error={!!errors.email}
           helperText={fieldError(errors.email?.message)}
         />
-        <TextField
+        <PasswordField
           label={tc('password')}
-          type="password"
           {...register('password')}
           error={!!errors.password}
           helperText={fieldError(errors.password?.message)}
         />
-        <TextField
+        <PasswordField
           label={tc('confirmPassword')}
-          type="password"
           {...register('confirmPassword')}
           error={!!errors.confirmPassword}
           helperText={fieldError(errors.confirmPassword?.message)}

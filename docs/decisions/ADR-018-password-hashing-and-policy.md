@@ -43,6 +43,9 @@ Accepted (2026-10-19). Backlog AUTH-03.
 - Minimum **15 characters** for new passwords: register, change and reset. Existing passwords
   keep working; the rule applies only when a password is set.
 - A **local blocklist** of common passwords ships with the API and is compared case-insensitively.
+  It holds 5,529 entries of 15 to 128 characters from SecLists (MIT;
+  `brewdeck-api/src/main/resources/security/common-passwords.txt`, with the license next to it).
+  Shorter entries are left out because they already fail the minimum.
   Nothing is sent to a third party. The same list is not shipped to the browser; the API answers
   with a field error.
 - The web adds a show/hide toggle on password fields, and Zod mirrors the rules.

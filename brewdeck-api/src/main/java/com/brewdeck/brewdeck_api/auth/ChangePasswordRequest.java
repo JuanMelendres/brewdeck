@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.auth;
 
+import com.brewdeck.brewdeck_api.common.validation.NotCommonPassword;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -7,6 +8,7 @@ import jakarta.validation.constraints.Size;
 public record ChangePasswordRequest(
     @NotBlank @Size(max = 128, message = "{validation.password.tooLong}") String currentPassword,
     @NotBlank
-        @Size(min = 8, message = "{validation.newPassword.tooShort}")
+        @Size(min = 15, message = "{validation.newPassword.tooShort}")
+        @NotCommonPassword
         @Size(max = 128, message = "{validation.password.tooLong}")
         String newPassword) {}

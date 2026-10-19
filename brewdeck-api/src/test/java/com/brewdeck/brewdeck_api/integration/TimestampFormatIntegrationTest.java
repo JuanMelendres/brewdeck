@@ -38,7 +38,7 @@ class TimestampFormatIntegrationTest extends PostgresIntegrationTest {
                 mockMvc,
                 "{\"email\":\"ts-"
                     + System.nanoTime()
-                    + "@example.com\",\"password\":\"password123\"}")
+                    + "@example.com\",\"password\":\"brew-test-pass-123\"}")
             .getContentAsString();
     String bearer = "Bearer " + JsonPath.read(registered, "$.token");
 

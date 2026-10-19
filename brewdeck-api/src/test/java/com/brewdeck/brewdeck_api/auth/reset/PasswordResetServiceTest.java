@@ -57,7 +57,7 @@ class PasswordResetServiceTest {
     return User.builder()
         .id(1L)
         .email("brewer@example.com")
-        .passwordHash(new BCryptPasswordEncoder().encode("password1"))
+        .passwordHash(new BCryptPasswordEncoder().encode("brew-test-pass-001"))
         .createdAt(Instant.now())
         .build();
   }
@@ -142,10 +142,10 @@ class PasswordResetServiceTest {
     when(tokenRepository.markUsedIfUnused(eq(5L), any(Instant.class))).thenReturn(1);
     String originalHash = user.getPasswordHash();
 
-    service.resetPassword(new ResetPasswordRequest("any-raw-token", "newpassword1"));
+    service.resetPassword(new ResetPasswordRequest("any-raw-token", "brew-new-pass-0001"));
 
     assertThat(user.getPasswordHash()).isNotEqualTo(originalHash);
-    assertThat(new BCryptPasswordEncoder().matches("newpassword1", user.getPasswordHash()))
+    assertThat(new BCryptPasswordEncoder().matches("brew-new-pass-0001", user.getPasswordHash()))
         .isTrue();
     verify(tokenRepository).markUsedIfUnused(eq(5L), any(Instant.class));
     verify(refreshTokenService).revokeAllForUser(1L);
@@ -168,7 +168,8 @@ class PasswordResetServiceTest {
     when(tokenRepository.markUsedIfUnused(eq(9L), any(Instant.class))).thenReturn(0);
     String originalHash = user.getPasswordHash();
 
-    assertThatThrownBy(() -> service.resetPassword(new ResetPasswordRequest("raw", "newpassword1")))
+    assertThatThrownBy(
+            () -> service.resetPassword(new ResetPasswordRequest("raw", "brew-new-pass-0001")))
         .isInstanceOf(InvalidResetTokenException.class);
     assertThat(user.getPasswordHash()).isEqualTo(originalHash);
     verify(userRepository, never()).save(any());
@@ -180,7 +181,7 @@ class PasswordResetServiceTest {
     when(tokenRepository.findByTokenHash(anyString())).thenReturn(Optional.empty());
 
     assertThatThrownBy(
-            () -> service.resetPassword(new ResetPasswordRequest("nope", "newpassword1")))
+            () -> service.resetPassword(new ResetPasswordRequest("nope", "brew-new-pass-0001")))
         .isInstanceOf(InvalidResetTokenException.class);
     verify(refreshTokenService, never()).revokeAllForUser(anyLong());
   }
@@ -197,7 +198,8 @@ class PasswordResetServiceTest {
             .build();
     when(tokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(token));
 
-    assertThatThrownBy(() -> service.resetPassword(new ResetPasswordRequest("raw", "newpassword1")))
+    assertThatThrownBy(
+            () -> service.resetPassword(new ResetPasswordRequest("raw", "brew-new-pass-0001")))
         .isInstanceOf(InvalidResetTokenException.class);
     verify(refreshTokenService, never()).revokeAllForUser(anyLong());
   }
@@ -215,7 +217,8 @@ class PasswordResetServiceTest {
             .build();
     when(tokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(token));
 
-    assertThatThrownBy(() -> service.resetPassword(new ResetPasswordRequest("raw", "newpassword1")))
+    assertThatThrownBy(
+            () -> service.resetPassword(new ResetPasswordRequest("raw", "brew-new-pass-0001")))
         .isInstanceOf(InvalidResetTokenException.class);
     verify(refreshTokenService, never()).revokeAllForUser(anyLong());
   }

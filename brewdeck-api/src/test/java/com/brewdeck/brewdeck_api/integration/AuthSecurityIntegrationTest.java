@@ -41,7 +41,7 @@ class AuthSecurityIntegrationTest extends PostgresIntegrationTest {
   @Test
   void registerThenLoginThenCallProtected_succeeds() throws Exception {
     String email = "flow-" + System.nanoTime() + "@example.com";
-    String body = "{\"email\":\"" + email + "\",\"password\":\"password1\"}";
+    String body = "{\"email\":\"" + email + "\",\"password\":\"brew-test-pass-001\"}";
 
     // Signup creates no session (AUTH-05.7): no token in the body, no refresh cookie.
     MockHttpServletResponse registered =
@@ -81,7 +81,7 @@ class AuthSecurityIntegrationTest extends PostgresIntegrationTest {
   @Test
   void themePreference_startsUnsetThenPersistsWithoutTouchingDisplayName() throws Exception {
     String email = "theme-" + System.nanoTime() + "@example.com";
-    String register = "{\"email\":\"" + email + "\",\"password\":\"password1\"}";
+    String register = "{\"email\":\"" + email + "\",\"password\":\"brew-test-pass-001\"}";
     String token =
         com.jayway.jsonpath.JsonPath.read(
             TestAccounts.registerAndLogin(mockMvc, register).getContentAsString(), "$.token");
@@ -135,7 +135,7 @@ class AuthSecurityIntegrationTest extends PostgresIntegrationTest {
   @Test
   void updateProfileThenChangePassword_persistsAndRelogsIn() throws Exception {
     String email = "profile-" + System.nanoTime() + "@example.com";
-    String register = "{\"email\":\"" + email + "\",\"password\":\"password1\"}";
+    String register = "{\"email\":\"" + email + "\",\"password\":\"brew-test-pass-001\"}";
     String token =
         com.jayway.jsonpath.JsonPath.read(
             TestAccounts.registerAndLogin(mockMvc, register).getContentAsString(), "$.token");
@@ -161,7 +161,7 @@ class AuthSecurityIntegrationTest extends PostgresIntegrationTest {
             post("/api/auth/change-password")
                 .header("Authorization", "Bearer " + token)
                 .contentType("application/json")
-                .content("{\"currentPassword\":\"wrong\",\"newPassword\":\"newpassword1\"}"))
+                .content("{\"currentPassword\":\"wrong\",\"newPassword\":\"brew-new-pass-0001\"}"))
         .andExpect(status().isBadRequest());
 
     // Correct current password succeeds.
@@ -170,7 +170,8 @@ class AuthSecurityIntegrationTest extends PostgresIntegrationTest {
             post("/api/auth/change-password")
                 .header("Authorization", "Bearer " + token)
                 .contentType("application/json")
-                .content("{\"currentPassword\":\"password1\",\"newPassword\":\"newpassword1\"}"))
+                .content(
+                    "{\"currentPassword\":\"brew-test-pass-001\",\"newPassword\":\"brew-new-pass-0001\"}"))
         .andExpect(status().isOk());
 
     // New password logs in; old one no longer does.
@@ -178,13 +179,13 @@ class AuthSecurityIntegrationTest extends PostgresIntegrationTest {
         .perform(
             post("/api/auth/login")
                 .contentType("application/json")
-                .content("{\"email\":\"" + email + "\",\"password\":\"newpassword1\"}"))
+                .content("{\"email\":\"" + email + "\",\"password\":\"brew-new-pass-0001\"}"))
         .andExpect(status().isOk());
     mockMvc
         .perform(
             post("/api/auth/login")
                 .contentType("application/json")
-                .content("{\"email\":\"" + email + "\",\"password\":\"password1\"}"))
+                .content("{\"email\":\"" + email + "\",\"password\":\"brew-test-pass-001\"}"))
         .andExpect(status().isUnauthorized());
   }
 
@@ -196,7 +197,7 @@ class AuthSecurityIntegrationTest extends PostgresIntegrationTest {
             .perform(
                 post("/api/auth/register")
                     .contentType("application/json")
-                    .content("{\"email\":\"" + email + "\",\"password\":\"password123\"}"))
+                    .content("{\"email\":\"" + email + "\",\"password\":\"brew-test-pass-123\"}"))
             .andExpect(status().isAccepted())
             .andReturn()
             .getResponse()
@@ -206,7 +207,7 @@ class AuthSecurityIntegrationTest extends PostgresIntegrationTest {
             .perform(
                 post("/api/auth/login")
                     .contentType("application/json")
-                    .content("{\"email\":\"" + email + "\",\"password\":\"password123\"}"))
+                    .content("{\"email\":\"" + email + "\",\"password\":\"brew-test-pass-123\"}"))
             .andExpect(status().isOk())
             .andReturn()
             .getResponse()
@@ -219,11 +220,11 @@ class AuthSecurityIntegrationTest extends PostgresIntegrationTest {
   @Test
   void changePasswordRevokesEveryExistingRefreshToken() throws Exception {
     String email = "pw-change-revoke-" + System.nanoTime() + "@example.com";
-    MockHttpServletResponse registered = register(email, "password123");
+    MockHttpServletResponse registered = register(email, "brew-test-pass-123");
     String access = com.jayway.jsonpath.JsonPath.read(registered.getContentAsString(), "$.token");
     Cookie fromRegister = registered.getCookie(REFRESH_COOKIE);
     // A second session (e.g. another device) holding its own refresh cookie.
-    Cookie fromLogin = loginCookie(email, "password123");
+    Cookie fromLogin = loginCookie(email, "brew-test-pass-123");
 
     MockHttpServletResponse changed =
         mockMvc
@@ -232,7 +233,7 @@ class AuthSecurityIntegrationTest extends PostgresIntegrationTest {
                     .header("Authorization", "Bearer " + access)
                     .contentType("application/json")
                     .content(
-                        "{\"currentPassword\":\"password123\",\"newPassword\":\"newpassword1\"}"))
+                        "{\"currentPassword\":\"brew-test-pass-123\",\"newPassword\":\"brew-new-pass-0001\"}"))
             .andExpect(status().isOk())
             .andReturn()
             .getResponse();
@@ -253,13 +254,13 @@ class AuthSecurityIntegrationTest extends PostgresIntegrationTest {
     refreshWith(changed.getCookie(REFRESH_COOKIE)).andExpect(status().isOk());
 
     // A fresh login with the new password yields a working refresh cookie.
-    refreshWith(loginCookie(email, "newpassword1")).andExpect(status().isOk());
+    refreshWith(loginCookie(email, "brew-new-pass-0001")).andExpect(status().isOk());
   }
 
   @Test
   void logoutRevokesThePresentedRefreshCookie() throws Exception {
     String email = "logout-flow-" + System.nanoTime() + "@example.com";
-    MockHttpServletResponse registered = register(email, "password123");
+    MockHttpServletResponse registered = register(email, "brew-test-pass-123");
     String access = com.jayway.jsonpath.JsonPath.read(registered.getContentAsString(), "$.token");
     Cookie refresh = registered.getCookie(REFRESH_COOKIE);
 
@@ -282,9 +283,9 @@ class AuthSecurityIntegrationTest extends PostgresIntegrationTest {
   @Test
   void logoutOnOneDevice_letsOtherDevicesRecoverThroughTheirRefreshCookie() throws Exception {
     String email = "logout-other-device-" + System.nanoTime() + "@example.com";
-    MockHttpServletResponse first = register(email, "password123");
+    MockHttpServletResponse first = register(email, "brew-test-pass-123");
     String firstAccess = com.jayway.jsonpath.JsonPath.read(first.getContentAsString(), "$.token");
-    Cookie otherDevice = loginCookie(email, "password123");
+    Cookie otherDevice = loginCookie(email, "brew-test-pass-123");
 
     mockMvc
         .perform(
@@ -310,7 +311,7 @@ class AuthSecurityIntegrationTest extends PostgresIntegrationTest {
   @Test
   void refreshTokenInTheBody_isNoLongerAccepted() throws Exception {
     String email = "body-token-" + System.nanoTime() + "@example.com";
-    String rawToken = register(email, "password123").getCookie(REFRESH_COOKIE).getValue();
+    String rawToken = register(email, "brew-test-pass-123").getCookie(REFRESH_COOKIE).getValue();
 
     mockMvc
         .perform(
@@ -350,7 +351,7 @@ class AuthSecurityIntegrationTest extends PostgresIntegrationTest {
   @Test
   void refreshCookieFlow_rotatesOnRefresh_detectsReuse_andIsClearedOnLogout() throws Exception {
     String email = "cookie-flow-" + System.nanoTime() + "@example.com";
-    var login = register(email, "password123");
+    var login = register(email, "brew-test-pass-123");
     jakarta.servlet.http.Cookie first = login.getCookie("brewdeck_refresh");
     assertThat(first).isNotNull();
     assertThat(first.isHttpOnly()).isTrue();
@@ -392,7 +393,8 @@ class AuthSecurityIntegrationTest extends PostgresIntegrationTest {
   @Test
   void refreshWithCookieButWithoutCsrfHeader_isForbidden() throws Exception {
     String email = "cookie-csrf-" + System.nanoTime() + "@example.com";
-    jakarta.servlet.http.Cookie cookie = register(email, "password123").getCookie(REFRESH_COOKIE);
+    jakarta.servlet.http.Cookie cookie =
+        register(email, "brew-test-pass-123").getCookie(REFRESH_COOKIE);
 
     mockMvc.perform(post("/api/auth/refresh").cookie(cookie)).andExpect(status().isForbidden());
   }

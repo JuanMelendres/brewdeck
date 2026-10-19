@@ -59,7 +59,7 @@ class JwtEdgeCasesIntegrationTest extends PostgresIntegrationTest {
   private String registerAndGetToken(String email) throws Exception {
     String response =
         TestAccounts.registerAndLogin(
-                mockMvc, "{\"email\":\"" + email + "\",\"password\":\"password123\"}")
+                mockMvc, "{\"email\":\"" + email + "\",\"password\":\"brew-test-pass-123\"}")
             .getContentAsString();
     return JsonPath.read(response, "$.token");
   }

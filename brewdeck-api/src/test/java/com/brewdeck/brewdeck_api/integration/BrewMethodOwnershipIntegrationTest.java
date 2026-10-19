@@ -36,7 +36,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @ActiveProfiles("test")
 class BrewMethodOwnershipIntegrationTest extends PostgresIntegrationTest {
 
-  private static final String PASSWORD = "password123";
+  private static final String PASSWORD = "brew-test-pass-123";
 
   @Autowired private MockMvc mockMvc;
   @Autowired private UserRepository userRepository;

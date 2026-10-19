@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.auth;
 
+import com.brewdeck.brewdeck_api.common.validation.NotCommonPassword;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -8,7 +9,8 @@ import jakarta.validation.constraints.Size;
 public record RegisterRequest(
     @NotBlank @Email @Size(max = 255) String email,
     @NotBlank
-        @Size(min = 8, message = "{validation.password.tooShort}")
+        @Size(min = 15, message = "{validation.password.tooShort}")
+        @NotCommonPassword
         @Size(max = 128, message = "{validation.password.tooLong}")
         String password) {
 

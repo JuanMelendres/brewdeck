@@ -65,14 +65,14 @@ class AuthControllerTest {
                 .contentType("application/json")
                 .content(
                     objectMapper.writeValueAsString(
-                        new RegisterRequest("new@example.com", "password1"))))
+                        new RegisterRequest("new@example.com", "brew-test-pass-001"))))
         .andExpect(status().isAccepted())
         .andExpect(jsonPath("$.message").value("Check your email to finish creating your account."))
         .andExpect(jsonPath("$.token").doesNotExist())
         .andExpect(
             org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
                 .doesNotExist(HttpHeaders.SET_COOKIE));
-    verify(authService).register(new RegisterRequest("new@example.com", "password1"));
+    verify(authService).register(new RegisterRequest("new@example.com", "brew-test-pass-001"));
   }
 
   @Test
@@ -230,7 +230,7 @@ class AuthControllerTest {
                 .contentType("application/json")
                 .content(
                     objectMapper.writeValueAsString(
-                        new ChangePasswordRequest("password1", "newpassword1"))))
+                        new ChangePasswordRequest("brew-test-pass-001", "brew-new-pass-0001"))))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.token").value("new-jwt"))
         .andExpect(jsonPath("$.refreshToken").doesNotExist())
@@ -254,7 +254,7 @@ class AuthControllerTest {
                 .contentType("application/json")
                 .content(
                     objectMapper.writeValueAsString(
-                        new ChangePasswordRequest("wrong", "newpassword1"))))
+                        new ChangePasswordRequest("wrong", "brew-new-pass-0001"))))
         .andExpect(status().isBadRequest());
   }
 
@@ -269,7 +269,7 @@ class AuthControllerTest {
                 .contentType("application/json")
                 .content(
                     objectMapper.writeValueAsString(
-                        new ChangePasswordRequest("password1", "short"))))
+                        new ChangePasswordRequest("brew-test-pass-001", "short"))))
         .andExpect(status().isBadRequest());
   }
 
@@ -333,7 +333,7 @@ class AuthControllerTest {
             .perform(
                 post("/api/auth/login")
                     .contentType("application/json")
-                    .content("{\"email\":\"u@example.com\",\"password\":\"password1\"}"))
+                    .content("{\"email\":\"u@example.com\",\"password\":\"brew-test-pass-001\"}"))
             .andExpect(status().isOk())
             .andReturn()
             .getResponse()

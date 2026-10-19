@@ -21,19 +21,19 @@ describe('ResetPasswordForm', () => {
     tokenValue = 'valid-token';
   });
 
-  it('requires a new password of at least 8 characters', async () => {
+  it('requires a new password of at least 15 characters', async () => {
     renderWithTheme(<ResetPasswordForm />);
-    await userEvent.type(screen.getByLabelText(/^new password$/i), 'short');
-    await userEvent.type(screen.getByLabelText(/^confirm new password$/i), 'short');
+    await userEvent.type(screen.getByLabelText(/^new password$/i, { selector: 'input' }), 'short');
+    await userEvent.type(screen.getByLabelText(/^confirm new password$/i, { selector: 'input' }), 'short');
     await userEvent.click(screen.getByRole('button', { name: /reset password/i }));
-    expect(await screen.findByText(/at least 8 characters/i)).toBeInTheDocument();
+    expect(await screen.findByText(/at least 15 characters/i)).toBeInTheDocument();
     expect(resetPasswordMock).not.toHaveBeenCalled();
   });
 
   it('flags mismatched confirmation', async () => {
     renderWithTheme(<ResetPasswordForm />);
-    await userEvent.type(screen.getByLabelText(/^new password$/i), 'newpassword1');
-    await userEvent.type(screen.getByLabelText(/^confirm new password$/i), 'different1');
+    await userEvent.type(screen.getByLabelText(/^new password$/i, { selector: 'input' }), 'brew-new-pass-0001');
+    await userEvent.type(screen.getByLabelText(/^confirm new password$/i, { selector: 'input' }), 'brew-different-0001');
     await userEvent.click(screen.getByRole('button', { name: /reset password/i }));
     expect(await screen.findByText(/passwords do not match/i)).toBeInTheDocument();
   });
@@ -41,13 +41,13 @@ describe('ResetPasswordForm', () => {
   it('submits the token and new password, then shows success', async () => {
     resetPasswordMock.mockResolvedValue(undefined);
     renderWithTheme(<ResetPasswordForm />);
-    await userEvent.type(screen.getByLabelText(/^new password$/i), 'newpassword1');
-    await userEvent.type(screen.getByLabelText(/^confirm new password$/i), 'newpassword1');
+    await userEvent.type(screen.getByLabelText(/^new password$/i, { selector: 'input' }), 'brew-new-pass-0001');
+    await userEvent.type(screen.getByLabelText(/^confirm new password$/i, { selector: 'input' }), 'brew-new-pass-0001');
     await userEvent.click(screen.getByRole('button', { name: /reset password/i }));
     await waitFor(() =>
       expect(resetPasswordMock).toHaveBeenCalledWith({
         token: 'valid-token',
-        newPassword: 'newpassword1',
+        newPassword: 'brew-new-pass-0001',
       }),
     );
     expect(await screen.findByText(/your password has been reset/i)).toBeInTheDocument();
@@ -57,8 +57,8 @@ describe('ResetPasswordForm', () => {
   it('shows invalid-link message on a 400 response', async () => {
     resetPasswordMock.mockRejectedValue(new ApiError(400, 'bad', '/api/auth/reset-password'));
     renderWithTheme(<ResetPasswordForm />);
-    await userEvent.type(screen.getByLabelText(/^new password$/i), 'newpassword1');
-    await userEvent.type(screen.getByLabelText(/^confirm new password$/i), 'newpassword1');
+    await userEvent.type(screen.getByLabelText(/^new password$/i, { selector: 'input' }), 'brew-new-pass-0001');
+    await userEvent.type(screen.getByLabelText(/^confirm new password$/i, { selector: 'input' }), 'brew-new-pass-0001');
     await userEvent.click(screen.getByRole('button', { name: /reset password/i }));
     expect(await screen.findByText(/invalid or has expired/i)).toBeInTheDocument();
   });
