@@ -5,6 +5,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.brewdeck.brewdeck_api.auth.User;
+import com.brewdeck.brewdeck_api.auth.UserRepository;
 import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.coffee.CoffeeRepository;
 import com.brewdeck.brewdeck_api.common.PostgresIntegrationTest;
@@ -13,11 +15,13 @@ import com.brewdeck.brewdeck_api.method.BrewMethodRepository;
 import com.brewdeck.brewdeck_api.recipe.Recipe;
 import com.brewdeck.brewdeck_api.recipe.RecipeRepository;
 import com.jayway.jsonpath.JsonPath;
+import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -38,6 +42,7 @@ class ValidationLimitsIntegrationTest extends PostgresIntegrationTest {
   @Autowired private CoffeeRepository coffeeRepository;
   @Autowired private BrewMethodRepository brewMethodRepository;
   @Autowired private RecipeRepository recipeRepository;
+  @Autowired private UserRepository userRepository;
 
   // --- Column widths (V17) ---
 
@@ -231,7 +236,8 @@ class ValidationLimitsIntegrationTest extends PostgresIntegrationTest {
   @Test
   void changePassword_newPasswordOver128Characters_isAFieldError() throws Exception {
     String registered =
-        TestAccounts.registerAndLogin(mockMvc, registerBody("password123")).getContentAsString();
+        TestAccounts.registerAndLogin(mockMvc, registerBody("brew-test-pass-123"))
+            .getContentAsString();
     String token = JsonPath.read(registered, "$.token");
 
     mockMvc
@@ -240,25 +246,66 @@ class ValidationLimitsIntegrationTest extends PostgresIntegrationTest {
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
-                    "{\"currentPassword\":\"password123\",\"newPassword\":\""
+                    "{\"currentPassword\":\"brew-test-pass-123\",\"newPassword\":\""
                         + "x".repeat(129)
                         + "\"}"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.validationErrors.newPassword").value(PASSWORD_TOO_LONG));
   }
 
+  // --- Password policy (ADR-018: minimum 15, local blocklist) ---
+
+  @Test
+  void register_passwordUnder15Characters_isAFieldError() throws Exception {
+    postJson("/api/auth/register", registerBody("x".repeat(14)))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.validationErrors.password")
+                .value("Password must be at least 15 characters"));
+  }
+
+  @Test
+  void register_commonPassword_isAFieldError_whateverItsCase() throws Exception {
+    postJson("/api/auth/register", registerBody("PasswordPassword"))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.validationErrors.password")
+                .value("This password is too common. Choose a different one"));
+  }
+
+  @Test
+  void login_doesNotApplyThePolicy_soAnExistingShortPasswordStillWorks_andIsUpgraded()
+      throws Exception {
+    String email = "legacy-" + System.nanoTime() + "@example.com";
+    userRepository.save(
+        User.builder()
+            .email(email)
+            .passwordHash(new BCryptPasswordEncoder().encode("short1"))
+            .emailVerified(true)
+            .createdAt(Instant.now())
+            .build());
+
+    postJson("/api/auth/login", "{\"email\":\"" + email + "\",\"password\":\"short1\"}")
+        .andExpect(status().isOk());
+
+    assertThat(userRepository.findByEmail(email).orElseThrow().getPasswordHash())
+        .startsWith("{argon2}");
+  }
+
   @Test
   void register_emailLongerThanTheColumn_isAFieldErrorNotA409() throws Exception {
     String tooLong = "a".repeat(250) + "@x.com";
 
-    postJson("/api/auth/register", "{\"email\":\"" + tooLong + "\",\"password\":\"password123\"}")
+    postJson(
+            "/api/auth/register",
+            "{\"email\":\"" + tooLong + "\",\"password\":\"brew-test-pass-123\"}")
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.validationErrors.email").exists());
   }
 
   @Test
   void login_malformedEmail_isAFieldError() throws Exception {
-    postJson("/api/auth/login", "{\"email\":\"not-an-email\",\"password\":\"password123\"}")
+    postJson("/api/auth/login", "{\"email\":\"not-an-email\",\"password\":\"brew-test-pass-123\"}")
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.validationErrors.email").exists());
   }

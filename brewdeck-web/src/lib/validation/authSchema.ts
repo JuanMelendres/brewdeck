@@ -4,11 +4,14 @@ import { vk, type ValidationKey } from '@/i18n/validationKey';
 // Messages are keys under `validation` in messages/*.json; forms translate them with useFieldError().
 
 // Up to 128 characters (ADR-018: Argon2id has no 72-byte limit). Mirrors @Size(max = 128).
+export const MIN_PASSWORD_LENGTH = 15;
 export const MAX_PASSWORD_LENGTH = 128;
 const PASSWORD_TOO_LONG = vk('passwordTooLong');
 
 function newPassword(minMessage: ValidationKey) {
-  return z.string().min(8, minMessage).max(MAX_PASSWORD_LENGTH, PASSWORD_TOO_LONG);
+  // NIST SP 800-63B minimum for a single factor (ADR-018). Login keeps no minimum: older
+  // accounts may still have shorter passwords.
+  return z.string().min(MIN_PASSWORD_LENGTH, minMessage).max(MAX_PASSWORD_LENGTH, PASSWORD_TOO_LONG);
 }
 
 export const loginSchema = z.object({

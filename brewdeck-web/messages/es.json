@@ -15,8 +15,8 @@
     "emailTooLong": "El correo no debe pasar de 255 caracteres",
     "emailInvalid": "Escribe un correo válido",
     "passwordRequired": "La contraseña es obligatoria",
-    "passwordTooShort": "La contraseña debe tener al menos 8 caracteres",
-    "newPasswordTooShort": "La nueva contraseña debe tener al menos 8 caracteres",
+    "passwordTooShort": "La contraseña debe tener al menos 15 caracteres",
+    "newPasswordTooShort": "La nueva contraseña debe tener al menos 15 caracteres",
     "passwordTooLong": "La contraseña no debe pasar de 128 caracteres",
     "displayNameTooLong": "El nombre visible no debe pasar de 100 caracteres",
     "currentPasswordRequired": "La contraseña actual es obligatoria",
@@ -182,7 +182,9 @@
     "close": "Cerrar",
     "copy": "Copiar",
     "name": "Nombre",
-    "actions": "Acciones"
+    "actions": "Acciones",
+    "showPassword": "Mostrar contraseña",
+    "hidePassword": "Ocultar contraseña"
   },
   "theme": {
     "group": "Tema",

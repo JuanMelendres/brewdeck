@@ -51,7 +51,7 @@ class CurrentUserQueryCountIntegrationTest extends PostgresIntegrationTest {
                 mockMvc,
                 "{\"email\":\"query-count-"
                     + System.nanoTime()
-                    + "@example.com\",\"password\":\"password123\"}")
+                    + "@example.com\",\"password\":\"brew-test-pass-123\"}")
             .getContentAsString();
     bearer = "Bearer " + JsonPath.read(response, "$.token");
   }

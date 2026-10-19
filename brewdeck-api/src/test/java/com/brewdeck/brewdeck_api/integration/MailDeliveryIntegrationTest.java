@@ -107,7 +107,7 @@ class MailDeliveryIntegrationTest extends PostgresIntegrationTest {
     String email = "mail-verify-" + System.nanoTime() + "@example.com";
     String registered =
         TestAccounts.registerAndLogin(
-                mockMvc, "{\"email\":\"" + email + "\",\"password\":\"password123\"}")
+                mockMvc, "{\"email\":\"" + email + "\",\"password\":\"brew-test-pass-123\"}")
             .getContentAsString();
     String bearer = "Bearer " + JsonPath.read(registered, "$.token");
 
@@ -128,7 +128,7 @@ class MailDeliveryIntegrationTest extends PostgresIntegrationTest {
   @Test
   void signupWithAnExistingEmail_sendsARealAccountExistsEmail() throws Exception {
     String email = "mail-exists-" + System.nanoTime() + "@example.com";
-    String body = "{\"email\":\"" + email + "\",\"password\":\"password123\"}";
+    String body = "{\"email\":\"" + email + "\",\"password\":\"brew-test-pass-123\"}";
     mockMvc
         .perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(body))
         .andExpect(status().isAccepted());
@@ -147,7 +147,7 @@ class MailDeliveryIntegrationTest extends PostgresIntegrationTest {
         .perform(
             post("/api/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"email\":\"" + email + "\",\"password\":\"password123\"}"))
+                .content("{\"email\":\"" + email + "\",\"password\":\"brew-test-pass-123\"}"))
         .andExpect(status().isAccepted());
 
     mockMvc
@@ -163,13 +163,13 @@ class MailDeliveryIntegrationTest extends PostgresIntegrationTest {
         .perform(
             post("/api/auth/reset-password")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"token\":\"" + token + "\",\"newPassword\":\"brand-new-pass\"}"))
+                .content("{\"token\":\"" + token + "\",\"newPassword\":\"brand-new-passphrase\"}"))
         .andExpect(status().isNoContent());
     mockMvc
         .perform(
             post("/api/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"email\":\"" + email + "\",\"password\":\"brand-new-pass\"}"))
+                .content("{\"email\":\"" + email + "\",\"password\":\"brand-new-passphrase\"}"))
         .andExpect(status().isOk());
   }
 }

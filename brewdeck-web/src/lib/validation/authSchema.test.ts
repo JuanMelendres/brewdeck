@@ -30,8 +30,8 @@ describe('password length in auth schemas (ADR-018)', () => {
   it('registerSchema rejects a confirmation that does not match', () => {
     const result = registerSchema.safeParse({
       email,
-      password: 'password1',
-      confirmPassword: 'password2',
+      password: 'brew-test-pass-001',
+      confirmPassword: 'brew-test-pass-002',
     });
     expect(result.success).toBe(false);
     expect(result.error?.issues[0].path).toEqual(['confirmPassword']);
@@ -41,7 +41,7 @@ describe('password length in auth schemas (ADR-018)', () => {
   it('changePasswordSchema rejects a new password over 128 characters', () => {
     const long = 'é'.repeat(129);
     const result = changePasswordSchema.safeParse({
-      currentPassword: 'password1',
+      currentPassword: 'brew-test-pass-001',
       newPassword: long,
       confirmPassword: long,
     });
@@ -56,7 +56,7 @@ describe('password length in auth schemas (ADR-018)', () => {
     ).toBe(false);
   });
 
-  it('still enforces the 8-character minimum', () => {
+  it('enforces the 15-character minimum (NIST, ADR-018)', () => {
     expect(registerSchema.safeParse({ email, password: 'short' }).success).toBe(false);
   });
 });
@@ -65,6 +65,22 @@ describe('email length', () => {
   it('rejects emails longer than the 255-character column', () => {
     const tooLong = `${'a'.repeat(250)}@x.com`;
     expect(loginSchema.safeParse({ email: tooLong, password: 'x' }).success).toBe(false);
-    expect(registerSchema.safeParse({ email: tooLong, password: 'password1' }).success).toBe(false);
+    expect(registerSchema.safeParse({ email: tooLong, password: 'brew-test-pass-001' }).success).toBe(false);
   });
+
+describe('password minimum (ADR-018)', () => {
+  it('rejects 14 characters and accepts 15 for new passwords, but not for login', () => {
+    const email = 'brewer@example.com';
+    const fourteen = 'x'.repeat(14);
+    const fifteen = 'x'.repeat(15);
+    expect(
+      registerSchema.safeParse({ email, password: fourteen, confirmPassword: fourteen }).success,
+    ).toBe(false);
+    expect(
+      registerSchema.safeParse({ email, password: fifteen, confirmPassword: fifteen }).success,
+    ).toBe(true);
+    // Existing accounts may still have short passwords.
+    expect(loginSchema.safeParse({ email, password: 'short1' }).success).toBe(true);
+  });
+});
 });

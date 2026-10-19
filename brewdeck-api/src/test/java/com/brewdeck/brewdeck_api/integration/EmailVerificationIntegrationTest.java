@@ -41,7 +41,7 @@ class EmailVerificationIntegrationTest extends PostgresIntegrationTest {
 
     String registerResponse =
         TestAccounts.registerAndLogin(
-                mockMvc, "{\"email\":\"" + email + "\",\"password\":\"password1\"}")
+                mockMvc, "{\"email\":\"" + email + "\",\"password\":\"brew-test-pass-001\"}")
             .getContentAsString();
     String token = com.jayway.jsonpath.JsonPath.read(registerResponse, "$.token");
 
@@ -85,7 +85,7 @@ class EmailVerificationIntegrationTest extends PostgresIntegrationTest {
     String token =
         com.jayway.jsonpath.JsonPath.read(
             TestAccounts.registerAndLogin(
-                    mockMvc, "{\"email\":\"" + email + "\",\"password\":\"password1\"}")
+                    mockMvc, "{\"email\":\"" + email + "\",\"password\":\"brew-test-pass-001\"}")
                 .getContentAsString(),
             "$.token");
 
@@ -102,7 +102,7 @@ class EmailVerificationIntegrationTest extends PostgresIntegrationTest {
         userRepository.save(
             User.builder()
                 .email(email)
-                .passwordHash(passwordEncoder.encode("password1"))
+                .passwordHash(passwordEncoder.encode("brew-test-pass-001"))
                 .createdAt(Instant.now())
                 .build());
     String rawExpired = "expired-verify-token";

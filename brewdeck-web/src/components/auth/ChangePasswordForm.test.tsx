@@ -16,25 +16,25 @@ vi.mock('@/lib/auth/tokenStore', () => ({
 }));
 
 async function fill(current: string, next: string, confirm: string) {
-  await userEvent.type(screen.getByLabelText(/^current password$/i), current);
-  await userEvent.type(screen.getByLabelText(/^new password$/i), next);
-  await userEvent.type(screen.getByLabelText(/^confirm new password$/i), confirm);
+  await userEvent.type(screen.getByLabelText(/^current password$/i, { selector: 'input' }), current);
+  await userEvent.type(screen.getByLabelText(/^new password$/i, { selector: 'input' }), next);
+  await userEvent.type(screen.getByLabelText(/^confirm new password$/i, { selector: 'input' }), confirm);
 }
 
 describe('ChangePasswordForm', () => {
   afterEach(() => vi.clearAllMocks());
 
-  it('requires a new password of at least 8 characters', async () => {
+  it('requires a new password of at least 15 characters', async () => {
     renderWithTheme(<ChangePasswordForm />);
-    await fill('password1', 'short', 'short');
+    await fill('brew-test-pass-001', 'short', 'short');
     await userEvent.click(screen.getByRole('button', { name: /change password/i }));
-    expect(await screen.findByText(/at least 8 characters/i)).toBeInTheDocument();
+    expect(await screen.findByText(/at least 15 characters/i)).toBeInTheDocument();
     expect(changePasswordMock).not.toHaveBeenCalled();
   });
 
   it('flags mismatched confirmation', async () => {
     renderWithTheme(<ChangePasswordForm />);
-    await fill('password1', 'newpassword1', 'different1');
+    await fill('brew-test-pass-001', 'brew-new-pass-0001', 'brew-different-0001');
     await userEvent.click(screen.getByRole('button', { name: /change password/i }));
     expect(await screen.findByText(/passwords do not match/i)).toBeInTheDocument();
     expect(changePasswordMock).not.toHaveBeenCalled();
@@ -47,12 +47,12 @@ describe('ChangePasswordForm', () => {
       email: 'brewer@example.com',
     });
     renderWithTheme(<ChangePasswordForm />);
-    await fill('password1', 'newpassword1', 'newpassword1');
+    await fill('brew-test-pass-001', 'brew-new-pass-0001', 'brew-new-pass-0001');
     await userEvent.click(screen.getByRole('button', { name: /change password/i }));
     await waitFor(() =>
       expect(changePasswordMock).toHaveBeenCalledWith({
-        currentPassword: 'password1',
-        newPassword: 'newpassword1',
+        currentPassword: 'brew-test-pass-001',
+        newPassword: 'brew-new-pass-0001',
       }),
     );
     expect(await screen.findByText(/password changed/i)).toBeInTheDocument();
@@ -64,7 +64,7 @@ describe('ChangePasswordForm', () => {
       new ApiError(400, 'Current password is incorrect', '/api/auth/change-password'),
     );
     renderWithTheme(<ChangePasswordForm />);
-    await fill('wrong', 'newpassword1', 'newpassword1');
+    await fill('wrong', 'brew-new-pass-0001', 'brew-new-pass-0001');
     await userEvent.click(screen.getByRole('button', { name: /change password/i }));
     expect(await screen.findByText(/current password is incorrect/i)).toBeInTheDocument();
   });
