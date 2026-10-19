@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.brewdeck.brewdeck_api.auth.refresh.RefreshTokenService;
+import com.brewdeck.brewdeck_api.common.config.PasswordEncoderConfig;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitExceededException;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
@@ -65,12 +66,14 @@ class AuthServiceTest {
     when(userRepository.findByEmail("new@example.com")).thenReturn(Optional.empty());
     when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
-    authService.register(new RegisterRequest("new@example.com", "password1"));
+    authService.register(new RegisterRequest("new@example.com", "brew-test-pass-001"));
 
     org.mockito.ArgumentCaptor<User> saved = org.mockito.ArgumentCaptor.forClass(User.class);
     verify(userRepository).save(saved.capture());
     assertThat(saved.getValue().getEmail()).isEqualTo("new@example.com");
-    assertThat(new BCryptPasswordEncoder().matches("password1", saved.getValue().getPasswordHash()))
+    assertThat(
+            new BCryptPasswordEncoder()
+                .matches("brew-test-pass-001", saved.getValue().getPasswordHash()))
         .isTrue();
     verify(emailVerificationService).issueFor(saved.getValue());
     // No session at signup (AUTH-05.7).
@@ -79,7 +82,7 @@ class AuthServiceTest {
 
   @Test
   void register_existingEmail_notifiesTheOwner_andChangesNothing() {
-    User existing = stored("taken@example.com", "password1");
+    User existing = stored("taken@example.com", "brew-test-pass-001");
     when(userRepository.findByEmail("taken@example.com")).thenReturn(Optional.of(existing));
 
     authService.register(new RegisterRequest("taken@example.com", "other-password"));
@@ -106,7 +109,7 @@ class AuthServiceTest {
             limiter);
 
     assertThatThrownBy(
-            () -> limited.register(new RegisterRequest("flood@example.com", "password1")))
+            () -> limited.register(new RegisterRequest("flood@example.com", "brew-test-pass-001")))
         .isInstanceOf(RateLimitExceededException.class);
     org.mockito.Mockito.verifyNoInteractions(userRepository, emailVerificationService);
   }
@@ -120,39 +123,62 @@ class AuthServiceTest {
         .issueFor(any(User.class));
 
     // The account is still created if verification issuance fails.
-    authService.register(new RegisterRequest("new@example.com", "password1"));
+    authService.register(new RegisterRequest("new@example.com", "brew-test-pass-001"));
 
     verify(userRepository).save(any(User.class));
   }
 
   @Test
   void register_existingEmail_swallowsANoticeFailure() {
-    User existing = stored("taken@example.com", "password1");
+    User existing = stored("taken@example.com", "brew-test-pass-001");
     when(userRepository.findByEmail("taken@example.com")).thenReturn(Optional.of(existing));
     org.mockito.Mockito.doThrow(new RuntimeException("mail down"))
         .when(emailVerificationService)
         .sendAccountExistsNotice(existing);
 
     // Must not surface: an error here would tell the caller the email exists.
-    authService.register(new RegisterRequest("taken@example.com", "password1"));
+    authService.register(new RegisterRequest("taken@example.com", "brew-test-pass-001"));
   }
 
   @Test
   void login_returnsTokenWhenPasswordMatches() {
     when(userRepository.findByEmail("brewer@example.com"))
-        .thenReturn(Optional.of(stored("brewer@example.com", "password1")));
+        .thenReturn(Optional.of(stored("brewer@example.com", "brew-test-pass-001")));
     when(jwtService.generateToken(any(User.class))).thenReturn("jwt-token");
 
     AuthResponse response =
-        authService.login(new LoginRequest("brewer@example.com", "password1")).response();
+        authService.login(new LoginRequest("brewer@example.com", "brew-test-pass-001")).response();
 
     assertThat(response.token()).isEqualTo("jwt-token");
   }
 
   @Test
+  void login_upgradesALegacyBcryptHashToArgon2id() {
+    User legacy =
+        stored("brewer@example.com", "brew-test-pass-001"); // plain BCrypt, as before ADR-018
+    when(userRepository.findByEmail("brewer@example.com")).thenReturn(Optional.of(legacy));
+    when(jwtService.generateToken(any(User.class))).thenReturn("jwt-token");
+    PasswordEncoder configured = new PasswordEncoderConfig().passwordEncoder();
+    AuthService withArgon2 =
+        new AuthService(
+            userRepository,
+            jwtService,
+            configured,
+            emailVerificationService,
+            refreshTokenService,
+            new RateLimiter(false));
+
+    withArgon2.login(new LoginRequest("brewer@example.com", "brew-test-pass-001"));
+
+    verify(userRepository).save(legacy);
+    assertThat(legacy.getPasswordHash()).startsWith("{argon2}");
+    assertThat(configured.matches("brew-test-pass-001", legacy.getPasswordHash())).isTrue();
+  }
+
+  @Test
   void login_throwsWhenPasswordWrong() {
     when(userRepository.findByEmail("brewer@example.com"))
-        .thenReturn(Optional.of(stored("brewer@example.com", "password1")));
+        .thenReturn(Optional.of(stored("brewer@example.com", "brew-test-pass-001")));
 
     assertThatThrownBy(() -> authService.login(new LoginRequest("brewer@example.com", "wrong")))
         .isInstanceOf(org.springframework.security.authentication.BadCredentialsException.class);
@@ -162,14 +188,15 @@ class AuthServiceTest {
   void login_throwsWhenEmailUnknown() {
     when(userRepository.findByEmail("ghost@example.com")).thenReturn(Optional.empty());
 
-    assertThatThrownBy(() -> authService.login(new LoginRequest("ghost@example.com", "password1")))
+    assertThatThrownBy(
+            () -> authService.login(new LoginRequest("ghost@example.com", "brew-test-pass-001")))
         .isInstanceOf(org.springframework.security.authentication.BadCredentialsException.class);
   }
 
   @Test
   void me_returnsUserWhenPresent() {
     when(userRepository.findByEmail("brewer@example.com"))
-        .thenReturn(Optional.of(stored("brewer@example.com", "password1")));
+        .thenReturn(Optional.of(stored("brewer@example.com", "brew-test-pass-001")));
 
     UserResponse response = authService.me("brewer@example.com");
 
@@ -187,7 +214,7 @@ class AuthServiceTest {
   @Test
   void updateProfile_setsDisplayNameAndReturnsUser() {
     when(userRepository.findByEmail("brewer@example.com"))
-        .thenReturn(Optional.of(stored("brewer@example.com", "password1")));
+        .thenReturn(Optional.of(stored("brewer@example.com", "brew-test-pass-001")));
     when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
     UserResponse response =
@@ -207,7 +234,7 @@ class AuthServiceTest {
 
   @Test
   void updateTheme_setsPreferenceAndKeepsDisplayName() {
-    User user = stored("brewer@example.com", "password1");
+    User user = stored("brewer@example.com", "brew-test-pass-001");
     user.setDisplayName("Barista Bob");
     when(userRepository.findByEmail("brewer@example.com")).thenReturn(Optional.of(user));
     when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -232,7 +259,7 @@ class AuthServiceTest {
 
   @Test
   void updateLanguage_setsLanguage() {
-    User user = stored("brewer@example.com", "password1");
+    User user = stored("brewer@example.com", "brew-test-pass-001");
     when(userRepository.findByEmail("brewer@example.com")).thenReturn(Optional.of(user));
     when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -244,34 +271,36 @@ class AuthServiceTest {
 
   @Test
   void changePassword_reencodesWhenCurrentMatches() {
-    User user = stored("brewer@example.com", "password1");
+    User user = stored("brewer@example.com", "brew-test-pass-001");
     String originalHash = user.getPasswordHash();
     when(userRepository.findByEmail("brewer@example.com")).thenReturn(Optional.of(user));
     when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
     authService.changePassword(
-        "brewer@example.com", new ChangePasswordRequest("password1", "newpassword1"));
+        "brewer@example.com",
+        new ChangePasswordRequest("brew-test-pass-001", "brew-new-pass-0001"));
 
     assertThat(user.getPasswordHash()).isNotEqualTo(originalHash);
-    assertThat(new BCryptPasswordEncoder().matches("newpassword1", user.getPasswordHash()))
+    assertThat(new BCryptPasswordEncoder().matches("brew-new-pass-0001", user.getPasswordHash()))
         .isTrue();
   }
 
   @Test
   void changePassword_revokesAllRefreshTokensForUser() {
-    User user = stored("brewer@example.com", "password1");
+    User user = stored("brewer@example.com", "brew-test-pass-001");
     when(userRepository.findByEmail("brewer@example.com")).thenReturn(Optional.of(user));
     when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
     authService.changePassword(
-        "brewer@example.com", new ChangePasswordRequest("password1", "newpassword1"));
+        "brewer@example.com",
+        new ChangePasswordRequest("brew-test-pass-001", "brew-new-pass-0001"));
 
     verify(refreshTokenService).revokeAllForUser(1L);
   }
 
   @Test
   void changePassword_invalidatesOutstandingAccessTokens_andReturnsAFreshSession() {
-    User user = stored("brewer@example.com", "password1");
+    User user = stored("brewer@example.com", "brew-test-pass-001");
     when(userRepository.findByEmail("brewer@example.com")).thenReturn(Optional.of(user));
     when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
     when(refreshTokenService.issue(user)).thenReturn("new-refresh");
@@ -279,7 +308,8 @@ class AuthServiceTest {
 
     AuthSession session =
         authService.changePassword(
-            "brewer@example.com", new ChangePasswordRequest("password1", "newpassword1"));
+            "brewer@example.com",
+            new ChangePasswordRequest("brew-test-pass-001", "brew-new-pass-0001"));
 
     assertThat(user.getTokenVersion()).isEqualTo(1);
     assertThat(session.response().token()).isEqualTo("new-jwt");
@@ -293,12 +323,12 @@ class AuthServiceTest {
   @Test
   void changePassword_throwsWhenCurrentWrong() {
     when(userRepository.findByEmail("brewer@example.com"))
-        .thenReturn(Optional.of(stored("brewer@example.com", "password1")));
+        .thenReturn(Optional.of(stored("brewer@example.com", "brew-test-pass-001")));
 
     assertThatThrownBy(
             () ->
                 authService.changePassword(
-                    "brewer@example.com", new ChangePasswordRequest("wrong", "newpassword1")))
+                    "brewer@example.com", new ChangePasswordRequest("wrong", "brew-new-pass-0001")))
         .isInstanceOf(InvalidCurrentPasswordException.class);
     verify(refreshTokenService, never()).revokeAllForUser(anyLong());
   }
@@ -317,7 +347,7 @@ class AuthServiceTest {
             emailVerificationService,
             refreshTokenService,
             limiter);
-    LoginRequest request = new LoginRequest("brewer@example.com", "password1");
+    LoginRequest request = new LoginRequest("brewer@example.com", "brew-test-pass-001");
 
     assertThatThrownBy(() -> limited.login(request)).isInstanceOf(RateLimitExceededException.class);
     org.mockito.Mockito.verifyNoInteractions(userRepository, refreshTokenService);
@@ -335,7 +365,7 @@ class AuthServiceTest {
             refreshTokenService,
             new RateLimiter(false));
     when(userRepository.findByEmail("ghost@example.com")).thenReturn(Optional.empty());
-    LoginRequest request = new LoginRequest("ghost@example.com", "password1");
+    LoginRequest request = new LoginRequest("ghost@example.com", "brew-test-pass-001");
 
     assertThatThrownBy(() -> service.login(request))
         .isInstanceOf(org.springframework.security.authentication.BadCredentialsException.class)
@@ -344,7 +374,7 @@ class AuthServiceTest {
     // Exactly one comparison, against a real BCrypt hash (not a cheap early return).
     org.mockito.Mockito.verify(encoder)
         .matches(
-            org.mockito.ArgumentMatchers.eq("password1"),
+            org.mockito.ArgumentMatchers.eq("brew-test-pass-001"),
             org.mockito.ArgumentMatchers.startsWith("$2"));
     org.mockito.Mockito.verifyNoInteractions(refreshTokenService);
   }
@@ -353,8 +383,8 @@ class AuthServiceTest {
   void login_unknownEmail_andWrongPassword_failIdentically() {
     when(userRepository.findByEmail("ghost@example.com")).thenReturn(Optional.empty());
     when(userRepository.findByEmail("brewer@example.com"))
-        .thenReturn(Optional.of(stored("brewer@example.com", "password1")));
-    LoginRequest unknown = new LoginRequest("ghost@example.com", "password1");
+        .thenReturn(Optional.of(stored("brewer@example.com", "brew-test-pass-001")));
+    LoginRequest unknown = new LoginRequest("ghost@example.com", "brew-test-pass-001");
     LoginRequest wrong = new LoginRequest("brewer@example.com", "not-the-password");
 
     Throwable unknownError =
@@ -378,7 +408,7 @@ class AuthServiceTest {
   @Test
   void logout_withoutAToken_revokesNothing() {
     when(userRepository.findByEmail("brewer@example.com"))
-        .thenReturn(Optional.of(stored("brewer@example.com", "password1")));
+        .thenReturn(Optional.of(stored("brewer@example.com", "brew-test-pass-001")));
 
     authService.logout("brewer@example.com", null);
 
@@ -387,7 +417,7 @@ class AuthServiceTest {
 
   @Test
   void logout_invalidatesOutstandingAccessTokens() {
-    User user = stored("brewer@example.com", "password1");
+    User user = stored("brewer@example.com", "brew-test-pass-001");
     when(userRepository.findByEmail("brewer@example.com")).thenReturn(Optional.of(user));
 
     authService.logout("brewer@example.com", "refresh");

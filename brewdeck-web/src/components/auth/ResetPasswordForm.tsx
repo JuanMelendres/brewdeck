@@ -5,7 +5,6 @@ import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import NextLink from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -13,6 +12,7 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useFieldError } from '@/i18n/useFieldError';
+import { PasswordField } from '@/components/ui/PasswordField';
 import { resetPassword } from '@/lib/api/auth';
 import { ApiError } from '@/lib/api/client';
 import { resetPasswordSchema, type ResetPasswordFormValues } from '@/lib/validation/authSchema';
@@ -28,6 +28,7 @@ export function ResetPasswordForm() {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<ResetPasswordFormValues>({ resolver: zodResolver(resetPasswordSchema) });
 
@@ -41,6 +42,13 @@ export function ResetPasswordForm() {
       await resetPassword({ token, newPassword: values.newPassword });
       setDone(true);
     } catch (error) {
+      // A field error (e.g. a common password) belongs on the field; any other 400 is a bad link.
+      if (error instanceof ApiError && error.validationErrors) {
+        for (const [field, message] of Object.entries(error.validationErrors)) {
+          setError(field as keyof ResetPasswordFormValues, { message });
+        }
+        return;
+      }
       if (error instanceof ApiError && error.status === 400) {
         setFormError(t('invalidLink'));
         return;
@@ -73,16 +81,14 @@ export function ResetPasswordForm() {
       </Typography>
       <Stack spacing={2.25}>
         {formError ? <Alert severity="error">{formError}</Alert> : null}
-        <TextField
+        <PasswordField
           label={tc('newPassword')}
-          type="password"
           {...register('newPassword')}
           error={!!errors.newPassword}
           helperText={fieldError(errors.newPassword?.message)}
         />
-        <TextField
+        <PasswordField
           label={tc('confirmNewPassword')}
-          type="password"
           {...register('confirmPassword')}
           error={!!errors.confirmPassword}
           helperText={fieldError(errors.confirmPassword?.message)}

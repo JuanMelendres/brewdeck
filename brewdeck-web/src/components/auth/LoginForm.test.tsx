@@ -31,7 +31,7 @@ describe('LoginForm', () => {
     loginMock.mockResolvedValue(undefined);
     renderWithTheme(<LoginForm />);
     await userEvent.type(screen.getByLabelText(/email/i), 'a@b.com');
-    await userEvent.type(screen.getByLabelText(/password/i), 'password1');
+    await userEvent.type(screen.getByLabelText(/password/i, { selector: 'input' }), 'password1');
     await userEvent.click(screen.getByRole('button', { name: /log in/i }));
     await waitFor(() => expect(loginMock).toHaveBeenCalledWith({ email: 'a@b.com', password: 'password1' }));
     expect(pushMock).toHaveBeenCalledWith('/dashboard');
@@ -41,7 +41,7 @@ describe('LoginForm', () => {
     loginMock.mockRejectedValue(new Error('bad creds'));
     renderWithTheme(<LoginForm />);
     await userEvent.type(screen.getByLabelText(/email/i), 'a@b.com');
-    await userEvent.type(screen.getByLabelText(/password/i), 'password1');
+    await userEvent.type(screen.getByLabelText(/password/i, { selector: 'input' }), 'password1');
     await userEvent.click(screen.getByRole('button', { name: /log in/i }));
     expect(await screen.findByText(/could not log in/i)).toBeInTheDocument();
   });
@@ -50,7 +50,7 @@ describe('LoginForm', () => {
     loginMock.mockRejectedValue(new ApiError(429, 'Too many attempts. Try again in 5 minutes.'));
     renderWithTheme(<LoginForm />);
     await userEvent.type(screen.getByLabelText(/email/i), 'a@b.com');
-    await userEvent.type(screen.getByLabelText(/password/i), 'password1');
+    await userEvent.type(screen.getByLabelText(/password/i, { selector: 'input' }), 'password1');
     await userEvent.click(screen.getByRole('button', { name: /log in/i }));
     expect(await screen.findByText('Too many attempts. Try again in 5 minutes.')).toBeInTheDocument();
     expect(screen.queryByText(/could not log in/i)).not.toBeInTheDocument();

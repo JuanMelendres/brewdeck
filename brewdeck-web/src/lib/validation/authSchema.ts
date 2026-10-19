@@ -3,22 +3,20 @@ import { vk, type ValidationKey } from '@/i18n/validationKey';
 
 // Messages are keys under `validation` in messages/*.json; forms translate them with useFieldError().
 
-// BCrypt only accepts 72 bytes. The limit is on UTF-8 bytes, not characters, so accented letters
-// (2 bytes) and emoji (4 bytes) use it up faster. Mirrors @MaxUtf8Bytes(72) on the backend.
-const MAX_PASSWORD_BYTES = 72;
+// Up to 128 characters (ADR-018: Argon2id has no 72-byte limit). Mirrors @Size(max = 128).
+export const MIN_PASSWORD_LENGTH = 15;
+export const MAX_PASSWORD_LENGTH = 128;
 const PASSWORD_TOO_LONG = vk('passwordTooLong');
 
-export function fitsPasswordByteLimit(value: string): boolean {
-  return new TextEncoder().encode(value).length <= MAX_PASSWORD_BYTES;
-}
-
 function newPassword(minMessage: ValidationKey) {
-  return z.string().min(8, minMessage).refine(fitsPasswordByteLimit, PASSWORD_TOO_LONG);
+  // NIST SP 800-63B minimum for a single factor (ADR-018). Login keeps no minimum: older
+  // accounts may still have shorter passwords.
+  return z.string().min(MIN_PASSWORD_LENGTH, minMessage).max(MAX_PASSWORD_LENGTH, PASSWORD_TOO_LONG);
 }
 
 export const loginSchema = z.object({
   email: z.string().min(1, vk('emailRequired')).max(255, vk('emailTooLong')).email(vk('emailInvalid')),
-  password: z.string().min(1, vk('passwordRequired')),
+  password: z.string().min(1, vk('passwordRequired')).max(MAX_PASSWORD_LENGTH, PASSWORD_TOO_LONG),
 });
 
 export const registerSchema = z

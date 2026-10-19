@@ -33,5 +33,6 @@ OWASP Dependency-Check is wired into the `security` Maven profile (`failBuildOnC
 cd brewdeck-api && sh mvnw clean verify -Psecurity   # report → target/dependency-check-report.html
 ```
 
-> No `NVD_API_KEY` is configured, so the first NVD data download is slow and may be incomplete —
-> a partial scan is reported as a limitation, never as "no vulnerabilities."
+CI passes the `NVD_API_KEY` secret. Without it (local runs), the first NVD data download is slow and
+may be incomplete — a partial scan is reported as a limitation, never as "no vulnerabilities."
+The workflow stops after 120 minutes, and a new push to a PR cancels that PR's running scan.

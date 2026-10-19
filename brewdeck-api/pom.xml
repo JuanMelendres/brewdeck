@@ -86,7 +86,7 @@
 			<dependency>
 				<groupId>org.webjars</groupId>
 				<artifactId>swagger-ui</artifactId>
-				<version>5.33.1</version>
+				<version>5.33.2</version>
 			</dependency>
 			<!-- CVE-2026-53914 (kotlin-stdlib/-reflect, transitive via com.anthropic:anthropic-java's
 			     OkHttp/Jackson-Kotlin integration, resolved at 1.9.25) was suppressed in round 1
@@ -164,6 +164,12 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<!-- Argon2id password hashing (ADR-018): Spring Security's Argon2PasswordEncoder needs it. -->
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk18on</artifactId>
+			<version>1.86</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -264,7 +270,7 @@
 		<dependency>
 			<groupId>com.anthropic</groupId>
 			<artifactId>anthropic-java</artifactId>
-			<version>2.71.0</version>
+			<version>2.73.0</version>
 		</dependency>
 	</dependencies>
 

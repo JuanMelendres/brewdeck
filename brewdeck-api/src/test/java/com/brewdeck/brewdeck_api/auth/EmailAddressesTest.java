@@ -32,8 +32,8 @@ class EmailAddressesTest {
 
   @Test
   void requestRecordsNormalizeTheirEmail() {
-    assertThat(new RegisterRequest(" A@B.COM ", "password1").email()).isEqualTo("a@b.com");
-    assertThat(new LoginRequest("A@B.COM", "password1").email()).isEqualTo("a@b.com");
+    assertThat(new RegisterRequest(" A@B.COM ", "brew-test-pass-001").email()).isEqualTo("a@b.com");
+    assertThat(new LoginRequest("A@B.COM", "brew-test-pass-001").email()).isEqualTo("a@b.com");
     assertThat(new com.brewdeck.brewdeck_api.auth.reset.ForgotPasswordRequest("A@B.COM").email())
         .isEqualTo("a@b.com");
   }
