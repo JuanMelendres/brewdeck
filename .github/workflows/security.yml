@@ -8,6 +8,7 @@ on:
     branches: [master, develop]
     paths:
       - "brewdeck-api/pom.xml"
+      - "brewdeck-api/dependency-check-suppressions.xml"
       - ".github/workflows/security.yml"
 
 # One scan per branch or PR. A new push cancels the running PR scan; scheduled and manual runs
