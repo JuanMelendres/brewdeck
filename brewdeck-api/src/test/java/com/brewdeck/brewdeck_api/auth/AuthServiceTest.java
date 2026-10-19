@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.brewdeck.brewdeck_api.auth.refresh.RefreshTokenService;
+import com.brewdeck.brewdeck_api.common.config.PasswordEncoderConfig;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitExceededException;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
@@ -147,6 +148,28 @@ class AuthServiceTest {
         authService.login(new LoginRequest("brewer@example.com", "password1")).response();
 
     assertThat(response.token()).isEqualTo("jwt-token");
+  }
+
+  @Test
+  void login_upgradesALegacyBcryptHashToArgon2id() {
+    User legacy = stored("brewer@example.com", "password1"); // plain BCrypt, as before ADR-018
+    when(userRepository.findByEmail("brewer@example.com")).thenReturn(Optional.of(legacy));
+    when(jwtService.generateToken(any(User.class))).thenReturn("jwt-token");
+    PasswordEncoder configured = new PasswordEncoderConfig().passwordEncoder();
+    AuthService withArgon2 =
+        new AuthService(
+            userRepository,
+            jwtService,
+            configured,
+            emailVerificationService,
+            refreshTokenService,
+            new RateLimiter(false));
+
+    withArgon2.login(new LoginRequest("brewer@example.com", "password1"));
+
+    verify(userRepository).save(legacy);
+    assertThat(legacy.getPasswordHash()).startsWith("{argon2}");
+    assertThat(configured.matches("password1", legacy.getPasswordHash())).isTrue();
   }
 
   @Test

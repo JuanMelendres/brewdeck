@@ -17,7 +17,7 @@
     "passwordRequired": "La contraseña es obligatoria",
     "passwordTooShort": "La contraseña debe tener al menos 8 caracteres",
     "newPasswordTooShort": "La nueva contraseña debe tener al menos 8 caracteres",
-    "passwordTooLong": "La contraseña no debe pasar de 72 bytes (menos caracteres si usa acentos o emojis)",
+    "passwordTooLong": "La contraseña no debe pasar de 128 caracteres",
     "displayNameTooLong": "El nombre visible no debe pasar de 100 caracteres",
     "currentPasswordRequired": "La contraseña actual es obligatoria",
     "currentPasswordIncorrect": "La contraseña actual es incorrecta",

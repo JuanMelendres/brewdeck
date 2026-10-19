@@ -2,33 +2,29 @@ import { describe, expect, it } from 'vitest';
 import {
   changePasswordSchema,
   loginSchema,
-  fitsPasswordByteLimit,
   registerSchema,
   resetPasswordSchema,
 } from './authSchema';
 
-describe('fitsPasswordByteLimit', () => {
-  it('counts UTF-8 bytes, not characters', () => {
-    expect(fitsPasswordByteLimit('x'.repeat(72))).toBe(true);
-    expect(fitsPasswordByteLimit('x'.repeat(73))).toBe(false);
-    // "é" is 2 bytes: 37 characters are 74 bytes.
-    expect(fitsPasswordByteLimit('é'.repeat(36))).toBe(true);
-    expect(fitsPasswordByteLimit('é'.repeat(37))).toBe(false);
-  });
-});
-
-describe('password byte limit in auth schemas', () => {
+describe('password length in auth schemas (ADR-018)', () => {
   const email = 'brewer@example.com';
 
-  it('registerSchema rejects a password over 72 bytes', () => {
-    const fits = 'x'.repeat(72);
+  it('registerSchema accepts 128 characters and rejects 129', () => {
+    const fits = 'x'.repeat(128);
     expect(registerSchema.safeParse({ email, password: fits, confirmPassword: fits }).success).toBe(
       true,
     );
-    const long = 'x'.repeat(73);
+    const long = 'x'.repeat(129);
     const result = registerSchema.safeParse({ email, password: long, confirmPassword: long });
     expect(result.success).toBe(false);
     expect(result.error?.issues[0].message).toBe('passwordTooLong');
+  });
+
+  it('accepts a multibyte passphrase over 72 bytes', () => {
+    const passphrase = 'é'.repeat(64); // 128 bytes, rejected while BCrypt's limit applied
+    expect(
+      registerSchema.safeParse({ email, password: passphrase, confirmPassword: passphrase }).success,
+    ).toBe(true);
   });
 
   it('registerSchema rejects a confirmation that does not match', () => {
@@ -42,8 +38,8 @@ describe('password byte limit in auth schemas', () => {
     expect(result.error?.issues[0].message).toBe('passwordsDoNotMatch');
   });
 
-  it('changePasswordSchema rejects a new password over 72 bytes', () => {
-    const long = 'é'.repeat(37);
+  it('changePasswordSchema rejects a new password over 128 characters', () => {
+    const long = 'é'.repeat(129);
     const result = changePasswordSchema.safeParse({
       currentPassword: 'password1',
       newPassword: long,
@@ -53,8 +49,8 @@ describe('password byte limit in auth schemas', () => {
     expect(result.error?.issues.some((issue) => issue.path[0] === 'newPassword')).toBe(true);
   });
 
-  it('resetPasswordSchema rejects a new password over 72 bytes', () => {
-    const long = 'x'.repeat(80);
+  it('resetPasswordSchema rejects a new password over 128 characters', () => {
+    const long = 'x'.repeat(129);
     expect(
       resetPasswordSchema.safeParse({ newPassword: long, confirmPassword: long }).success,
     ).toBe(false);
