@@ -60,6 +60,7 @@ function isOnPublicPath(): boolean {
     p === '/verify-email' ||
     p.startsWith('/email-change/') ||
     p === '/privacy' ||
+    p === '/account-deleted' ||
     p === '/terms' ||
     p.startsWith('/share')
   );

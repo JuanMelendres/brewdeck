@@ -462,6 +462,95 @@
      ]
     },
     {
+     "name": "GET - Export my data",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{authToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseURL}}/api/auth/me/export",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "auth",
+        "me",
+        "export"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 200', function () {",
+         "  pm.response.to.have.status(200);",
+         "});",
+         "// ADR-020: JSON attachment with the profile and the user's own data."
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "DELETE - Delete my account",
+     "request": {
+      "method": "DELETE",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{authToken}}"
+       }
+      ],
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"currentPassword\": \"brew-example-pass-02\"\n}"
+      },
+      "url": {
+       "raw": "{{baseURL}}/api/auth/me",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "auth",
+        "me"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 204', function () {",
+         "  pm.response.to.have.status(204);",
+         "});",
+         "// ADR-020: cannot be undone. Run it last; it deletes the account used by the collection."
+        ]
+       }
+      }
+     ]
+    },
+    {
      "name": "POST - Request email change",
      "request": {
       "method": "POST",

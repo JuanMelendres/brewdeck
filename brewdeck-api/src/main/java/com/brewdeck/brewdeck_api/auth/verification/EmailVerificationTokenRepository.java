@@ -23,4 +23,9 @@ public interface EmailVerificationTokenRepository
   @Query(
       "UPDATE EmailVerificationToken t SET t.usedAt = :now WHERE t.id = :id AND t.usedAt IS NULL")
   int markUsedIfUnused(@Param("id") Long id, @Param("now") Instant now);
+
+  /** Account deletion (ADR-020). */
+  @Modifying
+  @Query("DELETE FROM EmailVerificationToken t WHERE t.userId = :userId")
+  int deleteAllByUserId(@Param("userId") Long userId);
 }

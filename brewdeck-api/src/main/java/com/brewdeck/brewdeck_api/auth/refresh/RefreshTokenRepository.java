@@ -29,4 +29,9 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
           + "WHERE t.userId = :userId AND t.usedAt IS NULL "
           + "AND t.revokedAt IS NULL AND t.expiresAt > :now")
   int revokeAllActiveForUser(@Param("userId") Long userId, @Param("now") Instant now);
+
+  /** Account deletion (ADR-020). */
+  @Modifying
+  @Query("DELETE FROM RefreshToken t WHERE t.userId = :userId")
+  int deleteAllByUserId(@Param("userId") Long userId);
 }

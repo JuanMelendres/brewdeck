@@ -25,6 +25,9 @@ public enum RateLimitRule {
   EMAIL_CHANGE_USER(3, Duration.ofHours(1)),
   // Email change confirm and cancel links (public, the token is the credential).
   EMAIL_CHANGE_TOKEN_IP(10, Duration.ofMinutes(15)),
+  // Data export and account deletion, keyed by user id (ADR-020). Wrong passwords count on delete.
+  ACCOUNT_EXPORT_USER(5, Duration.ofHours(1)),
+  ACCOUNT_DELETE_USER(5, Duration.ofMinutes(15)),
   // AI suggest/improve, keyed by user id: a local model costs CPU time, a hosted one money.
   AI_ASSISTANT_USER(10, Duration.ofMinutes(1));
 

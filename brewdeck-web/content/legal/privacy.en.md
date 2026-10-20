@@ -92,7 +92,8 @@ You can **access**, **rectify** or **cancel** your data, **object** to its proce
 **From your account:**
 - Rectify your name, language and theme on the account page.
 - Change your email, confirmed from the new address.
-- *[Coming soon]* Download your data and delete your account.
+- Download all your data as a JSON file (access).
+- Delete your account and all its data at once, with your password (cancellation).
 
 **By email** to jmelendresdev@gmail.com, with:
 1. your name and your account email, so we can reply;
