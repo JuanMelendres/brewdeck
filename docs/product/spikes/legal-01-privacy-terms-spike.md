@@ -132,7 +132,7 @@ company shields personal assets but costs money and paperwork.
 
 1. **Owner:** decisions 1–5 taken on 2026-10-20. Still open: the post office and código postal of
    the P.O. box (1a).
-2. **PR 1 (docs):** `docs/legal/privacy-notice.md` and `docs/legal/terms.md` drafts (es) with the
+2. **PR 1 (docs, done as drafts 2026-10-20):** `docs/legal/privacy-notice.md` and `docs/legal/terms.md` drafts (es) with the
    decisions filled in, plus the processor list and the ARCO and breach steps. **Lawyer review.**
 3. **PR 2 (full-stack):**
    - `/privacy` and `/terms` pages and footer links;
