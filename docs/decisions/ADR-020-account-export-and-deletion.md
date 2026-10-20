@@ -75,7 +75,7 @@ needed to honor the privacy notice.
   - Deletion cannot be undone. Neon point-in-time restore (6 h on the free plan) is the only way
     back, and only for the whole database.
   - The deletion order must follow every new table that references users or user-owned rows.
-    `AccountDeletionIntegrationTest` fails if a reference is left behind.
+    `AccountExportDeletionIntegrationTest` fails if a reference is left behind.
 - **If the lawyer requires a blocking period (Art. 24):** add `users.deleted_at`, block login and
   access at once, and purge after the period. The export and the endpoints stay the same.
 

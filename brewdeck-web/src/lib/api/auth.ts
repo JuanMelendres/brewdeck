@@ -120,6 +120,19 @@ export function cancelEmailChange(token: string): Promise<void> {
   });
 }
 
+/** Everything stored about the current user, as one JSON document (ADR-020). */
+export function exportAccount(): Promise<unknown> {
+  return apiFetch<unknown>('/api/auth/me/export');
+}
+
+/** Deletes the account and all its data (ADR-020). Ends every session; cannot be undone. */
+export function deleteAccount(body: { currentPassword: string }): Promise<void> {
+  return apiFetch<void>('/api/auth/me', {
+    method: 'DELETE',
+    body: JSON.stringify(body),
+  });
+}
+
 /** Revokes the refresh cookie's token server-side and clears the cookie (ADR-013). */
 export function logout(): Promise<void> {
   return apiFetch<void>('/api/auth/logout', { method: 'POST' });

@@ -71,14 +71,13 @@ Requests arrive at **jmelendresdev@gmail.com**. "Days" means business days (LFPD
 3. **Decide and answer within 20 business days** (Art. 31). One extension of 20 more is allowed if
    justified; tell the requester before the first deadline.
 4. **Carry it out within 15 business days** of the answer:
-   - **Access:** export the user's rows (`users`, coffees, brew methods they own, recipes, brew
-     sessions) as JSON. Exclude password hashes and token hashes. The self-service export comes
-     with LEGAL-01 PR 3.
+   - **Access:** point the user to "Download my data" on the account page (ADR-020). If they
+     cannot log in, verify identity and run the same export for them.
    - **Rectification:** the user can do most of it in the account page. Fix the rest by hand and
      record what changed.
-   - **Cancellation or revocation:** delete the account and everything it owns. Until "Delete my
-     account" ships (LEGAL-01 PR 3), do it by hand in Neon inside one transaction, starting from
-     the child tables. Run the same steps as the future endpoint, and confirm by email.
+   - **Cancellation or revocation:** point the user to "Delete my account" on the account page
+     (ADR-020). If they cannot log in, verify identity and delete it for them in the same order as
+     `AccountService.delete`, inside one transaction, then confirm by email.
    - **Opposition:** BrewDeck has no secondary purposes today, so explain that, or stop the use
      the request names.
 5. **Close** the log entry with the date and what was done. Keep it for 2 years. *(Assumption;
@@ -119,7 +118,7 @@ authorization. Examples:
 
 | Data | Kept | Mechanism |
 |---|---|---|
-| Account and its content | Until the user deletes it | Self-service delete (LEGAL-01 PR 3); manual until then |
+| Account and its content | Until the user deletes it | "Delete my account" (ADR-020) |
 | Unverified accounts | 7 days | AUTH-06 purge job (pending) |
 | Request logs (IP, user agent) | 30 days | Cloud Logging default retention |
 | Expired or used tokens (reset, verification, refresh, email change) | 30 days | AUTH-06 purge job (pending) |

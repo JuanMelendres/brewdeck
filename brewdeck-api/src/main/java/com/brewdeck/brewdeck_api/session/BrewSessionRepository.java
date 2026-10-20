@@ -10,6 +10,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -81,4 +82,13 @@ public interface BrewSessionRepository
       order by count(s) desc, s.recipe.name asc, s.recipe.id asc
       """)
   List<MostBrewedRecipe> findMostBrewed(@Param("ownerId") Long ownerId, Pageable pageable);
+
+  /** Every row the user owns, for the data export (ADR-020). */
+  @EntityGraph(attributePaths = {"recipe"})
+  List<BrewSession> findAllByOwnerIdOrderByIdAsc(Long ownerId);
+
+  /** Deletes every row the user owns (account deletion, ADR-020). */
+  @Modifying
+  @Query("DELETE FROM BrewSession s WHERE s.owner.id = :ownerId")
+  int deleteAllByOwnerId(@Param("ownerId") Long ownerId);
 }

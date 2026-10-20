@@ -91,7 +91,8 @@ tratamiento, y **revocar** tu consentimiento.
 **Desde tu cuenta:**
 - Rectificar tu nombre, idioma y tema en la página de cuenta.
 - Cambiar tu correo, con confirmación desde el correo nuevo.
-- *[Próximamente]* Descargar tus datos y eliminar tu cuenta.
+- Descargar todos tus datos en un archivo JSON (acceso).
+- Eliminar tu cuenta y todos sus datos de inmediato, con tu contraseña (cancelación).
 
 **Por correo** a jmelendresdev@gmail.com, con:
 1. tu nombre y el correo de tu cuenta, para responderte;

@@ -123,6 +123,24 @@
       "saved": "Password changed.",
       "failed": "Could not change your password. Please try again."
     },
+    "accountData": {
+      "title": "Your data",
+      "exportIntro": "Download a copy of everything BrewDeck stores about you, as a JSON file.",
+      "export": "Download my data",
+      "exportFailed": "Could not download your data. Please try again.",
+      "deleteIntro": "Delete your account and all your coffees, recipes and brew sessions. This cannot be undone.",
+      "delete": "Delete my account",
+      "dialogTitle": "Delete your account?",
+      "dialogText": "This deletes your account and all its data at once. It cannot be undone. Enter your password to confirm.",
+      "currentPassword": "Current password",
+      "confirmDelete": "Delete permanently",
+      "deleteFailed": "Could not delete your account. Please try again."
+    },
+    "accountDeleted": {
+      "title": "Your account was deleted",
+      "body": "Your account and all its data are gone. We sent a confirmation to your email.",
+      "signUp": "Create a new account"
+    },
     "changeEmail": {
       "title": "Change email",
       "current": "Current email: {email}",

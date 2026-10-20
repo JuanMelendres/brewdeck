@@ -26,6 +26,8 @@ type AuthContextValue = {
   updateLanguage: (language: Language) => Promise<void>;
   refreshUser: () => Promise<void>;
   logout: () => Promise<void>;
+  /** Forgets the session in this browser only, for when the server already ended it. */
+  clearSession: () => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -92,6 +94,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } catch {
           // Ignore: a failed refresh leaves the existing user state untouched.
         }
+      },
+      clearSession: () => {
+        setUser(null);
+        setStatus('anonymous');
+        clearTokens();
       },
       logout: async () => {
         setUser(null);

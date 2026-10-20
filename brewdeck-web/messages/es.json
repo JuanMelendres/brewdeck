@@ -123,6 +123,24 @@
       "saved": "Contraseña cambiada.",
       "failed": "No pudimos cambiar tu contraseña. Inténtalo de nuevo."
     },
+    "accountData": {
+      "title": "Tus datos",
+      "exportIntro": "Descarga una copia de todo lo que BrewDeck guarda sobre ti, en un archivo JSON.",
+      "export": "Descargar mis datos",
+      "exportFailed": "No se pudieron descargar tus datos. Inténtalo de nuevo.",
+      "deleteIntro": "Elimina tu cuenta y todos tus cafés, recetas y sesiones. No se puede deshacer.",
+      "delete": "Eliminar mi cuenta",
+      "dialogTitle": "¿Eliminar tu cuenta?",
+      "dialogText": "Esto elimina tu cuenta y todos sus datos de inmediato. No se puede deshacer. Escribe tu contraseña para confirmar.",
+      "currentPassword": "Contraseña actual",
+      "confirmDelete": "Eliminar para siempre",
+      "deleteFailed": "No se pudo eliminar tu cuenta. Inténtalo de nuevo."
+    },
+    "accountDeleted": {
+      "title": "Se eliminó tu cuenta",
+      "body": "Tu cuenta y todos sus datos ya no existen. Te enviamos una confirmación a tu correo.",
+      "signUp": "Crear una cuenta nueva"
+    },
     "changeEmail": {
       "title": "Cambiar correo",
       "current": "Correo actual: {email}",

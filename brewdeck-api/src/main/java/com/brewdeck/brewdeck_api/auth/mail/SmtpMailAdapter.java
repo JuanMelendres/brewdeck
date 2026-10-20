@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.auth.mail;
 
+import com.brewdeck.brewdeck_api.account.AccountMailPort;
 import com.brewdeck.brewdeck_api.auth.emailchange.EmailChangeMailPort;
 import com.brewdeck.brewdeck_api.auth.reset.MailProperties;
 import com.brewdeck.brewdeck_api.auth.reset.PasswordResetMailPort;
@@ -43,7 +44,10 @@ import org.springframework.web.util.HtmlUtils;
 @Slf4j
 @ConditionalOnProperty(prefix = "brewdeck.mail", name = "enabled", havingValue = "true")
 public class SmtpMailAdapter
-    implements EmailVerificationMailPort, PasswordResetMailPort, EmailChangeMailPort {
+    implements EmailVerificationMailPort,
+        PasswordResetMailPort,
+        EmailChangeMailPort,
+        AccountMailPort {
 
   private final JavaMailSender mailSender;
   private final MailProperties properties;
@@ -127,6 +131,11 @@ public class SmtpMailAdapter
   @Override
   public void sendEmailChangedNotice(String oldEmail, String maskedNewEmail, Locale locale) {
     send("email-changed", oldEmail, null, locale, maskedNewEmail);
+  }
+
+  @Override
+  public void sendAccountDeletedNotice(String email, Locale locale) {
+    send("account-deleted", email, null, locale);
   }
 
   /**
