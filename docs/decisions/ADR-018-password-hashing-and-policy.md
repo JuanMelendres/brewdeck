@@ -31,7 +31,8 @@ Accepted (2026-10-19). Backlog AUTH-03.
   is re-hashed with Argon2id and saved. Accounts that never log in again keep BCrypt, which is
   still a sound algorithm.
 - **Memory bound:** each Argon2id hash allocates about 19 MiB on the heap. The staging container
-  has 512 MiB, about 384 MiB of heap. Hashing goes through a fair semaphore of 4 permits, so a
+  had 512 MiB, about 384 MiB of heap; it moved to 1 GiB on 2026-10-20 after the first login on the
+  release hit the container limit (see the staging runbook). Hashing goes through a fair semaphore of 4 permits, so a
   login burst queues instead of exhausting memory. Login rate limits (ADR-011) already cap
   attempts per IP and account.
 - **Length cap:** passwords may be up to **128 characters**. That is above NIST's 64 and bounds
