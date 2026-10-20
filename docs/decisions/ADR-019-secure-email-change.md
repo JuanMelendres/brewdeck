@@ -37,6 +37,8 @@ Accepted (2026-10-20). Backlog AUTH-04.
    - `newEmail` equal to the current email returns `400` (validation error).
    - Otherwise the API answers **`202`** with one fixed message ("check your new inbox"),
      whether or not the address is free.
+   - Unverified users may call it even while email verification is enforced (ADR-012), since it
+     is the only way to fix a mistyped signup address. Confirming verifies the new one.
 2. **New address free:**
    - Any pending request of the user is cancelled first, so at most one is pending.
    - A request is stored with a confirm token for the new address and a cancel token for the old.

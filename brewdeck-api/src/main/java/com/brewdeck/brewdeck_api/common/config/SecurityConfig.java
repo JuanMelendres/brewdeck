@@ -72,7 +72,9 @@ public class SecurityConfig {
                         "/api/auth/refresh",
                         "/api/auth/forgot-password",
                         "/api/auth/reset-password",
-                        "/api/auth/verify-email")
+                        "/api/auth/verify-email",
+                        "/api/auth/email-change/confirm",
+                        "/api/auth/email-change/cancel")
                     .permitAll()
                     .requestMatchers("/api/public/**")
                     .permitAll()

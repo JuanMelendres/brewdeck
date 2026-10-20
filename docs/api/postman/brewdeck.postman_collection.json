@@ -72,7 +72,7 @@
       ],
       "body": {
        "mode": "raw",
-       "raw": "{\n  \"email\": \"brewer@example.com\",\n  \"password\": \"password1\"\n}"
+       "raw": "{\n  \"email\": \"brewer@example.com\",\n  \"password\": \"brew-example-pass-01\"\n}"
       },
       "url": {
        "raw": "{{baseURL}}/api/auth/register",
@@ -116,7 +116,7 @@
       ],
       "body": {
        "mode": "raw",
-       "raw": "{\n  \"email\": \"brewer@example.com\",\n  \"password\": \"password1\"\n}"
+       "raw": "{\n  \"email\": \"brewer@example.com\",\n  \"password\": \"brew-example-pass-01\"\n}"
       },
       "url": {
        "raw": "{{baseURL}}/api/auth/login",
@@ -342,7 +342,7 @@
       ],
       "body": {
        "mode": "raw",
-       "raw": "{\n  \"currentPassword\": \"password1\",\n  \"newPassword\": \"newpassword1\"\n}"
+       "raw": "{\n  \"currentPassword\": \"brew-example-pass-01\",\n  \"newPassword\": \"brew-example-pass-02\"\n}"
       },
       "url": {
        "raw": "{{baseURL}}/api/auth/change-password",
@@ -432,7 +432,7 @@
       ],
       "body": {
        "mode": "raw",
-       "raw": "{\n  \"token\": \"paste-token-from-logs\",\n  \"newPassword\": \"newpassword1\"\n}"
+       "raw": "{\n  \"token\": \"paste-token-from-logs\",\n  \"newPassword\": \"brew-example-pass-02\"\n}"
       },
       "url": {
        "raw": "{{baseURL}}/api/auth/reset-password",
@@ -456,6 +456,145 @@
          "pm.test('Status code is 204', function () {",
          "  pm.response.to.have.status(204);",
          "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "POST - Request email change",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{authToken}}"
+       }
+      ],
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"newEmail\": \"new-brewer@example.com\",\n  \"currentPassword\": \"brew-example-pass-02\"\n}"
+      },
+      "url": {
+       "raw": "{{baseURL}}/api/auth/me/email-change",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "auth",
+        "me",
+        "email-change"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 202', function () {",
+         "  pm.response.to.have.status(202);",
+         "});",
+         "// Behind the auth-email-change flag (404 while off). The confirm and cancel links are in the API log locally."
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "POST - Confirm email change",
+     "request": {
+      "auth": {
+       "type": "noauth"
+      },
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"token\": \"paste-confirm-token-from-logs\"\n}"
+      },
+      "url": {
+       "raw": "{{baseURL}}/api/auth/email-change/confirm",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "auth",
+        "email-change",
+        "confirm"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 204', function () {",
+         "  pm.response.to.have.status(204);",
+         "});",
+         "// Closes every session: log in again with the new email."
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "POST - Cancel email change",
+     "request": {
+      "auth": {
+       "type": "noauth"
+      },
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"token\": \"paste-cancel-token-from-logs\"\n}"
+      },
+      "url": {
+       "raw": "{{baseURL}}/api/auth/email-change/cancel",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "auth",
+        "email-change",
+        "cancel"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 204', function () {",
+         "  pm.response.to.have.status(204);",
+         "});",
+         "// Closes every session; works even with the flag off."
         ]
        }
       }

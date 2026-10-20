@@ -38,6 +38,8 @@ public class EmailVerificationRequiredFilter extends OncePerRequestFilter {
           "GET /api/auth/me",
           "POST /api/auth/resend-verification",
           "POST /api/auth/verify-email",
+          // Fixes a mistyped signup address: confirming the new one also verifies it (ADR-019).
+          "POST /api/auth/me/email-change",
           "POST /api/auth/logout",
           "POST /api/auth/refresh",
           "GET /api/feature-flags");

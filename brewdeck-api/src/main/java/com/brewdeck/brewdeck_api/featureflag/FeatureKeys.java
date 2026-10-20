@@ -16,5 +16,11 @@ public final class FeatureKeys {
    */
   public static final String REQUIRE_EMAIL_VERIFICATION = "auth-require-email-verification";
 
+  /**
+   * Email change with confirmation from the new address (ADR-019). RELEASE flag, off until the web
+   * flow ships. Guards request and confirm; cancel is never guarded.
+   */
+  public static final String EMAIL_CHANGE = "auth-email-change";
+
   private FeatureKeys() {}
 }
