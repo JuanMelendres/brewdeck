@@ -62,7 +62,12 @@ export function contentSecurityPolicy({ isDev, apiBaseUrl }: SecurityHeaderOptio
 
 // Pages whose URL carries a secret (share token, reset or verification token) must not leak it to
 // other sites through the Referer header.
-const NO_REFERRER_SOURCES = ['/share/:path*', '/reset-password', '/verify-email'];
+const NO_REFERRER_SOURCES = [
+  '/share/:path*',
+  '/reset-password',
+  '/verify-email',
+  '/email-change/:path*',
+];
 
 export function securityHeaderRules(options: SecurityHeaderOptions): HeaderRule[] {
   return [

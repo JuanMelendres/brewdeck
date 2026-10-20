@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.auth.mail;
 
+import com.brewdeck.brewdeck_api.auth.emailchange.EmailChangeMailPort;
 import com.brewdeck.brewdeck_api.auth.reset.MailProperties;
 import com.brewdeck.brewdeck_api.auth.reset.PasswordResetMailPort;
 import com.brewdeck.brewdeck_api.auth.verification.EmailVerificationMailPort;
@@ -24,7 +25,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.web.util.HtmlUtils;
 
 /**
- * Real SMTP delivery for verification and password-reset links, active when {@code
+ * Real SMTP delivery for verification, password-reset and email-change messages, active when {@code
  * brewdeck.mail.enabled=true} (the logging adapters are used otherwise). Connection settings come
  * from {@code spring.mail.*} / {@code SPRING_MAIL_*}, so any SMTP provider works.
  *
@@ -39,7 +40,8 @@ import org.springframework.web.util.HtmlUtils;
 @Component
 @Slf4j
 @ConditionalOnProperty(prefix = "brewdeck.mail", name = "enabled", havingValue = "true")
-public class SmtpMailAdapter implements EmailVerificationMailPort, PasswordResetMailPort {
+public class SmtpMailAdapter
+    implements EmailVerificationMailPort, PasswordResetMailPort, EmailChangeMailPort {
 
   private final JavaMailSender mailSender;
   private final MailProperties properties;
@@ -96,14 +98,46 @@ public class SmtpMailAdapter implements EmailVerificationMailPort, PasswordReset
     send("password-reset", email, link("/reset-password", rawToken), locale);
   }
 
+  @Override
+  public void sendConfirmLink(String newEmail, String rawToken, Locale locale) {
+    send("email-change-confirm", newEmail, link("/email-change/confirm", rawToken), locale);
+  }
+
+  @Override
+  public void sendChangeRequestedNotice(
+      String oldEmail, String maskedNewEmail, String rawCancelToken, Locale locale) {
+    send(
+        "email-change-requested",
+        oldEmail,
+        link("/email-change/cancel", rawCancelToken),
+        locale,
+        maskedNewEmail);
+  }
+
+  @Override
+  public void sendAddressTakenNotice(String newEmail, Locale locale) {
+    send("email-change-address-taken", newEmail, properties.frontendBaseUrl() + "/login", locale);
+  }
+
+  @Override
+  public void sendEmailChangedNotice(String oldEmail, String maskedNewEmail, Locale locale) {
+    send("email-changed", oldEmail, null, locale, maskedNewEmail);
+  }
+
   /**
    * Builds the email from the {@code email.<kind>.*} messages in {@code locale}'s language. The
    * locale is resolved here, on the request thread; sending happens later on another thread.
+   *
+   * @param link the button target, or {@code null} for a notice with no link (and no button key)
+   * @param introArgs arguments for the {@code intro} and {@code textIntro} messages only
    */
-  private void send(String kind, String to, String link, Locale locale) {
+  private void send(String kind, String to, String link, Locale locale, Object... introArgs) {
     String prefix = "email." + kind + ".";
+    Object[] args = introArgs.length == 0 ? null : introArgs;
     String footer = message(prefix + "footer", locale);
-    String text = message(prefix + "textIntro", locale) + "\n\n" + link + "\n\n" + footer;
+    String textIntro = messageSource.getMessage(prefix + "textIntro", args, locale);
+    String text =
+        link == null ? textIntro + "\n\n" + footer : textIntro + "\n\n" + link + "\n\n" + footer;
     dispatch(
         kind,
         to,
@@ -112,8 +146,8 @@ public class SmtpMailAdapter implements EmailVerificationMailPort, PasswordReset
         html(
             locale,
             message(prefix + "heading", locale),
-            message(prefix + "intro", locale),
-            message(prefix + "button", locale),
+            messageSource.getMessage(prefix + "intro", args, locale),
+            link == null ? null : message(prefix + "button", locale),
             link,
             message("email.pasteLink", locale),
             footer));
@@ -169,6 +203,16 @@ public class SmtpMailAdapter implements EmailVerificationMailPort, PasswordReset
       String link,
       String pasteLink,
       String footer) {
+    if (link == null) {
+      return """
+          <div lang="%s" style="font-family:system-ui,sans-serif;max-width:480px;margin:auto">
+            <h2>%s</h2>
+            <p>%s</p>
+            <p style="font-size:12px;color:#666">%s</p>
+          </div>
+          """
+          .formatted(locale.toLanguageTag(), escape(heading), escape(intro), escape(footer));
+    }
     String safeLink = HtmlUtils.htmlEscape(link);
     return """
         <div lang="%s" style="font-family:system-ui,sans-serif;max-width:480px;margin:auto">

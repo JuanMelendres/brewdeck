@@ -1,6 +1,8 @@
 # Test Plan
 
 How to run the suites and what each guards. Commands assume the repo root unless noted.
+Manual checks on staging (browsers, inboxes, owner judgement) are in
+[manual-test-checklist.md](manual-test-checklist.md).
 
 ## Backend (`brewdeck-api/`)
 

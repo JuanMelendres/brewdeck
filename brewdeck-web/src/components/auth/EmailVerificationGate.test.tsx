@@ -17,7 +17,7 @@ vi.mock('@/lib/auth/AuthProvider', () => ({
   useAuth: () => ({ user: mockUser, refreshUser: refreshUserMock, logout: logoutMock }),
 }));
 
-let mockFlags = { aiRecipeAssistant: false, requireEmailVerification: false };
+let mockFlags = { aiRecipeAssistant: false, requireEmailVerification: false, emailChange: false };
 let mockFlagStatus: 'loading' | 'ready' | 'error' = 'ready';
 vi.mock('@/lib/featureFlags/FeatureFlagProvider', () => ({
   useFeatureFlags: () => ({ flags: mockFlags, status: mockFlagStatus }),
@@ -45,7 +45,7 @@ describe('EmailVerificationGate', () => {
   afterEach(() => {
     vi.clearAllMocks();
     mockUser = null;
-    mockFlags = { aiRecipeAssistant: false, requireEmailVerification: false };
+    mockFlags = { aiRecipeAssistant: false, requireEmailVerification: false, emailChange: false };
     mockFlagStatus = 'ready';
   });
 

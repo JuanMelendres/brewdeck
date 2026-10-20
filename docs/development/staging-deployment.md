@@ -336,7 +336,7 @@ gcloud run deploy brewdeck-api-staging \
   --image="$IMAGE" \
   --region="$REGION" \
   --service-account="$RUNTIME_SA" \
-  --cpu=1 --memory=512Mi --cpu-boost \
+  --cpu=1 --memory=1Gi --cpu-boost \
   --min-instances=0 --max-instances=1 \
   --allow-unauthenticated \
   --env-vars-file="$HOME/brewdeck-staging/api.env.yaml" \
@@ -350,6 +350,13 @@ What the settings mean:
 - `--min-instances=0` with the default request-based billing means idle time costs nothing.
 - `--max-instances=1` is the cost cap. It also keeps the in-memory rate limits and caches on a
   single instance.
+- `--memory=1Gi` (raised from 512 MiB on 2026-10-20). With 512 MiB, Cloud Run killed the container
+  on cold start plus the first requests (`Memory limit of 512 MiB exceeded`, on 2026-10-15, 10-16
+  and 10-20). The JVM takes 75% of the limit as heap (`MaxRAMPercentage=75` in the `Dockerfile`),
+  which left about 128 MiB for metaspace, threads and the code cache. Argon2id's 19 MiB per hash
+  (ADR-018) pushed it over. The free tier still binds on CPU (about 50 active hours a month), not
+  memory (about 100 hours at 1 GiB).
+- The deploy pipeline does not pass `--memory`, so new revisions keep the service's setting.
 - Cloud Run sets `PORT=8080`, and the `staging` profile reads it.
 
 ### 5.5 Check

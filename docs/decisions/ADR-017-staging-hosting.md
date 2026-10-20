@@ -31,7 +31,7 @@ The spike found that:
   personal data in staging.
 - **API:** Google Cloud Run, from a Docker image built from `master` (by hand first, later in
   GitHub Actions).
-  - Size and scaling: 1 vCPU, 512 MiB, startup CPU boost, `min-instances=0`, `max-instances=1`,
+  - Size and scaling: 1 vCPU, 512 MiB (1 GiB since 2026-10-20, see the runbook), startup CPU boost, `min-instances=0`, `max-instances=1`,
     request-based billing, a Tier 1 region.
   - Secrets live in Secret Manager.
   - GitHub authenticates with Workload Identity Federation, never with JSON keys.
