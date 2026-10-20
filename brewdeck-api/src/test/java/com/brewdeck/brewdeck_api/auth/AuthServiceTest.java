@@ -13,6 +13,10 @@ import com.brewdeck.brewdeck_api.common.config.PasswordEncoderConfig;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitExceededException;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
+import com.brewdeck.brewdeck_api.featureflag.FeatureFlagService;
+import com.brewdeck.brewdeck_api.featureflag.FeatureKeys;
+import com.brewdeck.brewdeck_api.legal.LegalTerms;
+import com.brewdeck.brewdeck_api.legal.TermsNotAcceptedException;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.Duration;
 import java.time.Instant;
@@ -20,6 +24,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -27,6 +32,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
+
+  @Mock private FeatureFlagService featureFlagService;
 
   @Mock private UserRepository userRepository;
   @Mock private JwtService jwtService;
@@ -49,7 +56,8 @@ class AuthServiceTest {
             encoder,
             emailVerificationService,
             refreshTokenService,
-            new RateLimiter(false));
+            new RateLimiter(false),
+            featureFlagService);
   }
 
   private User stored(String email, String rawPassword) {
@@ -106,7 +114,8 @@ class AuthServiceTest {
             new BCryptPasswordEncoder(),
             emailVerificationService,
             refreshTokenService,
-            limiter);
+            limiter,
+            featureFlagService);
 
     assertThatThrownBy(
             () -> limited.register(new RegisterRequest("flood@example.com", "brew-test-pass-001")))
@@ -166,7 +175,8 @@ class AuthServiceTest {
             configured,
             emailVerificationService,
             refreshTokenService,
-            new RateLimiter(false));
+            new RateLimiter(false),
+            featureFlagService);
 
     withArgon2.login(new LoginRequest("brewer@example.com", "brew-test-pass-001"));
 
@@ -346,7 +356,8 @@ class AuthServiceTest {
             new BCryptPasswordEncoder(),
             emailVerificationService,
             refreshTokenService,
-            limiter);
+            limiter,
+            featureFlagService);
     LoginRequest request = new LoginRequest("brewer@example.com", "brew-test-pass-001");
 
     assertThatThrownBy(() -> limited.login(request)).isInstanceOf(RateLimitExceededException.class);
@@ -363,7 +374,8 @@ class AuthServiceTest {
             encoder,
             emailVerificationService,
             refreshTokenService,
-            new RateLimiter(false));
+            new RateLimiter(false),
+            featureFlagService);
     when(userRepository.findByEmail("ghost@example.com")).thenReturn(Optional.empty());
     LoginRequest request = new LoginRequest("ghost@example.com", "brew-test-pass-001");
 
@@ -425,5 +437,48 @@ class AuthServiceTest {
     assertThat(user.getTokenVersion()).isEqualTo(1);
     verify(refreshTokenService).revoke("refresh", 1L);
     verify(userRepository).save(user);
+  }
+
+  @Test
+  void register_whileTermsArePublished_requiresTheCurrentVersion() {
+    when(featureFlagService.isEnabled(FeatureKeys.LEGAL_TERMS)).thenReturn(true);
+
+    assertThatThrownBy(
+            () ->
+                authService.register(
+                    new RegisterRequest("terms@example.com", "brew-test-pass-001")))
+        .isInstanceOf(TermsNotAcceptedException.class);
+    assertThatThrownBy(
+            () ->
+                authService.register(
+                    new RegisterRequest("terms@example.com", "brew-test-pass-001", "1999-01-01")))
+        .isInstanceOf(TermsNotAcceptedException.class);
+    org.mockito.Mockito.verifyNoInteractions(userRepository, emailVerificationService);
+  }
+
+  @Test
+  void register_recordsTheAcceptedVersion() {
+    when(userRepository.findByEmail("terms@example.com")).thenReturn(Optional.empty());
+    when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    authService.register(
+        new RegisterRequest("terms@example.com", "brew-test-pass-001", LegalTerms.CURRENT_VERSION));
+
+    ArgumentCaptor<User> saved = ArgumentCaptor.forClass(User.class);
+    verify(userRepository).save(saved.capture());
+    assertThat(saved.getValue().getTermsVersion()).isEqualTo(LegalTerms.CURRENT_VERSION);
+    assertThat(saved.getValue().getTermsAcceptedAt()).isNotNull();
+  }
+
+  @Test
+  void register_whileTermsAreNotPublished_needsNoAcceptance() {
+    when(userRepository.findByEmail("plain@example.com")).thenReturn(Optional.empty());
+    when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    authService.register(new RegisterRequest("plain@example.com", "brew-test-pass-001"));
+
+    ArgumentCaptor<User> saved = ArgumentCaptor.forClass(User.class);
+    verify(userRepository).save(saved.capture());
+    assertThat(saved.getValue().getTermsVersion()).isNull();
   }
 }

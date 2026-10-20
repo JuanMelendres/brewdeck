@@ -22,5 +22,11 @@ public final class FeatureKeys {
    */
   public static final String EMAIL_CHANGE = "auth-email-change";
 
+  /**
+   * Privacy notice and terms (LEGAL-01). RELEASE flag, off until a lawyer approves the texts. When
+   * on, sign-up requires accepting {@code LegalTerms.CURRENT_VERSION}.
+   */
+  public static final String LEGAL_TERMS = "legal-terms";
+
   private FeatureKeys() {}
 }

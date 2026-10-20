@@ -12,6 +12,8 @@ import static org.mockito.Mockito.when;
 
 import com.brewdeck.brewdeck_api.auth.reset.MailProperties;
 import com.brewdeck.brewdeck_api.common.i18n.TestMessages;
+import com.brewdeck.brewdeck_api.featureflag.FeatureFlagService;
+import com.brewdeck.brewdeck_api.featureflag.FeatureKeys;
 import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
@@ -33,13 +35,15 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 class SmtpMailAdapterTest {
 
   private final JavaMailSender mailSender = mock(JavaMailSender.class);
+  private final FeatureFlagService featureFlagService = mock(FeatureFlagService.class);
   private final SmtpMailAdapter adapter =
       new SmtpMailAdapter(
           mailSender,
           new MailProperties(
               true, "https://brewdeck.example", "BrewDeck <no-reply@brewdeck.example>"),
           new SyncTaskExecutor(),
-          TestMessages.messageSource());
+          TestMessages.messageSource(),
+          featureFlagService);
 
   @BeforeEach
   void realMimeMessages() {
@@ -59,7 +63,8 @@ class SmtpMailAdapterTest {
         mailSender,
         new MailProperties(true, "https://brewdeck.example", from),
         new SyncTaskExecutor(),
-        TestMessages.messageSource());
+        TestMessages.messageSource(),
+        featureFlagService);
   }
 
   @ParameterizedTest
@@ -238,5 +243,18 @@ class SmtpMailAdapterTest {
     MimeMessage message = sentMessage();
     assertThat(message.getSubject()).isEqualTo("Your BrewDeck email was changed");
     assertThat(plainText(message)).contains("now uses n***@example.com").doesNotContain("https://");
+  }
+
+  @Test
+  void emails_linkThePrivacyNotice_onlyOnceTheTextsArePublished() throws Exception {
+    adapter.sendResetLink("brewer@example.com", "reset_TOKEN", Locale.ENGLISH);
+    assertThat(plainText(sentMessage())).doesNotContain("/privacy");
+
+    org.mockito.Mockito.reset(mailSender);
+    realMimeMessages();
+    when(featureFlagService.isEnabled(FeatureKeys.LEGAL_TERMS)).thenReturn(true);
+    adapter.sendResetLink("brewer@example.com", "reset_TOKEN", Locale.ENGLISH);
+    assertThat(plainText(sentMessage()))
+        .contains("Privacy notice: https://brewdeck.example/privacy");
   }
 }

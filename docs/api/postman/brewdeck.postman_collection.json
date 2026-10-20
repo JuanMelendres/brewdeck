@@ -2293,6 +2293,44 @@
      ]
     },
     {
+     "name": "GET - Legal status (public)",
+     "request": {
+      "auth": {
+       "type": "noauth"
+      },
+      "method": "GET",
+      "header": [],
+      "url": {
+       "raw": "{{baseURL}}/api/public/legal",
+       "host": [
+        "{{baseURL}}"
+       ],
+       "path": [
+        "api",
+        "public",
+        "legal"
+       ]
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Status code is 200', function () {",
+         "  pm.response.to.have.status(200);",
+         "});",
+         "pm.test('Has the terms version', function () {",
+         "  pm.expect(pm.response.json().termsVersion).to.be.a('string');",
+         "});"
+        ]
+       }
+      }
+     ]
+    },
+    {
      "name": "DELETE - Delete recipe",
      "request": {
       "method": "DELETE",

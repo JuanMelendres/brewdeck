@@ -42,7 +42,9 @@ public class EmailVerificationRequiredFilter extends OncePerRequestFilter {
           "POST /api/auth/me/email-change",
           "POST /api/auth/logout",
           "POST /api/auth/refresh",
-          "GET /api/feature-flags");
+          "GET /api/feature-flags",
+          // Public anyway; the web reads it on every page footer (LEGAL-01).
+          "GET /api/public/legal");
 
   private final FeatureFlagService featureFlagService;
   private final ObjectMapper objectMapper;

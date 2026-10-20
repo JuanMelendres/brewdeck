@@ -8,6 +8,9 @@ import { ApiError } from '@/lib/api/client';
 const registerMock = vi.fn();
 vi.mock('@/lib/api/auth', () => ({ register: (body: unknown) => registerMock(body) }));
 
+let legalStatus = { isLoading: false, published: false, termsVersion: null as string | null };
+vi.mock('@/hooks/useLegalStatus', () => ({ useLegalStatus: () => legalStatus }));
+
 async function fillForm(password: string, confirmPassword: string) {
   await userEvent.type(screen.getByLabelText(/^email$/i), 'brewer@example.com');
   await userEvent.type(screen.getByLabelText(/^password$/i, { selector: 'input' }), password);
@@ -18,6 +21,45 @@ async function fillForm(password: string, confirmPassword: string) {
 describe('RegisterForm', () => {
   afterEach(() => {
     vi.clearAllMocks();
+    legalStatus = { isLoading: false, published: false, termsVersion: null };
+  });
+
+  it('asks for no consent while the legal texts are not published', async () => {
+    registerMock.mockResolvedValue({ message: 'ok' });
+    renderWithTheme(<RegisterForm />);
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+    await fillForm('brew-test-pass-001', 'brew-test-pass-001');
+    await waitFor(() =>
+      expect(registerMock).toHaveBeenCalledWith({
+        email: 'brewer@example.com',
+        password: 'brew-test-pass-001',
+        acceptedTermsVersion: undefined,
+      }),
+    );
+  });
+
+  it('requires accepting the published terms and sends their version', async () => {
+    legalStatus = { isLoading: false, published: true, termsVersion: '2026-10-20' };
+    registerMock.mockResolvedValue({ message: 'ok' });
+    renderWithTheme(<RegisterForm />);
+
+    for (const link of screen.getAllByRole('link', { name: /privacy notice/i })) {
+      expect(link).toHaveAttribute('href', '/privacy');
+    }
+    expect(screen.getByRole('link', { name: 'terms' })).toHaveAttribute('href', '/terms');
+    await fillForm('brew-test-pass-001', 'brew-test-pass-001');
+    expect(await screen.findByText(/accept the terms and the privacy notice/i)).toBeInTheDocument();
+    expect(registerMock).not.toHaveBeenCalled();
+
+    await userEvent.click(screen.getByRole('checkbox', { name: /i accept the terms/i }));
+    await userEvent.click(screen.getByRole('button', { name: /create account/i }));
+    await waitFor(() =>
+      expect(registerMock).toHaveBeenCalledWith({
+        email: 'brewer@example.com',
+        password: 'brew-test-pass-001',
+        acceptedTermsVersion: '2026-10-20',
+      }),
+    );
   });
 
   it('requires the password confirmation', async () => {

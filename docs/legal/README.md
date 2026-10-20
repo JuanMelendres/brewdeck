@@ -5,23 +5,32 @@ the law summary are in the [LEGAL-01 spike](../product/spikes/legal-01-privacy-t
 
 **Not legal advice.** A Mexican data-protection lawyer reviews the texts before they are published.
 
+The texts live in the web app, so the pages render the same files (single source):
+
 | File | What | Status |
 |---|---|---|
-| [`privacy-notice.md`](privacy-notice.md) | Full privacy notice (*aviso de privacidad integral*), Spanish | Draft for legal review |
-| [`terms.md`](terms.md) | Terms and conditions, Spanish | Draft for legal review |
+| [`privacy.es.md`](../../brewdeck-web/content/legal/privacy.es.md) | Full privacy notice (*aviso de privacidad integral*), Spanish (prevails) | Draft for legal review |
+| [`privacy.en.md`](../../brewdeck-web/content/legal/privacy.en.md) | English translation | Draft |
+| [`terms.es.md`](../../brewdeck-web/content/legal/terms.es.md) | Terms and conditions, Spanish (prevails) | Draft for legal review |
+| [`terms.en.md`](../../brewdeck-web/content/legal/terms.en.md) | English translation | Draft |
+
+**Publishing** is the `legal-terms` flag (V36, off everywhere). While off, `/privacy` and `/terms`
+say "not available yet", sign-up asks for no consent, and emails carry no privacy link. Turn it on
+per environment only after the lawyer approves the texts and the pending markers are resolved.
 
 **Open points before publishing:**
 - The post office (administración postal) and código postal of Apartado Postal 20456.
 - Lawyer: whether a blocking period (Art. 24) is needed before deleting an account.
 - Lawyer: whether the forum clause holds for consumers.
-- English versions for `/privacy` and `/terms`. Spanish prevails.
 
 ## Versioning
 
 - Each text carries a version date at the top. Publishing a new version means:
   1. update the date;
-  2. bump `TERMS_VERSION` in the app (LEGAL-01 PR 2);
-  3. if the change is material, email users and ask them to accept again at their next login.
+  2. set `LegalTerms.CURRENT_VERSION` (API) to the same date: new sign-ups then accept that version
+     (`users.terms_version`, `users.terms_accepted_at`, V35);
+  3. if the change is material, email users and ask them to accept again at their next login
+     (re-acceptance at login is not built yet; backlog LEGAL-01).
 - Never edit a published version in place. The git history is the record of what each user
   accepted (`users.terms_version`).
 
