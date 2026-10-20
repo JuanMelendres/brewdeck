@@ -85,6 +85,36 @@ export function resendVerification(): Promise<{ message: string }> {
   });
 }
 
+/**
+ * Starts an email change (ADR-019). Answers the same whether or not the new address already has an
+ * account; the confirm link goes to the new address and a cancel link to the current one.
+ */
+export function requestEmailChange(body: {
+  newEmail: string;
+  currentPassword: string;
+}): Promise<{ message: string }> {
+  return apiFetch<{ message: string }>('/api/auth/me/email-change', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+/** Applies a pending email change. Every session ends, so the user logs in again. */
+export function confirmEmailChange(token: string): Promise<void> {
+  return apiFetch<void>('/api/auth/email-change/confirm', {
+    method: 'POST',
+    body: JSON.stringify({ token }),
+  });
+}
+
+/** Cancels a pending email change from the current address. Every session ends. */
+export function cancelEmailChange(token: string): Promise<void> {
+  return apiFetch<void>('/api/auth/email-change/cancel', {
+    method: 'POST',
+    body: JSON.stringify({ token }),
+  });
+}
+
 /** Revokes the refresh cookie's token server-side and clears the cookie (ADR-013). */
 export function logout(): Promise<void> {
   return apiFetch<void>('/api/auth/logout', { method: 'POST' });

@@ -58,6 +58,7 @@ function isOnPublicPath(): boolean {
     p === '/forgot-password' ||
     p === '/reset-password' ||
     p === '/verify-email' ||
+    p.startsWith('/email-change/') ||
     p.startsWith('/share')
   );
 }

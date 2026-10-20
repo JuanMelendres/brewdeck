@@ -2,10 +2,12 @@ import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useTranslations } from 'next-intl';
+import { ChangeEmailForm } from '@/components/auth/ChangeEmailForm';
 import { ChangePasswordForm } from '@/components/auth/ChangePasswordForm';
 import { ProfileForm } from '@/components/auth/ProfileForm';
 import { ThemeModeSetting } from '@/components/theme/ThemeModeSetting';
 import { LanguageSetting } from '@/components/language/LanguageSetting';
+import { FeatureFlag } from '@/components/ui/FeatureFlag';
 
 export default function AccountPage() {
   const t = useTranslations('nav');
@@ -20,6 +22,10 @@ export default function AccountPage() {
       <Divider />
       <LanguageSetting />
       <Divider />
+      <FeatureFlag name="emailChange">
+        <ChangeEmailForm />
+        <Divider />
+      </FeatureFlag>
       <ChangePasswordForm />
     </Stack>
   );
