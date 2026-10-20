@@ -11,7 +11,28 @@ or the owner's judgement. Automated suites are described in [test-plan.md](test-
 - When a release adds manual checks, append a section here in the same PR. Delete a section once
   every check in it passes.
 
-## Next release: email change (AUTH-04, ADR-019)
+## Next release: data export and account deletion (LEGAL-01, ADR-020)
+
+Use a throwaway account with at least one coffee, recipe and brew session. Deletion cannot be
+undone.
+
+- [ ] **Section visible.** Account page shows "Tus datos" with "Descargar mis datos" and "Eliminar
+  mi cuenta".
+- [ ] **Export.** "Descargar mis datos" saves `brewdeck-export-<date>.json`. It has your profile,
+  coffees, own brew methods, recipes and brew sessions, and no password hash or tokens.
+- [ ] **Dialog.** "Eliminar mi cuenta" opens "¿Eliminar tu cuenta?" asking for the current
+  password. "Cancelar" closes it and nothing changes.
+- [ ] **Wrong password.** Expected: an error under the password field; the account still works.
+- [ ] **Delete.** Right password, "Eliminar para siempre". Expected: the "Se eliminó tu cuenta"
+  page; signed out on every device; the inbox gets "Se eliminó tu cuenta de BrewDeck"; login with
+  the old credentials fails.
+- [ ] **Address is free.** Sign up again with the same email. Expected: a new, empty account.
+- [ ] **Other users untouched.** A second account keeps its data; the shared brew-method catalog
+  is unchanged.
+- [ ] **Legal pages hidden.** With `legal-terms` off, `/privacy` and `/terms` show "Esta página aún
+  no está disponible." and sign-up has no consent checkbox.
+
+## Release #297: email change (AUTH-04, ADR-019)
 
 The flag `auth-email-change` is on in staging from V34. Use a second inbox you control as the new
 address.
