@@ -32,6 +32,8 @@ Paths are relative to `brewdeck-api/src/main/java/com/brewdeck/brewdeck_api/` (c
 | Email verification can be enforced: unverified users are blocked from writes, behind a flag (ADR-012) | pass | `auth/verification/EmailVerificationRequiredFilter` | `integration/EmailVerificationEnforcementIntegrationTest` |
 | Reset and verification tokens: 32 random bytes, stored as SHA-256, single use, expire (30 min / 24 h) | pass | `common/security/SecureTokens`, `auth/reset/PasswordResetService`, `auth/verification/EmailVerificationService` | `integration/PasswordResetIntegrationTest`, `integration/EmailVerificationIntegrationTest` |
 | Reset and verification tokens are consumed atomically, before any side effect (AUTH-05.5) | pass | `markUsedIfUnused` in `auth/reset/PasswordResetTokenRepository` and `auth/verification/EmailVerificationTokenRepository` | `auth/reset/PasswordResetServiceTest`, `auth/verification/EmailVerificationServiceTest`, repository tests |
+| Email change needs the current password, a 1-hour single-use link from the new inbox, and notifies the old inbox with a cancel link; confirm and cancel end every session; a taken address gets the same 202 (AUTH-04, ADR-019) | pass | `auth/emailchange/EmailChangeService`, `EmailChangeRepository.confirmIfPending`/`cancelIfPending` | `auth/emailchange/EmailChangeServiceTest`, `integration/EmailChangeIntegrationTest` |
+| Email change links act only on a click (mail scanners cannot trigger them) and send no referrer | pass | `brewdeck-web/src/components/auth/EmailChangeLinkView.tsx`, `src/lib/security/headers.ts` | `EmailChangeLinkView.test.tsx`, `headers.test.ts` |
 
 ## Session management
 

@@ -11,6 +11,31 @@ or the owner's judgement. Automated suites are described in [test-plan.md](test-
 - When a release adds manual checks, append a section here in the same PR. Delete a section once
   every check in it passes.
 
+## Next release: email change (AUTH-04, ADR-019)
+
+The flag `auth-email-change` is on in staging from V34. Use a second inbox you control as the new
+address.
+
+- [ ] **Section visible.** Account page shows "Cambiar correo" with your current email.
+- [ ] **Wrong password.** Expected: "La contraseña actual es incorrecta" under the password field.
+- [ ] **Same email.** Expected: "Este ya es tu correo" under the new email field.
+- [ ] **Request.** New free address + right password. Expected: the success message; the new inbox
+  gets "Confirma tu nuevo correo de BrewDeck"; the current inbox gets "Tu correo de BrewDeck está
+  por cambiar" with the new address masked (`n***@…`) and a cancel button.
+- [ ] **Links do nothing on open.** Opening either link only shows a page with a button.
+- [ ] **Confirm.** Click "Confirmar nuevo correo". Expected: signed out on every device; login works
+  with the new email, not the old one; the account is verified; the old inbox gets "Se cambió tu
+  correo de BrewDeck".
+- [ ] **Single use.** Opening the same confirm link again and clicking shows the invalid-link
+  message.
+- [ ] **Cancel.** Request again, then click "Cancelar el cambio" in the old inbox. Expected: signed
+  out everywhere; the confirm link no longer works; the old email still logs in.
+- [ ] **Taken address.** Request a change to an address that already has an account. Expected: the
+  same success message; that inbox gets "Ya tienes una cuenta en BrewDeck"; no cancel email.
+- [ ] **Expiry.** A confirm link older than 1 hour shows the invalid-link message.
+- [ ] **Limit.** A fourth request within an hour shows "Demasiados intentos. Inténtalo de nuevo en N minutos."
+- [ ] **Headers.** `/email-change/confirm` responds with `Referrer-Policy: no-referrer`.
+
 ## Release #290: passwords (AUTH-03, ADR-018)
 
 - [x] **Old account is upgraded to Argon2id.** Verified 2026-10-20 in the Cloud Run logs:
