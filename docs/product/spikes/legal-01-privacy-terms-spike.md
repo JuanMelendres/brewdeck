@@ -1,6 +1,6 @@
 # LEGAL-01 spike: privacy notice, terms, and data rights
 
-**Status:** proposal (2026-10-20). Backlog LEGAL-01. Not legal advice: a Mexican data-protection
+**Status:** decisions taken (owner, 2026-10-20); texts pending. Backlog LEGAL-01. Not legal advice: a Mexican data-protection
 lawyer reviews the final texts before production (PROD go-live).
 
 ## 1. Which law applies
@@ -60,31 +60,19 @@ lawyer reviews the final texts before production (PROD go-live).
 No sensitive or financial data. Data is stored outside Mexico. The full notice should say so, even
 though the 2025 law no longer requires listing transfers.
 
-## 3. Owner decisions (blocking)
+## 3. Owner decisions (2026-10-20)
 
-1. **Who is the "responsable":**
-   - **(a) Juan, as a natural person (persona física).** Free and fast. Art. 15 I needs a
-     *domicilio*. Use one that is not the home address: a P.O. box, a virtual office, or a
-     coworking address that receives notices.
-   - **(b) A company**, for example an S.A.S. It shields personal assets and looks more
-     professional. It costs money and paperwork.
-   - **Recommendation:** (a) for staging and a small launch; move to (b) if BrewDeck charges or
-     grows.
-2. **Contact for privacy and ARCO:** one dedicated address, for example `privacidad@<domain>`.
-   - It needs the custom domain (PROD-02/PROD-03). Until then, a dedicated Gmail inbox, not the
-     personal one.
-   - The same contact covers account recovery after an email change (ADR-019 "Known limits").
-3. **Minimum age:** **18+** (recommended). It avoids processing minors' data, which needs parental
-   consent.
-4. **Retention:**
-   - **Proposal:**
-     - Delete the account and all its data **at once** on request.
-     - Purge unverified accounts after **7 days** (AUTH-06).
-     - Keep Cloud Run logs for their default **30 days**.
-     - Keep expired tokens no longer than **30 days**.
-   - The blocking period (Art. 24) needs the lawyer's view. For a free service with no payments
-     it can likely be very short.
-5. **Governing law and courts** for the terms: Mexican federal law, the courts of the owner's city.
+| # | Decision | Value |
+|---|---|---|
+| 1 | Responsable | **Juan Melendres, as a natural person (persona física).** Move to a company (for example an S.A.S.) if BrewDeck charges or grows. |
+| 1a | Address for notices (Art. 15 I) | **TODO (owner):** not the home address. Use a P.O. box, a virtual office, or a coworking address that receives notices. Needed before `/privacy` goes live. |
+| 2 | Privacy, ARCO and account-recovery contact | **jmelendresdev@gmail.com.** It is also the recovery contact of ADR-019 ("Known limits"). Move to `privacidad@<domain>` once the custom domain exists (PROD-02/PROD-03). |
+| 3 | Minimum age | **18+.** The terms say so, and sign-up states it. No minors' data, so no parental consent flow. |
+| 4 | Retention | Account and all its data **deleted at once** on request. Unverified accounts **purged after 7 days** (AUTH-06). Cloud Run logs kept the default **30 days**. Expired or used tokens deleted after **30 days**. **Open for the lawyer:** whether a blocking period (Art. 24) is needed before deletion. |
+| 5 | Governing law and courts (terms) | **Mexican federal law; the courts of the owner's city.** **TODO (owner):** name the city in the terms. |
+
+Rationale for each option is in the PR #299 discussion: a natural person is free and fast; a
+company shields personal assets but costs money and paperwork.
 
 ## 4. Where it goes
 
@@ -102,11 +90,11 @@ though the 2025 law no longer requires listing transfers.
 
 ## 5. Draft: simplified notice (sign-up)
 
-> **Aviso de privacidad simplificado.** [Nombre del responsable], con domicilio en [domicilio],
+> **Aviso de privacidad simplificado.** Juan Melendres, con domicilio en [domicilio para notificaciones],
 > trata tu correo, nombre visible, preferencias y los datos de café que registras para darte una
 > cuenta y operar BrewDeck. No usamos tus datos para publicidad. Consulta el aviso de privacidad
-> integral, incluido cómo ejercer tus derechos ARCO, en [/privacy]. Al crear tu cuenta aceptas los
-> [Términos].
+> integral, incluido cómo ejercer tus derechos ARCO, en [/privacy], o escribe a
+> jmelendresdev@gmail.com. Debes tener 18 años o más. Al crear tu cuenta aceptas los [Términos].
 
 ## 6. Draft outline: full notice (`/privacy`)
 
@@ -142,7 +130,8 @@ though the 2025 law no longer requires listing transfers.
 
 ## 7. Delivery plan
 
-1. **Owner:** decisions 1–5 above.
+1. **Owner:** decisions 1–5 taken on 2026-10-20. Still open: the notice address (1a) and the city
+   for the courts (5).
 2. **PR 1 (docs):** `docs/legal/privacy-notice.md` and `docs/legal/terms.md` drafts (es) with the
    decisions filled in, plus the processor list and the ARCO and breach steps. **Lawyer review.**
 3. **PR 2 (full-stack):**
