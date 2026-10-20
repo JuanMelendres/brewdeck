@@ -94,11 +94,14 @@ There is an index on `user_id`. Only hashes are stored, never raw tokens.
   rows and the disabled path.
 
 **Web.**
-- Account page: a "Change email" dialog with the new email and the current password, using the
-  existing `PasswordField`.
+- Account page: a "Change email" section with the new email and the current password, using the
+  existing `PasswordField`. It shows only while the flag is on (alias `emailChange`).
 - New pages `/email-change/confirm` and `/email-change/cancel`. Both carry the token in the URL,
   so they get `Referrer-Policy: no-referrer` like the reset and verify pages.
-- After confirming, the user is sent to log in with the new address.
+- Both pages act only after a click, never on load, so a mail scanner that opens the link cannot
+  confirm or cancel the change. Both sign the browser out, since every session ends.
+- After confirming, the user is sent to log in with the new address. After cancelling, the page
+  points to the password reset.
 - Texts in en and es.
 
 **Delivery, three PRs:**

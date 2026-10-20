@@ -306,4 +306,14 @@ class EmailChangeIntegrationTest extends PostgresIntegrationTest {
         .andExpect(status().isForbidden());
     requestChange(session, uniqueEmail("typo-fixed"), PASSWORD).andExpect(status().isAccepted());
   }
+
+  @Test
+  void featureFlags_exposeTheFlagToTheWeb() throws Exception {
+    Session session = registerAndLogin(uniqueEmail("flag-alias"));
+
+    mockMvc
+        .perform(get("/api/feature-flags").header("Authorization", session.bearer()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.features.emailChange").value(true));
+  }
 }

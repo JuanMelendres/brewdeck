@@ -120,6 +120,32 @@
       "saved": "Password changed.",
       "failed": "Could not change your password. Please try again."
     },
+    "changeEmail": {
+      "title": "Change email",
+      "current": "Current email: {email}",
+      "newEmail": "New email",
+      "currentPassword": "Current password",
+      "submit": "Send confirmation link",
+      "sent": "If {email} can be used, we sent it a confirmation link. It is valid for 1 hour. We also told your current address.",
+      "failed": "Could not request the change. Please try again."
+    },
+    "emailChangeConfirm": {
+      "title": "Confirm your new email",
+      "intro": "Confirm to move your account to this address. You will be signed out on every device and log in with the new email.",
+      "action": "Confirm new email",
+      "done": "Your email has been changed. Log in with your new email."
+    },
+    "emailChangeCancel": {
+      "title": "Cancel the email change",
+      "intro": "Cancel if you did not ask to change your email. You will be signed out on every device.",
+      "action": "Cancel the change",
+      "done": "The change was cancelled and every device was signed out. If you did not ask for it, reset your password now.",
+      "resetPassword": "Reset password"
+    },
+    "emailChangeLink": {
+      "invalidLink": "This link is invalid, has expired or was already used.",
+      "logIn": "Go to log in"
+    },
     "profile": {
       "title": "Profile",
       "displayName": "Display name",

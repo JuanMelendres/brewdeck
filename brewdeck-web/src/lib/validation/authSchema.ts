@@ -45,6 +45,11 @@ export const changePasswordSchema = z
     message: vk('passwordsDoNotMatch'),
   });
 
+export const changeEmailSchema = z.object({
+  newEmail: z.string().min(1, vk('emailRequired')).max(255, vk('emailTooLong')).email(vk('emailInvalid')),
+  currentPassword: z.string().min(1, vk('currentPasswordRequired')).max(MAX_PASSWORD_LENGTH, PASSWORD_TOO_LONG),
+});
+
 export const forgotPasswordSchema = z.object({
   email: z.string().min(1, vk('emailRequired')).max(255, vk('emailTooLong')).email(vk('emailInvalid')),
 });
@@ -63,5 +68,6 @@ export type LoginFormValues = z.infer<typeof loginSchema>;
 export type RegisterFormValues = z.infer<typeof registerSchema>;
 export type ProfileFormValues = z.infer<typeof profileSchema>;
 export type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
+export type ChangeEmailFormValues = z.infer<typeof changeEmailSchema>;
 export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;

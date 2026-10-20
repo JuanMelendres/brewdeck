@@ -120,6 +120,32 @@
       "saved": "Contraseña cambiada.",
       "failed": "No pudimos cambiar tu contraseña. Inténtalo de nuevo."
     },
+    "changeEmail": {
+      "title": "Cambiar correo",
+      "current": "Correo actual: {email}",
+      "newEmail": "Correo nuevo",
+      "currentPassword": "Contraseña actual",
+      "submit": "Enviar enlace de confirmación",
+      "sent": "Si {email} se puede usar, le enviamos un enlace de confirmación. Vale 1 hora. También avisamos a tu correo actual.",
+      "failed": "No se pudo pedir el cambio. Inténtalo de nuevo."
+    },
+    "emailChangeConfirm": {
+      "title": "Confirma tu nuevo correo",
+      "intro": "Confirma para pasar tu cuenta a esta dirección. Se cerrará la sesión en todos tus dispositivos y entrarás con el correo nuevo.",
+      "action": "Confirmar nuevo correo",
+      "done": "Tu correo cambió. Inicia sesión con el correo nuevo."
+    },
+    "emailChangeCancel": {
+      "title": "Cancelar el cambio de correo",
+      "intro": "Cancela si no pediste cambiar tu correo. Se cerrará la sesión en todos tus dispositivos.",
+      "action": "Cancelar el cambio",
+      "done": "Se canceló el cambio y se cerró la sesión en todos los dispositivos. Si no lo pediste, restablece tu contraseña ahora.",
+      "resetPassword": "Restablecer contraseña"
+    },
+    "emailChangeLink": {
+      "invalidLink": "Este enlace no es válido, ya venció o ya se usó.",
+      "logIn": "Ir a iniciar sesión"
+    },
     "profile": {
       "title": "Perfil",
       "displayName": "Nombre visible",

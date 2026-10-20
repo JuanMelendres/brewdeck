@@ -47,7 +47,7 @@ describe('securityHeaderRules', () => {
     expect(headersFor('/:path*')).toContainEqual({ key: 'X-Frame-Options', value: 'DENY' });
   });
 
-  it.each(['/share/:path*', '/reset-password', '/verify-email'])(
+  it.each(['/share/:path*', '/reset-password', '/verify-email', '/email-change/:path*'])(
     'sends no referrer from %s, whose URL carries a token',
     (source) => {
       expect(headersFor(source)).toEqual([{ key: 'Referrer-Policy', value: 'no-referrer' }]);
