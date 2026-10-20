@@ -1,9 +1,12 @@
 package com.brewdeck.brewdeck_api.auth.mail;
 
+import com.brewdeck.brewdeck_api.account.AccountMailPort;
 import com.brewdeck.brewdeck_api.auth.emailchange.EmailChangeMailPort;
 import com.brewdeck.brewdeck_api.auth.reset.MailProperties;
 import com.brewdeck.brewdeck_api.auth.reset.PasswordResetMailPort;
 import com.brewdeck.brewdeck_api.auth.verification.EmailVerificationMailPort;
+import com.brewdeck.brewdeck_api.featureflag.FeatureFlagService;
+import com.brewdeck.brewdeck_api.featureflag.FeatureKeys;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.AddressException;
 import jakarta.mail.internet.InternetAddress;
@@ -41,23 +44,29 @@ import org.springframework.web.util.HtmlUtils;
 @Slf4j
 @ConditionalOnProperty(prefix = "brewdeck.mail", name = "enabled", havingValue = "true")
 public class SmtpMailAdapter
-    implements EmailVerificationMailPort, PasswordResetMailPort, EmailChangeMailPort {
+    implements EmailVerificationMailPort,
+        PasswordResetMailPort,
+        EmailChangeMailPort,
+        AccountMailPort {
 
   private final JavaMailSender mailSender;
   private final MailProperties properties;
   private final TaskExecutor taskExecutor;
   private final MessageSource messageSource;
+  private final FeatureFlagService featureFlagService;
 
   public SmtpMailAdapter(
       JavaMailSender mailSender,
       MailProperties properties,
       @Qualifier("applicationTaskExecutor") TaskExecutor taskExecutor,
-      MessageSource messageSource) {
+      MessageSource messageSource,
+      FeatureFlagService featureFlagService) {
     requireValidFrom(properties.from());
     this.mailSender = mailSender;
     this.properties = properties;
     this.taskExecutor = taskExecutor;
     this.messageSource = messageSource;
+    this.featureFlagService = featureFlagService;
   }
 
   /**
@@ -124,6 +133,11 @@ public class SmtpMailAdapter
     send("email-changed", oldEmail, null, locale, maskedNewEmail);
   }
 
+  @Override
+  public void sendAccountDeletedNotice(String email, Locale locale) {
+    send("account-deleted", email, null, locale);
+  }
+
   /**
    * Builds the email from the {@code email.<kind>.*} messages in {@code locale}'s language. The
    * locale is resolved here, on the request thread; sending happens later on another thread.
@@ -134,7 +148,7 @@ public class SmtpMailAdapter
   private void send(String kind, String to, String link, Locale locale, Object... introArgs) {
     String prefix = "email." + kind + ".";
     Object[] args = introArgs.length == 0 ? null : introArgs;
-    String footer = message(prefix + "footer", locale);
+    String footer = message(prefix + "footer", locale) + privacyLine(locale);
     String textIntro = messageSource.getMessage(prefix + "textIntro", args, locale);
     String text =
         link == null ? textIntro + "\n\n" + footer : textIntro + "\n\n" + link + "\n\n" + footer;
@@ -151,6 +165,18 @@ public class SmtpMailAdapter
             link,
             message("email.pasteLink", locale),
             footer));
+  }
+
+  /** Once the legal texts are published (LEGAL-01), every email links the privacy notice. */
+  private String privacyLine(Locale locale) {
+    if (!featureFlagService.isEnabled(FeatureKeys.LEGAL_TERMS)) {
+      return "";
+    }
+    return "\n"
+        + message("email.privacyNotice", locale)
+        + ": "
+        + properties.frontendBaseUrl()
+        + "/privacy";
   }
 
   private String message(String key, Locale locale) {

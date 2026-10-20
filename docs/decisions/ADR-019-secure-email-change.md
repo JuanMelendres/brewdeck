@@ -123,7 +123,9 @@ There is an index on `user_id`. Only hashes are stored, never raw tokens.
   - After the change is **confirmed**, the old owner can no longer act from email. If an attacker
     had the password **and** the session **and** the owner missed the hour-long notice, recovery
     needs manual help from the operator. **Assumption:** acceptable for staging; revisit with
-    LEGAL-01 (operator contact) before production.
+    LEGAL-01 (operator contact) before production. Update 2026-10-20: the operator contact is
+    jmelendresdev@gmail.com (LEGAL-01 spike); the "email changed" notice should name it once the
+    privacy notice is published.
   - `BREWDECK_ADMIN_EMAIL` bootstrap matches by address. An admin who changes email keeps the
     role, but the variable must be updated or bootstrap logs "no account exists".
 - **Cleanup:** expired and finished requests stay until the AUTH-06 purge job handles them.

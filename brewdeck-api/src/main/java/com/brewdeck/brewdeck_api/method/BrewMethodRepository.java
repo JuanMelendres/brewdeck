@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -34,4 +35,12 @@ public interface BrewMethodRepository extends JpaRepository<BrewMethod, Long> {
       order by count(r) desc, m.name asc, m.id asc
       """)
   List<MethodUsage> findUsage(@Param("ownerId") Long ownerId);
+
+  /** Every row the user owns, for the data export (ADR-020). */
+  List<BrewMethod> findAllByOwnerIdOrderByIdAsc(Long ownerId);
+
+  /** Deletes every row the user owns (account deletion, ADR-020). */
+  @Modifying
+  @Query("DELETE FROM BrewMethod m WHERE m.owner.id = :ownerId")
+  int deleteAllByOwnerId(@Param("ownerId") Long ownerId);
 }

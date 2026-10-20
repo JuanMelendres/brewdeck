@@ -75,7 +75,8 @@
       "ratingTooLow": "La calificación debe ser de al menos 1",
       "ratingTooHigh": "La calificación no debe pasar de 10",
       "adjustmentNotesTooLong": "Las notas de ajuste no deben pasar de 1000 caracteres"
-    }
+    },
+    "termsRequired": "Acepta los términos y el aviso de privacidad para crear tu cuenta"
   },
   "auth": {
     "login": {
@@ -94,7 +95,9 @@
       "failed": "No pudimos crear la cuenta. Inténtalo de nuevo.",
       "checkEmailTitle": "Revisa tu correo",
       "checkEmail": "Enviamos un mensaje a {email}. Ábrelo para verificar tu correo y después inicia sesión.",
-      "goToLogin": "Ir a iniciar sesión"
+      "goToLogin": "Ir a iniciar sesión",
+      "acceptTerms": "Acepto los <terms>términos</terms> y leí el <privacy>aviso de privacidad</privacy>.",
+      "notice": "Juan Melendres trata tu correo, nombre visible, preferencias y los datos de café que registras para darte una cuenta y operar BrewDeck. No usamos tus datos para publicidad. Debes tener 18 años o más. Consulta el <privacy>aviso de privacidad</privacy>, incluido cómo ejercer tus derechos ARCO."
     },
     "forgot": {
       "title": "Restablece tu contraseña",
@@ -119,6 +122,24 @@
       "submit": "Cambiar contraseña",
       "saved": "Contraseña cambiada.",
       "failed": "No pudimos cambiar tu contraseña. Inténtalo de nuevo."
+    },
+    "accountData": {
+      "title": "Tus datos",
+      "exportIntro": "Descarga una copia de todo lo que BrewDeck guarda sobre ti, en un archivo JSON.",
+      "export": "Descargar mis datos",
+      "exportFailed": "No se pudieron descargar tus datos. Inténtalo de nuevo.",
+      "deleteIntro": "Elimina tu cuenta y todos tus cafés, recetas y sesiones. No se puede deshacer.",
+      "delete": "Eliminar mi cuenta",
+      "dialogTitle": "¿Eliminar tu cuenta?",
+      "dialogText": "Esto elimina tu cuenta y todos sus datos de inmediato. No se puede deshacer. Escribe tu contraseña para confirmar.",
+      "currentPassword": "Contraseña actual",
+      "confirmDelete": "Eliminar para siempre",
+      "deleteFailed": "No se pudo eliminar tu cuenta. Inténtalo de nuevo."
+    },
+    "accountDeleted": {
+      "title": "Se eliminó tu cuenta",
+      "body": "Tu cuenta y todos sus datos ya no existen. Te enviamos una confirmación a tu correo.",
+      "signUp": "Crear una cuenta nueva"
     },
     "changeEmail": {
       "title": "Cambiar correo",
@@ -541,5 +562,12 @@
       "body": "Elige el idioma de BrewDeck. Tu elección se guarda en tu cuenta.",
       "saveFailed": "No pudimos guardar tu idioma. Por ahora solo aplica en este dispositivo."
     }
+  },
+  "legal": {
+    "privacy": "Aviso de privacidad",
+    "terms": "Términos",
+    "linksLabel": "Legal",
+    "back": "Volver a BrewDeck",
+    "notAvailable": "Esta página aún no está disponible."
   }
 }

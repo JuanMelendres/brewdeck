@@ -24,6 +24,8 @@ export const registerSchema = z
     email: z.string().min(1, vk('emailRequired')).max(255, vk('emailTooLong')).email(vk('emailInvalid')),
     password: newPassword(vk('passwordTooShort')),
     confirmPassword: z.string().min(1, vk('confirmPasswordRequired')),
+    // Checked in RegisterForm only while the legal texts are published (LEGAL-01).
+    acceptTerms: z.boolean().optional(),
   })
   .refine((values) => values.password === values.confirmPassword, {
     path: ['confirmPassword'],

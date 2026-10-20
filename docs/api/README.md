@@ -12,7 +12,7 @@ in [`architecture/api-design.md`](../architecture/api-design.md).
 
 ## Auth (`/api/auth`)
 ```
-POST  /api/auth/register            202 (always, same body; no session; new email → verification email, existing → account-exists email)
+POST  /api/auth/register            202 (always, same body; no session; new email → verification email, existing → account-exists email; while legal-terms is on, 400 validationErrors.acceptedTermsVersion unless it equals the current version, which is stored on the new user)
 POST  /api/auth/login               200
 GET   /api/auth/me                  200 (401 without token; includes emailVerified, role: USER|ADMIN, themePreference: LIGHT|DARK|null, language: EN|ES|null)
 PATCH /api/auth/me                  200 (update display name)
@@ -22,6 +22,8 @@ POST  /api/auth/change-password     200 (new access token + refresh cookie for t
 POST  /api/auth/forgot-password     200 (always; no user enumeration)
 POST  /api/auth/reset-password      204 (400 if token invalid/expired/used; ends every session)
 POST  /api/auth/verify-email        204 (400 if token invalid/expired/used)
+GET   /api/auth/me/export           200 JSON attachment: profile + own coffees, brew methods, recipes, brew sessions; no hashes; 429 over 5/h (ADR-020)
+DELETE /api/auth/me                 204 {currentPassword}; deletes the account and all its data, ends every session, clears the refresh cookie, emails a confirmation; 400 wrong password; 429 over 5/15 min (ADR-020)
 POST  /api/auth/me/email-change     202 (always, same body, whether or not the new address has an account; 400 wrong current password or same email; 429 over 3/h; 404 while auth-email-change is off; ADR-019)
 POST  /api/auth/email-change/confirm 204 (public; 400 if link invalid/expired/used/cancelled or address taken meanwhile; new email verified; ends every session; 404 while the flag is off)
 POST  /api/auth/email-change/cancel  204 (public; 400 if link invalid/expired/used; ends every session; never behind the flag)
@@ -149,6 +151,7 @@ DELETE /api/brew-sessions/{id}
 ## Public (no auth) (`/api/public`)
 ```
 GET    /api/public/recipes/{token}
+GET    /api/public/legal              200 {termsVersion, published} (LEGAL-01; published follows the legal-terms flag)
 ```
 
 ## Dashboard & system

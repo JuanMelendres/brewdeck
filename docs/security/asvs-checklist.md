@@ -34,6 +34,7 @@ Paths are relative to `brewdeck-api/src/main/java/com/brewdeck/brewdeck_api/` (c
 | Reset and verification tokens are consumed atomically, before any side effect (AUTH-05.5) | pass | `markUsedIfUnused` in `auth/reset/PasswordResetTokenRepository` and `auth/verification/EmailVerificationTokenRepository` | `auth/reset/PasswordResetServiceTest`, `auth/verification/EmailVerificationServiceTest`, repository tests |
 | Email change needs the current password, a 1-hour single-use link from the new inbox, and notifies the old inbox with a cancel link; confirm and cancel end every session; a taken address gets the same 202 (AUTH-04, ADR-019) | pass | `auth/emailchange/EmailChangeService`, `EmailChangeRepository.confirmIfPending`/`cancelIfPending` | `auth/emailchange/EmailChangeServiceTest`, `integration/EmailChangeIntegrationTest` |
 | Email change links act only on a click (mail scanners cannot trigger them) and send no referrer | pass | `brewdeck-web/src/components/auth/EmailChangeLinkView.tsx`, `src/lib/security/headers.ts` | `EmailChangeLinkView.test.tsx`, `headers.test.ts` |
+| Data export and account deletion are self-service; deletion needs the current password, is rate limited, removes every owned row in one transaction and ends every session (ADR-020) | pass | `account/AccountService` | `account/AccountServiceTest`, `integration/AccountExportDeletionIntegrationTest` |
 
 ## Session management
 

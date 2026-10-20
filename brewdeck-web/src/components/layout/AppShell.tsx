@@ -25,6 +25,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState, type ReactNode } from 'react';
+import { LegalLinks } from '@/components/legal/LegalLinks';
 import { EmailVerificationBanner } from '@/components/auth/EmailVerificationBanner';
 import { BrandMark } from '@/components/ui/BrandMark';
 import { Wordmark } from '@/components/ui/Wordmark';
@@ -227,6 +228,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <Box component="main" sx={{ flexGrow: 1, minWidth: 0, px: { xs: 2, sm: 3, md: 5 }, py: { xs: 3, md: 4 } }}>
           <EmailVerificationBanner />
           {children}
+          <LegalLinks />
         </Box>
       </Box>
     </Box>

@@ -13,6 +13,7 @@ Docs-as-code for BrewDeck. Everything here lives in the repo and evolves with th
 | [testing/](testing/) | Testing strategy, plan, unit & integration guides |
 | [development/](development/) | Local setup, env vars, [staging deployment](development/staging-deployment.md), coding standards, contribution guide, [Claude Code agents](development/agents.md) |
 | [security/](security/) | Vulnerability audit reports and remediation tracking |
+| [legal/](legal/) | Privacy notice and terms (drafts), ARCO and breach procedures, processors |
 
 ## Related sources (not duplicated here)
 

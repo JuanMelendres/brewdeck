@@ -2,6 +2,7 @@ import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useTranslations } from 'next-intl';
+import { AccountDataSection } from '@/components/auth/AccountDataSection';
 import { ChangeEmailForm } from '@/components/auth/ChangeEmailForm';
 import { ChangePasswordForm } from '@/components/auth/ChangePasswordForm';
 import { ProfileForm } from '@/components/auth/ProfileForm';
@@ -27,6 +28,8 @@ export default function AccountPage() {
         <Divider />
       </FeatureFlag>
       <ChangePasswordForm />
+      <Divider />
+      <AccountDataSection />
     </Stack>
   );
 }

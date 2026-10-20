@@ -75,7 +75,8 @@
       "ratingTooLow": "Rating must be at least 1",
       "ratingTooHigh": "Rating must not exceed 10",
       "adjustmentNotesTooLong": "Adjustment notes must not exceed 1000 characters"
-    }
+    },
+    "termsRequired": "Accept the terms and the privacy notice to create an account"
   },
   "auth": {
     "login": {
@@ -94,7 +95,9 @@
       "failed": "Could not create your account. Please try again.",
       "checkEmailTitle": "Check your email",
       "checkEmail": "We sent a message to {email}. Open it to verify your address, then log in.",
-      "goToLogin": "Go to log in"
+      "goToLogin": "Go to log in",
+      "acceptTerms": "I accept the <terms>terms</terms> and have read the <privacy>privacy notice</privacy>.",
+      "notice": "Juan Melendres processes your email, display name, preferences and the coffee data you record to give you an account and run BrewDeck. We do not use your data for advertising. You must be 18 or older. See the <privacy>privacy notice</privacy>, including how to exercise your ARCO rights."
     },
     "forgot": {
       "title": "Reset your password",
@@ -119,6 +122,24 @@
       "submit": "Change password",
       "saved": "Password changed.",
       "failed": "Could not change your password. Please try again."
+    },
+    "accountData": {
+      "title": "Your data",
+      "exportIntro": "Download a copy of everything BrewDeck stores about you, as a JSON file.",
+      "export": "Download my data",
+      "exportFailed": "Could not download your data. Please try again.",
+      "deleteIntro": "Delete your account and all your coffees, recipes and brew sessions. This cannot be undone.",
+      "delete": "Delete my account",
+      "dialogTitle": "Delete your account?",
+      "dialogText": "This deletes your account and all its data at once. It cannot be undone. Enter your password to confirm.",
+      "currentPassword": "Current password",
+      "confirmDelete": "Delete permanently",
+      "deleteFailed": "Could not delete your account. Please try again."
+    },
+    "accountDeleted": {
+      "title": "Your account was deleted",
+      "body": "Your account and all its data are gone. We sent a confirmation to your email.",
+      "signUp": "Create a new account"
     },
     "changeEmail": {
       "title": "Change email",
@@ -541,5 +562,12 @@
       "body": "Choose the language BrewDeck uses. Your choice is saved to your account.",
       "saveFailed": "Could not save your language. It applies on this device only for now."
     }
+  },
+  "legal": {
+    "privacy": "Privacy notice",
+    "terms": "Terms",
+    "linksLabel": "Legal",
+    "back": "Back to BrewDeck",
+    "notAvailable": "This page is not available yet."
   }
 }

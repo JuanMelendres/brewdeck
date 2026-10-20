@@ -5,7 +5,12 @@ import type { AuthResponse, Language, ThemePreference, UserResponse } from './ty
  * Answers the same for new and existing emails and creates no session (AUTH-05.7): the user
  * confirms by email, then logs in.
  */
-export function register(body: { email: string; password: string }): Promise<{ message: string }> {
+export function register(body: {
+  email: string;
+  password: string;
+  /** The terms version shown at sign-up, while the legal texts are published (LEGAL-01). */
+  acceptedTermsVersion?: string;
+}): Promise<{ message: string }> {
   return apiFetch<{ message: string }>('/api/auth/register', {
     method: 'POST',
     body: JSON.stringify(body),
@@ -112,6 +117,19 @@ export function cancelEmailChange(token: string): Promise<void> {
   return apiFetch<void>('/api/auth/email-change/cancel', {
     method: 'POST',
     body: JSON.stringify({ token }),
+  });
+}
+
+/** Everything stored about the current user, as one JSON document (ADR-020). */
+export function exportAccount(): Promise<unknown> {
+  return apiFetch<unknown>('/api/auth/me/export');
+}
+
+/** Deletes the account and all its data (ADR-020). Ends every session; cannot be undone. */
+export function deleteAccount(body: { currentPassword: string }): Promise<void> {
+  return apiFetch<void>('/api/auth/me', {
+    method: 'DELETE',
+    body: JSON.stringify(body),
   });
 }
 

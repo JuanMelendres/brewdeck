@@ -6,6 +6,10 @@ import com.brewdeck.brewdeck_api.auth.verification.EmailVerificationService;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
 import com.brewdeck.brewdeck_api.common.security.SecureTokens;
+import com.brewdeck.brewdeck_api.featureflag.FeatureFlagService;
+import com.brewdeck.brewdeck_api.featureflag.FeatureKeys;
+import com.brewdeck.brewdeck_api.legal.LegalTerms;
+import com.brewdeck.brewdeck_api.legal.TermsNotAcceptedException;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.Instant;
 import java.util.Optional;
@@ -27,6 +31,7 @@ public class AuthService {
   private final EmailVerificationService emailVerificationService;
   private final RefreshTokenService refreshTokenService;
   private final RateLimiter rateLimiter;
+  private final FeatureFlagService featureFlagService;
 
   /**
    * A real hash of a random password with the same encoder (and cost) as stored hashes. Login
@@ -41,13 +46,15 @@ public class AuthService {
       PasswordEncoder passwordEncoder,
       EmailVerificationService emailVerificationService,
       RefreshTokenService refreshTokenService,
-      RateLimiter rateLimiter) {
+      RateLimiter rateLimiter,
+      FeatureFlagService featureFlagService) {
     this.userRepository = userRepository;
     this.jwtService = jwtService;
     this.passwordEncoder = passwordEncoder;
     this.emailVerificationService = emailVerificationService;
     this.refreshTokenService = refreshTokenService;
     this.rateLimiter = rateLimiter;
+    this.featureFlagService = featureFlagService;
     this.dummyPasswordHash = passwordEncoder.encode(SecureTokens.newToken());
   }
 
@@ -60,6 +67,12 @@ public class AuthService {
   @Transactional
   public void register(RegisterRequest request) {
     rateLimiter.requireAllowed(RateLimitRule.REGISTER_EMAIL, request.email());
+    // Checked before the lookup, so new and existing emails get the same answer (LEGAL-01).
+    boolean acceptedCurrentTerms =
+        LegalTerms.CURRENT_VERSION.equals(request.acceptedTermsVersion());
+    if (!acceptedCurrentTerms && featureFlagService.isEnabled(FeatureKeys.LEGAL_TERMS)) {
+      throw new TermsNotAcceptedException();
+    }
     String passwordHash = passwordEncoder.encode(request.password());
     Optional<User> existing = userRepository.findByEmail(request.email());
     if (existing.isPresent()) {
@@ -73,12 +86,15 @@ public class AuthService {
       log.info("Signup attempted for existing user id={}", user.getId());
       return;
     }
+    Instant now = Instant.now();
     User saved =
         userRepository.save(
             User.builder()
                 .email(request.email())
                 .passwordHash(passwordHash)
-                .createdAt(Instant.now())
+                .createdAt(now)
+                .termsVersion(acceptedCurrentTerms ? LegalTerms.CURRENT_VERSION : null)
+                .termsAcceptedAt(acceptedCurrentTerms ? now : null)
                 .build());
     log.info("Registered user id={}", saved.getId());
     try {
