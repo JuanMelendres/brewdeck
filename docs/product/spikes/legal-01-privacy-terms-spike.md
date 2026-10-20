@@ -65,11 +65,11 @@ though the 2025 law no longer requires listing transfers.
 | # | Decision | Value |
 |---|---|---|
 | 1 | Responsable | **Juan Melendres, as a natural person (persona física).** Move to a company (for example an S.A.S.) if BrewDeck charges or grows. |
-| 1a | Address for notices (Art. 15 I) | **TODO (owner):** not the home address. Use a P.O. box, a virtual office, or a coworking address that receives notices. Needed before `/privacy` goes live. |
+| 1a | Address for notices (Art. 15 I) | **Apartado Postal 20456, Aguascalientes, Ags., México.** **TODO (owner):** confirm the post office (administración postal) and its código postal, so the address is complete in the notice. |
 | 2 | Privacy, ARCO and account-recovery contact | **jmelendresdev@gmail.com.** It is also the recovery contact of ADR-019 ("Known limits"). Move to `privacidad@<domain>` once the custom domain exists (PROD-02/PROD-03). |
 | 3 | Minimum age | **18+.** The terms say so, and sign-up states it. No minors' data, so no parental consent flow. |
 | 4 | Retention | Account and all its data **deleted at once** on request. Unverified accounts **purged after 7 days** (AUTH-06). Cloud Run logs kept the default **30 days**. Expired or used tokens deleted after **30 days**. **Open for the lawyer:** whether a blocking period (Art. 24) is needed before deletion. |
-| 5 | Governing law and courts (terms) | **Mexican federal law; the courts of the owner's city.** **TODO (owner):** name the city in the terms. |
+| 5 | Governing law and courts (terms) | **Mexican federal law; the competent courts of the city of Aguascalientes, Aguascalientes.** |
 
 Rationale for each option is in the PR #299 discussion: a natural person is free and fast; a
 company shields personal assets but costs money and paperwork.
@@ -90,7 +90,7 @@ company shields personal assets but costs money and paperwork.
 
 ## 5. Draft: simplified notice (sign-up)
 
-> **Aviso de privacidad simplificado.** Juan Melendres, con domicilio en [domicilio para notificaciones],
+> **Aviso de privacidad simplificado.** Juan Melendres, con domicilio para oír y recibir notificaciones en el Apartado Postal 20456, Aguascalientes, Ags.,
 > trata tu correo, nombre visible, preferencias y los datos de café que registras para darte una
 > cuenta y operar BrewDeck. No usamos tus datos para publicidad. Consulta el aviso de privacidad
 > integral, incluido cómo ejercer tus derechos ARCO, en [/privacy], o escribe a
@@ -130,8 +130,8 @@ company shields personal assets but costs money and paperwork.
 
 ## 7. Delivery plan
 
-1. **Owner:** decisions 1–5 taken on 2026-10-20. Still open: the notice address (1a) and the city
-   for the courts (5).
+1. **Owner:** decisions 1–5 taken on 2026-10-20. Still open: the post office and código postal of
+   the P.O. box (1a).
 2. **PR 1 (docs):** `docs/legal/privacy-notice.md` and `docs/legal/terms.md` drafts (es) with the
    decisions filled in, plus the processor list and the ARCO and breach steps. **Lawyer review.**
 3. **PR 2 (full-stack):**
