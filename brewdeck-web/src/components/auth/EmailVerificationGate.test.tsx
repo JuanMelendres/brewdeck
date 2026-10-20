@@ -7,6 +7,10 @@ import { notifyEmailNotVerified } from '@/lib/auth/emailVerificationSignal';
 import { EmailVerificationGate } from './EmailVerificationGate';
 import { renderWithTheme } from '@/test/renderWithTheme';
 
+vi.mock('@/hooks/useLegalStatus', () => ({
+  useLegalStatus: () => ({ isLoading: false, published: false, termsVersion: null }),
+}));
+
 const resendMock = vi.fn();
 vi.mock('@/lib/api/auth', () => ({ resendVerification: () => resendMock() }));
 

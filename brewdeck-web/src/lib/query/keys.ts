@@ -8,6 +8,9 @@ export const keys = {
     // Scoped by user id so a different signed-in user re-fetches (rollout can differ per user).
     forUser: (userId: number | null) => ['feature-flags', userId] as const,
   },
+  legal: {
+    status: ['legal', 'status'],
+  },
   dashboard: {
     summary: ['dashboard', 'summary'],
   },

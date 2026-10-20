@@ -12,7 +12,7 @@ in [`architecture/api-design.md`](../architecture/api-design.md).
 
 ## Auth (`/api/auth`)
 ```
-POST  /api/auth/register            202 (always, same body; no session; new email → verification email, existing → account-exists email)
+POST  /api/auth/register            202 (always, same body; no session; new email → verification email, existing → account-exists email; while legal-terms is on, 400 validationErrors.acceptedTermsVersion unless it equals the current version, which is stored on the new user)
 POST  /api/auth/login               200
 GET   /api/auth/me                  200 (401 without token; includes emailVerified, role: USER|ADMIN, themePreference: LIGHT|DARK|null, language: EN|ES|null)
 PATCH /api/auth/me                  200 (update display name)
@@ -149,6 +149,7 @@ DELETE /api/brew-sessions/{id}
 ## Public (no auth) (`/api/public`)
 ```
 GET    /api/public/recipes/{token}
+GET    /api/public/legal              200 {termsVersion, published} (LEGAL-01; published follows the legal-terms flag)
 ```
 
 ## Dashboard & system

@@ -49,6 +49,13 @@ public class User {
   @Column(name = "token_version", nullable = false)
   private int tokenVersion;
 
+  /** The terms version the user accepted (LEGAL-01); null before the texts were published. */
+  @Column(name = "terms_version", length = 20)
+  private String termsVersion;
+
+  @Column(name = "terms_accepted_at")
+  private Instant termsAcceptedAt;
+
   public void revokeAccessTokens() {
     tokenVersion++;
   }

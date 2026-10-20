@@ -1,9 +1,5 @@
 # Términos y condiciones de uso de BrewDeck
 
-> **Borrador para revisión legal.** No publicar hasta que lo apruebe un abogado (backlog LEGAL-01).
->
-> **Versión:** 2026-10-20 (borrador) · **Fuente:** [spike LEGAL-01](../product/spikes/legal-01-privacy-terms-spike.md)
-
 ## 1. Quién ofrece BrewDeck
 
 BrewDeck es una aplicación web para registrar cafés, recetas y sesiones de preparación.
@@ -14,7 +10,7 @@ BrewDeck es una aplicación web para registrar cafés, recetas y sesiones de pre
 - **Contacto:** jmelendresdev@gmail.com
 
 Al crear una cuenta o usar BrewDeck aceptas estos términos y el
-[aviso de privacidad](privacy-notice.md). Si no estás de acuerdo, no uses el servicio.
+[aviso de privacidad](/privacy). Si no estás de acuerdo, no uses el servicio.
 
 ## 2. El servicio
 
@@ -91,4 +87,4 @@ Dudas sobre estos términos: jmelendresdev@gmail.com.
 
 ---
 
-*Última actualización: 20 de octubre de 2026 (borrador).*
+*Versión 2026-10-20.*

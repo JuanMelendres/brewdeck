@@ -4,6 +4,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderWithTheme } from '@/test/renderWithTheme';
 import { AppShell } from './AppShell';
 
+vi.mock('@/hooks/useLegalStatus', () => ({
+  useLegalStatus: () => ({ isLoading: false, published: false, termsVersion: null }),
+}));
+
 const pathname = vi.fn(() => '/dashboard');
 const replace = vi.fn();
 const logout = vi.fn();

@@ -12,6 +12,7 @@ import com.brewdeck.brewdeck_api.common.i18n.RequestLocale;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitExceededException;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitMessages;
 import com.brewdeck.brewdeck_api.featureflag.FeatureDisabledException;
+import com.brewdeck.brewdeck_api.legal.TermsNotAcceptedException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
@@ -184,6 +185,19 @@ public class GlobalExceptionHandler {
             message("error.invalidEmailChangeToken"),
             sanitize(request.getRequestURI()),
             null);
+
+    return ResponseEntity.badRequest().body(errorResponse);
+  }
+
+  @ExceptionHandler(TermsNotAcceptedException.class)
+  public ResponseEntity<ErrorResponse> handleTermsNotAccepted(
+      TermsNotAcceptedException exception, HttpServletRequest request) {
+    ErrorResponse errorResponse =
+        buildErrorResponse(
+            HttpStatus.BAD_REQUEST,
+            message("error.validationFailed"),
+            sanitize(request.getRequestURI()),
+            Map.of("acceptedTermsVersion", message("validation.terms.notAccepted")));
 
     return ResponseEntity.badRequest().body(errorResponse);
   }

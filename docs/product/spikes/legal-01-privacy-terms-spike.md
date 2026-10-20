@@ -86,7 +86,7 @@ company shields personal assets but costs money and paperwork.
 | Emails | Footer of every email | Link to `/privacy` |
 | ARCO self-service | Account page | **Access:** "Download my data" (JSON). **Rectification:** profile and email change already exist. **Cancellation:** "Delete my account" (re-authenticate, confirm, cascade delete). **Opposition:** the contact email |
 | Internal process | `docs/legal/` | ARCO request log and steps (20 business days); breach runbook (Art. 19); processor list |
-| Source texts | `docs/legal/privacy-notice.md`, `docs/legal/terms.md` | The web renders the approved version; i18n keys hold only short texts |
+| Source texts | `brewdeck-web/content/legal/{privacy,terms}.{es,en}.md` (moved from `docs/legal/` in PR 2) | The web renders these files; i18n keys hold only short texts |
 
 ## 5. Draft: simplified notice (sign-up)
 
@@ -132,9 +132,9 @@ company shields personal assets but costs money and paperwork.
 
 1. **Owner:** decisions 1–5 taken on 2026-10-20. Still open: the post office and código postal of
    the P.O. box (1a).
-2. **PR 1 (docs, done as drafts 2026-10-20):** `docs/legal/privacy-notice.md` and `docs/legal/terms.md` drafts (es) with the
+2. **PR 1 (docs, done as drafts 2026-10-20, #300):** privacy notice and terms drafts (es; now in `brewdeck-web/content/legal/`) with the
    decisions filled in, plus the processor list and the ARCO and breach steps. **Lawyer review.**
-3. **PR 2 (full-stack):**
+3. **PR 2 (full-stack, built 2026-10-20 behind `legal-terms`):**
    - `/privacy` and `/terms` pages and footer links;
    - the simplified notice at sign-up;
    - a migration with `terms_version` / `terms_accepted_at`, recorded on register;

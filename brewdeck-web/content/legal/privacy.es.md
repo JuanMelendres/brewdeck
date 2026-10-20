@@ -1,11 +1,5 @@
 # Aviso de privacidad integral de BrewDeck
 
-> **Borrador para revisión legal.** No publicar hasta que lo apruebe un abogado en protección de
-> datos personales (backlog LEGAL-01). Pendiente: confirmar la administración postal y el código
-> postal del apartado.
->
-> **Versión:** 2026-10-20 (borrador) · **Fuente:** [spike LEGAL-01](../product/spikes/legal-01-privacy-terms-spike.md)
-
 ## 1. Responsable
 
 **Juan Melendres**, persona física, es responsable del tratamiento de tus datos personales en
@@ -148,4 +142,4 @@ Si consideras que tu derecho a la protección de datos fue vulnerado, puedes acu
 
 ---
 
-*Última actualización: 20 de octubre de 2026 (borrador).*
+*Versión 2026-10-20.*

@@ -12,9 +12,16 @@ public record RegisterRequest(
         @Size(min = 15, message = "{validation.password.tooShort}")
         @NotCommonPassword
         @Size(max = 128, message = "{validation.password.tooLong}")
-        String password) {
+        String password,
+    // The terms version shown at sign-up (LEGAL-01). Required only while the legal-terms flag is
+    // on.
+    @Size(max = 20) String acceptedTermsVersion) {
 
   public RegisterRequest {
     email = EmailAddresses.normalize(email);
+  }
+
+  public RegisterRequest(String email, String password) {
+    this(email, password, null);
   }
 }

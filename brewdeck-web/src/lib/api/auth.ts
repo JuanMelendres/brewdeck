@@ -5,7 +5,12 @@ import type { AuthResponse, Language, ThemePreference, UserResponse } from './ty
  * Answers the same for new and existing emails and creates no session (AUTH-05.7): the user
  * confirms by email, then logs in.
  */
-export function register(body: { email: string; password: string }): Promise<{ message: string }> {
+export function register(body: {
+  email: string;
+  password: string;
+  /** The terms version shown at sign-up, while the legal texts are published (LEGAL-01). */
+  acceptedTermsVersion?: string;
+}): Promise<{ message: string }> {
   return apiFetch<{ message: string }>('/api/auth/register', {
     method: 'POST',
     body: JSON.stringify(body),

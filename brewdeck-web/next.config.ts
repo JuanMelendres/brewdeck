@@ -22,6 +22,11 @@ const nextConfig: NextConfig = {
     // to 90 s for it (OLLAMA_TIMEOUT_SECONDS), so the proxy must outlast that.
     proxyTimeout: 100_000,
   },
+  // The legal pages read their Markdown at request time (LEGAL-01); trace it into the server bundle.
+  outputFileTracingIncludes: {
+    "/privacy": ["./content/legal/**/*"],
+    "/terms": ["./content/legal/**/*"],
+  },
   async headers() {
     const security = securityHeaderRules({
       isDev: process.env.NODE_ENV === "development",

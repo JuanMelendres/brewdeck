@@ -6,6 +6,7 @@ import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
+import { LegalLinks } from '@/components/legal/LegalLinks';
 import { BrandMark } from '@/components/ui/BrandMark';
 import { Wordmark } from '@/components/ui/Wordmark';
 
@@ -50,11 +51,14 @@ export function AuthLayout({ children }: { children: ReactNode }) {
           py: 6,
         }}
       >
-        <Card sx={{ width: '100%', maxWidth: 440 }}>
-          <CardContent sx={{ p: { xs: 3, sm: 4.5 }, '&:last-child': { pb: { xs: 3, sm: 4.5 } } }}>
-            {children}
-          </CardContent>
-        </Card>
+        <Box sx={{ width: '100%', maxWidth: 440 }}>
+          <Card>
+            <CardContent sx={{ p: { xs: 3, sm: 4.5 }, '&:last-child': { pb: { xs: 3, sm: 4.5 } } }}>
+              {children}
+            </CardContent>
+          </Card>
+          <LegalLinks />
+        </Box>
       </Box>
     </Box>
   );

@@ -85,7 +85,18 @@ paths:
       tags: [Auth]
       security: []
       summary: Self-register (same answer for new and existing emails; no session)
-      description: Always 202 with the same message, whether or not the email is registered. A new address gets a verification email, an existing one a notice to log in or reset the password. No token and no refresh cookie; the user logs in afterwards.
+      description: Always 202 with the same message, whether or not the email is registered. A new address gets a verification email, an existing one a notice to log in or reset the password. No token and no refresh cookie; the user logs in afterwards. While the legal-terms flag is on, acceptedTermsVersion must equal the current version (GET /api/public/legal), checked before the email lookup.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email, maxLength: 255 }
+                password: { type: string, minLength: 15, maxLength: 128 }
+                acceptedTermsVersion: { type: string, maxLength: 20, description: "Terms version accepted at sign-up (LEGAL-01)" }
       responses:
         "202": { description: Accepted, content: { application/json: { schema: { type: object, properties: { message: { type: string } } } } } }
         "429": { description: Too many signups for this IP or email, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
@@ -392,5 +403,16 @@ paths:
       summary: Public read-only recipe by share token
       parameters: [{ name: token, in: path, required: true, schema: { type: string } }]
       responses: { "200": { description: OK }, "404": { description: Unknown or revoked token } }
+  /api/public/legal:
+    get:
+      tags: [Public]
+      security: []
+      summary: Current terms version and whether the privacy notice and terms are published (LEGAL-01)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, properties: { termsVersion: { type: string }, published: { type: boolean } } }
   /api/dashboard/summary:
     get: { tags: [Dashboard], summary: Dashboard summary, responses: { "200": { description: OK } } }
