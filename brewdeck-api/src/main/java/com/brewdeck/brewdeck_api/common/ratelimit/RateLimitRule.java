@@ -21,6 +21,10 @@ public enum RateLimitRule {
   VERIFY_EMAIL_IP(10, Duration.ofMinutes(15)),
   // Authenticated, keyed by the account email: stops a user from flooding their own inbox.
   RESEND_VERIFICATION_EMAIL(3, Duration.ofHours(1)),
+  // Email change requests, keyed by user id. Wrong current passwords count too (ADR-019).
+  EMAIL_CHANGE_USER(3, Duration.ofHours(1)),
+  // Email change confirm and cancel links (public, the token is the credential).
+  EMAIL_CHANGE_TOKEN_IP(10, Duration.ofMinutes(15)),
   // AI suggest/improve, keyed by user id: a local model costs CPU time, a hosted one money.
   AI_ASSISTANT_USER(10, Duration.ofMinutes(1));
 

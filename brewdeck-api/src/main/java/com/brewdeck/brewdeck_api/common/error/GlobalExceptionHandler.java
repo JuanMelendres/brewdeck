@@ -3,6 +3,8 @@ package com.brewdeck.brewdeck_api.common.error;
 import com.brewdeck.brewdeck_api.ai.AiUnavailableException;
 import com.brewdeck.brewdeck_api.ai.InsufficientBrewHistoryException;
 import com.brewdeck.brewdeck_api.auth.InvalidCurrentPasswordException;
+import com.brewdeck.brewdeck_api.auth.emailchange.InvalidEmailChangeTokenException;
+import com.brewdeck.brewdeck_api.auth.emailchange.SameEmailException;
 import com.brewdeck.brewdeck_api.auth.refresh.InvalidRefreshTokenException;
 import com.brewdeck.brewdeck_api.auth.reset.InvalidResetTokenException;
 import com.brewdeck.brewdeck_api.auth.verification.InvalidVerificationTokenException;
@@ -169,6 +171,32 @@ public class GlobalExceptionHandler {
             message("error.invalidResetToken"),
             sanitize(request.getRequestURI()),
             null);
+
+    return ResponseEntity.badRequest().body(errorResponse);
+  }
+
+  @ExceptionHandler(InvalidEmailChangeTokenException.class)
+  public ResponseEntity<ErrorResponse> handleInvalidEmailChangeToken(
+      InvalidEmailChangeTokenException exception, HttpServletRequest request) {
+    ErrorResponse errorResponse =
+        buildErrorResponse(
+            HttpStatus.BAD_REQUEST,
+            message("error.invalidEmailChangeToken"),
+            sanitize(request.getRequestURI()),
+            null);
+
+    return ResponseEntity.badRequest().body(errorResponse);
+  }
+
+  @ExceptionHandler(SameEmailException.class)
+  public ResponseEntity<ErrorResponse> handleSameEmail(
+      SameEmailException exception, HttpServletRequest request) {
+    ErrorResponse errorResponse =
+        buildErrorResponse(
+            HttpStatus.BAD_REQUEST,
+            message("error.validationFailed"),
+            sanitize(request.getRequestURI()),
+            Map.of("newEmail", message("validation.email.sameAsCurrent")));
 
     return ResponseEntity.badRequest().body(errorResponse);
   }

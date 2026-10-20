@@ -194,4 +194,49 @@ class SmtpMailAdapterTest {
         .contains("https://brewdeck.example/reset-password?token=tok_ES")
         .contains("Si no fuiste tú, ignora este correo.");
   }
+
+  @Test
+  void emailChangeConfirm_linksToTheConfirmPage() throws Exception {
+    adapter.sendConfirmLink("new@example.com", "confirm_TOKEN", Locale.ENGLISH);
+
+    MimeMessage message = sentMessage();
+    assertThat(message.getSubject()).isEqualTo("Confirm your new BrewDeck email");
+    assertThat(message.getAllRecipients()[0].toString()).isEqualTo("new@example.com");
+    assertThat(plainText(message))
+        .contains("https://brewdeck.example/email-change/confirm?token=confirm_TOKEN")
+        .contains("valid for 1 hour");
+  }
+
+  @Test
+  void emailChangeRequested_namesTheMaskedAddress_andLinksToCancel() throws Exception {
+    adapter.sendChangeRequestedNotice(
+        "old@example.com", "n***@example.com", "cancel_TOKEN", Locale.forLanguageTag("es"));
+
+    MimeMessage message = sentMessage();
+    assertThat(message.getSubject()).isEqualTo("Tu correo de BrewDeck está por cambiar");
+    assertThat(message.getAllRecipients()[0].toString()).isEqualTo("old@example.com");
+    assertThat(plainText(message))
+        .contains("n***@example.com")
+        .contains("https://brewdeck.example/email-change/cancel?token=cancel_TOKEN");
+  }
+
+  @Test
+  void emailChangeAddressTaken_pointsToLogin_andCarriesNoToken() throws Exception {
+    adapter.sendAddressTakenNotice("taken@example.com", Locale.ENGLISH);
+
+    MimeMessage message = sentMessage();
+    assertThat(message.getSubject()).isEqualTo("You already have a BrewDeck account");
+    assertThat(plainText(message))
+        .contains("https://brewdeck.example/login")
+        .doesNotContain("token=");
+  }
+
+  @Test
+  void emailChanged_hasNoLink() throws Exception {
+    adapter.sendEmailChangedNotice("old@example.com", "n***@example.com", Locale.ENGLISH);
+
+    MimeMessage message = sentMessage();
+    assertThat(message.getSubject()).isEqualTo("Your BrewDeck email was changed");
+    assertThat(plainText(message)).contains("now uses n***@example.com").doesNotContain("https://");
+  }
 }

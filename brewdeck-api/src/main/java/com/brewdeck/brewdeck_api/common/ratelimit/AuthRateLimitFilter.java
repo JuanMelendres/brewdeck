@@ -35,7 +35,9 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
           "/api/auth/refresh", RateLimitRule.REFRESH_IP,
           "/api/auth/forgot-password", RateLimitRule.FORGOT_PASSWORD_IP,
           "/api/auth/reset-password", RateLimitRule.RESET_PASSWORD_IP,
-          "/api/auth/verify-email", RateLimitRule.VERIFY_EMAIL_IP);
+          "/api/auth/verify-email", RateLimitRule.VERIFY_EMAIL_IP,
+          "/api/auth/email-change/confirm", RateLimitRule.EMAIL_CHANGE_TOKEN_IP,
+          "/api/auth/email-change/cancel", RateLimitRule.EMAIL_CHANGE_TOKEN_IP);
 
   private final RateLimiter rateLimiter;
   private final ObjectMapper objectMapper;
