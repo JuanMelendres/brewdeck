@@ -67,7 +67,10 @@ pnpm e2e                                # or: pnpm e2e --project=desktop --heade
 workflow. It also runs by hand under **Actions → BrewDeck E2E → Run workflow**.
 
 - **Stack:** Postgres 16 and Mailpit as service containers, the API jar with the `local` profile,
-  and the web production build.
+  and the web production build. The workflow starts the web in its own step, not through
+  Playwright's `webServer`. When Playwright owned `pnpm start`, the run hung at the end, waiting
+  for `next-server` to exit.
+- **Time limit:** the whole run stops after 5 minutes (`globalTimeout`).
 - **Failures:** one retry. The HTML report, the traces and the API log are uploaded for 7 days.
 - **Not required yet.** After two weeks without flaky runs, add `Playwright smoke` to the branch
   protection (OPS-04).

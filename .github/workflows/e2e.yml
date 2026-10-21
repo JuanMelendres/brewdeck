@@ -112,7 +112,19 @@ jobs:
         working-directory: brewdeck-web
         run: pnpm build
 
-      # Playwright starts `pnpm start` itself (playwright.config.ts, webServer).
+      # Started here, not by Playwright: see the webServer note in playwright.config.ts.
+      - name: Start web
+        working-directory: brewdeck-web
+        run: |
+          nohup pnpm start > "$RUNNER_TEMP/web.log" 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl -s -o /dev/null http://localhost:3000/login; then exit 0; fi
+            sleep 2
+          done
+          echo "::error::Web never answered"
+          cat "$RUNNER_TEMP/web.log"
+          exit 1
+
       - name: Run Playwright
         working-directory: brewdeck-web
         run: pnpm e2e
@@ -127,10 +139,12 @@ jobs:
             brewdeck-web/test-results/
           retention-days: 7
 
-      - name: Upload API log
+      - name: Upload API and web logs
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: api-log
-          path: ${{ runner.temp }}/api.log
+          name: server-logs
+          path: |
+            ${{ runner.temp }}/api.log
+            ${{ runner.temp }}/web.log
           retention-days: 7
