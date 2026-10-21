@@ -548,6 +548,7 @@ Check monthly, or when a budget email arrives:
   - **Billing → Reports**, filtered to the project. It should show $0 after credits and the free
     tier.
   - **Artifact Registry:** at most 2 images.
+  - **Cloud Run → Jobs → brewdeck-retention-staging:** one execution a day, all succeeded (step 13).
 - **Neon:** **Billing / Usage**. Watch CU-hours (limit 100), storage and egress.
 - **Vercel:** **Usage**. Watch Active CPU (4 h), requests and data transfer.
 
@@ -558,6 +559,8 @@ When staging is no longer needed:
 1. Google Cloud:
 
    ```bash
+   gcloud scheduler jobs delete brewdeck-retention-daily --location="$REGION"
+   gcloud run jobs delete brewdeck-retention-staging --region="$REGION"
    gcloud run services delete brewdeck-api-staging
    gcloud artifacts repositories delete brewdeck --location="$REGION"
    gcloud secrets delete brewdeck-jwt-secret
@@ -632,6 +635,8 @@ flowchart LR
   Keep migrations additive, so both revisions work on the new schema. V31 is the one exception
   (see **Rollback** in step 9). Any future type change in production needs expand/contract: add the
   new column, write both, backfill, switch reads, then drop the old one.
+- **Retention job:** after traffic moves, the workflow points the `brewdeck-retention-staging`
+  Cloud Run Job at the same image (step 13). It skips this when the job does not exist.
 - **Manual run:** **Actions → Deploy API to staging → Run workflow** on `master`. Useful after
   changing env vars or secrets, or to redeploy the same commit. The job refuses other branches.
 
@@ -734,6 +739,111 @@ To remove access completely:
 gcloud iam workload-identity-pools delete github --location=global
 gcloud iam service-accounts delete "$DEPLOY_SA"
 ```
+
+## 13. Retention purge job (AUTH-06)
+
+A Cloud Run Job runs the API image once a day in a one-shot mode
+(`BREWDECK_RETENTION_RUN_ONCE=true`). It does the following, then exits:
+- reminds and deletes unverified accounts, because `auth-require-email-verification` is on in
+  staging;
+- deletes token rows 30 days after they expire.
+
+Design: [ADR-021](../decisions/ADR-021-retention-purge.md). The job has no ingress. Cloud Scheduler
+starts it through the Cloud Run Admin API, so no endpoint is exposed.
+
+> **First run on staging:** every unverified account older than 5 days gets a reminder email at
+> once. Two days later, any of those accounts that is still unverified is **deleted with its data**.
+
+### 13.1 Create the job
+
+**Only after the service runs a release with the one-shot mode** (#307). An older image ignores
+`BREWDECK_RETENTION_RUN_ONCE`, starts a normal server and never exits; the 10-minute timeout would
+then kill every execution.
+
+Run these after `source ~/brewdeck-staging/env.sh`. The job uses the same runtime account,
+secrets and env values as the service, plus the one-shot switch.
+
+```bash
+source ~/brewdeck-staging/env.sh
+cp ~/brewdeck-staging/api.env.yaml ~/brewdeck-staging/retention.env.yaml
+echo 'BREWDECK_RETENTION_RUN_ONCE: "true"' >> ~/brewdeck-staging/retention.env.yaml
+
+# Start from the image the service runs now; each deploy updates it afterwards (12.1).
+IMAGE=$(gcloud run services describe brewdeck-api-staging --region="$REGION" \
+  --format='value(spec.template.spec.containers[0].image)')
+
+gcloud run jobs deploy brewdeck-retention-staging \
+  --image="$IMAGE" \
+  --region="$REGION" \
+  --service-account="$RUNTIME_SA" \
+  --cpu=1 --memory=1Gi \
+  --tasks=1 --max-retries=1 --task-timeout=10m \
+  --env-vars-file="$HOME/brewdeck-staging/retention.env.yaml" \
+  --set-secrets=DB_PASSWORD=brewdeck-db-password:latest,BREWDECK_JWT_SECRET=brewdeck-jwt-secret:latest,SPRING_MAIL_PASSWORD=brewdeck-mail-password:latest
+```
+
+- `--max-retries=1`: a failed run (exit code 1) is retried once. Every step is idempotent, so a
+  retry only finishes what is left.
+- `--task-timeout=10m` stops a hung run. A normal run takes under a minute: about 20 s to start,
+  then the purge.
+- When you change `api.env.yaml`, repeat the `cp` and `echo` lines, then run
+  `gcloud run jobs update brewdeck-retention-staging --env-vars-file=...`.
+
+### 13.2 Run it once by hand
+
+```bash
+gcloud run jobs execute brewdeck-retention-staging --region="$REGION" --wait
+gcloud logging read 'resource.type="cloud_run_job" AND resource.labels.job_name="brewdeck-retention-staging" AND textPayload:"Retention purge"' \
+  --freshness=1h --limit=5 --format='value(timestamp,textPayload)'
+```
+
+Expected: `Retention purge done: reminded=N, deleted=0, failures=0, tokensDeleted=M`. Deletions
+start no earlier than 2 days after the first reminders.
+
+### 13.3 Daily trigger (Cloud Scheduler)
+
+The scheduler gets its own service account. That account may only start this job.
+
+```bash
+gcloud services enable cloudscheduler.googleapis.com
+
+gcloud iam service-accounts create brewdeck-scheduler --display-name="BrewDeck retention scheduler"
+export SCHEDULER_SA="brewdeck-scheduler@$GCP_PROJECT.iam.gserviceaccount.com"
+echo "export SCHEDULER_SA=$SCHEDULER_SA" >> ~/brewdeck-staging/env.sh
+
+gcloud run jobs add-iam-policy-binding brewdeck-retention-staging --region="$REGION" \
+  --member="serviceAccount:$SCHEDULER_SA" --role=roles/run.invoker
+
+gcloud scheduler jobs create http brewdeck-retention-daily \
+  --location="$REGION" \
+  --schedule="0 4 * * *" --time-zone="America/Mexico_City" \
+  --uri="https://run.googleapis.com/v2/projects/$GCP_PROJECT/locations/$REGION/jobs/brewdeck-retention-staging:run" \
+  --http-method=POST \
+  --oauth-service-account-email="$SCHEDULER_SA"
+```
+
+- It runs every day at 04:00, Mexico City time.
+- To test the trigger, run `gcloud scheduler jobs run brewdeck-retention-daily --location="$REGION"`,
+  then read the logs as in 13.2.
+- **Cost:** about 1 vCPU-minute a day, inside the Cloud Run free tier. Cloud Scheduler gives 3
+  jobs free per billing account. Neon wakes for a few minutes a day.
+
+### 13.4 Pause or remove
+
+```bash
+gcloud scheduler jobs pause brewdeck-retention-daily --location="$REGION"    # resume: ... resume
+gcloud scheduler jobs delete brewdeck-retention-daily --location="$REGION"
+gcloud run jobs delete brewdeck-retention-staging --region="$REGION"
+```
+
+The deploy pipeline skips the job update when the job does not exist.
+
+| Problem | Cause and fix |
+|---|---|
+| Execution failed, log shows `Retention purge failed for user id=N` | One account failed; the others went through. Read the stack trace under that line. |
+| Execution failed before `Started BrewdeckApiApplication` | Same causes as a service cold start: a secret, `DB_URL` or the mail sender. Compare `retention.env.yaml` with `api.env.yaml`. |
+| Scheduler shows `PERMISSION_DENIED` | The `run.invoker` binding on the job is missing, or the scheduler uses a different service account. |
+| Pipeline step `Update retention job image` denied | The deployer needs `roles/run.developer`, which it already has from 12.2, and `serviceAccountUser` on the runtime account. |
 
 ## Next
 

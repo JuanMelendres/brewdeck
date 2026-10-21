@@ -35,6 +35,7 @@ jobs:
 
     env:
       SERVICE: brewdeck-api-staging
+      RETENTION_JOB: brewdeck-retention-staging
       REGION: ${{ vars.GCP_REGION }}
       IMAGE: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/brewdeck/brewdeck-api:${{ github.sha }}
 
@@ -95,6 +96,17 @@ jobs:
           url=$(gcloud run services describe "$SERVICE" --region="$REGION" --format='value(status.url)')
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
+      # The daily retention purge (ADR-021) runs this image as a Cloud Run Job. Point it at the new
+      # image only after traffic moved, so the job never runs code older than the service's
+      # migrations. Skipped until the job exists (staging-deployment.md, step 13).
+      - name: Update retention job image
+        run: |
+          if gcloud run jobs describe "$RETENTION_JOB" --region="$REGION" >/dev/null 2>&1; then
+            gcloud run jobs update "$RETENTION_JOB" --image="$IMAGE" --region="$REGION" --quiet
+          else
+            echo "::notice::$RETENTION_JOB does not exist yet; see staging-deployment.md, step 13."
+          fi
+
       - name: Summary
         env:
           SERVICE_URL: ${{ steps.promote.outputs.url }}
@@ -107,4 +119,5 @@ jobs:
             echo "- Revision: \`$revision\`"
             echo "- Image: \`$IMAGE\`"
             echo "- Health: $SERVICE_URL/actuator/health"
+            echo "- Retention job: \`$RETENTION_JOB\` (updated when it exists)"
           } >> "$GITHUB_STEP_SUMMARY"
