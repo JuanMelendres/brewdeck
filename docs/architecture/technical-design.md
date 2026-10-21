@@ -80,7 +80,7 @@ Stateless JWT filter chain, BCrypt hashing, env-only secrets, one CORS policy ap
 
 ## Observability
 
-Structured logs on write operations; `/actuator/health` probe. Metrics/tracing are `TODO` (not yet configured).
+Structured logs on write operations; public `/healthz` probe. Micrometer metrics in Prometheus format on the private management port (`:8081/actuator/prometheus`, [ADR-023](../decisions/ADR-023-application-metrics.md)); export from staging/prod and tracing are `TODO`.
 
 ## Alternatives Considered
 

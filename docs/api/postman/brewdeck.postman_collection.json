@@ -2893,13 +2893,12 @@
       "method": "GET",
       "header": [],
       "url": {
-       "raw": "{{baseURL}}/actuator/health",
+       "raw": "{{baseURL}}/healthz",
        "host": [
         "{{baseURL}}"
        ],
        "path": [
-        "actuator",
-        "health"
+        "healthz"
        ]
       }
      },

@@ -363,7 +363,7 @@ What the settings mean:
 
 ```bash
 export API_URL=$(gcloud run services describe brewdeck-api-staging --format='value(status.url)')
-curl -s "$API_URL/actuator/health"          # {"groups":["liveness","readiness"],"status":"UP"}
+curl -s "$API_URL/healthz"                  # {"status":"UP"}
 curl -s -o /dev/null -w '%{http_code}\n' "$API_URL/api/coffees"   # 401 (needs login)
 
 gcloud logging read \
@@ -615,7 +615,7 @@ flowchart LR
   WIF -->|short-lived credentials| SA[brewdeck-deployer SA]
   W --> B[docker build + push :commit-sha]
   B --> C[deploy candidate revision, no traffic]
-  C --> H{candidate /actuator/health UP?}
+  C --> H{candidate /healthz UP?}
   H -->|yes| P[100% traffic to the new revision]
   H -->|no| F[job fails, users stay on the old revision]
 ```
