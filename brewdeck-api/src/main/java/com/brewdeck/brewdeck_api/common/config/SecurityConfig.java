@@ -66,7 +66,7 @@ public class SecurityConfig {
               Integer port = environment.getProperty("local.management.port", Integer.class);
               return port != null && port > 0 && request.getLocalPort() == port;
             })
-        .csrf(AbstractHttpConfigurer::disable)
+        // CSRF stays on: the exposed endpoints (health, info, prometheus) are read-only GETs.
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
