@@ -742,6 +742,10 @@ gcloud iam service-accounts delete "$DEPLOY_SA"
 
 ## 13. Retention purge job (AUTH-06)
 
+**Status:** set up on 2026-10-21. The first manual execution reminded 4 unverified accounts and sent
+4 emails before exiting. A run started by the scheduler then finished with nothing new to do
+(`reminded=0`).
+
 A Cloud Run Job runs the API image once a day in a one-shot mode
 (`BREWDECK_RETENTION_RUN_ONCE=true`). It does the following, then exits:
 - reminds and deletes unverified accounts, because `auth-require-email-verification` is on in
@@ -763,10 +767,21 @@ then kill every execution.
 Run these after `source ~/brewdeck-staging/env.sh`. The job uses the same runtime account,
 secrets and env values as the service, plus the one-shot switch.
 
+The env file is copied from the **live service**, not from `api.env.yaml`, which can be out of
+date. On 2026-10-21 its `BREWDECK_MAIL_FROM` no longer matched the service. Secrets are not in it;
+they come from Secret Manager below.
+
 ```bash
 source ~/brewdeck-staging/env.sh
-cp ~/brewdeck-staging/api.env.yaml ~/brewdeck-staging/retention.env.yaml
-echo 'BREWDECK_RETENTION_RUN_ONCE: "true"' >> ~/brewdeck-staging/retention.env.yaml
+gcloud run services describe brewdeck-api-staging --region="$REGION" --format=json | python3 -c '
+import json, sys
+env = json.load(sys.stdin)["spec"]["template"]["spec"]["containers"][0].get("env", [])
+for e in env:
+    if "value" in e:
+        print("%s: %s" % (e["name"], json.dumps(e["value"])))
+print("BREWDECK_RETENTION_RUN_ONCE: \"true\"")
+' > ~/brewdeck-staging/retention.env.yaml
+chmod 600 ~/brewdeck-staging/retention.env.yaml
 
 # Start from the image the service runs now; each deploy updates it afterwards (12.1).
 IMAGE=$(gcloud run services describe brewdeck-api-staging --region="$REGION" \
@@ -786,8 +801,8 @@ gcloud run jobs deploy brewdeck-retention-staging \
   retry only finishes what is left.
 - `--task-timeout=10m` stops a hung run. A normal run takes under a minute: about 20 s to start,
   then the purge.
-- When you change `api.env.yaml`, repeat the `cp` and `echo` lines, then run
-  `gcloud run jobs update brewdeck-retention-staging --env-vars-file=...`.
+- When you change the service's env values, regenerate the file as above, then run
+  `gcloud run jobs update brewdeck-retention-staging --region="$REGION" --env-vars-file="$HOME/brewdeck-staging/retention.env.yaml"`.
 
 ### 13.2 Run it once by hand
 
@@ -842,6 +857,8 @@ The deploy pipeline skips the job update when the job does not exist.
 |---|---|
 | Execution failed, log shows `Retention purge failed for user id=N` | One account failed; the others went through. Read the stack trace under that line. |
 | Execution failed before `Started BrewdeckApiApplication` | Same causes as a service cold start: a secret, `DB_URL` or the mail sender. Compare `retention.env.yaml` with `api.env.yaml`. |
+| `add-iam-policy-binding`: `Service account ... does not exist` right after creating it | IAM takes a minute to see a new account. Wait and run the binding again. |
+| `gcloud scheduler jobs create`: `NOT_FOUND` right after enabling the API | Same propagation delay. Wait a minute and retry. |
 | Scheduler shows `PERMISSION_DENIED` | The `run.invoker` binding on the job is missing, or the scheduler uses a different service account. |
 | Pipeline step `Update retention job image` denied | The deployer needs `roles/run.developer`, which it already has from 12.2, and `serviceAccountUser` on the runtime account. |
 
