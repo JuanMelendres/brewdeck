@@ -12,7 +12,9 @@ import static org.mockito.Mockito.when;
 
 import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.auth.UserRepository;
+import com.brewdeck.brewdeck_api.common.metrics.BrewdeckMetrics;
 import com.brewdeck.brewdeck_api.common.security.SecureTokens;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -27,6 +29,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class RefreshTokenServiceTest {
 
+  private final SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+  private final BrewdeckMetrics metrics = new BrewdeckMetrics(meterRegistry);
+
   @Mock private RefreshTokenRepository tokenRepository;
   @Mock private UserRepository userRepository;
 
@@ -36,7 +41,7 @@ class RefreshTokenServiceTest {
 
   @BeforeEach
   void setUp() {
-    service = new RefreshTokenService(tokenRepository, userRepository, Duration.ofDays(7));
+    service = new RefreshTokenService(tokenRepository, userRepository, Duration.ofDays(7), metrics);
     lenient()
         .when(tokenRepository.save(any(RefreshToken.class)))
         .thenAnswer(inv -> inv.getArgument(0));
@@ -79,6 +84,7 @@ class RefreshTokenServiceTest {
     // The old token is claimed by the conditional update; only the new one is saved.
     verify(tokenRepository).markUsedIfActive(eq(1L), any(Instant.class));
     verify(tokenRepository, times(1)).save(any(RefreshToken.class));
+    assertThat(meterRegistry.counter("brewdeck.auth.refresh.reuse").count()).isZero();
   }
 
   @Test
@@ -95,6 +101,7 @@ class RefreshTokenServiceTest {
         .hasMessage("Refresh token already used");
     verify(tokenRepository).revokeAllActiveForUser(eq(7L), any(Instant.class));
     verify(tokenRepository, never()).save(any());
+    assertThat(meterRegistry.counter("brewdeck.auth.refresh.reuse").count()).isEqualTo(1);
   }
 
   @Test
@@ -108,6 +115,7 @@ class RefreshTokenServiceTest {
     assertThatThrownBy(() -> service.rotate(raw)).isInstanceOf(InvalidRefreshTokenException.class);
     verify(tokenRepository).revokeAllActiveForUser(eq(7L), any(Instant.class));
     verify(userRepository, never()).findById(any());
+    assertThat(meterRegistry.counter("brewdeck.auth.refresh.reuse").count()).isEqualTo(1);
   }
 
   @Test

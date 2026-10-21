@@ -3,6 +3,7 @@ package com.brewdeck.brewdeck_api.ai;
 import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
 import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.coffee.CoffeeRepository;
+import com.brewdeck.brewdeck_api.common.metrics.BrewdeckMetrics;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
 import com.brewdeck.brewdeck_api.featureflag.FeatureFlagService;
@@ -36,6 +37,7 @@ public class RecipeSuggestionService {
   private final CurrentUserProvider currentUserProvider;
   private final RateLimiter rateLimiter;
   private final SuggestionGuardrails guardrails;
+  private final BrewdeckMetrics metrics;
 
   public SuggestedRecipeResponse suggest(SuggestRecipeRequest request) {
     // Release gate: the AI assistant is the source of truth here, not the frontend hiding buttons.
@@ -73,7 +75,14 @@ public class RecipeSuggestionService {
             method.getDescription(),
             request.notes());
 
-    SuggestedRecipe suggested = guardrails.apply(method.getName(), suggestionPort.suggest(context));
+    SuggestedRecipe suggested =
+        guardrails.apply(
+            method.getName(),
+            metrics.timeAi(
+                "suggest",
+                aiProperties.provider(),
+                AiUnavailableException.class,
+                () -> suggestionPort.suggest(context)));
     log.info(
         "Generated recipe suggestion coffeeId={} methodId={} model={} promptVersion={}",
         request.coffeeId(),

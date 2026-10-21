@@ -52,6 +52,21 @@ class ManagementPortIntegrationTest extends PostgresIntegrationTest {
   }
 
   @Test
+  void prometheus_includesBrewdeckMetrics_andFeatureFlagCacheStats() throws Exception {
+    // Reads the LEGAL_TERMS flag through the cache.
+    get(serverPort, "/api/public/legal");
+
+    String body = get(managementPort, "/actuator/prometheus").body();
+
+    // The login dummy hash is computed at startup, through the bounded Argon2id encoder.
+    assertThat(body)
+        .contains("brewdeck_password_hash_seconds_count{")
+        .contains("brewdeck_password_hash_wait_seconds_bucket{");
+    assertThat(body.lines().filter(line -> line.startsWith("cache_gets_total{")))
+        .anySatisfy(line -> assertThat(line).contains("cache=\"featureFlags\""));
+  }
+
+  @Test
   void actuator_isClosedOnTheMainPort() throws Exception {
     assertThat(get(serverPort, "/actuator/prometheus").statusCode()).isEqualTo(401);
     assertThat(get(serverPort, "/actuator/health").statusCode()).isEqualTo(401);

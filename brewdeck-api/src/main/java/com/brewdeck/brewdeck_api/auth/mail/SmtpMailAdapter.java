@@ -5,6 +5,7 @@ import com.brewdeck.brewdeck_api.auth.emailchange.EmailChangeMailPort;
 import com.brewdeck.brewdeck_api.auth.reset.MailProperties;
 import com.brewdeck.brewdeck_api.auth.reset.PasswordResetMailPort;
 import com.brewdeck.brewdeck_api.auth.verification.EmailVerificationMailPort;
+import com.brewdeck.brewdeck_api.common.metrics.BrewdeckMetrics;
 import com.brewdeck.brewdeck_api.featureflag.FeatureFlagService;
 import com.brewdeck.brewdeck_api.featureflag.FeatureKeys;
 import jakarta.mail.MessagingException;
@@ -58,19 +59,22 @@ public class SmtpMailAdapter
   private final TaskExecutor taskExecutor;
   private final MessageSource messageSource;
   private final FeatureFlagService featureFlagService;
+  private final BrewdeckMetrics metrics;
 
   public SmtpMailAdapter(
       JavaMailSender mailSender,
       MailProperties properties,
       @Qualifier("applicationTaskExecutor") TaskExecutor taskExecutor,
       MessageSource messageSource,
-      FeatureFlagService featureFlagService) {
+      FeatureFlagService featureFlagService,
+      BrewdeckMetrics metrics) {
     requireValidFrom(properties.from());
     this.mailSender = mailSender;
     this.properties = properties;
     this.taskExecutor = taskExecutor;
     this.messageSource = messageSource;
     this.featureFlagService = featureFlagService;
+    this.metrics = metrics;
   }
 
   /**
@@ -224,8 +228,10 @@ public class SmtpMailAdapter
       helper.setText(text, html);
       mailSender.send(message);
       log.info("Sent {} email", kind);
+      metrics.mailSent(kind, true);
     } catch (MailException | MessagingException e) {
       log.error("Failed to send {} email", kind, e);
+      metrics.mailSent(kind, false);
     }
   }
 

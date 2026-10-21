@@ -2,6 +2,7 @@ package com.brewdeck.brewdeck_api.auth.refresh;
 
 import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.auth.UserRepository;
+import com.brewdeck.brewdeck_api.common.metrics.BrewdeckMetrics;
 import com.brewdeck.brewdeck_api.common.security.SecureTokens;
 import java.time.Duration;
 import java.time.Instant;
@@ -18,14 +19,17 @@ public class RefreshTokenService {
   private final RefreshTokenRepository tokenRepository;
   private final UserRepository userRepository;
   private final Duration refreshTtl;
+  private final BrewdeckMetrics metrics;
 
   public RefreshTokenService(
       RefreshTokenRepository tokenRepository,
       UserRepository userRepository,
-      @Value("${brewdeck.auth.refresh-ttl}") Duration refreshTtl) {
+      @Value("${brewdeck.auth.refresh-ttl}") Duration refreshTtl,
+      BrewdeckMetrics metrics) {
     this.tokenRepository = tokenRepository;
     this.userRepository = userRepository;
     this.refreshTtl = refreshTtl;
+    this.metrics = metrics;
   }
 
   /** Issues a fresh refresh token for the user and returns the raw (unhashed) value. */
@@ -116,6 +120,7 @@ public class RefreshTokenService {
   private InvalidRefreshTokenException reuseDetected(Long userId, Instant now) {
     tokenRepository.revokeAllActiveForUser(userId, now);
     log.warn("Refresh token reuse detected for user id={}; revoked all active tokens", userId);
+    metrics.refreshTokenReused();
     return new InvalidRefreshTokenException("Refresh token already used");
   }
 
