@@ -31,7 +31,20 @@ cd brewdeck-api
 
 - API: `http://localhost:8080`
 - Swagger UI: `http://localhost:8080/swagger-ui/index.html`
-- Health: `http://localhost:8080/actuator/health`
+- Health: `http://localhost:8080/healthz` (public). The actuator itself, with Prometheus metrics, is on the management port: `http://localhost:8081/actuator/prometheus` ([ADR-023](../decisions/ADR-023-application-metrics.md)).
+
+**Optional: local metrics dashboards.** With the API running, start Prometheus and Grafana:
+
+```bash
+docker compose --profile metrics up -d
+```
+
+- Prometheus at `http://localhost:9090` scrapes `host.docker.internal:8081` every 15 s. Under
+  **Status → Targets**, `brewdeck-api` should be `UP`.
+- Grafana at `http://localhost:3001` (no login) has Prometheus as its data source. Try
+  `rate(http_server_requests_seconds_count[1m])`, or import the community "JVM (Micrometer)"
+  dashboard.
+- Stop them with `docker compose --profile metrics down`.
 
 ## 4. Run the frontend
 

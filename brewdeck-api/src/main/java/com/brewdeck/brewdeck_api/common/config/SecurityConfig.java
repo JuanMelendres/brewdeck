@@ -9,6 +9,8 @@ import com.brewdeck.brewdeck_api.featureflag.FeatureFlagService;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -47,6 +49,30 @@ public class SecurityConfig {
     this.featureFlagService = featureFlagService;
   }
 
+  /**
+   * The actuator's own port (OBS-01, ADR-023): health, info and Prometheus for scrapers inside the
+   * network. Cloud Run only routes the main port, so nothing outside reaches this port; it needs no
+   * JWT, rate limit or verification filters. Matched by port, so these paths stay closed on the
+   * main port.
+   */
+  @Bean
+  @Order(1)
+  public SecurityFilterChain managementSecurityFilterChain(
+      HttpSecurity http, Environment environment) throws Exception {
+    // Read per request: Spring publishes local.management.port once the port is bound, which also
+    // covers a random port (management.server.port=0) in tests.
+    http.securityMatcher(
+            request -> {
+              Integer port = environment.getProperty("local.management.port", Integer.class);
+              return port != null && port > 0 && request.getLocalPort() == port;
+            })
+        .csrf(AbstractHttpConfigurer::disable)
+        .sessionManagement(
+            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+    return http.build();
+  }
+
   // CSRF protection is intentionally disabled. This is a stateless, token-based REST
   // API: sessions are STATELESS and the JWT is sent as an Authorization: Bearer header,
   // never via a cookie or server session. CSRF attacks rely on ambient cookie credentials
@@ -54,6 +80,7 @@ public class SecurityConfig {
   // client and is not exposed to CSRF. Disabling CSRF here follows Spring Security's
   // guidance for stateless APIs. Sonar java:S4502 is a false positive in this context.
   @Bean
+  @Order(2)
   @SuppressWarnings("java:S4502")
   public SecurityFilterChain securityFilterChain(
       HttpSecurity http, MessageSource messageSource, LocaleResolver localeResolver)
@@ -79,7 +106,7 @@ public class SecurityConfig {
                     .requestMatchers("/api/public/**")
                     .permitAll()
                     .requestMatchers(
-                        "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/actuator/health")
+                        "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/healthz")
                     .permitAll()
                     // Admin-only management APIs (e.g. the shared brew-method catalog).
                     .requestMatchers("/api/admin/**")

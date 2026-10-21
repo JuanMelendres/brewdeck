@@ -32,7 +32,7 @@ notable features live in [`fdd/`](fdd/).
 
 ### Platform
 - **Auth foundation** — self-registration, JWT login, stateless gate on `/api/**`.
-- CORS, health probe (`/actuator/health`), OpenAPI/Swagger, structured logs.
+- CORS, health probe (`/healthz`), Prometheus metrics on the management port, OpenAPI/Swagger, structured logs.
 
 ## Planned
 
