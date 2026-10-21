@@ -18,6 +18,10 @@ Coverage is measured with **JaCoCo**; quality gates run in **SonarCloud**. DTO/a
 
 **Vitest + React Testing Library.** Test behavior, not implementation. Prefer accessible queries (`getByRole`, `getByText`, `getByLabelText`); avoid `getByTestId` unless necessary. Mock the API-client layer / hooks; wrap query hooks in a `QueryClientProvider`.
 
+## End to end
+
+**Playwright** drives Chromium, at desktop and phone size, through the real web, proxy, API, Postgres and Mailpit: sign up, verify, log in, coffee, recipe, brew session, reload, log out. It runs in CI on PRs (`e2e.yml`). See [E2E testing](e2e-testing.md) and [ADR-022](../decisions/ADR-022-e2e-tests-playwright.md).
+
 ## Golden rules
 
 - Paginated bodies: assert `$.content`, `$.content[0].id`, `$.page`, `$.size`, `$.totalElements` — never `$[0]`.
@@ -32,5 +36,5 @@ Coverage is measured with **JaCoCo**; quality gates run in **SonarCloud**. DTO/a
 
 ## Related
 
-- [Test plan](test-plan.md) · [Unit testing](unit-testing.md) · [Integration testing](integration-testing.md)
+- [Test plan](test-plan.md) · [Unit testing](unit-testing.md) · [Integration testing](integration-testing.md) · [E2E testing](e2e-testing.md)
 - [ADR-003: Testcontainers](../decisions/ADR-003-testcontainers-integration-testing.md)
