@@ -66,8 +66,9 @@ server:
   forward-headers-strategy: ${FORWARD_HEADERS_STRATEGY:none}
 
 # Actuator runs on its own port (OBS-01, ADR-023). Cloud Run only routes the main port, so
-# /actuator/prometheus is not reachable from the internet. The public health check moves to /healthz
-# on the main port (the "public" group); Spring only allows a one-segment path there.
+# /actuator/prometheus is not reachable from the internet. The public health check moves to /health
+# on the main port (the "public" group); Spring only allows a one-segment path there. Not /healthz:
+# Cloud Run reserves some paths ending in "z" and answers 404 before the container sees them.
 management:
   server:
     port: ${MANAGEMENT_SERVER_PORT:8081}
@@ -81,7 +82,7 @@ management:
       group:
         public:
           include: "*"
-          additional-path: "server:/healthz"
+          additional-path: "server:/health"
   metrics:
     tags:
       application: ${spring.application.name}

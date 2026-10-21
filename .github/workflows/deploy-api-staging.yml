@@ -81,7 +81,7 @@ jobs:
           # Cold start plus Flyway against a sleeping Neon takes a while; readiness reports
           # OUT_OF_SERVICE until the context is up.
           for attempt in $(seq 1 36); do
-            body=$(curl -s --max-time 10 "$CANDIDATE_URL/healthz" || true)
+            body=$(curl -s --max-time 10 "$CANDIDATE_URL/health" || true)
             echo "attempt $attempt: $body"
             if echo "$body" | grep -q '"status":"UP"'; then exit 0; fi
             sleep 5
@@ -118,6 +118,6 @@ jobs:
             echo "- Commit: \`${GITHUB_SHA::7}\`"
             echo "- Revision: \`$revision\`"
             echo "- Image: \`$IMAGE\`"
-            echo "- Health: $SERVICE_URL/healthz"
+            echo "- Health: $SERVICE_URL/health"
             echo "- Retention job: \`$RETENTION_JOB\` (updated when it exists)"
           } >> "$GITHUB_STEP_SUMMARY"

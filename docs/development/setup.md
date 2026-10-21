@@ -31,7 +31,7 @@ cd brewdeck-api
 
 - API: `http://localhost:8080`
 - Swagger UI: `http://localhost:8080/swagger-ui/index.html`
-- Health: `http://localhost:8080/healthz` (public). The actuator itself, with Prometheus metrics, is on the management port: `http://localhost:8081/actuator/prometheus` ([ADR-023](../decisions/ADR-023-application-metrics.md)).
+- Health: `http://localhost:8080/health` (public). The actuator itself, with Prometheus metrics, is on the management port: `http://localhost:8081/actuator/prometheus` ([ADR-023](../decisions/ADR-023-application-metrics.md)).
 
 **Optional: local metrics dashboards.** With the API running, start Prometheus and Grafana:
 
