@@ -157,7 +157,7 @@ GET    /api/public/legal              200 {termsVersion, published} (LEGAL-01; p
 ## Dashboard & system
 ```
 GET    /api/dashboard/summary
-GET    /healthz
+GET    /health
 ```
 
 > Keep this catalog and [`openapi.yaml`](openapi.yaml) in sync with the controllers. When endpoints change, also run the `update-postman` workflow.

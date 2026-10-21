@@ -80,7 +80,7 @@ jobs:
         run: |
           nohup java -jar target/brewdeck-api-*.jar > "$RUNNER_TEMP/api.log" 2>&1 &
           for attempt in $(seq 1 60); do
-            if curl -s http://localhost:8080/healthz | grep -q '"status":"UP"'; then exit 0; fi
+            if curl -s http://localhost:8080/health | grep -q '"status":"UP"'; then exit 0; fi
             sleep 2
           done
           echo "::error::API never reported UP"

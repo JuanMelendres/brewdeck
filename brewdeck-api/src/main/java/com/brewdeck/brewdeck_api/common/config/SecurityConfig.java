@@ -106,7 +106,7 @@ public class SecurityConfig {
                     .requestMatchers("/api/public/**")
                     .permitAll()
                     .requestMatchers(
-                        "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/healthz")
+                        "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/health")
                     .permitAll()
                     // Admin-only management APIs (e.g. the shared brew-method catalog).
                     .requestMatchers("/api/admin/**")
