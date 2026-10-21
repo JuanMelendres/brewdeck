@@ -10,7 +10,7 @@ Docs-as-code for BrewDeck. Everything here lives in the repo and evolves with th
 | [architecture/](architecture/) | System overview, technical design, database & API design, diagrams |
 | [decisions/](decisions/) | Architecture Decision Records (ADRs) |
 | [api/](api/) | Endpoint overview, conventions, OpenAPI, Postman pointer |
-| [testing/](testing/) | Testing strategy, plan, unit & integration guides |
+| [testing/](testing/) | Testing strategy, plan, unit, integration & E2E guides |
 | [development/](development/) | Local setup, env vars, [staging deployment](development/staging-deployment.md), coding standards, contribution guide, [Claude Code agents](development/agents.md) |
 | [security/](security/) | Vulnerability audit reports and remediation tracking |
 | [legal/](legal/) | Privacy notice and terms (drafts), ARCO and breach procedures, processors |

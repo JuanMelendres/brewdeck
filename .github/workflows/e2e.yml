@@ -1,0 +1,150 @@
+name: BrewDeck E2E
+
+# End-to-end smoke test through the real web, Next proxy, API, Postgres and email (ADR-022).
+# Not a required check yet: after two weeks without flaky runs, add it to branch protection.
+on:
+  pull_request:
+    branches: [master, develop]
+    paths:
+      - "brewdeck-api/**"
+      - "brewdeck-web/**"
+      - ".github/workflows/e2e.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: Playwright smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: brewdeck
+          POSTGRES_USER: brewdeck
+          POSTGRES_PASSWORD: brewdeck
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U brewdeck" --health-interval 5s --health-timeout 5s
+          --health-retries 10
+      mailpit:
+        image: axllent/mailpit:v1.27
+        ports:
+          - 1025:1025
+          - 8025:8025
+
+    env:
+      # The Next server proxies /api to this address. Set for both the build and `pnpm start`.
+      API_PROXY_TARGET: http://localhost:8080
+      E2E_BASE_URL: http://localhost:3000
+      MAILPIT_URL: http://localhost:8025
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Build API
+        working-directory: brewdeck-api
+        run: |
+          chmod +x mvnw
+          ./mvnw -B -q -DskipTests -Djacoco.skip=true package
+
+      # The local profile with mail sent to Mailpit; AI off; rate limits stay on.
+      - name: Start API
+        working-directory: brewdeck-api
+        env:
+          SPRING_PROFILES_ACTIVE: local
+          DB_URL: jdbc:postgresql://localhost:5432/brewdeck
+          AI_ENABLED: "false"
+          BREWDECK_MAIL_ENABLED: "true"
+          SPRING_MAIL_HOST: localhost
+          SPRING_MAIL_PORT: "1025"
+          BREWDECK_MAIL_FRONTEND_BASE_URL: http://localhost:3000
+          CORS_ALLOWED_ORIGINS: http://localhost:3000
+        run: |
+          nohup java -jar target/brewdeck-api-*.jar > "$RUNNER_TEMP/api.log" 2>&1 &
+          for attempt in $(seq 1 60); do
+            if curl -s http://localhost:8080/actuator/health | grep -q '"status":"UP"'; then exit 0; fi
+            sleep 2
+          done
+          echo "::error::API never reported UP"
+          tail -n 100 "$RUNNER_TEMP/api.log"
+          exit 1
+
+      - name: Set up pnpm
+        # Pinned to v4 for the same reason as web-ci.yml.
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: brewdeck-web/package.json
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: pnpm
+          cache-dependency-path: brewdeck-web/pnpm-lock.yaml
+
+      - name: Install web dependencies
+        working-directory: brewdeck-web
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium
+        working-directory: brewdeck-web
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Build web
+        working-directory: brewdeck-web
+        run: pnpm build
+
+      # Started here, not by Playwright: see the webServer note in playwright.config.ts.
+      - name: Start web
+        working-directory: brewdeck-web
+        run: |
+          nohup pnpm start > "$RUNNER_TEMP/web.log" 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl -s -o /dev/null http://localhost:3000/login; then exit 0; fi
+            sleep 2
+          done
+          echo "::error::Web never answered"
+          cat "$RUNNER_TEMP/web.log"
+          exit 1
+
+      - name: Run Playwright
+        working-directory: brewdeck-web
+        run: pnpm e2e
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: |
+            brewdeck-web/playwright-report/
+            brewdeck-web/test-results/
+          retention-days: 7
+
+      - name: Upload API and web logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: server-logs
+          path: |
+            ${{ runner.temp }}/api.log
+            ${{ runner.temp }}/web.log
+          retention-days: 7
