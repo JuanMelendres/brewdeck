@@ -20,3 +20,32 @@ services:
     ports:
       - "1025:1025"
       - "8025:8025"
+
+  # Local metrics (OBS-01, ADR-023), off by default: docker compose --profile metrics up -d
+  # Prometheus scrapes the API's management port; Grafana at http://localhost:3001 (anonymous).
+  # Both bind to localhost only.
+  prometheus:
+    image: prom/prometheus:v3.7.0
+    container_name: brewdeck-prometheus
+    profiles: [metrics]
+    volumes:
+      - ./ops/metrics/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "127.0.0.1:9090:9090"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  grafana:
+    image: grafana/grafana:12.2.0
+    container_name: brewdeck-grafana
+    profiles: [metrics]
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+    volumes:
+      - ./ops/metrics/grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "127.0.0.1:3001:3000"
+    depends_on:
+      - prometheus

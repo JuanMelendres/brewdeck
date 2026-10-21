@@ -1,0 +1,11 @@
+# Local Prometheus for BrewDeck (OBS-01, ADR-023). Start with:
+#   docker compose --profile metrics up -d
+# It scrapes the API's management port on the host (./mvnw spring-boot:run, port 8081).
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: brewdeck-api
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["host.docker.internal:8081"]

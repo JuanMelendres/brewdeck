@@ -22,7 +22,7 @@ class HealthEndpointIntegrationTest extends PostgresIntegrationTest {
   @Test
   void healthEndpoint_shouldReportUp() throws Exception {
     mockMvc
-        .perform(get("/actuator/health"))
+        .perform(get("/healthz"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.status").value("UP"));
   }
