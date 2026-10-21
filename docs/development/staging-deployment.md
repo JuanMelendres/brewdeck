@@ -756,6 +756,10 @@ starts it through the Cloud Run Admin API, so no endpoint is exposed.
 
 ### 13.1 Create the job
 
+**Only after the service runs a release with the one-shot mode** (#307). An older image ignores
+`BREWDECK_RETENTION_RUN_ONCE`, starts a normal server and never exits; the 10-minute timeout would
+then kill every execution.
+
 Run these after `source ~/brewdeck-staging/env.sh`. The job uses the same runtime account,
 secrets and env values as the service, plus the one-shot switch.
 
