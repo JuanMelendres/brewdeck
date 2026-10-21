@@ -47,7 +47,8 @@ Accepted (2026-10-21). Backlog OBS-01.
   - Grafana is anonymous and provisioned with the Prometheus data source.
   - Both bind to localhost only.
 
-**PR 2: BrewDeck metrics.**
+**PR 2: BrewDeck metrics** (built; names and tags in
+[metrics.md](../development/metrics.md)).
 - Counters and timers for:
   - login success and failure;
   - rate-limit rejections;

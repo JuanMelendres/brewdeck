@@ -43,7 +43,7 @@ docker compose --profile metrics up -d
   **Status → Targets**, `brewdeck-api` should be `UP`.
 - Grafana at `http://localhost:3001` (no login) has Prometheus as its data source. Try
   `rate(http_server_requests_seconds_count[1m])`, or import the community "JVM (Micrometer)"
-  dashboard.
+  dashboard. The list of BrewDeck's own metrics is in [metrics.md](metrics.md).
 - Stop them with `docker compose --profile metrics down`.
 
 ## 4. Run the frontend

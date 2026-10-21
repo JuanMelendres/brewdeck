@@ -12,8 +12,10 @@ import static org.mockito.Mockito.when;
 
 import com.brewdeck.brewdeck_api.auth.reset.MailProperties;
 import com.brewdeck.brewdeck_api.common.i18n.TestMessages;
+import com.brewdeck.brewdeck_api.common.metrics.BrewdeckMetrics;
 import com.brewdeck.brewdeck_api.featureflag.FeatureFlagService;
 import com.brewdeck.brewdeck_api.featureflag.FeatureKeys;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
@@ -35,6 +37,9 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 class SmtpMailAdapterTest {
 
+  private final SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+  private final BrewdeckMetrics metrics = new BrewdeckMetrics(meterRegistry);
+
   private final JavaMailSender mailSender = mock(JavaMailSender.class);
   private final FeatureFlagService featureFlagService = mock(FeatureFlagService.class);
   private final SmtpMailAdapter adapter =
@@ -44,7 +49,8 @@ class SmtpMailAdapterTest {
               true, "https://brewdeck.example", "BrewDeck <no-reply@brewdeck.example>"),
           new SyncTaskExecutor(),
           TestMessages.messageSource(),
-          featureFlagService);
+          featureFlagService,
+          metrics);
 
   @BeforeEach
   void realMimeMessages() {
@@ -65,7 +71,8 @@ class SmtpMailAdapterTest {
         new MailProperties(true, "https://brewdeck.example", from),
         new SyncTaskExecutor(),
         TestMessages.messageSource(),
-        featureFlagService);
+        featureFlagService,
+        metrics);
   }
 
   @ParameterizedTest
@@ -187,6 +194,22 @@ class SmtpMailAdapterTest {
     adapter.sendVerificationLink("brewer@example.com", "tok", Locale.ENGLISH);
 
     verify(mailSender).send(any(MimeMessage.class));
+    assertThat(
+            meterRegistry
+                .counter("brewdeck.mail.sent", "kind", "verification", "outcome", "failure")
+                .count())
+        .isEqualTo(1);
+  }
+
+  @Test
+  void sentEmail_isCountedByKind() {
+    adapter.sendResetLink("brewer@example.com", "tok", Locale.ENGLISH);
+
+    assertThat(
+            meterRegistry
+                .counter("brewdeck.mail.sent", "kind", "password-reset", "outcome", "success")
+                .count())
+        .isEqualTo(1);
   }
 
   @Test

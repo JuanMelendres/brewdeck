@@ -25,7 +25,11 @@ public class CacheConfig {
   public CacheManager cacheManager() {
     CaffeineCacheManager manager = new CaffeineCacheManager(FeatureFlagCache.CACHE_NAME);
     manager.setCaffeine(
-        Caffeine.newBuilder().expireAfterWrite(Duration.ofSeconds(45)).maximumSize(1_000));
+        Caffeine.newBuilder()
+            .expireAfterWrite(Duration.ofSeconds(45))
+            .maximumSize(1_000)
+            // Hit, miss and eviction counts for the cache metrics (cache.gets etc., OBS-01).
+            .recordStats());
     return manager;
   }
 }

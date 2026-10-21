@@ -11,9 +11,11 @@ import static org.mockito.Mockito.when;
 
 import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.auth.UserRepository;
+import com.brewdeck.brewdeck_api.common.metrics.BrewdeckMetrics;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitExceededException;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -28,6 +30,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class EmailVerificationServiceTest {
 
+  private final SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+  private final BrewdeckMetrics metrics = new BrewdeckMetrics(meterRegistry);
+
   @Mock private EmailVerificationTokenRepository tokenRepository;
   @Mock private UserRepository userRepository;
   @Mock private EmailVerificationMailPort mailPort;
@@ -38,7 +43,7 @@ class EmailVerificationServiceTest {
   void setUp() {
     service =
         new EmailVerificationService(
-            tokenRepository, userRepository, mailPort, new RateLimiter(false));
+            tokenRepository, userRepository, mailPort, new RateLimiter(false, metrics));
   }
 
   private User user(boolean verified) {

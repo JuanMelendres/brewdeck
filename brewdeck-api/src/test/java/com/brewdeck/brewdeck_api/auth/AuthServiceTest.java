@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import com.brewdeck.brewdeck_api.auth.refresh.RefreshTokenService;
 import com.brewdeck.brewdeck_api.common.config.PasswordEncoderConfig;
+import com.brewdeck.brewdeck_api.common.metrics.BrewdeckMetrics;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitExceededException;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
@@ -17,6 +18,7 @@ import com.brewdeck.brewdeck_api.featureflag.FeatureFlagService;
 import com.brewdeck.brewdeck_api.featureflag.FeatureKeys;
 import com.brewdeck.brewdeck_api.legal.LegalTerms;
 import com.brewdeck.brewdeck_api.legal.TermsNotAcceptedException;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.Duration;
 import java.time.Instant;
@@ -32,6 +34,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
+
+  private final SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+  private final BrewdeckMetrics metrics = new BrewdeckMetrics(meterRegistry);
 
   @Mock private FeatureFlagService featureFlagService;
 
@@ -56,8 +61,9 @@ class AuthServiceTest {
             encoder,
             emailVerificationService,
             refreshTokenService,
-            new RateLimiter(false),
-            featureFlagService);
+            new RateLimiter(false, metrics),
+            featureFlagService,
+            metrics);
   }
 
   private User stored(String email, String rawPassword) {
@@ -115,7 +121,8 @@ class AuthServiceTest {
             emailVerificationService,
             refreshTokenService,
             limiter,
-            featureFlagService);
+            featureFlagService,
+            metrics);
 
     assertThatThrownBy(
             () -> limited.register(new RegisterRequest("flood@example.com", "brew-test-pass-001")))
@@ -159,6 +166,8 @@ class AuthServiceTest {
         authService.login(new LoginRequest("brewer@example.com", "brew-test-pass-001")).response();
 
     assertThat(response.token()).isEqualTo("jwt-token");
+    assertThat(meterRegistry.counter("brewdeck.auth.logins", "outcome", "success").count())
+        .isEqualTo(1);
   }
 
   @Test
@@ -167,7 +176,7 @@ class AuthServiceTest {
         stored("brewer@example.com", "brew-test-pass-001"); // plain BCrypt, as before ADR-018
     when(userRepository.findByEmail("brewer@example.com")).thenReturn(Optional.of(legacy));
     when(jwtService.generateToken(any(User.class))).thenReturn("jwt-token");
-    PasswordEncoder configured = new PasswordEncoderConfig().passwordEncoder();
+    PasswordEncoder configured = new PasswordEncoderConfig().passwordEncoder(meterRegistry);
     AuthService withArgon2 =
         new AuthService(
             userRepository,
@@ -175,8 +184,9 @@ class AuthServiceTest {
             configured,
             emailVerificationService,
             refreshTokenService,
-            new RateLimiter(false),
-            featureFlagService);
+            new RateLimiter(false, metrics),
+            featureFlagService,
+            metrics);
 
     withArgon2.login(new LoginRequest("brewer@example.com", "brew-test-pass-001"));
 
@@ -192,6 +202,10 @@ class AuthServiceTest {
 
     assertThatThrownBy(() -> authService.login(new LoginRequest("brewer@example.com", "wrong")))
         .isInstanceOf(org.springframework.security.authentication.BadCredentialsException.class);
+    assertThat(meterRegistry.counter("brewdeck.auth.logins", "outcome", "failure").count())
+        .isEqualTo(1);
+    assertThat(meterRegistry.counter("brewdeck.auth.logins", "outcome", "success").count())
+        .isZero();
   }
 
   @Test
@@ -201,6 +215,8 @@ class AuthServiceTest {
     assertThatThrownBy(
             () -> authService.login(new LoginRequest("ghost@example.com", "brew-test-pass-001")))
         .isInstanceOf(org.springframework.security.authentication.BadCredentialsException.class);
+    assertThat(meterRegistry.counter("brewdeck.auth.logins", "outcome", "failure").count())
+        .isEqualTo(1);
   }
 
   @Test
@@ -357,7 +373,8 @@ class AuthServiceTest {
             emailVerificationService,
             refreshTokenService,
             limiter,
-            featureFlagService);
+            featureFlagService,
+            metrics);
     LoginRequest request = new LoginRequest("brewer@example.com", "brew-test-pass-001");
 
     assertThatThrownBy(() -> limited.login(request)).isInstanceOf(RateLimitExceededException.class);
@@ -374,8 +391,9 @@ class AuthServiceTest {
             encoder,
             emailVerificationService,
             refreshTokenService,
-            new RateLimiter(false),
-            featureFlagService);
+            new RateLimiter(false, metrics),
+            featureFlagService,
+            metrics);
     when(userRepository.findByEmail("ghost@example.com")).thenReturn(Optional.empty());
     LoginRequest request = new LoginRequest("ghost@example.com", "brew-test-pass-001");
 

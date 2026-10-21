@@ -2,6 +2,7 @@ package com.brewdeck.brewdeck_api.ai;
 
 import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
 import com.brewdeck.brewdeck_api.coffee.Coffee;
+import com.brewdeck.brewdeck_api.common.metrics.BrewdeckMetrics;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
 import com.brewdeck.brewdeck_api.featureflag.FeatureFlagService;
@@ -40,6 +41,7 @@ public class RecipeImprovementService {
   private final FeatureFlagService featureFlagService;
   private final RateLimiter rateLimiter;
   private final SuggestionGuardrails guardrails;
+  private final BrewdeckMetrics metrics;
 
   public SuggestedRecipeResponse improve(Long recipeId) {
     // Release gate before any work: see RecipeSuggestionService for the flag-vs-provider rationale.
@@ -96,7 +98,14 @@ public class RecipeImprovementService {
             recipe.getSteps(),
             history);
 
-    SuggestedRecipe suggested = guardrails.apply(method.getName(), suggestionPort.improve(context));
+    SuggestedRecipe suggested =
+        guardrails.apply(
+            method.getName(),
+            metrics.timeAi(
+                "improve",
+                aiProperties.provider(),
+                AiUnavailableException.class,
+                () -> suggestionPort.improve(context)));
     log.info(
         "Generated recipe improvement recipeId={} ratedSessions={} model={} promptVersion={}",
         recipeId,
