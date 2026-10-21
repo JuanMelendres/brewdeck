@@ -1,6 +1,7 @@
 package com.brewdeck.brewdeck_api.auth.verification;
 
 import com.brewdeck.brewdeck_api.auth.reset.MailProperties;
+import java.time.Instant;
 import java.util.Locale;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -42,5 +43,16 @@ public class LoggingEmailVerificationMailAdapter implements EmailVerificationMai
         email,
         properties.frontendBaseUrl(),
         properties.frontendBaseUrl());
+  }
+
+  @Override
+  public void sendRetentionReminder(
+      String email, String rawToken, Instant deleteAfter, Locale locale) {
+    log.info(
+        "Retention reminder for {} (deleted on or after {}): {}/verify-email?token={}",
+        email,
+        deleteAfter,
+        properties.frontendBaseUrl(),
+        rawToken);
   }
 }

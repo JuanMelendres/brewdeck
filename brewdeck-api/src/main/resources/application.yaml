@@ -1,6 +1,13 @@
 spring:
   application:
     name: brewdeck-api
+  # Emails are sent on the task executor after commit; let queued sends finish on shutdown, which
+  # matters most for the retention job (ADR-021) that exits right after its run.
+  task:
+    execution:
+      shutdown:
+        await-termination: true
+        await-termination-period: 30s
 
   # SMTP connection. Host, port, username, and password bind from SPRING_MAIL_HOST,
   # SPRING_MAIL_PORT, SPRING_MAIL_USERNAME, and SPRING_MAIL_PASSWORD. Only used when
@@ -72,6 +79,9 @@ app:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
 
 brewdeck:
+  # true only in the retention Cloud Run Job: run the purge once and exit (AUTH-06, ADR-021).
+  retention:
+    run-once: ${BREWDECK_RETENTION_RUN_ONCE:false}
   ai:
     enabled: ${AI_ENABLED:false}
     # claude (paid API, ADR-006) or ollama (local open-weight model, ADR-016).

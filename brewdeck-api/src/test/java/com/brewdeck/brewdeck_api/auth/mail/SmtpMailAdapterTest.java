@@ -17,6 +17,7 @@ import com.brewdeck.brewdeck_api.featureflag.FeatureKeys;
 import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
+import java.time.Instant;
 import java.util.Locale;
 import java.util.Properties;
 import org.junit.jupiter.api.AfterEach;
@@ -234,6 +235,23 @@ class SmtpMailAdapterTest {
     assertThat(plainText(message))
         .contains("https://brewdeck.example/login")
         .doesNotContain("token=");
+  }
+
+  @Test
+  void retentionReminder_namesTheDeletionDate_andLinksToVerify() throws Exception {
+    adapter.sendRetentionReminder(
+        "late@example.com",
+        "remind_TOKEN",
+        Instant.parse("2026-10-27T08:00:00Z"),
+        Locale.forLanguageTag("es"));
+
+    MimeMessage message = sentMessage();
+    assertThat(message.getSubject())
+        .isEqualTo("Verifica tu correo de BrewDeck o la cuenta se eliminará");
+    assertThat(message.getAllRecipients()[0].toString()).isEqualTo("late@example.com");
+    assertThat(plainText(message))
+        .contains("se eliminará a partir del 27 de octubre de 2026")
+        .contains("https://brewdeck.example/verify-email?token=remind_TOKEN");
   }
 
   @Test

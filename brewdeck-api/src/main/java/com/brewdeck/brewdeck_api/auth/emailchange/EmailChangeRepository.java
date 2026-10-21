@@ -32,4 +32,16 @@ public interface EmailChangeRepository extends JpaRepository<EmailChange, Long> 
       "UPDATE EmailChange c SET c.cancelledAt = :now WHERE c.id = :id AND c.confirmedAt IS NULL"
           + " AND c.cancelledAt IS NULL AND c.expiresAt > :now")
   int cancelIfPending(@Param("id") Long id, @Param("now") Instant now);
+
+  /**
+   * Retention purge (ADR-021): deletes up to {@code limit} rows that expired before the cutoff.
+   * Returns the number deleted; fewer than the limit means none are left.
+   */
+  @Modifying
+  @Query(
+      value =
+          "DELETE FROM email_change_requests WHERE id IN "
+              + "(SELECT id FROM email_change_requests WHERE expires_at < :cutoff ORDER BY id LIMIT :limit)",
+      nativeQuery = true)
+  int deleteExpiredBefore(@Param("cutoff") Instant cutoff, @Param("limit") int limit);
 }

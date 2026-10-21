@@ -80,9 +80,10 @@ We only use what the service needs to work and to remember your preferences:
 
 - **Your account and all its content:** while the account exists. If you ask us to delete it, we
   delete it at once. *[Pending legal review: whether a blocking period is required, Art. 24.]*
-- **Accounts that never verified their email:** deleted after 7 days.
+- **Accounts that never verified their email:** deleted from day 7. On day 5 we email you a new
+  link to verify it first.
 - **Technical logs (IP and browser):** 30 days.
-- **Expired or used single-use links:** deleted after 30 days.
+- **Single-use links and session identifiers:** deleted 30 days after they expire.
 
 ## 8. ARCO rights and revoking consent
 

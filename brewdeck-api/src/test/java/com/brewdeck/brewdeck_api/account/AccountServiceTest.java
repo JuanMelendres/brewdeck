@@ -12,10 +12,6 @@ import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
 import com.brewdeck.brewdeck_api.auth.InvalidCurrentPasswordException;
 import com.brewdeck.brewdeck_api.auth.Language;
 import com.brewdeck.brewdeck_api.auth.User;
-import com.brewdeck.brewdeck_api.auth.UserRepository;
-import com.brewdeck.brewdeck_api.auth.refresh.RefreshTokenRepository;
-import com.brewdeck.brewdeck_api.auth.reset.PasswordResetTokenRepository;
-import com.brewdeck.brewdeck_api.auth.verification.EmailVerificationTokenRepository;
 import com.brewdeck.brewdeck_api.coffee.CoffeeRepository;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitExceededException;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
@@ -38,17 +34,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 class AccountServiceTest {
 
   @Mock private CurrentUserProvider currentUserProvider;
-  @Mock private UserRepository userRepository;
   @Mock private CoffeeRepository coffeeRepository;
   @Mock private BrewMethodRepository brewMethodRepository;
   @Mock private RecipeRepository recipeRepository;
   @Mock private BrewSessionRepository brewSessionRepository;
-  @Mock private RefreshTokenRepository refreshTokenRepository;
-  @Mock private PasswordResetTokenRepository passwordResetTokenRepository;
-  @Mock private EmailVerificationTokenRepository emailVerificationTokenRepository;
   @Mock private PasswordEncoder passwordEncoder;
   @Mock private RateLimiter rateLimiter;
   @Mock private AccountMailPort mailPort;
+  @Mock private AccountEraser accountEraser;
 
   @InjectMocks private AccountService service;
 
@@ -66,31 +59,14 @@ class AccountServiceTest {
   }
 
   @Test
-  void delete_removesChildrenBeforeTheUser_thenSendsTheNotice() {
+  void delete_erasesTheAccount_thenSendsTheNotice() {
     User user = user();
     when(passwordEncoder.matches("brew-test-pass-123", "{argon2}hash")).thenReturn(true);
 
     service.delete(new DeleteAccountRequest("brew-test-pass-123"));
 
-    InOrder order =
-        inOrder(
-            brewSessionRepository,
-            recipeRepository,
-            coffeeRepository,
-            brewMethodRepository,
-            refreshTokenRepository,
-            passwordResetTokenRepository,
-            emailVerificationTokenRepository,
-            userRepository,
-            mailPort);
-    order.verify(brewSessionRepository).deleteAllByOwnerId(9L);
-    order.verify(recipeRepository).deleteAllByOwnerId(9L);
-    order.verify(coffeeRepository).deleteAllByOwnerId(9L);
-    order.verify(brewMethodRepository).deleteAllByOwnerId(9L);
-    order.verify(refreshTokenRepository).deleteAllByUserId(9L);
-    order.verify(passwordResetTokenRepository).deleteAllByUserId(9L);
-    order.verify(emailVerificationTokenRepository).deleteAllByUserId(9L);
-    order.verify(userRepository).delete(user);
+    InOrder order = inOrder(accountEraser, mailPort);
+    order.verify(accountEraser).erase(user);
     order
         .verify(mailPort)
         .sendAccountDeletedNotice("brewer@example.com", Locale.forLanguageTag("es"));
@@ -105,7 +81,7 @@ class AccountServiceTest {
         .isInstanceOf(InvalidCurrentPasswordException.class);
 
     verify(rateLimiter).requireAllowed(RateLimitRule.ACCOUNT_DELETE_USER, "9");
-    verifyNoInteractions(brewSessionRepository, recipeRepository, coffeeRepository, mailPort);
+    verifyNoInteractions(accountEraser, mailPort);
   }
 
   @Test
@@ -118,7 +94,7 @@ class AccountServiceTest {
     assertThatThrownBy(() -> service.delete(new DeleteAccountRequest("brew-test-pass-123")))
         .isInstanceOf(RateLimitExceededException.class);
 
-    verifyNoInteractions(passwordEncoder, brewSessionRepository, mailPort);
+    verifyNoInteractions(passwordEncoder, accountEraser, mailPort);
   }
 
   @Test

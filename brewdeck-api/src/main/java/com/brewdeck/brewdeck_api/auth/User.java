@@ -56,6 +56,10 @@ public class User {
   @Column(name = "terms_accepted_at")
   private Instant termsAcceptedAt;
 
+  /** When the retention purge warned this unverified account of its deletion (ADR-021). */
+  @Column(name = "retention_reminder_sent_at")
+  private Instant retentionReminderSentAt;
+
   public void revokeAccessTokens() {
     tokenVersion++;
   }
