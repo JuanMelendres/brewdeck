@@ -22,6 +22,9 @@ per environment only after the lawyer approves the texts and the pending markers
 - The post office (administración postal) and código postal of Apartado Postal 20456.
 - Lawyer: whether a blocking period (Art. 24) is needed before deleting an account.
 - Lawyer: whether the forum clause holds for consumers.
+- In each environment, `auth-require-email-verification` must be on before `legal-terms`: the
+  purge only deletes unverified accounts where verification is enforced (ADR-021), and the notice
+  promises the 7-day rule.
 
 ## Versioning
 
@@ -119,6 +122,6 @@ authorization. Examples:
 | Data | Kept | Mechanism |
 |---|---|---|
 | Account and its content | Until the user deletes it | "Delete my account" (ADR-020) |
-| Unverified accounts | 7 days | AUTH-06 purge job (pending) |
+| Unverified accounts | 7 days, after a reminder on day 5 (where verification is enforced) | Retention purge ([ADR-021](../decisions/ADR-021-retention-purge.md)) |
 | Request logs (IP, user agent) | 30 days | Cloud Logging default retention |
-| Expired or used tokens (reset, verification, refresh, email change) | 30 days | AUTH-06 purge job (pending) |
+| Expired or used tokens (reset, verification, refresh, email change) | 30 days after expiry | Retention purge ([ADR-021](../decisions/ADR-021-retention-purge.md)) |

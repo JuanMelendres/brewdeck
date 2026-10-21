@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.auth.verification;
 
+import java.time.Instant;
 import java.util.Locale;
 
 /** Delivers an email-verification link. Swap adapters via {@code brewdeck.mail.enabled}. */
@@ -13,4 +14,10 @@ public interface EmailVerificationMailPort {
    * email is the only place the difference shows (no account enumeration, AUTH-05.7).
    */
   void sendAccountExistsNotice(String email, Locale locale);
+
+  /**
+   * Warns an unverified account that the retention purge deletes it on or after {@code deleteAfter}
+   * unless the email is verified with the fresh link (AUTH-06, ADR-021).
+   */
+  void sendRetentionReminder(String email, String rawToken, Instant deleteAfter, Locale locale);
 }

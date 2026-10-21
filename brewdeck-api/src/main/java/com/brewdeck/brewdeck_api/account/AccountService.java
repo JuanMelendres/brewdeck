@@ -4,10 +4,6 @@ import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
 import com.brewdeck.brewdeck_api.auth.InvalidCurrentPasswordException;
 import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.auth.UserLocale;
-import com.brewdeck.brewdeck_api.auth.UserRepository;
-import com.brewdeck.brewdeck_api.auth.refresh.RefreshTokenRepository;
-import com.brewdeck.brewdeck_api.auth.reset.PasswordResetTokenRepository;
-import com.brewdeck.brewdeck_api.auth.verification.EmailVerificationTokenRepository;
 import com.brewdeck.brewdeck_api.coffee.CoffeeRepository;
 import com.brewdeck.brewdeck_api.coffee.CoffeeResponse;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
@@ -33,17 +29,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class AccountService {
 
   private final CurrentUserProvider currentUserProvider;
-  private final UserRepository userRepository;
   private final CoffeeRepository coffeeRepository;
   private final BrewMethodRepository brewMethodRepository;
   private final RecipeRepository recipeRepository;
   private final BrewSessionRepository brewSessionRepository;
-  private final RefreshTokenRepository refreshTokenRepository;
-  private final PasswordResetTokenRepository passwordResetTokenRepository;
-  private final EmailVerificationTokenRepository emailVerificationTokenRepository;
   private final PasswordEncoder passwordEncoder;
   private final RateLimiter rateLimiter;
   private final AccountMailPort mailPort;
+  private final AccountEraser accountEraser;
 
   @Transactional(readOnly = true)
   public AccountExportResponse export() {
@@ -71,8 +64,7 @@ public class AccountService {
   }
 
   /**
-   * Deletes the current user and everything they own, children first, in one transaction. The
-   * shared brew-method catalog is untouched. Email-change requests cascade from {@code users}.
+   * Deletes the current user and everything they own in one transaction ({@link AccountEraser}).
    */
   @Transactional
   public void delete(DeleteAccountRequest request) {
@@ -86,15 +78,7 @@ public class AccountService {
     String email = user.getEmail();
     Locale locale = UserLocale.of(user);
 
-    brewSessionRepository.deleteAllByOwnerId(id);
-    recipeRepository.deleteAllByOwnerId(id);
-    coffeeRepository.deleteAllByOwnerId(id);
-    brewMethodRepository.deleteAllByOwnerId(id);
-    refreshTokenRepository.deleteAllByUserId(id);
-    passwordResetTokenRepository.deleteAllByUserId(id);
-    emailVerificationTokenRepository.deleteAllByUserId(id);
-    userRepository.delete(user);
-    userRepository.flush();
+    accountEraser.erase(user);
 
     // The SMTP adapter sends after the commit, so a rolled-back delete emails nothing.
     mailPort.sendAccountDeletedNotice(email, locale);

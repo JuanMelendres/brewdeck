@@ -39,9 +39,39 @@ public class EmailVerificationService {
   /** Issues a fresh verification token for the user and sends the link best-effort. */
   @Transactional
   public void issueFor(User user) {
+    String rawToken = replaceOutstandingTokens(user, Instant.now());
+
+    // Best-effort: a mail failure must not fail registration or resend.
+    try {
+      mailPort.sendVerificationLink(user.getEmail(), rawToken, UserLocale.of(user));
+    } catch (RuntimeException e) {
+      log.warn("Failed to send verification email for user id={}: {}", user.getId(), e.toString());
+    }
+    log.info("Issued email verification token for user id={}", user.getId());
+  }
+
+  /**
+   * Retention purge (ADR-021): issues a fresh link, records the reminder, and warns the user that
+   * the account is deleted on or after {@code deleteAfter}. The send is best-effort; a failure
+   * still counts as reminded, so the purge cannot stall on a bad address.
+   */
+  @Transactional
+  public void issueRetentionReminder(User user, Instant now, Instant deleteAfter) {
+    String rawToken = replaceOutstandingTokens(user, now);
+    user.setRetentionReminderSentAt(now);
+    userRepository.save(user);
+    try {
+      mailPort.sendRetentionReminder(user.getEmail(), rawToken, deleteAfter, UserLocale.of(user));
+    } catch (RuntimeException e) {
+      log.warn("Failed to send retention reminder for user id={}: {}", user.getId(), e.toString());
+    }
+    log.info("Sent retention reminder to unverified user id={}", user.getId());
+  }
+
+  /** Retires the user's unused tokens and saves a new one. Returns the raw token for the link. */
+  private String replaceOutstandingTokens(User user, Instant now) {
     List<EmailVerificationToken> outstanding =
         tokenRepository.findByUserIdAndUsedAtIsNull(user.getId());
-    Instant now = Instant.now();
     outstanding.forEach(token -> token.setUsedAt(now));
     tokenRepository.saveAll(outstanding);
 
@@ -53,14 +83,7 @@ public class EmailVerificationService {
             .expiresAt(now.plus(TTL_HOURS, ChronoUnit.HOURS))
             .createdAt(now)
             .build());
-
-    // Best-effort: a mail failure must not fail registration or resend.
-    try {
-      mailPort.sendVerificationLink(user.getEmail(), rawToken, UserLocale.of(user));
-    } catch (RuntimeException e) {
-      log.warn("Failed to send verification email for user id={}: {}", user.getId(), e.toString());
-    }
-    log.info("Issued email verification token for user id={}", user.getId());
+    return rawToken;
   }
 
   /** Best-effort notice to an existing account's owner that someone signed up with the address. */

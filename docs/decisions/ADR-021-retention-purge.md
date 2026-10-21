@@ -27,8 +27,11 @@ Accepted (2026-10-20). Backlog AUTH-06.
 ## Decision
 
 **Trigger: a Cloud Run Job.**
-- The job runs the same API image in a one-shot mode: `brewdeck.retention.run-once=true` and no
-  web server. It runs the purge, logs the counts, and exits 0, or non-zero on failure.
+- The job runs the same API image in a one-shot mode (`brewdeck.retention.run-once=true`). It runs
+  the purge, logs the counts, and exits 0, or non-zero on failure.
+  - The web server still starts, because the security configuration needs a web context. A Cloud
+    Run Job has no ingress, so nothing can reach it.
+  - Queued emails finish before exit (`spring.task.execution.shutdown.await-termination`).
 - Cloud Scheduler starts the job once a day. No HTTP endpoint is exposed.
 - The deploy pipeline points the job at the new image after the service is promoted, so the job
   always runs the schema the service migrated.
