@@ -59,7 +59,7 @@ class ManagementPortIntegrationTest extends PostgresIntegrationTest {
 
   @Test
   void publicHealth_isOnTheMainPort_withoutDetails() throws Exception {
-    HttpResponse<String> response = get(serverPort, "/healthz");
+    HttpResponse<String> response = get(serverPort, "/health");
 
     assertThat(response.statusCode()).isEqualTo(200);
     assertThat(response.body()).isEqualTo("{\"status\":\"UP\"}");

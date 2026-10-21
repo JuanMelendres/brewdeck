@@ -49,6 +49,6 @@ class ProdProfileApiDocsIntegrationTest extends PostgresIntegrationTest {
 
   @Test
   void healthCheck_isStillPublicInProd() throws Exception {
-    mockMvc.perform(get("/healthz")).andExpect(status().isOk());
+    mockMvc.perform(get("/health")).andExpect(status().isOk());
   }
 }

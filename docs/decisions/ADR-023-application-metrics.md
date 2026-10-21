@@ -29,10 +29,13 @@ Accepted (2026-10-21). Backlog OBS-01.
   - A first `SecurityFilterChain` matches requests by the bound management port and permits them.
     That port serves no API.
   - On the main port, `/actuator/**` gets 401.
-- **The public health check moves to `/healthz` on the main port**, as the `public` health group
+- **The public health check moves to `/health` on the main port**, as the `public` health group
   (`additional-path`), without details.
   - Spring only allows a one-segment path there, so `/actuator/health` could not be kept on the
     main port.
+  - Not `/healthz`: Cloud Run reserves some paths that end in `z`, and its front end answers 404
+    without reaching the container. The first staging deploy of this change failed on it
+    (traffic stayed on the old revision), so the path is `/health`.
   - Updated: the deploy pipeline, the E2E workflow, `SecurityConfig`, tests, docs and Postman.
 - **Tags:**
   - `application` comes from `spring.application.name`.
@@ -66,7 +69,7 @@ Accepted (2026-10-21). Backlog OBS-01.
   - Standard metrics in a standard format, private by construction on Cloud Run.
   - Local dashboards in one command.
 - **Negative:**
-  - The health path changes from `/actuator/health` to `/healthz`. External checks that used the
+  - The health path changes from `/actuator/health` to `/health`. External checks that used the
     old path must change; staging has no others today.
   - A second listening port: a little more memory, and one more thing to remember on other hosts.
     On a host that exposes every port, `MANAGEMENT_SERVER_PORT` must stay firewalled.

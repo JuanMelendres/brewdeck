@@ -2893,12 +2893,12 @@
       "method": "GET",
       "header": [],
       "url": {
-       "raw": "{{baseURL}}/healthz",
+       "raw": "{{baseURL}}/health",
        "host": [
         "{{baseURL}}"
        ],
        "path": [
-        "healthz"
+        "health"
        ]
       }
      },
