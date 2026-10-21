@@ -13,6 +13,10 @@ import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.Locale;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -28,9 +32,9 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.web.util.HtmlUtils;
 
 /**
- * Real SMTP delivery for verification, password-reset and email-change messages, active when {@code
- * brewdeck.mail.enabled=true} (the logging adapters are used otherwise). Connection settings come
- * from {@code spring.mail.*} / {@code SPRING_MAIL_*}, so any SMTP provider works.
+ * Real SMTP delivery for verification, password-reset, email-change and account messages, active
+ * when {@code brewdeck.mail.enabled=true} (the logging adapters are used otherwise). Connection
+ * settings come from {@code spring.mail.*} / {@code SPRING_MAIL_*}, so any SMTP provider works.
  *
  * <p>Sending is deferred until the surrounding transaction <b>commits</b> (so a rolled-back request
  * never emails a token that was not saved) and runs on the application task executor (so a slow
@@ -100,6 +104,17 @@ public class SmtpMailAdapter
   @Override
   public void sendAccountExistsNotice(String email, Locale locale) {
     send("account-exists", email, properties.frontendBaseUrl() + "/login", locale);
+  }
+
+  @Override
+  public void sendRetentionReminder(
+      String email, String rawToken, Instant deleteAfter, Locale locale) {
+    String date =
+        DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG)
+            .withLocale(locale)
+            .withZone(ZoneOffset.UTC)
+            .format(deleteAfter);
+    send("retention-reminder", email, link("/verify-email", rawToken), locale, date);
   }
 
   @Override

@@ -28,4 +28,16 @@ public interface EmailVerificationTokenRepository
   @Modifying
   @Query("DELETE FROM EmailVerificationToken t WHERE t.userId = :userId")
   int deleteAllByUserId(@Param("userId") Long userId);
+
+  /**
+   * Retention purge (ADR-021): deletes up to {@code limit} rows that expired before the cutoff.
+   * Returns the number deleted; fewer than the limit means none are left.
+   */
+  @Modifying
+  @Query(
+      value =
+          "DELETE FROM email_verification_tokens WHERE id IN "
+              + "(SELECT id FROM email_verification_tokens WHERE expires_at < :cutoff ORDER BY id LIMIT :limit)",
+      nativeQuery = true)
+  int deleteExpiredBefore(@Param("cutoff") Instant cutoff, @Param("limit") int limit);
 }

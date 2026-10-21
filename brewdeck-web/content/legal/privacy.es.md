@@ -79,9 +79,10 @@ Solo usamos lo necesario para que el servicio funcione y para recordar tus prefe
 
 - **Tu cuenta y todo su contenido:** mientras la cuenta exista. Si pides eliminarla, los borramos
   de inmediato. *[Pendiente de revisión legal: si se requiere un periodo de bloqueo, artículo 24.]*
-- **Cuentas que nunca verificaron su correo:** se eliminan a los 7 días.
+- **Cuentas que nunca verificaron su correo:** se eliminan a partir de los 7 días. Antes, el día 5,
+  te avisamos por correo con un enlace nuevo para verificarla.
 - **Registros técnicos (IP y navegador):** 30 días.
-- **Enlaces de un solo uso vencidos o usados:** se eliminan a los 30 días.
+- **Enlaces de un solo uso e identificadores de sesión:** se eliminan 30 días después de vencer.
 
 ## 8. Derechos ARCO y revocación del consentimiento
 

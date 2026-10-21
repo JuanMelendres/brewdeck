@@ -29,6 +29,7 @@ PostgreSQL 16, schema versioned by Flyway (`brewdeck-api/src/main/resources/db/m
 | V21 | All timestamp columns `TIMESTAMP` → `TIMESTAMPTZ`; existing rows read in `${legacy_timezone}` (`BREWDECK_LEGACY_TIMEZONE`, default `UTC`). Fails on an invalid zone and if any zone-less timestamp column remains |
 | V27 | Nullable `ai_model` (80) and `ai_prompt_version` (20) on `recipes`: AI provenance of a saved suggestion |
 | V31 | `recipes.water_temp` and `brew_sessions.actual_temp` `INTEGER` → `NUMERIC(4,1)`: temperatures keep one decimal (DATA-01). Existing integers convert exactly |
+| V37 | Nullable `users.retention_reminder_sent_at`: when the retention purge reminded an unverified account (AUTH-06, ADR-021) |
 
 ## Entity relationships
 
