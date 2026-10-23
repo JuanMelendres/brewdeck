@@ -3,6 +3,7 @@ package com.brewdeck.brewdeck_api.auth;
 import com.brewdeck.brewdeck_api.auth.refresh.InvalidRefreshTokenException;
 import com.brewdeck.brewdeck_api.auth.refresh.RefreshTokenService;
 import com.brewdeck.brewdeck_api.auth.verification.EmailVerificationService;
+import com.brewdeck.brewdeck_api.common.metrics.BrewdeckMetrics;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
 import com.brewdeck.brewdeck_api.common.security.SecureTokens;
@@ -32,6 +33,7 @@ public class AuthService {
   private final RefreshTokenService refreshTokenService;
   private final RateLimiter rateLimiter;
   private final FeatureFlagService featureFlagService;
+  private final BrewdeckMetrics metrics;
 
   /**
    * A real hash of a random password with the same encoder (and cost) as stored hashes. Login
@@ -47,7 +49,8 @@ public class AuthService {
       EmailVerificationService emailVerificationService,
       RefreshTokenService refreshTokenService,
       RateLimiter rateLimiter,
-      FeatureFlagService featureFlagService) {
+      FeatureFlagService featureFlagService,
+      BrewdeckMetrics metrics) {
     this.userRepository = userRepository;
     this.jwtService = jwtService;
     this.passwordEncoder = passwordEncoder;
@@ -55,6 +58,7 @@ public class AuthService {
     this.refreshTokenService = refreshTokenService;
     this.rateLimiter = rateLimiter;
     this.featureFlagService = featureFlagService;
+    this.metrics = metrics;
     this.dummyPasswordHash = passwordEncoder.encode(SecureTokens.newToken());
   }
 
@@ -115,6 +119,7 @@ public class AuthService {
     String hashToCheck = maybeUser.map(User::getPasswordHash).orElse(dummyPasswordHash);
     boolean passwordMatches = passwordEncoder.matches(request.password(), hashToCheck);
     if (maybeUser.isEmpty() || !passwordMatches) {
+      metrics.loginFailed();
       throw new BadCredentialsException(INVALID_CREDENTIALS);
     }
     User user = maybeUser.get();
@@ -124,6 +129,7 @@ public class AuthService {
       userRepository.save(user);
       log.info("Upgraded password hash to Argon2id for user id={}", user.getId());
     }
+    metrics.loginSucceeded();
     return tokenResponse(user, refreshTokenService.issue(user));
   }
 

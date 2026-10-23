@@ -13,6 +13,7 @@ import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.coffee.CoffeeRepository;
 import com.brewdeck.brewdeck_api.common.i18n.TestMessages;
+import com.brewdeck.brewdeck_api.common.metrics.BrewdeckMetrics;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitExceededException;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimitRule;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
@@ -21,6 +22,7 @@ import com.brewdeck.brewdeck_api.featureflag.FeatureFlagService;
 import com.brewdeck.brewdeck_api.featureflag.FeatureKeys;
 import com.brewdeck.brewdeck_api.method.BrewMethod;
 import com.brewdeck.brewdeck_api.method.BrewMethodRepository;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -32,6 +34,9 @@ import org.springframework.http.HttpStatus;
 
 @ExtendWith(MockitoExtension.class)
 class RecipeSuggestionServiceTest {
+
+  private final SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+  private final BrewdeckMetrics metrics = new BrewdeckMetrics(meterRegistry);
 
   @Mock private CoffeeRepository coffeeRepository;
   @Mock private BrewMethodRepository brewMethodRepository;
@@ -54,8 +59,9 @@ class RecipeSuggestionServiceTest {
             new AiProperties.Ollama("http://localhost:11434", "qwen3:8b", 90, 1024)),
         featureFlagService,
         currentUserProvider,
-        new RateLimiter(false),
-        new SuggestionGuardrails(TestMessages.messageSource()));
+        new RateLimiter(false, metrics),
+        new SuggestionGuardrails(TestMessages.messageSource()),
+        metrics);
   }
 
   @Test
@@ -93,7 +99,8 @@ class RecipeSuggestionServiceTest {
             featureFlagService,
             currentUserProvider,
             limiter,
-            new SuggestionGuardrails(TestMessages.messageSource()));
+            new SuggestionGuardrails(TestMessages.messageSource()),
+            metrics);
 
     assertThatThrownBy(() -> limited.suggest(new SuggestRecipeRequest(1L, 2L, null)))
         .isInstanceOf(RateLimitExceededException.class);
@@ -149,5 +156,17 @@ class RecipeSuggestionServiceTest {
     assertThat(result.rationale()).isEqualTo("Balanced extraction for a medium roast.");
     assertThat(result.aiModel()).isEqualTo("claude-haiku-4-5");
     assertThat(result.aiPromptVersion()).isEqualTo(RecipePrompts.VERSION);
+    assertThat(
+            meterRegistry
+                .timer(
+                    "brewdeck.ai.requests",
+                    "operation",
+                    "suggest",
+                    "provider",
+                    "claude",
+                    "outcome",
+                    "success")
+                .count())
+        .isEqualTo(1);
   }
 }

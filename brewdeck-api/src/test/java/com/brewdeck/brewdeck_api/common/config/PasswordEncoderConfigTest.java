@@ -3,6 +3,7 @@ package com.brewdeck.brewdeck_api.common.config;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -14,7 +15,22 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 class PasswordEncoderConfigTest {
 
-  private final PasswordEncoder encoder = new PasswordEncoderConfig().passwordEncoder();
+  private final SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+
+  private final PasswordEncoder encoder =
+      new PasswordEncoderConfig().passwordEncoder(meterRegistry);
+
+  @Test
+  void argon2idHashing_isTimed_includingTheWaitForAPermit() {
+    String hash = encoder.encode("correct horse battery staple");
+    encoder.matches("correct horse battery staple", hash);
+
+    assertThat(meterRegistry.timer("brewdeck.password.hash", "operation", "encode").count())
+        .isEqualTo(1);
+    assertThat(meterRegistry.timer("brewdeck.password.hash", "operation", "matches").count())
+        .isEqualTo(1);
+    assertThat(meterRegistry.timer("brewdeck.password.hash.wait").count()).isEqualTo(2);
+  }
 
   @Test
   void newHashesAreArgon2id() {
@@ -78,7 +94,7 @@ class PasswordEncoderConfigTest {
             return true;
           }
         };
-    PasswordEncoder bounded = new BoundedPasswordEncoder(slow, 2);
+    PasswordEncoder bounded = new BoundedPasswordEncoder(slow, 2, meterRegistry);
     ExecutorService pool = Executors.newFixedThreadPool(8);
     CountDownLatch done = new CountDownLatch(16);
     try {

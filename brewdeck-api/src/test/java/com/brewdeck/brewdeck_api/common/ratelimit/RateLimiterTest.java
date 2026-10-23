@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.brewdeck.brewdeck_api.common.i18n.TestMessages;
+import com.brewdeck.brewdeck_api.common.metrics.BrewdeckMetrics;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -40,7 +42,9 @@ class RateLimiterTest {
   }
 
   private final MutableClock clock = new MutableClock();
-  private final RateLimiter limiter = new RateLimiter(true, clock);
+  private final SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+  private final BrewdeckMetrics metrics = new BrewdeckMetrics(meterRegistry);
+  private final RateLimiter limiter = new RateLimiter(true, clock, metrics);
 
   private void exhaust(RateLimitRule rule, String key) {
     for (int i = 0; i < rule.limit(); i++) {
@@ -58,6 +62,22 @@ class RateLimiterTest {
     assertThat(blocked.allowed()).isFalse();
     assertThat(blocked.retryAfter()).isEqualTo(Duration.ofMinutes(10));
     assertThat(blocked.retryAfterSeconds()).isEqualTo(600);
+  }
+
+  @Test
+  void rejectionsAreCountedByRule_withoutTheKey() {
+    exhaust(RateLimitRule.LOGIN_EMAIL, "a@x.com");
+
+    limiter.tryAcquire(RateLimitRule.LOGIN_EMAIL, "a@x.com");
+    limiter.tryAcquire(RateLimitRule.LOGIN_EMAIL, "a@x.com");
+
+    assertThat(
+            meterRegistry.counter("brewdeck.rate.limit.rejections", "rule", "login_email").count())
+        .isEqualTo(2);
+    // The key (an email or IP) never becomes a tag.
+    assertThat(meterRegistry.find("brewdeck.rate.limit.rejections").meters())
+        .singleElement()
+        .satisfies(meter -> assertThat(meter.getId().getTags()).hasSize(1));
   }
 
   @Test
@@ -89,7 +109,7 @@ class RateLimiterTest {
 
   @Test
   void disabledLimiterAlwaysAllows() {
-    RateLimiter disabled = new RateLimiter(false, clock);
+    RateLimiter disabled = new RateLimiter(false, clock, metrics);
 
     for (int i = 0; i < 100; i++) {
       assertThat(disabled.tryAcquire(RateLimitRule.REGISTER_IP, "10.0.0.1").allowed()).isTrue();

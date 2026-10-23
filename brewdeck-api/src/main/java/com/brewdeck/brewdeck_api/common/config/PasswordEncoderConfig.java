@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.common.config;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Map;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,12 +31,13 @@ public class PasswordEncoderConfig {
   private static final int MAX_CONCURRENT_HASHES = 4;
 
   @Bean
-  public PasswordEncoder passwordEncoder() {
+  public PasswordEncoder passwordEncoder(MeterRegistry meterRegistry) {
     PasswordEncoder argon2 =
         new BoundedPasswordEncoder(
             new Argon2PasswordEncoder(
                 SALT_LENGTH, HASH_LENGTH, PARALLELISM, MEMORY_KIB, ITERATIONS),
-            MAX_CONCURRENT_HASHES);
+            MAX_CONCURRENT_HASHES,
+            meterRegistry);
     PasswordEncoder bcrypt = new LenientBCryptPasswordEncoder();
     DelegatingPasswordEncoder encoder =
         new DelegatingPasswordEncoder(ARGON2_ID, Map.of(ARGON2_ID, argon2, "bcrypt", bcrypt));

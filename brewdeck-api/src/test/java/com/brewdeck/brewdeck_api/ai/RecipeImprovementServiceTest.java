@@ -12,6 +12,7 @@ import com.brewdeck.brewdeck_api.auth.CurrentUserProvider;
 import com.brewdeck.brewdeck_api.auth.User;
 import com.brewdeck.brewdeck_api.coffee.Coffee;
 import com.brewdeck.brewdeck_api.common.i18n.TestMessages;
+import com.brewdeck.brewdeck_api.common.metrics.BrewdeckMetrics;
 import com.brewdeck.brewdeck_api.common.ratelimit.RateLimiter;
 import com.brewdeck.brewdeck_api.featureflag.FeatureDisabledException;
 import com.brewdeck.brewdeck_api.featureflag.FeatureFlagService;
@@ -21,6 +22,7 @@ import com.brewdeck.brewdeck_api.recipe.Recipe;
 import com.brewdeck.brewdeck_api.recipe.RecipeRepository;
 import com.brewdeck.brewdeck_api.session.BrewSession;
 import com.brewdeck.brewdeck_api.session.BrewSessionRepository;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -35,6 +37,9 @@ import org.springframework.http.HttpStatus;
 
 @ExtendWith(MockitoExtension.class)
 class RecipeImprovementServiceTest {
+
+  private final SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+  private final BrewdeckMetrics metrics = new BrewdeckMetrics(meterRegistry);
 
   @Mock private RecipeRepository recipeRepository;
   @Mock private BrewSessionRepository brewSessionRepository;
@@ -57,8 +62,9 @@ class RecipeImprovementServiceTest {
             new AiProperties.Ollama("http://localhost:11434", "qwen3:8b", 90, 1024)),
         currentUserProvider,
         featureFlagService,
-        new RateLimiter(false),
-        new SuggestionGuardrails(TestMessages.messageSource()));
+        new RateLimiter(false, metrics),
+        new SuggestionGuardrails(TestMessages.messageSource()),
+        metrics);
   }
 
   private Recipe sampleRecipe() {

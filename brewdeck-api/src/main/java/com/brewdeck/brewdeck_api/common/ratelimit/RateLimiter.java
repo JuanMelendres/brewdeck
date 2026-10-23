@@ -1,5 +1,6 @@
 package com.brewdeck.brewdeck_api.common.ratelimit;
 
+import com.brewdeck.brewdeck_api.common.metrics.BrewdeckMetrics;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import java.time.Clock;
@@ -25,17 +26,20 @@ public class RateLimiter {
 
   private final boolean enabled;
   private final Clock clock;
+  private final BrewdeckMetrics metrics;
   private final Map<RateLimitRule, Cache<String, Window>> windows =
       new EnumMap<>(RateLimitRule.class);
 
   @Autowired
-  public RateLimiter(@Value("${brewdeck.rate-limit.enabled:true}") boolean enabled) {
-    this(enabled, Clock.systemUTC());
+  public RateLimiter(
+      @Value("${brewdeck.rate-limit.enabled:true}") boolean enabled, BrewdeckMetrics metrics) {
+    this(enabled, Clock.systemUTC(), metrics);
   }
 
-  RateLimiter(boolean enabled, Clock clock) {
+  RateLimiter(boolean enabled, Clock clock, BrewdeckMetrics metrics) {
     this.enabled = enabled;
     this.clock = clock;
+    this.metrics = metrics;
     for (RateLimitRule rule : RateLimitRule.values()) {
       // Caffeine only evicts idle keys to bound memory; window boundaries are decided below from
       // the injected clock.
@@ -70,6 +74,7 @@ public class RateLimiter {
     }
     Duration retryAfter = Duration.between(now, window.start().plus(rule.window()));
     log.warn("Rate limit {} exceeded ({} attempts in window)", rule, window.count());
+    metrics.rateLimited(rule.name());
     return new Decision(false, retryAfter);
   }
 

@@ -1,8 +1,10 @@
 package com.brewdeck.brewdeck_api.retention;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.brewdeck.brewdeck_api.common.metrics.BrewdeckMetrics;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -14,6 +16,7 @@ import org.springframework.boot.DefaultApplicationArguments;
 class RetentionPurgeRunnerTest {
 
   @Mock private RetentionPurgeService purgeService;
+  @Mock private BrewdeckMetrics metrics;
   @InjectMocks private RetentionPurgeRunner runner;
 
   @Test
@@ -23,6 +26,7 @@ class RetentionPurgeRunnerTest {
     runner.run(new DefaultApplicationArguments());
 
     assertThat(runner.getExitCode()).isZero();
+    verify(metrics).retentionRun(2, 1, 0, 40);
   }
 
   @Test
