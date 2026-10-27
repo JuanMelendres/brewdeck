@@ -5,7 +5,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.brewdeck.brewdeck_api.auth.User;
+import com.brewdeck.brewdeck_api.auth.UserRepository;
 import com.brewdeck.brewdeck_api.common.PostgresIntegrationTest;
+import java.time.Instant;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,12 +24,30 @@ import tools.jackson.databind.ObjectMapper;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@WithMockUser
+// Its own account: the ranking is per owner and capped at 20, so on the shared mock user, coffees
+// from other test classes could push "Rare Coffee" out of the top 20.
+@WithMockUser(username = MostUsedCoffeesIntegrationTest.OWNER)
 class MostUsedCoffeesIntegrationTest extends PostgresIntegrationTest {
+
+  static final String OWNER = "most-used-coffees@example.com";
 
   @Autowired private MockMvc mockMvc;
 
+  @Autowired private UserRepository userRepository;
+
   @Autowired private ObjectMapper objectMapper;
+
+  @BeforeEach
+  void seedOwner() {
+    if (userRepository.findByEmail(OWNER).isEmpty()) {
+      userRepository.save(
+          User.builder()
+              .email(OWNER)
+              .passwordHash("integration-test-placeholder")
+              .createdAt(Instant.now())
+              .build());
+    }
+  }
 
   @Test
   void getMostUsed_shouldRankCoffeesByRecipeCount() throws Exception {
