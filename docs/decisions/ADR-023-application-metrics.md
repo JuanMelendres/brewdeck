@@ -60,10 +60,27 @@ Accepted (2026-10-21). Backlog OBS-01.
 - `recordStats()` on the `featureFlags` cache.
 - **No user id, email or token as a tag**, for cardinality and privacy.
 
-**PR 3 (owner decision): export from staging and production.**
-- Candidates: Grafana Cloud free over OTLP push, or Google Cloud Monitoring.
-- Push export does not need the port to be reachable, and it needs an account and a secret.
-- Tied to PROD-02.
+**PR 3: export from staging over OTLP to Grafana Cloud** (owner decision 2026-10-27).
+- Candidates were Grafana Cloud free over OTLP push and Google Cloud Monitoring. Grafana Cloud
+  won: it works the same from any host (PROD-02 is still open, and a home lab is an option), it
+  has dashboards, and its free tier covers staging. Cloud Monitoring needs no secret, but it
+  charges for custom metrics past a small allowance, and it ties the metrics to GCP.
+- `micrometer-registry-otlp` pushes every minute. In Boot 4 it is only auto-configured with
+  `spring-boot-opentelemetry` on the classpath, which brings the OpenTelemetry API and SDK; no
+  traces or logs are exported.
+- Off by default (`OTLP_METRICS_ENABLED=false`): local runs and tests send nothing. When it is on,
+  startup fails without `OTLP_METRICS_URL` and `OTLP_METRICS_AUTHORIZATION`, so a missing secret
+  shows up as a failed deploy, not as silence.
+- Histograms are sent as base-2 exponential histograms. Each is one series in Grafana Cloud
+  instead of about 70 bucket series, which keeps staging inside the free tier's series limit.
+  Assumption: Grafana Cloud stores them as native histograms; check after the first push.
+- The Prometheus endpoint on the management port stays, for local use.
+- **Cloud Run limit:** CPU is only allocated while a request is being handled. Between requests
+  the push thread barely runs, so a quiet staging shows gaps, and a push can be late. Data is not
+  lost: counters are cumulative. Always-allocated CPU would fix it and costs money; not worth it
+  for staging.
+- The retention job pushes once when it exits (the registry publishes on shutdown).
+- Production export is decided with PROD-02.
 
 ## Consequences
 - **Positive:**

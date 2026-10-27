@@ -90,6 +90,24 @@ management:
       # Lets Prometheus compute latency percentiles across instances (histogram_quantile).
       percentiles-histogram:
         http.server.requests: true
+  # Push export over OTLP (OBS-01 PR 3, ADR-023): Grafana Cloud on staging. Off by default, so local
+  # runs and tests send nothing. OTLP_METRICS_AUTHORIZATION is a secret ("Basic <base64 of
+  # instanceId:token>"); it comes from Secret Manager, never from this file.
+  otlp:
+    metrics:
+      export:
+        enabled: ${OTLP_METRICS_ENABLED:false}
+        url: ${OTLP_METRICS_URL:}
+        headers:
+          Authorization: ${OTLP_METRICS_AUTHORIZATION:}
+        step: ${OTLP_METRICS_STEP:1m}
+        compression-mode: gzip
+        # OTLP defaults to milliseconds; seconds keep the names Grafana shows close to the
+        # Prometheus ones (http_server_requests_seconds).
+        base-time-unit: seconds
+        # One exponential histogram per series instead of ~70 explicit bucket series: keeps
+        # staging inside the free tier's series limit.
+        histogram-flavor: base2-exponential-bucket-histogram
 
 app:
   cors:

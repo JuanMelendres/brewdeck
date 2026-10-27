@@ -2,9 +2,9 @@
 
 The API publishes Micrometer metrics in Prometheus format on the management port:
 `http://localhost:8081/actuator/prometheus` ([ADR-023](../decisions/ADR-023-application-metrics.md)).
-Cloud Run never routes that port, so on staging nothing outside the container can read them, and
-nothing collects them yet (export is ADR-023 PR 3). To look at them locally, start Prometheus and
-Grafana as described in [setup.md](setup.md).
+Cloud Run never routes that port, so on staging nothing outside the container can read them.
+Staging pushes them to Grafana Cloud instead (see [Export to Grafana Cloud](#export-to-grafana-cloud)).
+To look at them locally, start Prometheus and Grafana as described in [setup.md](setup.md).
 
 Every metric carries two common tags: `application` (`brewdeck-api`) and `environment` (`local`,
 `test`, `staging` or `prod`).
@@ -34,8 +34,8 @@ histogram_quantile(0.95, sum by (le, operation) (rate(brewdeck_ai_requests_secon
 ```
 
 The retention purge runs as a Cloud Run Job that exits right after the run, so nothing scrapes its
-metrics. They only become useful once metrics are pushed (ADR-023 PR 3). Until then, the job's
-log line `Retention purge done: ...` is the record.
+metrics. With OTLP export on, the job pushes them once as it shuts down. The job's log line
+`Retention purge done: ...` stays the record either way.
 
 ## Framework metrics
 
@@ -47,6 +47,24 @@ Spring Boot and Micrometer also publish, among others:
 - `hikaricp.*`: the database connection pool.
 - `cache.*` for the `featureFlags` cache: `cache.gets` (tag `result`: `hit`, `miss`),
   `cache.evictions`, `cache.size`.
+
+## Export to Grafana Cloud
+
+With `OTLP_METRICS_ENABLED=true`, the API pushes every metric over OTLP (HTTP, protobuf, gzip)
+every minute ([ADR-023](../decisions/ADR-023-application-metrics.md), PR 3). Staging sends them
+to a Grafana Cloud free stack. Setup steps are in
+[staging-deployment.md](staging-deployment.md#14-metrics-export-to-grafana-cloud-obs-01).
+
+- Variables: `OTLP_METRICS_URL`, `OTLP_METRICS_AUTHORIZATION` (a secret), `OTLP_METRICS_STEP`
+  ([environment-variables.md](environment-variables.md)).
+- Timers are sent in seconds, so Grafana's names should match `/actuator/prometheus`.
+  Assumption: check after the first push; Grafana's OTLP translation adds unit and `_total`
+  suffixes on its own. Filter staging with `environment="staging"`.
+- Timers arrive as exponential histograms, which Grafana Cloud stores as native histograms
+  (assumption, same check). Query percentiles on the histogram itself, without `_bucket`:
+  `histogram_quantile(0.95, sum(rate(http_server_requests_seconds[5m])))`.
+- On Cloud Run, pushes only run while the instance has CPU, which is while it handles a request.
+  Expect gaps when staging is idle.
 
 ## Rule for new metrics
 

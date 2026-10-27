@@ -862,6 +862,82 @@ The deploy pipeline skips the job update when the job does not exist.
 | Scheduler shows `PERMISSION_DENIED` | The `run.invoker` binding on the job is missing, or the scheduler uses a different service account. |
 | Pipeline step `Update retention job image` denied | The deployer needs `roles/run.developer`, which it already has from 12.2, and `serviceAccountUser` on the runtime account. |
 
+## 14. Metrics export to Grafana Cloud (OBS-01)
+
+**Status:** not set up yet. Needs a release with OBS-01 PR 3. An older image ignores the
+`OTLP_*` variables.
+
+The API pushes its metrics over OTLP every minute to a Grafana Cloud free stack
+([ADR-023](../decisions/ADR-023-application-metrics.md), [metrics.md](metrics.md)). The secret
+is created by you and goes straight into Secret Manager; it never passes through a file or a chat.
+
+### 14.1 Grafana Cloud stack and token
+
+1. Sign up at grafana.com (free plan) and create a stack. Pick a region near `us-central1`.
+2. In the stack, open **Connections → Add new connection → OpenTelemetry (OTLP)**.
+3. Note the **OTLP endpoint** (`https://otlp-gateway-prod-<region>.grafana.net/otlp`) and the
+   **instance ID** (a number).
+4. Create a token there (access policy with the `metrics:write` scope only). Copy it; Grafana shows
+   it once.
+
+### 14.2 Secret
+
+The header value is `Basic ` + base64 of `instanceId:token`. Build it in your shell and pipe it
+into Secret Manager:
+
+```bash
+source ~/brewdeck-staging/env.sh
+read -r OTLP_INSTANCE_ID          # the instance ID
+read -rs OTLP_TOKEN               # the token; not echoed
+printf 'Basic %s' "$(printf '%s:%s' "$OTLP_INSTANCE_ID" "$OTLP_TOKEN" | base64 | tr -d '\n')" \
+  | gcloud secrets create brewdeck-otlp-authorization --data-file=-
+unset OTLP_TOKEN
+
+gcloud secrets add-iam-policy-binding brewdeck-otlp-authorization \
+  --member="serviceAccount:$RUNTIME_SA" --role=roles/secretmanager.secretAccessor
+```
+
+### 14.3 Turn it on (service and retention job)
+
+`OTLP_METRICS_URL` is the endpoint from 14.1 plus `/v1/metrics`.
+
+```bash
+OTLP_URL="https://otlp-gateway-prod-<region>.grafana.net/otlp/v1/metrics"
+
+gcloud run services update brewdeck-api-staging --region="$REGION" \
+  --update-env-vars="OTLP_METRICS_ENABLED=true,OTLP_METRICS_URL=$OTLP_URL" \
+  --update-secrets=OTLP_METRICS_AUTHORIZATION=brewdeck-otlp-authorization:latest
+
+gcloud run jobs update brewdeck-retention-staging --region="$REGION" \
+  --update-env-vars="OTLP_METRICS_ENABLED=true,OTLP_METRICS_URL=$OTLP_URL" \
+  --update-secrets=OTLP_METRICS_AUTHORIZATION=brewdeck-otlp-authorization:latest
+```
+
+- The service update creates a new revision and moves traffic to it. The deploy pipeline keeps
+  env values and secrets, so later deploys keep the export on.
+- If the URL or the secret is missing, the new revision fails to start with
+  `OTLP_METRICS_ENABLED is true but ... is not set`, and traffic stays on the old revision.
+- Regenerate `retention.env.yaml` (13.1) afterwards, so it matches the service again.
+
+### 14.4 Check
+
+1. Open the web app and click around for a minute; the push only runs while the instance has CPU.
+2. In Grafana, **Explore → Prometheus data source** (`grafanacloud-<stack>-prom`):
+   `brewdeck_auth_logins_total{environment="staging"}` or
+   `http_server_requests_seconds_count{environment="staging"}`.
+3. Check the assumptions in [metrics.md](metrics.md#export-to-grafana-cloud): metric names, and
+   timers stored as native histograms.
+4. No data after 5 minutes: read the service logs for `OtlpMeterRegistry` or `Failed to publish`.
+   A 401 means the header is wrong; rebuild the secret (14.2) with
+   `gcloud secrets versions add` instead of `create`.
+
+**Cost:** Grafana Cloud free plan: 10,000 active series and 14 days of retention. Staging uses a
+small part of that; the usage page in Grafana Cloud shows the count. Cloud Run egress for one push
+a minute is negligible.
+
+To turn it off: `gcloud run services update brewdeck-api-staging --region="$REGION"
+--update-env-vars=OTLP_METRICS_ENABLED=false` (and the same for the job).
+
 ## Next
 
 Optional follow-ups:
