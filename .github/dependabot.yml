@@ -7,9 +7,9 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 10
-    labels:
-      - "dependencies"
-      - "backend"
+    # No labels: the repo has none for dependencies, and Dependabot comments on every PR when
+    # a configured label is missing. [] also stops it adding its default ones.
+    labels: []
 
   - package-ecosystem: "npm"
     directory: "/brewdeck-web"
@@ -17,9 +17,7 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 10
-    labels:
-      - "dependencies"
-      - "frontend"
+    labels: []
     groups:
       # react and react-dom must stay on the exact same version (React 19 hard-fails
       # at runtime otherwise, "Incompatible React versions") - group them so
@@ -37,9 +35,7 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 10
-    labels:
-      - "dependencies"
-      - "ci"
+    labels: []
     ignore:
       # web-ci.yml deliberately pins pnpm/action-setup@v4 (see the inline comment on
       # that step): v6's self-installer crashes resolving the packageManager-pinned
